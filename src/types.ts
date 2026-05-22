@@ -29,6 +29,24 @@ export interface CustomField {
   valor: string;
 }
 
+export interface Club {
+  id: string;
+  nombre: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  nombre: string;
+  cantidad: number;
+}
+
+export interface JournalNote {
+  id: string;
+  titulo: string;
+  contenido: string;
+  fecha: number;
+}
+
 export interface Character {
   id?: number; // IndexedDB primary auto-increment key
   tempId?: string; // For unsaved drafts
@@ -59,15 +77,20 @@ export interface Character {
   estresFisicoMax: number;
   estresMental: number;
   estresMentalMax: number;
-  estresMentalConsecuencia: string;
+  estresMentalConsecuencia?: string; // Keep for retro-compatibility as optional
   estresSocial: number;
   estresSocialMax: number;
+
+  // Consecuencias de Estrés
+  consecuenciasFisicas: string[];
+  consecuenciasMentales: string[];
+  consecuenciasSociales: string[];
 
   // Experiencia
   pxs: number;
 
   // Aspectos
-  aspectoTemporal: string;
+  aspectoTemporal: string[];
   aspectosPersonales: string[]; // List of custom traits/aspects
 
   // Habilidades
@@ -77,11 +100,15 @@ export interface Character {
   conjuros: Spell[];
   pociones: Potion[];
   clubes: string;
+  clubesList?: Club[];
   equipo: string;
+  equipoList?: InventoryItem[];
   notas: string;
+  notasList?: JournalNote[];
 
   // Imágenes (Stored as base64 string/dataURL to work flawlessly offline & serialize for backup)
   avatarImage: string; // base64 / url
+  avatarFit?: "cover" | "contain"; // how the avatar fits the card
   galleryImages: string[]; // array of base64 / urls
 
   // Campos personalizados
@@ -185,7 +212,6 @@ export const DEFAULT_SKILLS = [
   { nombre: "Físico", categoria: "Físicas", valor: 0 },
   { nombre: "Deportes", categoria: "Físicas", valor: 0 },
   { nombre: "Sigilo", categoria: "Físicas", valor: 0 },
-  { nombre: "Predigitación", categoria: "Físicas", valor: 0 },
   { nombre: "Prestidigitación", categoria: "Físicas", valor: 0 },
   { nombre: "Duelo", categoria: "Físicas", valor: 0 },
   { nombre: "Supervivencia", categoria: "Físicas", valor: 0 },

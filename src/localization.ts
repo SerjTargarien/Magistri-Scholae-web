@@ -21,6 +21,9 @@ export interface TranslationDict {
   delete: string;
   confirmDelete: string;
   confirmDeleteText: string;
+  confirmDeleteCheckbox: string;
+  confirmDeleteButton: string;
+  confirmDeleteTitle: string;
   about: string;
   installHelp: string;
   installHelpText: string;
@@ -71,6 +74,9 @@ export interface TranslationDict {
   estresMental: string;
   estresMentalConsecuencia: string;
   estresSocial: string;
+  consecuenciasFisicas: string;
+  consecuenciasMentales: string;
+  consecuenciasSociales: string;
   pxs: string;
   aspectoTemporal: string;
   aspectosPersonales: string;
@@ -117,6 +123,8 @@ export interface TranslationDict {
   placeholderFamiliar: string;
   placeholderVaritaSintonia: string;
   placeholderConsecuenciaMental: string;
+  placeholderConsecuenciaFisica: string;
+  placeholderConsecuenciaSocial: string;
   placeholderNuevoAspecto: string;
   placeholderConjuroName: string;
   placeholderPocionName: string;
@@ -140,10 +148,15 @@ export interface TranslationDict {
   labelCordura: string;
   labelLocura: string;
   labelGrado: string;
+  labelDificultad: string;
   labelFamiliarEmpty: string;
   labelVaritaEmpty: string;
   labelComplicacionesEmpty: string;
   labelAspectsEmpty: string;
+  labelAspectosTemporalesEmpty: string;
+  labelConsecuenciasFisicasEmpty: string;
+  labelConsecuenciasMentalesEmpty: string;
+  labelConsecuenciasSocialesEmpty: string;
   labelSpellsEmpty: string;
   labelPotionsEmpty: string;
   labelGalleryEmpty: string;
@@ -167,14 +180,31 @@ export interface TranslationDict {
   confirmDeleteSpell: string;
   confirmDeletePotion: string;
   confirmDeleteGalleryImage: string;
+  confirmDeleteClub: string;
+  confirmDeleteItem: string;
+  confirmDeleteNote: string;
+  labelQuantity: string;
+  addClub: string;
+  addItem: string;
+  addNote: string;
+  emptyClubs: string;
+  emptyInventory: string;
+  emptyNotes: string;
+  placeholderNoteTitle: string;
+  placeholderNoteContent: string;
+  labelNotesChronicleTitle: string;
   noConceptDefined: string;
   filterByHouse: string;
   studentPrefix: string;
   noName: string;
   subirArchivoLocalMax: string;
   imageTooLarge: string;
+  imageUploadError: string;
   errorStoringStudent: string;
   loadingMessage: string;
+  lblAvatarFit: string;
+  optAvatarCover: string;
+  optAvatarContain: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -194,6 +224,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     delete: "Eliminar",
     confirmDelete: "¿Eliminar a este alumno?",
     confirmDeleteText: "Esta acción es irreversible y se perderán todos sus datos y fotos.",
+    confirmDeleteCheckbox: "Entiendo que esta acción es permanente e irreversible",
+    confirmDeleteButton: "Confirmar eliminación definitiva",
+    confirmDeleteTitle: "Confirmar eliminación",
     about: "Acerca de",
     installHelp: "Instalación PWA",
     installHelpText: "Esta aplicación se ejecuta localmente y sin conexión. En tu dispositivo móvil o de escritorio, selecciona 'Instalar aplicación' o 'Añadir a pantalla de inicio' en el menú de tu navegador para llevar la experiencia mágica a pantalla completa.",
@@ -244,6 +277,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     estresMental: "Estrés Mental",
     estresMentalConsecuencia: "Consecuencia Mental",
     estresSocial: "Estrés Social",
+    consecuenciasFisicas: "Consecuencias Físicas",
+    consecuenciasMentales: "Consecuencias Mentales",
+    consecuenciasSociales: "Consecuencias Sociales",
     pxs: "Experiencia Acumulada",
     aspectoTemporal: "Aspecto Temporal",
     aspectosPersonales: "Aspectos Personales",
@@ -290,10 +326,12 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderFamiliar: "p. ej. Gato negro de tres ojos",
     placeholderVaritaSintonia: "p. ej. Madera de sauce con núcleo de pluma de fénix",
     placeholderConsecuenciaMental: "p. ej. Memoria mermada",
+    placeholderConsecuenciaFisica: "p. ej. Brazo entumecido",
+    placeholderConsecuenciaSocial: "p. ej. Murmullos a mi paso",
     placeholderNuevoAspecto: "p. ej. Hijo Predilecto de Urania",
-    placeholderConjuroName: "p. ej. Ignis Fatuus",
-    placeholderPocionName: "p. ej. Filtro de paz",
-    placeholderClubes: "p. ej. Club de Duelo escolar (Rango Oro)",
+    placeholderConjuroName: "p. ej. Revelio",
+    placeholderPocionName: "p. ej. Poción Herbovitalizante",
+    placeholderClubes: "p. ej. Club de Duelo escolar",
     placeholderEquipo: "p. ej. Reloj de arena, caldero peltre, grimorio antiguo de transmutación",
     placeholderNotasChronicle: "Escribe aquí las crónicas del alumno, registros de clase, pactos extraescolares o secretos que vaya descubriendo de la academia...",
 
@@ -306,17 +344,22 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     secCustomFields: "Atributos Personalizados",
     labelActual: "ACTUAL",
     labelMaximo: "MÁXIMO",
-    labelSalud: "SALUD",
+    labelSalud: "SANO",
     labelHerido: "HERIDO",
-    labelSereno: "SERENO",
+    labelSereno: "INTEGRADO",
     labelAislado: "AISLADO",
-    labelCordura: "CORDURA",
-    labelLocura: "LOCURA",
+    labelCordura: "SERENO",
+    labelLocura: "AGITADO",
     labelGrado: "Grado",
+    labelDificultad: "Dificultad",
     labelFamiliarEmpty: "Sin acompañante registrado",
     labelVaritaEmpty: "Varita básica de la academia",
     labelComplicacionesEmpty: "El alumno no reporta trabas ni maldiciones latentes.",
     labelAspectsEmpty: "Sin rasgos de guardián declarados.",
+    labelAspectosTemporalesEmpty: "Sin aspectos temporales activos.",
+    labelConsecuenciasFisicasEmpty: "Sin secuelas físicas ni heridas activas.",
+    labelConsecuenciasMentalesEmpty: "Sin traumas ni afecciones mentales en curso.",
+    labelConsecuenciasSocialesEmpty: "Sin estigmas ni perjuicios sociales latentes.",
     labelSpellsEmpty: "GRIMORIO VACÍO",
     labelPotionsEmpty: "ALAMBIQUE LIMPIO",
     labelGalleryEmpty: "GALERÍA DE FOTOS TOTALMENTE VACÍA",
@@ -340,14 +383,31 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmDeleteSpell: "¿Eliminar este conjuro?",
     confirmDeletePotion: "¿Eliminar esta poción?",
     confirmDeleteGalleryImage: "¿Eliminar esta imagen de la galería?",
+    confirmDeleteClub: "¿Eliminar este club del alumno?",
+    confirmDeleteItem: "¿Eliminar este de objeto del inventario?",
+    confirmDeleteNote: "¿Eliminar esta nota del alumno?",
+    labelQuantity: "Cantidad",
+    addClub: "Registrar Club",
+    addItem: "Registrar Objeto de Inventario",
+    addNote: "Añadir Nota a la Bitácora",
+    emptyClubs: "Sin clubes ni extracurriculares registrados.",
+    emptyInventory: "El inventario de equipamiento del alumno está vacío.",
+    emptyNotes: "La bitácora de notas del alumno está vacía.",
+    placeholderNoteTitle: "p. ej. Sospechas sobre el Profesor de Alquimia",
+    placeholderNoteContent: "Escribe el contenido detallado de la nota aquí...",
+    labelNotesChronicleTitle: "Bitácora Celestial",
     noConceptDefined: "Sin concepto definido",
     filterByHouse: "Filtrar por Casa",
     studentPrefix: "ALUMNO",
     noName: "Sin Nombre",
     subirArchivoLocalMax: "Subir Archivo Local (Tamaño Máx: 2MB)",
-    imageTooLarge: "La imagen supera los 2MB. Selecciona un archivo menor.",
+    imageTooLarge: "La imagen es demasiado pesada y no se pudo reducir lo suficiente. Selecciona una menor de 5MB.",
+    imageUploadError: "No se pudo procesar la imagen. Comprueba el formato o tamaño del archivo.",
     errorStoringStudent: "Error al guardar el alumno en la base de datos.",
     loadingMessage: "Abriendo grimorio de la escuela...",
+    lblAvatarFit: "Ajuste de Retrato",
+    optAvatarCover: "Recortar / Llenar",
+    optAvatarContain: "Ajustar / Lienzo Completo",
   },
   en: {
     appName: "Magistri Scholae",
@@ -365,6 +425,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     delete: "Delete",
     confirmDelete: "Delete this student?",
     confirmDeleteText: "This action is irreversible and all student data and photos will be lost.",
+    confirmDeleteCheckbox: "I understand that this action is permanent and irreversible",
+    confirmDeleteButton: "Confirm permanent deletion",
+    confirmDeleteTitle: "Confirm Deletion",
     about: "About",
     installHelp: "PWA Installation",
     installHelpText: "This app runs fully locally and offline. On desktop or mobile devices, select 'Install app' or 'Add to home screen' from your browser menu to open it in full-screen immersion.",
@@ -415,6 +478,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     estresMental: "Mental Stress",
     estresMentalConsecuencia: "Severe Mental Scar",
     estresSocial: "Social Stress",
+    consecuenciasFisicas: "Physical Consequences",
+    consecuenciasMentales: "Mental Consequences",
+    consecuenciasSociales: "Social Consequences",
     pxs: "Earned Experience (Pxs)",
     aspectoTemporal: "Temporary Aspect",
     aspectosPersonales: "Personal Aspects / Traits",
@@ -461,6 +527,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderFamiliar: "e.g., Three-eyed black cat",
     placeholderVaritaSintonia: "e.g., Willow wood with phoenix feather core",
     placeholderConsecuenciaMental: "e.g., Fading memory",
+    placeholderConsecuenciaFisica: "e.g., Numbed arm, Exhaustion",
+    placeholderConsecuenciaSocial: "e.g., Rumors, Damaged reputation",
     placeholderNuevoAspecto: "e.g., Urania's Favorite Son",
     placeholderConjuroName: "e.g., Ignis Fatuus",
     placeholderPocionName: "e.g., Peace Draught",
@@ -484,10 +552,15 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelCordura: "SANITY",
     labelLocura: "SHATTERED",
     labelGrado: "Grade",
+    labelDificultad: "Difficulty",
     labelFamiliarEmpty: "No companion registered",
     labelVaritaEmpty: "Academy basic issue wand",
     labelComplicacionesEmpty: "No hardships documented.",
     labelAspectsEmpty: "Empty personal qualities.",
+    labelAspectosTemporalesEmpty: "No active temporary aspects.",
+    labelConsecuenciasFisicasEmpty: "No physical ailments or injuries currently active.",
+    labelConsecuenciasMentalesEmpty: "No mental scars or traumas currently active.",
+    labelConsecuenciasSocialesEmpty: "No social drawbacks or community exclusion currently active.",
     labelSpellsEmpty: "NO SPELLS INDEXED",
     labelPotionsEmpty: "NO POTIONS INDEXED",
     labelGalleryEmpty: "EMPTY GALLERIES",
@@ -511,13 +584,30 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmDeleteSpell: "Delete this spell?",
     confirmDeletePotion: "Delete this formula?",
     confirmDeleteGalleryImage: "Delete this picture?",
+    confirmDeleteClub: "Delete this club from the student's profile?",
+    confirmDeleteItem: "Delete this item from the student's inventory?",
+    confirmDeleteNote: "Delete this journal note?",
+    labelQuantity: "Quantity",
+    addClub: "Register Club",
+    addItem: "Register Inventory Item",
+    addNote: "Add Journal Note",
+    emptyClubs: "No clubs or extracurricular activities registered.",
+    emptyInventory: "The student's inventory is empty.",
+    emptyNotes: "The student's journal is empty.",
+    placeholderNoteTitle: "e.g. Suspicions on the Alchemy Professor",
+    placeholderNoteContent: "Write detailed note content here...",
+    labelNotesChronicleTitle: "Celestial Journal",
     noConceptDefined: "No concept defined",
     filterByHouse: "House Filter",
     studentPrefix: "STUDENT",
     noName: "No Name",
     subirArchivoLocalMax: "Upload File (Max Size: 2MB)",
-    imageTooLarge: "Image is too large. Please select a file under 2MB.",
+    imageTooLarge: "Image is too large and compression could not reduce it enough. Please select a dynamic image under 5MB.",
+    imageUploadError: "Could not process image. Please check file format or select a smaller image.",
     errorStoringStudent: "Error storing student in the database.",
     loadingMessage: "Decrypting School Tomes...",
+    lblAvatarFit: "Portrait Fit",
+    optAvatarCover: "Crop / Fill Frame",
+    optAvatarContain: "Fit / Whole Canvas",
   },
 };

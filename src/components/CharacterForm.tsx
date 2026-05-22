@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
+import { compressImage } from "../utils/imageCompressor";
 import { 
   Save, 
   X, 
@@ -59,23 +60,32 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     estresMentalConsecuencia: "",
     estresSocial: 0,
     estresSocialMax: 5,
+    consecuenciasFisicas: [],
+    consecuenciasMentales: [],
+    consecuenciasSociales: [],
     pxs: 0,
-    aspectoTemporal: "",
+    aspectoTemporal: [],
     aspectosPersonales: [],
     habilidades: DEFAULT_SKILLS.map(sk => ({ ...sk, valor: 0 })),
     conjuros: [],
     pociones: [],
     clubes: "",
+    clubesList: [],
     equipo: "",
+    equipoList: [],
     notas: "",
+    notasList: [],
     avatarImage: "",
+    avatarFit: "cover",
     galleryImages: [],
     camposPersonalizados: [],
   });
 
   const [formError, setFormError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [newAspectName, setNewAspectName] = useState("");
   const [newComplicationName, setNewComplicationName] = useState("");
+  const [newFormTempAspect, setNewFormTempAspect] = useState("");
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldValue, setNewFieldValue] = useState("");
   const [pastedAvatarUrl, setPastedAvatarUrl] = useState("");
@@ -111,8 +121,15 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         estresMentalConsecuencia: initialCharacter.estresMentalConsecuencia || "",
         estresSocial: initialCharacter.estresSocial !== undefined ? initialCharacter.estresSocial : 0,
         estresSocialMax: initialCharacter.estresSocialMax !== undefined ? initialCharacter.estresSocialMax : 5,
+        consecuenciasFisicas: initialCharacter.consecuenciasFisicas || [],
+        consecuenciasMentales: initialCharacter.consecuenciasMentales || [],
+        consecuenciasSociales: initialCharacter.consecuenciasSociales || [],
         pxs: initialCharacter.pxs !== undefined ? initialCharacter.pxs : 0,
-        aspectoTemporal: initialCharacter.aspectoTemporal || "",
+        aspectoTemporal: initialCharacter.aspectoTemporal
+          ? (Array.isArray(initialCharacter.aspectoTemporal)
+              ? initialCharacter.aspectoTemporal
+              : [initialCharacter.aspectoTemporal])
+          : [],
         aspectosPersonales: initialCharacter.aspectosPersonales || [],
         habilidades: initialCharacter.habilidades && initialCharacter.habilidades.length > 0 
           ? initialCharacter.habilidades 
@@ -120,9 +137,13 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         conjuros: initialCharacter.conjuros || [],
         pociones: initialCharacter.pociones || [],
         clubes: initialCharacter.clubes || "",
+        clubesList: initialCharacter.clubesList || [],
         equipo: initialCharacter.equipo || "",
+        equipoList: initialCharacter.equipoList || [],
         notas: initialCharacter.notas || "",
+        notasList: initialCharacter.notasList || [],
         avatarImage: initialCharacter.avatarImage || "",
+        avatarFit: initialCharacter.avatarFit || "cover",
         galleryImages: initialCharacter.galleryImages || [],
         camposPersonalizados: initialCharacter.camposPersonalizados || [],
       });
@@ -142,19 +163,17 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   };
 
-  // Convert uploaded files to base64
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: "avatar" | "gallery") => {
+  // Convert and compress uploaded files to base64
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "avatar" | "gallery") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert(t.imageTooLarge);
-      return;
-    }
+    setImageError(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64Str = event.target?.result as string;
+    try {
+      // Auto compress the image so it fits beautifully in our DB storage limit without silent limits
+      const base64Str = await compressImage(file, 1600, 1600, 0.75);
+      
       if (target === "avatar") {
         setCharacterState(prev => ({ ...prev, avatarImage: base64Str }));
       } else {
@@ -163,8 +182,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           galleryImages: [...prev.galleryImages, base64Str]
         }));
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error("Image upload/compression error:", err);
+      setImageError(t.imageUploadError);
+    } finally {
+      e.target.value = ""; // refresh picker
+    }
   };
 
   // Pasting external url safely
@@ -188,6 +211,23 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     setCharacterState(prev => ({
       ...prev,
       aspectosPersonales: prev.aspectosPersonales.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // Temporary Aspects Management
+  const addTempAspect = () => {
+    if (!newFormTempAspect.trim()) return;
+    setCharacterState(prev => ({
+      ...prev,
+      aspectoTemporal: [...(prev.aspectoTemporal || []), newFormTempAspect.trim()]
+    }));
+    setNewFormTempAspect("");
+  };
+
+  const removeTempAspect = (idx: number) => {
+    setCharacterState(prev => ({
+      ...prev,
+      aspectoTemporal: (prev.aspectoTemporal || []).filter((_, i) => i !== idx)
     }));
   };
 
@@ -276,15 +316,19 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         characterState.estresSocial !== (initialCharacter.estresSocial !== undefined ? initialCharacter.estresSocial : 0) ||
         characterState.estresSocialMax !== (initialCharacter.estresSocialMax !== undefined ? initialCharacter.estresSocialMax : 5) ||
         characterState.pxs !== (initialCharacter.pxs !== undefined ? initialCharacter.pxs : 0) ||
-        characterState.aspectoTemporal !== (initialCharacter.aspectoTemporal || "") ||
+        JSON.stringify(characterState.aspectoTemporal) !== JSON.stringify(Array.isArray(initialCharacter.aspectoTemporal) ? initialCharacter.aspectoTemporal : (initialCharacter.aspectoTemporal ? [initialCharacter.aspectoTemporal] : [])) ||
         JSON.stringify(characterState.aspectosPersonales) !== JSON.stringify(initialCharacter.aspectosPersonales || []) ||
         JSON.stringify(characterState.habilidades) !== JSON.stringify(initialCharacter.habilidades || []) ||
         JSON.stringify(characterState.conjuros) !== JSON.stringify(initialCharacter.conjuros || []) ||
         JSON.stringify(characterState.pociones) !== JSON.stringify(initialCharacter.pociones || []) ||
         characterState.clubes !== (initialCharacter.clubes || "") ||
+        JSON.stringify(characterState.clubesList) !== JSON.stringify(initialCharacter.clubesList || []) ||
         characterState.equipo !== (initialCharacter.equipo || "") ||
+        JSON.stringify(characterState.equipoList) !== JSON.stringify(initialCharacter.equipoList || []) ||
         characterState.notas !== (initialCharacter.notas || "") ||
+        JSON.stringify(characterState.notasList) !== JSON.stringify(initialCharacter.notasList || []) ||
         characterState.avatarImage !== (initialCharacter.avatarImage || "") ||
+        characterState.avatarFit !== (initialCharacter.avatarFit || "cover") ||
         JSON.stringify(characterState.galleryImages) !== JSON.stringify(initialCharacter.galleryImages || []) ||
         JSON.stringify(characterState.camposPersonalizados) !== JSON.stringify(initialCharacter.camposPersonalizados || [])
       );
@@ -511,14 +555,14 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             {/* Display box */}
-            <div className="flex justify-center">
-              <div className="w-40 h-52 bg-neutral-950 rounded-2xl border-2 border-violet-500/30 flex items-center justify-center overflow-hidden shadow-inner relative">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-40 aspect-[3/4] bg-neutral-950 rounded-2xl border-2 border-violet-500/30 flex items-center justify-center overflow-hidden shadow-inner relative">
                 {characterState.avatarImage ? (
                   <img
                     id="avatar-edit-preview"
                     src={characterState.avatarImage}
                     alt="Retrato"
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full ${characterState.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                     referrerPolicy="no-referrer"
                   />
                 ) : (
@@ -530,6 +574,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 {characterState.avatarImage && (
                   <button
                     id="btn-remove-avatar"
+                    type="button"
                     onClick={() => setCharacterState(prev => ({ ...prev, avatarImage: "" }))}
                     className="absolute bottom-2 right-2 bg-rose-950/80 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 transition-all cursor-pointer"
                     title="Remove avatar"
@@ -538,10 +583,65 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   </button>
                 )}
               </div>
+
+              {/* Ajuste de Retrato */}
+              {characterState.avatarImage && (
+                <div className="w-full max-w-[160px] space-y-1">
+                  <label className="text-[9px] font-mono text-neutral-500 uppercase font-extrabold tracking-wider block text-center">
+                    📐 {t.lblAvatarFit}
+                  </label>
+                  <div className="grid grid-cols-2 gap-1 bg-neutral-950/80 border border-neutral-800 p-0.5 rounded-lg">
+                    <button
+                      id="opt-fit-cover"
+                      type="button"
+                      onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "cover" }))}
+                      className={`py-1 text-[9px] font-mono rounded font-bold transition-all cursor-pointer ${
+                        characterState.avatarFit !== "contain"
+                          ? "bg-violet-950 text-neutral-100 border border-violet-500/25"
+                          : "text-neutral-500 hover:text-neutral-300"
+                      }`}
+                      title={t.optAvatarCover}
+                    >
+                      {lang === "es" ? "Llenar" : "Fill"}
+                    </button>
+                    <button
+                      id="opt-fit-contain"
+                      type="button"
+                      onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "contain" }))}
+                      className={`py-1 text-[9px] font-mono rounded font-bold transition-all cursor-pointer ${
+                        characterState.avatarFit === "contain"
+                          ? "bg-violet-950 text-neutral-100 border border-violet-500/25"
+                          : "text-neutral-500 hover:text-neutral-300"
+                      }`}
+                      title={t.optAvatarContain}
+                    >
+                      {lang === "es" ? "Ajustar" : "Fit"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Form controls */}
             <div className="md:col-span-2 space-y-4">
+              {/* Image upload/compress error */}
+              {imageError && (
+                <div className="bg-rose-950/40 border border-rose-500/20 rounded-xl p-3 flex items-center justify-between text-rose-300 text-[11px] font-mono animate-fade-in" id="avatar-image-upload-error">
+                  <div className="flex items-center gap-1.5">
+                    <span>⚠️</span>
+                    <span>{imageError}</span>
+                  </div>
+                  <button
+                    id="btn-close-avatar-err"
+                    type="button"
+                    onClick={() => setImageError(null)}
+                    className="text-rose-400 hover:text-rose-200 cursor-pointer p-0.5 rounded transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {/* Local upload */}
               <div className="p-4 bg-neutral-950/40 rounded-xl border border-dashed border-violet-500/25 flex flex-col items-center justify-center text-center">
                 <p className="text-xs text-neutral-400 mb-2 font-mono">
@@ -652,19 +752,63 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               />
             </div>
 
-            {/* Aspecto Temporal */}
-            <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+            {/* Aspectos Temporales List Editor */}
+            <div className="flex flex-col gap-3 md:col-span-2 border-t border-violet-500/10 pt-4 mt-2">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
                 {t.aspectoTemporal}
               </label>
-              <input
-                id="input-aspecto-temporal"
-                type="text"
-                placeholder={t.placeholderAspectoTemporal}
-                value={characterState.aspectoTemporal}
-                onChange={(e) => setCharacterState(prev => ({ ...prev, aspectoTemporal: e.target.value }))}
-                className="w-full text-xs"
-              />
+              
+              {/* Form Input for Temporary Aspects */}
+              <div className="flex gap-2">
+                <input
+                  id="input-new-temp-aspect-form"
+                  type="text"
+                  placeholder={t.placeholderAspectoTemporal}
+                  value={newFormTempAspect}
+                  onChange={(e) => setNewFormTempAspect(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTempAspect();
+                    }
+                  }}
+                  className="flex-1 text-xs"
+                />
+                <button
+                  id="btn-add-temp-aspect-form"
+                  type="button"
+                  onClick={addTempAspect}
+                  className="px-4 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-850 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {lang === "es" ? "Añadir" : "Add"}
+                </button>
+              </div>
+
+              {/* Temporary Aspects List of values */}
+              {characterState.aspectoTemporal && characterState.aspectoTemporal.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" id="temp-aspects-editor-list">
+                  {characterState.aspectoTemporal.map((ast, index) => (
+                    <div 
+                      key={index} 
+                      className="flex justify-between items-center bg-neutral-950/40 border border-violet-500/15 p-2 rounded-lg"
+                    >
+                      <span className="text-xs text-neutral-350 font-serif italic">“ {ast} ”</span>
+                      <button
+                        type="button"
+                        onClick={() => removeTempAspect(index)}
+                        className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-1.5">
+                  {t.labelAspectosTemporalesEmpty}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -776,19 +920,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                     className="stat-input rounded-md w-full"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="text-[9px] font-mono text-neutral-400">
-                  {t.estresMentalConsecuencia}
-                </label>
-                <input
-                  id="input-estres-mental-consecuencia"
-                  type="text"
-                  placeholder={t.placeholderConsecuenciaMental}
-                  value={characterState.estresMentalConsecuencia}
-                  onChange={(e) => setCharacterState(prev => ({ ...prev, estresMentalConsecuencia: e.target.value }))}
-                  className="w-full text-xs"
-                />
               </div>
             </div>
 

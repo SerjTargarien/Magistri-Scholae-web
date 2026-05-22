@@ -206,12 +206,12 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                 }`}></div>
 
                 {/* Card Top - Image and Badge */}
-                <div className="relative h-44 w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
+                <div className="relative aspect-[3/4] w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
                   {c.avatarImage ? (
                     <img 
                       src={c.avatarImage} 
                       alt={c.nombre} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      className={`w-full h-full transition-all duration-500 group-hover:scale-105 ${c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                       referrerPolicy="no-referrer"
                     />
                   ) : (

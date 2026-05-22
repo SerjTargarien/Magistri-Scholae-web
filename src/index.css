@@ -69,6 +69,24 @@ input, select, textarea {
   transition: all 0.2s;
 }
 
+/* Native dropdown options */
+select option {
+  background-color: #171717;
+  color: #e5e5e5;
+}
+
+select option:checked {
+  background-color: #4c1d95;
+  color: #f5f3ff;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: rgba(245, 158, 11, 0.6);

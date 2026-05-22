@@ -6,7 +6,8 @@
 import React, { useState, useEffect } from "react";
 import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
-import { compressImage } from "../utils/imageCompressor";
+import Cropper from "react-easy-crop";
+import { compressImage, getCroppedImg } from "../utils/imageCompressor";
 import { 
   Save, 
   X, 
@@ -90,6 +91,13 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
   const [newFieldValue, setNewFieldValue] = useState("");
   const [pastedAvatarUrl, setPastedAvatarUrl] = useState("");
 
+  // Cropper states for interactive portrait portal
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
   // Populate state on mount / update from initialCharacter
   useEffect(() => {
     if (initialCharacter) {
@@ -163,7 +171,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   };
 
-  // Convert and compress uploaded files to base64
+  // Convert and compress uploaded files to base64 with interactive cropper
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "avatar" | "gallery") => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -171,30 +179,57 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     setImageError(null);
 
     try {
-      // Auto compress the image so it fits beautifully in our DB storage limit without silent limits
-      const base64Str = await compressImage(file, 1600, 1600, 0.75);
-      
       if (target === "avatar") {
-        setCharacterState(prev => ({ ...prev, avatarImage: base64Str }));
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const rawBase64 = event.target?.result as string;
+          setCropImageSrc(rawBase64);
+          setZoom(1);
+          setCrop({ x: 0, y: 0 });
+          setIsCropperOpen(true);
+        };
+        reader.readAsDataURL(file);
       } else {
+        // Gallery remains high-quality auto-compressed without cropping (retains dynamic heights for masonry)
+        const base64Str = await compressImage(file, 1600, 1600, 0.75);
         setCharacterState(prev => ({
           ...prev,
           galleryImages: [...prev.galleryImages, base64Str]
         }));
       }
     } catch (err: any) {
-      console.error("Image upload/compression error:", err);
+      console.error("Image upload processing error:", err);
       setImageError(t.imageUploadError);
     } finally {
       e.target.value = ""; // refresh picker
     }
   };
 
-  // Pasting external url safely
+  // Pasting external url safely with interactive cropping
   const handleUrlAvatarSubmit = () => {
     if (!pastedAvatarUrl.trim()) return;
-    setCharacterState(prev => ({ ...prev, avatarImage: pastedAvatarUrl.trim() }));
+    setCropImageSrc(pastedAvatarUrl.trim());
+    setZoom(1);
+    setCrop({ x: 0, y: 0 });
+    setIsCropperOpen(true);
     setPastedAvatarUrl("");
+  };
+
+  const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleConfirmCrop = async () => {
+    if (!cropImageSrc || !croppedAreaPixels) return;
+    try {
+      const croppedBase64 = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      setCharacterState(prev => ({ ...prev, avatarImage: croppedBase64 }));
+      setIsCropperOpen(false);
+      setCropImageSrc(null);
+    } catch (err: any) {
+      console.error("Cropping confirm error:", err);
+      setImageError(t.imageUploadError);
+    }
   };
 
   // Aspects Management
@@ -583,43 +618,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   </button>
                 )}
               </div>
-
-              {/* Ajuste de Retrato */}
-              {characterState.avatarImage && (
-                <div className="w-full max-w-[160px] space-y-1">
-                  <label className="text-[9px] font-mono text-neutral-500 uppercase font-extrabold tracking-wider block text-center">
-                    📐 {t.lblAvatarFit}
-                  </label>
-                  <div className="grid grid-cols-2 gap-1 bg-neutral-950/80 border border-neutral-800 p-0.5 rounded-lg">
-                    <button
-                      id="opt-fit-cover"
-                      type="button"
-                      onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "cover" }))}
-                      className={`py-1 text-[9px] font-mono rounded font-bold transition-all cursor-pointer ${
-                        characterState.avatarFit !== "contain"
-                          ? "bg-violet-950 text-neutral-100 border border-violet-500/25"
-                          : "text-neutral-500 hover:text-neutral-300"
-                      }`}
-                      title={t.optAvatarCover}
-                    >
-                      {lang === "es" ? "Llenar" : "Fill"}
-                    </button>
-                    <button
-                      id="opt-fit-contain"
-                      type="button"
-                      onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "contain" }))}
-                      className={`py-1 text-[9px] font-mono rounded font-bold transition-all cursor-pointer ${
-                        characterState.avatarFit === "contain"
-                          ? "bg-violet-950 text-neutral-100 border border-violet-500/25"
-                          : "text-neutral-500 hover:text-neutral-300"
-                      }`}
-                      title={t.optAvatarContain}
-                    >
-                      {lang === "es" ? "Ajustar" : "Fit"}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Form controls */}
@@ -1157,6 +1155,83 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           {t.save}
         </button>
       </div>
+
+      {isCropperOpen && cropImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" id="crop-avatar-modal">
+          <div className="bg-neutral-900 border border-violet-500/25 rounded-2xl w-full max-w-md p-6 flex flex-col space-y-4 shadow-2xl">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
+              <h4 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                <span>📐</span> {t.cropHeader}
+              </h4>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCropperOpen(false);
+                  setCropImageSrc(null);
+                }}
+                className="text-neutral-500 hover:text-neutral-300 transition-colors p-1 rounded-lg cursor-pointer max-w-max bg-transparent border-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Cropper Box */}
+            <div className="relative w-full aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden border border-neutral-800 select-none">
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={3 / 4}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            {/* Zoom control Slider */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[11px] font-mono text-neutral-400">
+                <span>🔍 {t.cropZoom}</span>
+                <span>{Math.round(zoom * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-violet-500"
+              />
+            </div>
+
+            {/* Confirm & Cancel Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCropperOpen(false);
+                  setCropImageSrc(null);
+                }}
+                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-neutral-200 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCrop}
+                className="w-full py-2.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Save className="w-4 h-4" />
+                {t.cropConfirm}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };

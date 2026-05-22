@@ -81,3 +81,59 @@ export const compressImage = (
     reader.readAsDataURL(file);
   });
 };
+
+/**
+ * Creates a cropped image canvas slice and compresses it to base64.
+ */
+export const getCroppedImg = (
+  imageSrc: string,
+  pixelCrop: { x: number; y: number; width: number; height: number }
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      
+      // Limit resolution to under 900px width/height for maximum rendering performance & light DB payloads (~60KB to ~150KB space)
+      const targetWidth = Math.min(pixelCrop.width, 900);
+      const targetHeight = Math.round((pixelCrop.height * targetWidth) / pixelCrop.width);
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("No 2D canvas context available."));
+        return;
+      }
+
+      // Fill with black fallback for transparency
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+      );
+
+      try {
+        const base64 = canvas.toDataURL("image/jpeg", 0.75);
+        resolve(base64);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    image.onerror = (err) => {
+      reject(new Error("Failed to load source image for cropping."));
+    };
+  });
+};
+

@@ -205,6 +205,9 @@ export interface TranslationDict {
   lblAvatarFit: string;
   optAvatarCover: string;
   optAvatarContain: string;
+  cropHeader: string;
+  cropConfirm: string;
+  cropZoom: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -408,6 +411,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     lblAvatarFit: "Ajuste de Retrato",
     optAvatarCover: "Recortar / Llenar",
     optAvatarContain: "Ajustar / Lienzo Completo",
+    cropHeader: "Recortar y Ajustar Retrato",
+    cropConfirm: "Confirmar Recorte",
+    cropZoom: "Zoom",
   },
   en: {
     appName: "Magistri Scholae",
@@ -609,5 +615,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     lblAvatarFit: "Portrait Fit",
     optAvatarCover: "Crop / Fill Frame",
     optAvatarContain: "Fit / Whole Canvas",
+    cropHeader: "Crop & Adjust Portrait",
+    cropConfirm: "Confirm Crop",
+    cropZoom: "Zoom",
   },
 };

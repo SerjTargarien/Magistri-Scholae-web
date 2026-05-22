@@ -634,9 +634,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             <h1 className="font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber">
               {character.nombre || t.noName}
             </h1>
-            <span className={`text-[10px] font-mono tracking-wider bg-neutral-950/80 px-2 py-0.5 rounded border ${hInfo.borderClass} self-center mt-1 md:mt-0 font-extrabold ${hInfo.textClass}`}>
-              {hInfo.nombre} • {character.curso}
-            </span>
           </div>
 
           <p className="text-xs text-neutral-400 mt-2 font-mono italic max-w-xl">
@@ -905,6 +902,37 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">{t.aspectoTemporal}</span>
                   </div>
 
+                  {/* Aspects List */}
+                  {(() => {
+                    const tempAspects = Array.isArray(character.aspectoTemporal)
+                      ? character.aspectoTemporal
+                      : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
+                    return tempAspects.length > 0 ? (
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                        {tempAspects.map((aspect, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
+                          >
+                            <span className="break-words max-w-[85%]">“ {aspect} ”</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTempAspect(idx)}
+                              className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
+                              title={lang === "es" ? "Eliminar aspecto" : "Remove aspect"}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-3 bg-neutral-950/10 border border-neutral-900/30 rounded-lg italic">
+                        {t.labelAspectosTemporalesEmpty}
+                      </p>
+                    );
+                  })()}
+
                   {/* Aspect Form */}
                   <div className="flex gap-2">
                     <input
@@ -934,37 +962,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       <Plus className="w-3.5 h-3.5" />
                     </button>
                   </div>
-
-                  {/* Aspects List */}
-                  {(() => {
-                    const tempAspects = Array.isArray(character.aspectoTemporal)
-                      ? character.aspectoTemporal
-                      : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
-                    return tempAspects.length > 0 ? (
-                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                        {tempAspects.map((aspect, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
-                          >
-                            <span className="break-words max-w-[85%]">“ {aspect} ”</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTempAspect(idx)}
-                              className="text-neutral-500 hover:text-rose-450 p-1 transition-colors cursor-pointer"
-                              title={lang === "es" ? "Eliminar aspecto" : "Remove aspect"}
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-3 bg-neutral-950/10 border border-neutral-900/30 rounded-lg italic">
-                        {t.labelAspectosTemporalesEmpty}
-                      </p>
-                    );
-                  })()}
                 </div>
               </div>
             </div>
@@ -1018,36 +1015,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">{t.consecuenciasFisicas}</span>
                   </div>
 
-                  {/* Consequence Form */}
-                  <div className="flex gap-2">
-                    <input
-                      id="input-session-new-phys-consequence"
-                      type="text"
-                      placeholder={t.placeholderConsecuenciaFisica}
-                      value={newPhysicalConsequence}
-                      onChange={(e) => setNewPhysicalConsequence(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddPhysicalConsequence(newPhysicalConsequence);
-                          setNewPhysicalConsequence("");
-                        }
-                      }}
-                      className="flex-1 text-xs bg-neutral-950 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
-                    />
-                    <button
-                      id="btn-session-add-phys-consequence"
-                      type="button"
-                      onClick={() => {
-                        handleAddPhysicalConsequence(newPhysicalConsequence);
-                        setNewPhysicalConsequence("");
-                      }}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
                   {/* Consequences List */}
                   {(() => {
                     const physCons = Array.isArray(character.consecuenciasFisicas)
@@ -1078,6 +1045,36 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       </p>
                     );
                   })()}
+
+                  {/* Consequence Form */}
+                  <div className="flex gap-2">
+                    <input
+                      id="input-session-new-phys-consequence"
+                      type="text"
+                      placeholder={t.placeholderConsecuenciaFisica}
+                      value={newPhysicalConsequence}
+                      onChange={(e) => setNewPhysicalConsequence(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddPhysicalConsequence(newPhysicalConsequence);
+                          setNewPhysicalConsequence("");
+                        }
+                      }}
+                      className="flex-1 text-xs bg-neutral-950 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
+                    />
+                    <button
+                      id="btn-session-add-phys-consequence"
+                      type="button"
+                      onClick={() => {
+                        handleAddPhysicalConsequence(newPhysicalConsequence);
+                        setNewPhysicalConsequence("");
+                      }}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1132,36 +1129,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">{t.consecuenciasMentales}</span>
                   </div>
 
-                  {/* Consequence Form */}
-                  <div className="flex gap-2">
-                    <input
-                      id="input-session-new-mental-consequence"
-                      type="text"
-                      placeholder={t.placeholderConsecuenciaMental}
-                      value={newMentalConsequence}
-                      onChange={(e) => setNewMentalConsequence(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddMentalConsequence(newMentalConsequence);
-                          setNewMentalConsequence("");
-                        }
-                      }}
-                      className="flex-1 text-xs bg-neutral-950 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
-                    />
-                    <button
-                      id="btn-session-add-mental-consequence"
-                      type="button"
-                      onClick={() => {
-                        handleAddMentalConsequence(newMentalConsequence);
-                        setNewMentalConsequence("");
-                      }}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
                   {/* Consequences List */}
                   {(() => {
                     const mentalCons = Array.isArray(character.consecuenciasMentales)
@@ -1192,6 +1159,36 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       </p>
                     );
                   })()}
+
+                  {/* Consequence Form */}
+                  <div className="flex gap-2">
+                    <input
+                      id="input-session-new-mental-consequence"
+                      type="text"
+                      placeholder={t.placeholderConsecuenciaMental}
+                      value={newMentalConsequence}
+                      onChange={(e) => setNewMentalConsequence(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddMentalConsequence(newMentalConsequence);
+                          setNewMentalConsequence("");
+                        }
+                      }}
+                      className="flex-1 text-xs bg-neutral-950 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
+                    />
+                    <button
+                      id="btn-session-add-mental-consequence"
+                      type="button"
+                      onClick={() => {
+                        handleAddMentalConsequence(newMentalConsequence);
+                        setNewMentalConsequence("");
+                      }}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1245,36 +1242,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="font-mono text-xs text-neutral-350 uppercase block font-bold">{t.consecuenciasSociales}</span>
                   </div>
 
-                  {/* Consequence Form */}
-                  <div className="flex gap-2">
-                    <input
-                      id="input-session-new-social-consequence"
-                      type="text"
-                      placeholder={t.placeholderConsecuenciaSocial}
-                      value={newSocialConsequence}
-                      onChange={(e) => setNewSocialConsequence(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddSocialConsequence(newSocialConsequence);
-                          setNewSocialConsequence("");
-                        }
-                      }}
-                      className="flex-1 text-xs bg-neutral-900 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
-                    />
-                    <button
-                      id="btn-session-add-social-consequence"
-                      type="button"
-                      onClick={() => {
-                        handleAddSocialConsequence(newSocialConsequence);
-                        setNewSocialConsequence("");
-                      }}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-450 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
                   {/* Consequences List */}
                   {(() => {
                     const socialCons = Array.isArray(character.consecuenciasSociales)
@@ -1305,6 +1272,36 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       </p>
                     );
                   })()}
+
+                  {/* Consequence Form */}
+                  <div className="flex gap-2">
+                    <input
+                      id="input-session-new-social-consequence"
+                      type="text"
+                      placeholder={t.placeholderConsecuenciaSocial}
+                      value={newSocialConsequence}
+                      onChange={(e) => setNewSocialConsequence(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSocialConsequence(newSocialConsequence);
+                          setNewSocialConsequence("");
+                        }
+                      }}
+                      className="flex-1 text-xs bg-neutral-900 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
+                    />
+                    <button
+                      id="btn-session-add-social-consequence"
+                      type="button"
+                      onClick={() => {
+                        handleAddSocialConsequence(newSocialConsequence);
+                        setNewSocialConsequence("");
+                      }}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-450 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,0 +1,29 @@
+{
+  "short_name": "Magistri Scholae",
+  "name": "Magistri Scholae - Fichas de Academia",
+  "description": "Fichas de personajes mágicos sin conexión para la academia de rol",
+  "start_url": "/",
+  "background_color": "#0f0a15",
+  "theme_color": "#7c3aed",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "categories": ["games", "utilities"],
+  "prefer_related_applications": false
+}

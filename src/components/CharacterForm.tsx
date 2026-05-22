@@ -1,0 +1,913 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect } from "react";
+import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField } from "../types";
+import { Language, TRANSLATIONS } from "../localization";
+import { 
+  Save, 
+  X, 
+  Sparkles, 
+  Image, 
+  Plus, 
+  Trash2, 
+  ShieldAlert, 
+  History,
+  Coins,
+  ShieldAlert as Heart,
+  FileText
+} from "lucide-react";
+
+interface CharacterFormProps {
+  lang: Language;
+  initialCharacter?: Character | null; // If null, we are creating a new character
+  onSave: (character: Character) => void;
+  onCancel: () => void;
+}
+
+export const CharacterForm: React.FC<CharacterFormProps> = ({
+  lang,
+  initialCharacter,
+  onSave,
+  onCancel,
+}) => {
+  const t = TRANSLATIONS[lang];
+
+  // Load initial values or prefilled default draft
+  const [characterState, setCharacterState] = useState<Omit<Character, "id" | "createdAt" | "updatedAt">>({
+    nombre: "",
+    jugador: "",
+    edad: "11 años",
+    casa: "IRATI",
+    curso: "1º",
+    puestoClase: "",
+    concepto: "",
+    lema: "Creer es ver",
+    escudoText: "IRATI",
+    complicaciones: "",
+    linaje: "Mítico",
+    puntosDestino: 3,
+    economia: "Normal",
+    familiar: "",
+    varitaSintonia: "",
+    estresFisico: 0,
+    estresFisicoMax: 5,
+    estresMental: 0,
+    estresMentalMax: 5,
+    estresMentalConsecuencia: "",
+    estresSocial: 0,
+    estresSocialMax: 5,
+    pxs: 0,
+    aspectoTemporal: "",
+    aspectosPersonales: [],
+    habilidades: DEFAULT_SKILLS.map(sk => ({ ...sk, valor: 0 })),
+    conjuros: [],
+    pociones: [],
+    clubes: "",
+    equipo: "",
+    notas: "",
+    avatarImage: "",
+    galleryImages: [],
+    camposPersonalizados: [],
+  });
+
+  const [formError, setFormError] = useState<string | null>(null);
+  const [newAspectName, setNewAspectName] = useState("");
+  const [newFieldName, setNewFieldName] = useState("");
+  const [newFieldValue, setNewFieldValue] = useState("");
+  const [pastedAvatarUrl, setPastedAvatarUrl] = useState("");
+
+  // Populate state on mount / update from initialCharacter
+  useEffect(() => {
+    if (initialCharacter) {
+      // Load existing editing character
+      setCharacterState({
+        nombre: initialCharacter.nombre,
+        jugador: initialCharacter.jugador,
+        edad: initialCharacter.edad,
+        casa: initialCharacter.casa,
+        curso: initialCharacter.curso,
+        puestoClase: initialCharacter.puestoClase || "",
+        concepto: initialCharacter.concepto,
+        lema: initialCharacter.lema,
+        escudoText: initialCharacter.escudoText,
+        complicaciones: initialCharacter.complicaciones || "",
+        linaje: initialCharacter.linaje || "Mítico",
+        puntosDestino: initialCharacter.puntosDestino !== undefined ? initialCharacter.puntosDestino : 3,
+        economia: initialCharacter.economia || "Normal",
+        familiar: initialCharacter.familiar || "",
+        varitaSintonia: initialCharacter.varitaSintonia || "",
+        estresFisico: initialCharacter.estresFisico !== undefined ? initialCharacter.estresFisico : 0,
+        estresFisicoMax: initialCharacter.estresFisicoMax !== undefined ? initialCharacter.estresFisicoMax : 5,
+        estresMental: initialCharacter.estresMental !== undefined ? initialCharacter.estresMental : 0,
+        estresMentalMax: initialCharacter.estresMentalMax !== undefined ? initialCharacter.estresMentalMax : 5,
+        estresMentalConsecuencia: initialCharacter.estresMentalConsecuencia || "",
+        estresSocial: initialCharacter.estresSocial !== undefined ? initialCharacter.estresSocial : 0,
+        estresSocialMax: initialCharacter.estresSocialMax !== undefined ? initialCharacter.estresSocialMax : 5,
+        pxs: initialCharacter.pxs !== undefined ? initialCharacter.pxs : 0,
+        aspectoTemporal: initialCharacter.aspectoTemporal || "",
+        aspectosPersonales: initialCharacter.aspectosPersonales || [],
+        habilidades: initialCharacter.habilidades && initialCharacter.habilidades.length > 0 
+          ? initialCharacter.habilidades 
+          : DEFAULT_SKILLS.map(sk => ({ ...sk, valor: 0 })),
+        conjuros: initialCharacter.conjuros || [],
+        pociones: initialCharacter.pociones || [],
+        clubes: initialCharacter.clubes || "",
+        equipo: initialCharacter.equipo || "",
+        notas: initialCharacter.notas || "",
+        avatarImage: initialCharacter.avatarImage || "",
+        galleryImages: initialCharacter.galleryImages || [],
+        camposPersonalizados: initialCharacter.camposPersonalizados || [],
+      });
+    }
+  }, [initialCharacter]);
+
+  // Handle house selection change
+  const handleHouseChange = (houseName: string) => {
+    const houseKey = houseName.toUpperCase();
+    const houseData = HOUSES[houseKey];
+    
+    setCharacterState(prev => ({
+      ...prev,
+      casa: houseName,
+      lema: houseData ? houseData.lema : prev.lema,
+      escudoText: houseData ? houseData.escudo : prev.escudoText,
+    }));
+  };
+
+  // Convert uploaded files to base64
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: "avatar" | "gallery") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert(lang === "es" ? "La imagen supera los 2MB. Selecciona un archivo menor." : "Image is too large. Please select a file under 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Str = event.target?.result as string;
+      if (target === "avatar") {
+        setCharacterState(prev => ({ ...prev, avatarImage: base64Str }));
+      } else {
+        setCharacterState(prev => ({
+          ...prev,
+          galleryImages: [...prev.galleryImages, base64Str]
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Pasting external url safely
+  const handleUrlAvatarSubmit = () => {
+    if (!pastedAvatarUrl.trim()) return;
+    setCharacterState(prev => ({ ...prev, avatarImage: pastedAvatarUrl.trim() }));
+    setPastedAvatarUrl("");
+  };
+
+  // Aspects Management
+  const addAspect = () => {
+    if (!newAspectName.trim()) return;
+    setCharacterState(prev => ({
+      ...prev,
+      aspectosPersonales: [...prev.aspectosPersonales, newAspectName.trim()]
+    }));
+    setNewAspectName("");
+  };
+
+  const removeAspect = (idx: number) => {
+    setCharacterState(prev => ({
+      ...prev,
+      aspectosPersonales: prev.aspectosPersonales.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // Custom Fields Management
+  const addCustomField = () => {
+    if (!newFieldName.trim() || !newFieldValue.trim()) return;
+    setCharacterState(prev => ({
+      ...prev,
+      camposPersonalizados: [
+        ...prev.camposPersonalizados, 
+        { nombre: newFieldName.trim(), valor: newFieldValue.trim() }
+      ]
+    }));
+    setNewFieldName("");
+    setNewFieldValue("");
+  };
+
+  const removeCustomField = (idx: number) => {
+    setCharacterState(prev => ({
+      ...prev,
+      camposPersonalizados: prev.camposPersonalizados.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // Save changes
+  const handleSave = () => {
+    if (!characterState.nombre.trim()) {
+      setFormError(t.validationErrorName);
+      // Scroll to top or near error
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const savedCharacter: Character = {
+      ...initialCharacter, // Keep id, createdAt
+      ...characterState,
+      nombre: characterState.nombre.trim(),
+      createdAt: initialCharacter?.createdAt || Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    onSave(savedCharacter);
+  };
+
+  // Interactive Cancel Flow with check
+  const handleCancelClick = () => {
+    const isDirty = characterState.nombre.trim() !== "" || characterState.concepto.trim() !== "";
+    if (isDirty) {
+      const confirmDiscard = window.confirm(t.draftDiscardConfirm);
+      if (!confirmDiscard) return;
+    }
+    onCancel();
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto px-4 py-6" id="character-form-container">
+      {/* Header and Save Buttons */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 border-b border-violet-500/15 pb-4">
+        <div>
+          <h2 className="font-magic text-xl md:text-2xl text-amber-400 select-none flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: "12s" }} />
+            {initialCharacter ? t.edit : t.addCharacter}
+          </h2>
+          <p className="text-xs text-neutral-400 font-mono mt-1">
+            {initialCharacter ? `ID: ${initialCharacter.id}` : "Magistri Scholae Draft Security ON"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            id="btn-form-cancel"
+            onClick={handleCancelClick}
+            className="px-4 py-2 border border-neutral-700 hover:border-neutral-500 bg-neutral-900/60 hover:bg-neutral-800 rounded-xl text-xs sm:text-sm font-semibold transition-all text-neutral-300 font-mono cursor-pointer"
+          >
+            {t.cancel}
+          </button>
+          
+          <button
+            id="btn-form-save"
+            onClick={handleSave}
+            className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-900/40 hover:shadow-amber-900/60 transition-all hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            {t.save}
+          </button>
+        </div>
+      </div>
+
+      {formError && (
+        <div 
+          id="form-error-alert"
+          className="mb-6 p-4 rounded-lg bg-rose-950/50 border border-rose-500/30 text-rose-350 flex items-center gap-3"
+        >
+          <ShieldAlert className="w-5 h-5 shrink-0" />
+          <span className="text-xs font-semibold">{formError}</span>
+        </div>
+      )}
+
+      {/* Editor Content split in sections for clarity */}
+      <div className="space-y-6">
+
+        {/* 1. Datos de Alumno: Basic Profiling */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-perfil">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-violet-400" />
+            1. {lang === "es" ? "Datos del Alumno" : "Student Personal Details"}
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Nombre */}
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                {t.nombre} <span className="text-rose-400">*</span>
+              </label>
+              <input
+                id="input-nombre"
+                type="text"
+                placeholder="p. ej. Leonora Vance"
+                value={characterState.nombre}
+                onChange={(e) => {
+                  setCharacterState(prev => ({ ...prev, nombre: e.target.value }));
+                  if (formError) setFormError(null);
+                }}
+                className="w-full"
+              />
+            </div>
+
+            {/* Jugador */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.jugador}
+              </label>
+              <input
+                id="input-jugador"
+                type="text"
+                placeholder="p. ej. Miguel Ángel"
+                value={characterState.jugador}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, jugador: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Edad */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.edad}
+              </label>
+              <input
+                id="input-edad"
+                type="text"
+                value={characterState.edad}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, edad: e.target.value }))}
+                className="w-full font-mono"
+              />
+            </div>
+
+            {/* Casa */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.casa}
+              </label>
+              <select
+                id="select-casa"
+                value={characterState.casa.toUpperCase()}
+                onChange={(e) => handleHouseChange(e.target.value)}
+                className="w-full bg-neutral-900 font-semibold"
+              >
+                {Object.keys(HOUSES).map((hKey) => (
+                  <option key={hKey} value={hKey}>
+                    🏰 {HOUSES[hKey].nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Curso */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.curso}
+              </label>
+              <input
+                id="input-curso"
+                type="text"
+                value={characterState.curso}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, curso: e.target.value }))}
+                className="w-full font-mono"
+              />
+            </div>
+
+            {/* Puesto de Clase */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.puestoClase}
+              </label>
+              <input
+                id="input-puesto-clase"
+                type="text"
+                placeholder="p. ej. Prefecta, Monitor"
+                value={characterState.puestoClase}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, puestoClase: e.target.value }))}
+                className="w-full font-sans"
+              />
+            </div>
+
+            {/* Arquetipo/Concepto */}
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.concepto}
+              </label>
+              <input
+                id="input-concepto"
+                type="text"
+                placeholder="p. ej. Alquimista rebelde con un secreto familiar"
+                value={characterState.concepto}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, concepto: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Lema de Casa */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.lema}
+              </label>
+              <input
+                id="input-lema"
+                type="text"
+                value={characterState.lema}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, lema: e.target.value }))}
+                className="w-full italic font-serif text-amber-200"
+              />
+            </div>
+
+            {/* Escudo Texto */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.escudoText}
+              </label>
+              <input
+                id="input-escudo-text"
+                type="text"
+                value={characterState.escudoText}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, escudoText: e.target.value }))}
+                className="w-full font-mono tracking-wider font-bold"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Avatar loading & upload */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-retrato">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Image className="w-4 h-4 text-violet-400" />
+            2. {t.uploadAvatar}
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            {/* Display box */}
+            <div className="flex justify-center">
+              <div className="w-40 h-52 bg-neutral-950 rounded-2xl border-2 border-violet-500/30 flex items-center justify-center overflow-hidden shadow-inner relative">
+                {characterState.avatarImage ? (
+                  <img
+                    id="avatar-edit-preview"
+                    src={characterState.avatarImage}
+                    alt="Retrato"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="text-center text-neutral-600 p-4 select-none">
+                    <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-violet-400" />
+                    <span className="text-[10px] font-mono">SIN RETRATO</span>
+                  </div>
+                )}
+                {characterState.avatarImage && (
+                  <button
+                    id="btn-remove-avatar"
+                    onClick={() => setCharacterState(prev => ({ ...prev, avatarImage: "" }))}
+                    className="absolute bottom-2 right-2 bg-rose-950/80 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 transition-all cursor-pointer"
+                    title="Remove avatar"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Form controls */}
+            <div className="md:col-span-2 space-y-4">
+              {/* Local upload */}
+              <div className="p-4 bg-neutral-950/40 rounded-xl border border-dashed border-violet-500/25 flex flex-col items-center justify-center text-center">
+                <p className="text-xs text-neutral-400 mb-2 font-mono">
+                  {lang === "es" ? "Subir Archivo Local (Tamaño Máx: 2MB)" : "Upload File (Max Size: 2MB)"}
+                </p>
+                <input
+                  id="avatar-file-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, "avatar")}
+                  className="block w-full text-xs text-neutral-400 file:mr-4 file:py-1 py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-violet-950 file:text-violet-200 hover:file:bg-violet-900 cursor-pointer"
+                />
+              </div>
+
+              {/* URL paste */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-mono text-neutral-400 uppercase">
+                  {t.pasteUrl}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="input-avatar-url"
+                    type="text"
+                    placeholder="https://images.unsplash.com/your-image"
+                    value={pastedAvatarUrl}
+                    onChange={(e) => setPastedAvatarUrl(e.target.value)}
+                    className="flex-1 text-xs"
+                  />
+                  <button
+                    id="btn-apply-avatar-url"
+                    type="button"
+                    onClick={handleUrlAvatarSubmit}
+                    className="px-3 py-1 bg-violet-900 border border-violet-500/30 text-violet-100 rounded-md text-xs font-mono font-bold hover:bg-violet-800 transition-all"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Complicación, Linaje, Destino, Economía */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-linaje">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Coins className="w-4 h-4 text-violet-400" />
+            3. {lang === "es" ? "Linaje, Destino y Economía" : "Heritage, Destiny & Economy"}
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Linaje */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.linaje}
+              </label>
+              <input
+                id="input-linaje"
+                type="text"
+                placeholder="p. ej. Sangre Pura, Mítico"
+                value={characterState.linaje}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, linaje: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Puntos de Destino */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.puntosDestino}
+              </label>
+              <input
+                id="input-puntos-destino"
+                type="number"
+                min="0"
+                value={characterState.puntosDestino}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, puntosDestino: parseInt(e.target.value) || 0 }))}
+                className="stat-input rounded-md py-1.5"
+              />
+            </div>
+
+            {/* Economía */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.economia}
+              </label>
+              <input
+                id="input-economia"
+                type="text"
+                placeholder="p. ej. Normal, Precaria, Rica"
+                value={characterState.economia}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, economia: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Pxs */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.pxs}
+              </label>
+              <input
+                id="input-pxs"
+                type="number"
+                min="0"
+                value={characterState.pxs}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, pxs: parseInt(e.target.value) || 0 }))}
+                className="stat-input rounded-md py-1.5"
+              />
+            </div>
+
+            {/* Complicaciones */}
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.complicaciones}
+              </label>
+              <textarea
+                id="input-complicaciones"
+                rows={2}
+                placeholder="p. ej. Maldición familiar latente, Temor irracional al fuego"
+                value={characterState.complicaciones}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, complicaciones: e.target.value }))}
+                className="w-full text-xs font-sans leading-relaxed"
+              />
+            </div>
+
+            {/* Aspecto Temporal */}
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.aspectoTemporal}
+              </label>
+              <input
+                id="input-aspecto-temporal"
+                type="text"
+                placeholder="p. ej. Convertido en sapo (Temporal)"
+                value={characterState.aspectoTemporal}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, aspectoTemporal: e.target.value }))}
+                className="w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Familiar y Varita */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-familiar">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-violet-400" />
+            4. {lang === "es" ? "Familiar y Varita" : "Companion Familiar & Wand"}
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.familiar}
+              </label>
+              <input
+                id="input-familiar"
+                type="text"
+                placeholder="p. ej. Gato negro de tres ojos"
+                value={characterState.familiar}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, familiar: e.target.value }))}
+                className="w-full text-xs"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                {t.varitaSintonia}
+              </label>
+              <input
+                id="input-varita-sintonia"
+                type="text"
+                placeholder="p. ej. Madera de sauce con núcleo de pluma de fénix"
+                value={characterState.varitaSintonia}
+                onChange={(e) => setCharacterState(prev => ({ ...prev, varitaSintonia: e.target.value }))}
+                className="w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 5. Estrés */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-estres">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Heart className="w-4 h-4 text-violet-400" />
+            5. {lang === "es" ? "Ajustar Rangos de Estrés" : "Stress Thresholds"}
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Estrés Físico */}
+            <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-2">
+              <h4 className="text-xs font-mono font-bold text-neutral-300 uppercase">
+                {t.estresFisico}
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <input
+                    id="input-estres-fisico"
+                    type="number"
+                    min="0"
+                    max={characterState.estresFisicoMax}
+                    value={characterState.estresFisico}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresFisico: parseInt(e.target.value) || 0 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <input
+                    id="input-estres-fisico-max"
+                    type="number"
+                    min="1"
+                    value={characterState.estresFisicoMax}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresFisicoMax: parseInt(e.target.value) || 5 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Estrés Mental */}
+            <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-2">
+              <h4 className="text-xs font-mono font-bold text-neutral-300 uppercase">
+                {t.estresMental}
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <input
+                    id="input-estres-mental"
+                    type="number"
+                    min="0"
+                    max={characterState.estresMentalMax}
+                    value={characterState.estresMental}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresMental: parseInt(e.target.value) || 0 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <input
+                    id="input-estres-mental-max"
+                    type="number"
+                    min="1"
+                    value={characterState.estresMentalMax}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresMentalMax: parseInt(e.target.value) || 5 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] font-mono text-neutral-400">
+                  {t.estresMentalConsecuencia}
+                </label>
+                <input
+                  id="input-estres-mental-consecuencia"
+                  type="text"
+                  placeholder="p. ej. Memoria mermada"
+                  value={characterState.estresMentalConsecuencia}
+                  onChange={(e) => setCharacterState(prev => ({ ...prev, estresMentalConsecuencia: e.target.value }))}
+                  className="w-full text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Estrés Social */}
+            <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-2">
+              <h4 className="text-xs font-mono font-bold text-neutral-300 uppercase">
+                {t.estresSocial}
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <input
+                    id="input-estres-social"
+                    type="number"
+                    min="0"
+                    max={characterState.estresSocialMax}
+                    value={characterState.estresSocial}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresSocial: parseInt(e.target.value) || 0 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+                <div>
+                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <input
+                    id="input-estres-social-max"
+                    type="number"
+                    min="1"
+                    value={characterState.estresSocialMax}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, estresSocialMax: parseInt(e.target.value) || 5 }))}
+                    className="stat-input rounded-md w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 6. Aspectos Personales */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-aspectos">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-violet-400" />
+            6. {t.aspectosPersonales}
+          </h3>
+
+          <div className="space-y-4">
+            {/* Aspect Form */}
+            <div className="flex gap-2">
+              <input
+                id="input-new-aspect"
+                type="text"
+                placeholder="p. ej. Hijo Predilecto de Urania"
+                value={newAspectName}
+                onChange={(e) => setNewAspectName(e.target.value)}
+                className="flex-1 text-xs"
+              />
+              <button
+                id="btn-add-aspect"
+                type="button"
+                onClick={addAspect}
+                className="px-4 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-800 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {lang === "es" ? "Añadir" : "Add"}
+              </button>
+            </div>
+
+            {/* Aspects List */}
+            {characterState.aspectosPersonales.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" id="aspects-editor-list">
+                {characterState.aspectosPersonales.map((as, index) => (
+                  <div 
+                    key={index} 
+                    className="flex justify-between items-center bg-neutral-950/40 border border-violet-500/15 p-2 rounded-lg"
+                  >
+                    <span className="text-xs text-neutral-200 font-serif italic">“ {as} ”</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAspect(index)}
+                      className="text-neutral-500 hover:text-rose-400 p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-1.5">
+                {lang === "es" ? "SIN ASPECTOS PERSONALES REGISTRADOS" : "NO PERSONAL ASPECTS DECLARED"}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* 7. Campos personalizados */}
+        <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-campos-custom">
+          <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
+            <Plus className="w-4 h-4 text-violet-400" />
+            7. {t.customFields}
+          </h3>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input
+                id="input-custom-field-name"
+                type="text"
+                placeholder={t.fieldName}
+                value={newFieldName}
+                onChange={(e) => setNewFieldName(e.target.value)}
+                className="text-xs"
+              />
+              <input
+                id="input-custom-field-value"
+                type="text"
+                placeholder={t.fieldValue}
+                value={newFieldValue}
+                onChange={(e) => setNewFieldValue(e.target.value)}
+                className="text-xs sm:col-span-2"
+              />
+            </div>
+            <button
+              id="btn-add-custom-field"
+              type="button"
+              onClick={addCustomField}
+              className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs rounded-lg font-bold flex items-center gap-1.5 w-full sm:w-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t.addCustomField}
+            </button>
+
+            {characterState.camposPersonalizados.length > 0 ? (
+              <div className="space-y-2 border-t border-neutral-800 pt-3">
+                {characterState.camposPersonalizados.map((fd, index) => (
+                  <div 
+                    key={index} 
+                    className="flex justify-between items-center bg-neutral-900/30 px-3 py-2 border border-neutral-800 rounded-lg text-xs"
+                  >
+                    <div>
+                      <span className="font-mono text-[10px] text-amber-500 uppercase tracking-wider block">{fd.nombre}</span>
+                      <span className="text-neutral-200 mt-0.5 block">{fd.valor}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCustomField(index)}
+                      className="text-neutral-500 hover:text-rose-450 p-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Primary bottom controllers */}
+      <div className="mt-8 flex justify-end gap-3 border-t border-violet-500/10 pt-4">
+        <button
+          id="btn-form-bottom-cancel"
+          onClick={handleCancelClick}
+          className="px-4 py-2 border border-neutral-700 hover:border-neutral-500 bg-neutral-900/60 hover:bg-neutral-800 rounded-xl text-xs sm:text-sm font-semibold transition-all text-neutral-300 font-mono cursor-pointer"
+        >
+          {t.cancel}
+        </button>
+        <button
+          id="btn-form-bottom-save"
+          onClick={handleSave}
+          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-lg transition-all hover:scale-[1.02] cursor-pointer"
+        >
+          <Save className="w-4 h-4" />
+          {t.save}
+        </button>
+      </div>
+    </div>
+  );
+};

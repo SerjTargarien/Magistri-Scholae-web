@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Circular Dark Violet Shield Background -->
+  <circle cx="256" cy="256" r="240" fill="#1e152a" stroke="#d97706" stroke-width="8"/>
+  <circle cx="256" cy="256" r="226" fill="none" stroke="#7c3aed" stroke-width="4" stroke-dasharray="12 6"/>
+  
+  <!-- Magic Academy Insignia Group -->
+  <g transform="translate(128, 128) scale(1)">
+    <!-- Shield / Crest body -->
+    <path d="M 128,24 L 210,50 L 210,130 C 210,200 128,236 128,236 C 128,236 46,200 46,130 L 46,50 Z" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linejoin="round"/>
+    
+    <!-- Dividing cross lines inside shield -->
+    <path d="M 128,24 L 128,236" fill="none" stroke="#d97706" stroke-width="4"/>
+    <path d="M 46,130 L 210,130" fill="none" stroke="#d97706" stroke-width="4"/>
+    
+    <!-- Magic Tower Silhouettes -->
+    <!-- Quadrant 1: Magic Tower -->
+    <g transform="translate(68, 60)">
+      <path d="M 10,40 L 10,10 L 15,0 L 20,10 L 20,40 Z" fill="none" stroke="#fbbf24" stroke-width="3"/>
+      <path d="M 5,40 L 25,40" stroke="#fbbf24" stroke-width="3"/>
+    </g>
+    
+    <!-- Quadrant 2: Open Book of Spells -->
+    <g transform="translate(145, 60)">
+      <path d="M 5,10 Q 15,15 25,10 L 25,35 Q 15,40 5,35 Z" fill="none" stroke="#fbbf24" stroke-width="3"/>
+      <path d="M 25,10 Q 35,15 45,10 L 45,35 Q 35,40 25,35 Z" fill="none" stroke="#fbbf24" stroke-width="3"/>
+    </g>
+    
+    <!-- Quadrant 3: Star / Compass -->
+    <g transform="translate(70, 150)">
+      <path d="M 15,0 L 20,10 L 30,15 L 20,20 L 15,30 L 10,20 L 0,15 L 10,10 Z" fill="#fbbf24"/>
+    </g>
+    
+    <!-- Quadrant 4: Cauldron of Potions -->
+    <g transform="translate(148, 150)">
+      <path d="M 5,10 L 25,10 M 8,10 C 8,25 22,25 22,10 M 15,22 L 15,28 M 12,28 L 18,28" stroke="#fbbf24" stroke-width="3" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Golden framing star highlights around -->
+  <path d="M 256,40 L 260,52 L 272,56 L 260,60 L 256,72 L 252,60 L 240,56 L 252,52 Z" fill="#f59e0b"/>
+  <path d="M 450,256 L 454,268 L 466,272 L 454,276 L 450,288 L 446,276 L 434,272 L 446,268 Z" fill="#f59e0b"/>
+  <path d="M 256,450 L 260,462 L 272,466 L 260,470 L 256,482 L 252,470 L 240,466 L 252,462 Z" fill="#f59e0b"/>
+  <path d="M 62,256 L 66,268 L 78,272 L 66,276 L 62,288 L 58,276 L 46,272 L 58,268 Z" fill="#f59e0b"/>
+</svg>

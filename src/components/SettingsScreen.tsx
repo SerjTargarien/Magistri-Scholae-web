@@ -35,6 +35,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onReloadRequested,
 }) => {
   const t = TRANSLATIONS[lang];
+  const wipePhrase = lang === "es" ? "ELIMINAR TODO" : "DELETE ALL";
 
   const [storageUsed, setStorageUsed] = useState<string>("0");
   const [storageQuota, setStorageQuota] = useState<string>("0");
@@ -78,10 +79,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setStatusMessage({ type: "success", text: lang === "es" ? "Copia de seguridad descargada." : "Backup downloaded successfully." });
+      setStatusMessage({ type: "success", text: t.backupDownloadedMsg });
     } catch (e) {
       console.error(e);
-      setStatusMessage({ type: "error", text: lang === "es" ? "Error al exportar los datos." : "Error exporting records." });
+      setStatusMessage({ type: "error", text: t.backupErrorExportMsg });
     }
   };
 
@@ -129,7 +130,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       onReloadRequested();
     } catch (e) {
       console.error(e);
-      setStatusMessage({ type: "error", text: lang === "es" ? "Error al sobreescribir." : "Overwrite failed." });
+      setStatusMessage({ type: "error", text: t.backupErrorOverwriteMsg });
     }
   };
 
@@ -147,13 +148,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       onReloadRequested();
     } catch (e) {
       console.error(e);
-      setStatusMessage({ type: "error", text: lang === "es" ? "Error al combinar datos." : "Merge failed." });
+      setStatusMessage({ type: "error", text: t.backupErrorMergeMsg });
     }
   };
 
   // Database Hard Reset
   const handleFullReset = async () => {
-    if (resetConfirmText.trim().toUpperCase() !== "ELIMINAR TODO") {
+    if (resetConfirmText.trim().toUpperCase() !== wipePhrase) {
       setStatusMessage({ type: "error", text: t.resetDataConfirmError });
       return;
     }
@@ -166,7 +167,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       onReloadRequested();
     } catch (e) {
       console.error(e);
-      setStatusMessage({ type: "error", text: lang === "es" ? "Fallo al borrar la base de datos." : "Failed to wipe database." });
+      setStatusMessage({ type: "error", text: t.backupErrorWipeMsg });
     }
   };
 
@@ -225,14 +226,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
           
           <p className="text-xs text-neutral-400 mb-4 font-sans leading-relaxed">
-            {lang === "es" 
-              ? "Configura el idioma preferido para la interfaz mágica y todas las fichas." 
-              : "Configure the wizarding interface preferred language."}
+            {t.settingsLanguageExplanation}
           </p>
 
           <div className="flex items-center gap-4 bg-neutral-950/40 p-4 border border-violet-500/10 rounded-lg">
             <span className="text-sm text-neutral-300 font-medium">
-              {lang === "es" ? "Idioma Actual" : "Current Language"}:
+              {t.settingsCurrentLanguage}:
             </span>
             <select
               id="settings-language-dropdown"
@@ -251,14 +250,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="flex items-center gap-2 mb-4">
             <Database className="w-5 h-5 text-amber-500" />
             <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">
-              {lang === "es" ? "Coadyutoria de Datos" : "Backup & Safe Export"}
+              {t.settingsTitleDatabaseTools}
             </h2>
           </div>
 
           <p className="text-xs text-neutral-400 mb-4 font-sans leading-relaxed">
-            {lang === "es"
-              ? "Descarga una copia física de todos tus alumnos, incluyendo biografías, puntuaciones e imágenes persistentes."
-              : "Download local records as highly portable JSON backups containing all student traits."}
+            {t.settingsDDBBExplanation}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
@@ -303,7 +300,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <p>{t.installHelpText}</p>
             <div className="border-t border-violet-500/10 pt-2 flex items-center gap-2 text-neutral-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>{lang === "es" ? "Estado: Sin conexión activada" : "PWA Status: Offline cached"}</span>
+              <span>{t.pwaStatusLabel}: {t.pwaOfflineStatusSuffix}</span>
             </div>
           </div>
         </div>
@@ -320,9 +317,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-3 text-xs text-neutral-300 leading-relaxed bg-neutral-950/30 p-4 border border-violet-900/10 rounded-lg">
             <p>{t.storageInfoText}</p>
             <div className="grid grid-cols-2 gap-2 font-mono text-neutral-400 text-[11px] pt-1">
-              <div>Uso estimado:</div>
+              <div>{lang === "es" ? "Uso estimado:" : "Estimated usage:"}</div>
               <div className="text-amber-300 text-right">{storageUsed} MB</div>
-              <div>Cuota total:</div>
+              <div>{lang === "es" ? "Cuota total:" : "Total quota:"}</div>
               <div className="text-neutral-400 text-right">{storageQuota} MB</div>
             </div>
           </div>
@@ -342,7 +339,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               : "Companion ledger for roleplaying magic academy campaigns. Keeps all students, spells, spellbooks, and profiles safe locally inside your browser sandstone."}
           </p>
           <div className="text-[11px] text-neutral-500 font-mono text-center pt-2 border-t border-violet-500/10">
-            {lang === "es" ? "Sello de la Escuela Magistri Scholae — 2026" : "School Seal — Magistri Scholae 2026"}
+            {t.schoolSealPrefix}
           </div>
         </div>
 
@@ -356,9 +353,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
 
           <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-            {lang === "es"
-              ? "Esta acción borrará de forma definitiva TODAS las fichas de alumnos y la biblioteca de imágenes de tu base de datos de este navegador. Para proceder, escribe el código de confirmación exactamente en el campo de abajo:"
-              : "This action will permanently delete ALL local students and stored images. Type 'ELIMINAR TODO' in Spanish inside the field to proceed:"}
+            {t.settingsConfirmWipeDDBBDescription}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center bg-neutral-950/70 p-4 border border-rose-900/30 rounded-lg">
@@ -376,15 +371,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               id="btn-submit-reset"
               onClick={handleFullReset}
-              disabled={resetConfirmText.trim().toUpperCase() !== "ELIMINAR TODO"}
+              disabled={resetConfirmText.trim().toUpperCase() !== wipePhrase}
               className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-mono font-bold uppercase transition-all flex items-center justify-center gap-2 border ${
-                resetConfirmText.trim().toUpperCase() === "ELIMINAR TODO"
+                resetConfirmText.trim().toUpperCase() === wipePhrase
                   ? "bg-rose-900 border-rose-600 text-rose-100 hover:bg-rose-800 cursor-pointer"
                   : "bg-neutral-900 border-neutral-800 text-neutral-500 cursor-not-allowed"
               }`}
             >
               <Skull className="w-4 h-4" />
-              {lang === "es" ? "EJECUTAR PURGA" : "EXECUTE PURGE"}
+              {t.settingsExecutePurge}
             </button>
           </div>
         </div>
@@ -410,8 +405,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </p>
 
             <div className="bg-neutral-950/70 p-4 rounded-lg border border-neutral-800 mb-6 text-xs font-mono text-neutral-400 space-y-1">
-              <div>• {lang === "es" ? "Alumnos en backup" : "Students in file"}: <span className="text-amber-400 font-bold">{pendingBackup.characters.length}</span></div>
-              <div>• {lang === "es" ? "Fecha de copia" : "Exported on"}: {new Date(pendingBackup.exportedAt).toLocaleString()}</div>
+              <div>• {t.backupTotalStudentsInFile}: <span className="text-amber-400 font-bold">{pendingBackup.characters.length}</span></div>
+              <div>• {t.backupExportedOn}: {new Date(pendingBackup.exportedAt).toLocaleString()}</div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

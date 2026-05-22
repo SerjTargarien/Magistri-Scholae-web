@@ -104,6 +104,77 @@ export interface TranslationDict {
   pasteUrl: string;
   invalidUrl: string;
   galleryInstructions: string;
+
+  // New keys for complete localization
+  placeholderNombre: string;
+  placeholderJugador: string;
+  placeholderPuestoClase: string;
+  placeholderConcepto: string;
+  placeholderLinaje: string;
+  placeholderEconomia: string;
+  placeholderComplicaciones: string;
+  placeholderAspectoTemporal: string;
+  placeholderFamiliar: string;
+  placeholderVaritaSintonia: string;
+  placeholderConsecuenciaMental: string;
+  placeholderNuevoAspecto: string;
+  placeholderConjuroName: string;
+  placeholderPocionName: string;
+  placeholderClubes: string;
+  placeholderEquipo: string;
+  placeholderNotasChronicle: string;
+
+  schoolShield: string;
+  secDatosAlumno: string;
+  secLinajeDestino: string;
+  secFamiliarVarita: string;
+  secEstresRango: string;
+  secPersonalAspects: string;
+  secCustomFields: string;
+  labelActual: string;
+  labelMaximo: string;
+  labelSalud: string;
+  labelHerido: string;
+  labelSereno: string;
+  labelAislado: string;
+  labelCordura: string;
+  labelLocura: string;
+  labelGrado: string;
+  labelFamiliarEmpty: string;
+  labelVaritaEmpty: string;
+  labelComplicacionesEmpty: string;
+  labelAspectsEmpty: string;
+  labelSpellsEmpty: string;
+  labelPotionsEmpty: string;
+  labelGalleryEmpty: string;
+  labelOfflineAutoSave: string;
+  pwaOfflineStatusSuffix: string;
+  pwaStatusLabel: string;
+  schoolSealPrefix: string;
+  settingsTitleDatabaseTools: string;
+  settingsDDBBExplanation: string;
+  settingsLanguageExplanation: string;
+  settingsCurrentLanguage: string;
+  settingsExecutePurge: string;
+  settingsConfirmWipeDDBBDescription: string;
+  backupDownloadedMsg: string;
+  backupErrorExportMsg: string;
+  backupErrorOverwriteMsg: string;
+  backupErrorMergeMsg: string;
+  backupErrorWipeMsg: string;
+  backupTotalStudentsInFile: string;
+  backupExportedOn: string;
+  confirmDeleteSpell: string;
+  confirmDeletePotion: string;
+  confirmDeleteGalleryImage: string;
+  noConceptDefined: string;
+  filterByHouse: string;
+  studentPrefix: string;
+  noName: string;
+  subirArchivoLocalMax: string;
+  imageTooLarge: string;
+  errorStoringStudent: string;
+  loadingMessage: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -166,7 +237,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     complicaciones: "Complicaciones",
     linaje: "Linaje Familiar",
     puntosDestino: "Puntos de Destino",
-    economia: "Fondo Monetario",
+    economia: "Economía",
     familiar: "Familiar",
     varitaSintonia: "Varita",
     estresFisico: "Estrés Físico",
@@ -206,6 +277,77 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     pasteUrl: "Pegar URL remota",
     invalidUrl: "URL inválida",
     galleryInstructions: "Haz clic o arrastra imágenes locales para almancenarlas directamente en tu base de datos offline. También puedes pegar enlaces de internet.",
+
+    // New localized entries
+    placeholderNombre: "p. ej. Leonora Vance",
+    placeholderJugador: "p. ej. Miguel Ángel",
+    placeholderPuestoClase: "p. ej. Prefecta, Monitor",
+    placeholderConcepto: "p. ej. Alquimista rebelde con un secreto familiar",
+    placeholderLinaje: "p. ej. Sangre Pura, Mítico",
+    placeholderEconomia: "p. ej. Normal, Precaria, Rica",
+    placeholderComplicaciones: "p. ej. Maldición familiar latente, Temor irracional al fuego",
+    placeholderAspectoTemporal: "p. ej. Convertido en sapo (Temporal)",
+    placeholderFamiliar: "p. ej. Gato negro de tres ojos",
+    placeholderVaritaSintonia: "p. ej. Madera de sauce con núcleo de pluma de fénix",
+    placeholderConsecuenciaMental: "p. ej. Memoria mermada",
+    placeholderNuevoAspecto: "p. ej. Hijo Predilecto de Urania",
+    placeholderConjuroName: "p. ej. Ignis Fatuus",
+    placeholderPocionName: "p. ej. Filtro de paz",
+    placeholderClubes: "p. ej. Club de Duelo escolar (Rango Oro)",
+    placeholderEquipo: "p. ej. Reloj de arena, caldero peltre, grimorio antiguo de transmutación",
+    placeholderNotasChronicle: "Escribe aquí las crónicas del alumno, registros de clase, pactos extraescolares o secretos que vaya descubriendo de la academia...",
+
+    schoolShield: "ESCUELA:",
+    secDatosAlumno: "Datos del Alumno",
+    secLinajeDestino: "Linaje, Destino y Economía",
+    secFamiliarVarita: "Familiar y Varita",
+    secEstresRango: "Ajustar Rangos de Estrés",
+    secPersonalAspects: "Aspectos Personales",
+    secCustomFields: "Atributos Personalizados",
+    labelActual: "ACTUAL",
+    labelMaximo: "MÁXIMO",
+    labelSalud: "SALUD",
+    labelHerido: "HERIDO",
+    labelSereno: "SERENO",
+    labelAislado: "AISLADO",
+    labelCordura: "CORDURA",
+    labelLocura: "LOCURA",
+    labelGrado: "Grado",
+    labelFamiliarEmpty: "Sin acompañante registrado",
+    labelVaritaEmpty: "Varita básica de la academia",
+    labelComplicacionesEmpty: "El alumno no reporta trabas ni maldiciones latentes.",
+    labelAspectsEmpty: "Sin rasgos de guardián declarados.",
+    labelSpellsEmpty: "GRIMORIO VACÍO",
+    labelPotionsEmpty: "ALAMBIQUE LIMPIO",
+    labelGalleryEmpty: "GALERÍA DE FOTOS TOTALMENTE VACÍA",
+    labelOfflineAutoSave: "ACTIVO AUTOGUARDADO OFFLINE",
+    pwaOfflineStatusSuffix: "Activo",
+    pwaStatusLabel: "Estado: Sin conexión",
+    schoolSealPrefix: "Sello de la Escuela Magistri Scholae — 2026",
+    settingsTitleDatabaseTools: "Coadyutoria de Datos",
+    settingsDDBBExplanation: "Descarga una copia física de todos tus alumnos, incluyendo biografías, puntuaciones e imágenes persistentes.",
+    settingsLanguageExplanation: "Configura el idioma preferido para la interfaz mágica y todas las fichas.",
+    settingsCurrentLanguage: "Idioma Actual",
+    settingsExecutePurge: "EJECUTAR PURGA",
+    settingsConfirmWipeDDBBDescription: "Esta acción borrará de forma definitiva TODAS las fichas de alumnos y la biblioteca de imágenes de tu base de datos de este navegador. Para proceder, escribe el código de confirmación exactamente en el campo de abajo:",
+    backupDownloadedMsg: "Copia de seguridad descargada.",
+    backupErrorExportMsg: "Error al exportar los datos.",
+    backupErrorOverwriteMsg: "Error al sobreescribir.",
+    backupErrorMergeMsg: "Error al combinar datos.",
+    backupErrorWipeMsg: "Fallo al borrar la base de datos.",
+    backupTotalStudentsInFile: "Alumnos en backup",
+    backupExportedOn: "Fecha de copia",
+    confirmDeleteSpell: "¿Eliminar este conjuro?",
+    confirmDeletePotion: "¿Eliminar esta poción?",
+    confirmDeleteGalleryImage: "¿Eliminar esta imagen de la galería?",
+    noConceptDefined: "Sin concepto definido",
+    filterByHouse: "Filtrar por Casa",
+    studentPrefix: "ALUMNO",
+    noName: "Sin Nombre",
+    subirArchivoLocalMax: "Subir Archivo Local (Tamaño Máx: 2MB)",
+    imageTooLarge: "La imagen supera los 2MB. Selecciona un archivo menor.",
+    errorStoringStudent: "Error al guardar el alumno en la base de datos.",
+    loadingMessage: "Abriendo grimorio de la escuela...",
   },
   en: {
     appName: "Magistri Scholae",
@@ -232,7 +374,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     exportBackup: "Export System Backup",
     importBackup: "Import System Backup",
     resetData: "Wipe System Database",
-    resetDataConfirmPlaceholder: "Type 'ELIMINAR TODO' to confirm",
+    resetDataConfirmPlaceholder: "Type 'DELETE ALL' to confirm",
     resetDataConfirmError: "Confirmation word does not match.",
     resetSuccess: "The local database has been completely wiped.",
     importSuccess: "Database backup imported successfully.",
@@ -306,5 +448,76 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     pasteUrl: "Paste internet link",
     invalidUrl: "Invalid URL",
     galleryInstructions: "Drag and drop or click to upload local images directly into your offline browser storage database. Internet links are also supported.",
+
+    // New localized entries
+    placeholderNombre: "e.g., Leonora Vance",
+    placeholderJugador: "e.g., Michael Angel",
+    placeholderPuestoClase: "e.g., Prefect, Monitor",
+    placeholderConcepto: "e.g., Rebel alchemist with a family secret",
+    placeholderLinaje: "e.g., Pureblood, Mythical",
+    placeholderEconomia: "e.g., Normal, Poor, Rich",
+    placeholderComplicaciones: "e.g., Latent family curse, Irrational fear of fire",
+    placeholderAspectoTemporal: "e.g., Turned into a toad (Temporary)",
+    placeholderFamiliar: "e.g., Three-eyed black cat",
+    placeholderVaritaSintonia: "e.g., Willow wood with phoenix feather core",
+    placeholderConsecuenciaMental: "e.g., Fading memory",
+    placeholderNuevoAspecto: "e.g., Urania's Favorite Son",
+    placeholderConjuroName: "e.g., Ignis Fatuus",
+    placeholderPocionName: "e.g., Peace Draught",
+    placeholderClubes: "e.g., School Dueling Club (Gold Tier)",
+    placeholderEquipo: "e.g., Hourglass, pewter cauldron, ancient transmutation scroll",
+    placeholderNotasChronicle: "Write here the chronicles, class logs, extracurricular pacts or secrets discovered in the academy...",
+
+    schoolShield: "ACADEMY:",
+    secDatosAlumno: "Student Personal Details",
+    secLinajeDestino: "Heritage, Destiny & Economy",
+    secFamiliarVarita: "Companion Familiar & Wand",
+    secEstresRango: "Stress Thresholds",
+    secPersonalAspects: "Personal Aspects",
+    secCustomFields: "Custom Attributes",
+    labelActual: "CURRENT",
+    labelMaximo: "MAXIMUM",
+    labelSalud: "HEALTH",
+    labelHerido: "HURT",
+    labelSereno: "SERENE",
+    labelAislado: "SHUNNED",
+    labelCordura: "SANITY",
+    labelLocura: "SHATTERED",
+    labelGrado: "Grade",
+    labelFamiliarEmpty: "No companion registered",
+    labelVaritaEmpty: "Academy basic issue wand",
+    labelComplicacionesEmpty: "No hardships documented.",
+    labelAspectsEmpty: "Empty personal qualities.",
+    labelSpellsEmpty: "NO SPELLS INDEXED",
+    labelPotionsEmpty: "NO POTIONS INDEXED",
+    labelGalleryEmpty: "EMPTY GALLERIES",
+    labelOfflineAutoSave: "OFFLINE AUTO-SAVE ENABLED",
+    pwaOfflineStatusSuffix: "Cached",
+    pwaStatusLabel: "PWA Status: Offline",
+    schoolSealPrefix: "School Seal — Magistri Scholae 2026",
+    settingsTitleDatabaseTools: "Backup & Safe Export",
+    settingsDDBBExplanation: "Download local records as highly portable JSON backups containing all student traits.",
+    settingsLanguageExplanation: "Configure the wizarding interface preferred language.",
+    settingsCurrentLanguage: "Current Language",
+    settingsExecutePurge: "EXECUTE PURGE",
+    settingsConfirmWipeDDBBDescription: "This action will permanently delete ALL local students and stored images. Type 'DELETE ALL' inside the field to proceed:",
+    backupDownloadedMsg: "Backup downloaded successfully.",
+    backupErrorExportMsg: "Error exporting records.",
+    backupErrorOverwriteMsg: "Overwrite failed.",
+    backupErrorMergeMsg: "Merge failed.",
+    backupErrorWipeMsg: "Failed to wipe database.",
+    backupTotalStudentsInFile: "Students in file",
+    backupExportedOn: "Exported on",
+    confirmDeleteSpell: "Delete this spell?",
+    confirmDeletePotion: "Delete this formula?",
+    confirmDeleteGalleryImage: "Delete this picture?",
+    noConceptDefined: "No concept defined",
+    filterByHouse: "House Filter",
+    studentPrefix: "STUDENT",
+    noName: "No Name",
+    subirArchivoLocalMax: "Upload File (Max Size: 2MB)",
+    imageTooLarge: "Image is too large. Please select a file under 2MB.",
+    errorStoringStudent: "Error storing student in the database.",
+    loadingMessage: "Decrypting School Tomes...",
   },
 };

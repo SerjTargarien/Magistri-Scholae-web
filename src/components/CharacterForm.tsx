@@ -46,7 +46,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     concepto: "",
     lema: "Creer es ver",
     escudoText: "IRATI",
-    complicaciones: "",
+    complicaciones: [],
     linaje: "Mítico",
     puntosDestino: 3,
     economia: "Normal",
@@ -75,6 +75,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
 
   const [formError, setFormError] = useState<string | null>(null);
   const [newAspectName, setNewAspectName] = useState("");
+  const [newComplicationName, setNewComplicationName] = useState("");
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldValue, setNewFieldValue] = useState("");
   const [pastedAvatarUrl, setPastedAvatarUrl] = useState("");
@@ -93,7 +94,11 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         concepto: initialCharacter.concepto,
         lema: initialCharacter.lema,
         escudoText: initialCharacter.escudoText,
-        complicaciones: initialCharacter.complicaciones || "",
+        complicaciones: initialCharacter.complicaciones
+          ? (Array.isArray(initialCharacter.complicaciones)
+              ? initialCharacter.complicaciones
+              : [initialCharacter.complicaciones])
+          : [],
         linaje: initialCharacter.linaje || "Mítico",
         puntosDestino: initialCharacter.puntosDestino !== undefined ? initialCharacter.puntosDestino : 3,
         economia: initialCharacter.economia || "Normal",
@@ -143,7 +148,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert(lang === "es" ? "La imagen supera los 2MB. Selecciona un archivo menor." : "Image is too large. Please select a file under 2MB.");
+      alert(t.imageTooLarge);
       return;
     }
 
@@ -183,6 +188,23 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     setCharacterState(prev => ({
       ...prev,
       aspectosPersonales: prev.aspectosPersonales.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // Complications Management
+  const addComplication = () => {
+    if (!newComplicationName.trim()) return;
+    setCharacterState(prev => ({
+      ...prev,
+      complicaciones: [...(prev.complicaciones || []), newComplicationName.trim()]
+    }));
+    setNewComplicationName("");
+  };
+
+  const removeComplication = (idx: number) => {
+    setCharacterState(prev => ({
+      ...prev,
+      complicaciones: (prev.complicaciones || []).filter((_, i) => i !== idx)
     }));
   };
 
@@ -227,12 +249,60 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     onSave(savedCharacter);
   };
 
+  // Check if current form values differ from the initial character details (or if a new draft has data)
+  const isStateDirty = () => {
+    if (initialCharacter) {
+      return (
+        characterState.nombre !== initialCharacter.nombre ||
+        characterState.jugador !== initialCharacter.jugador ||
+        characterState.edad !== initialCharacter.edad ||
+        characterState.casa !== initialCharacter.casa ||
+        characterState.curso !== initialCharacter.curso ||
+        characterState.puestoClase !== (initialCharacter.puestoClase || "") ||
+        characterState.concepto !== initialCharacter.concepto ||
+        characterState.lema !== initialCharacter.lema ||
+        characterState.escudoText !== initialCharacter.escudoText ||
+        JSON.stringify(characterState.complicaciones) !== JSON.stringify(Array.isArray(initialCharacter.complicaciones) ? initialCharacter.complicaciones : (initialCharacter.complicaciones ? [initialCharacter.complicaciones] : [])) ||
+        characterState.linaje !== (initialCharacter.linaje || "Mítico") ||
+        characterState.puntosDestino !== (initialCharacter.puntosDestino !== undefined ? initialCharacter.puntosDestino : 3) ||
+        characterState.economia !== (initialCharacter.economia || "Normal") ||
+        characterState.familiar !== (initialCharacter.familiar || "") ||
+        characterState.varitaSintonia !== (initialCharacter.varitaSintonia || "") ||
+        characterState.estresFisico !== (initialCharacter.estresFisico !== undefined ? initialCharacter.estresFisico : 0) ||
+        characterState.estresFisicoMax !== (initialCharacter.estresFisicoMax !== undefined ? initialCharacter.estresFisicoMax : 5) ||
+        characterState.estresMental !== (initialCharacter.estresMental !== undefined ? initialCharacter.estresMental : 0) ||
+        characterState.estresMentalMax !== (initialCharacter.estresMentalMax !== undefined ? initialCharacter.estresMentalMax : 5) ||
+        characterState.estresMentalConsecuencia !== (initialCharacter.estresMentalConsecuencia || "") ||
+        characterState.estresSocial !== (initialCharacter.estresSocial !== undefined ? initialCharacter.estresSocial : 0) ||
+        characterState.estresSocialMax !== (initialCharacter.estresSocialMax !== undefined ? initialCharacter.estresSocialMax : 5) ||
+        characterState.pxs !== (initialCharacter.pxs !== undefined ? initialCharacter.pxs : 0) ||
+        characterState.aspectoTemporal !== (initialCharacter.aspectoTemporal || "") ||
+        JSON.stringify(characterState.aspectosPersonales) !== JSON.stringify(initialCharacter.aspectosPersonales || []) ||
+        JSON.stringify(characterState.habilidades) !== JSON.stringify(initialCharacter.habilidades || []) ||
+        JSON.stringify(characterState.conjuros) !== JSON.stringify(initialCharacter.conjuros || []) ||
+        JSON.stringify(characterState.pociones) !== JSON.stringify(initialCharacter.pociones || []) ||
+        characterState.clubes !== (initialCharacter.clubes || "") ||
+        characterState.equipo !== (initialCharacter.equipo || "") ||
+        characterState.notas !== (initialCharacter.notas || "") ||
+        characterState.avatarImage !== (initialCharacter.avatarImage || "") ||
+        JSON.stringify(characterState.galleryImages) !== JSON.stringify(initialCharacter.galleryImages || []) ||
+        JSON.stringify(characterState.camposPersonalizados) !== JSON.stringify(initialCharacter.camposPersonalizados || [])
+      );
+    } else {
+      return characterState.nombre.trim() !== "" || characterState.concepto.trim() !== "";
+    }
+  };
+
   // Interactive Cancel Flow with check
   const handleCancelClick = () => {
-    const isDirty = characterState.nombre.trim() !== "" || characterState.concepto.trim() !== "";
+    const isDirty = isStateDirty();
     if (isDirty) {
-      const confirmDiscard = window.confirm(t.draftDiscardConfirm);
-      if (!confirmDiscard) return;
+      try {
+        const confirmDiscard = window.confirm(t.draftDiscardConfirm);
+        if (!confirmDiscard) return;
+      } catch (e) {
+        console.warn("window.confirm blocked or failed in sandbox iframe:", e);
+      }
     }
     onCancel();
   };
@@ -288,7 +358,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-perfil">
           <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-violet-400" />
-            1. {lang === "es" ? "Datos del Alumno" : "Student Personal Details"}
+            1. {t.secDatosAlumno}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -300,7 +370,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-nombre"
                 type="text"
-                placeholder="p. ej. Leonora Vance"
+                placeholder={t.placeholderNombre}
                 value={characterState.nombre}
                 onChange={(e) => {
                   setCharacterState(prev => ({ ...prev, nombre: e.target.value }));
@@ -318,7 +388,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-jugador"
                 type="text"
-                placeholder="p. ej. Miguel Ángel"
+                placeholder={t.placeholderJugador}
                 value={characterState.jugador}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, jugador: e.target.value }))}
                 className="w-full"
@@ -380,7 +450,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-puesto-clase"
                 type="text"
-                placeholder="p. ej. Prefecta, Monitor"
+                placeholder={t.placeholderPuestoClase}
                 value={characterState.puestoClase}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, puestoClase: e.target.value }))}
                 className="w-full font-sans"
@@ -395,7 +465,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-concepto"
                 type="text"
-                placeholder="p. ej. Alquimista rebelde con un secreto familiar"
+                placeholder={t.placeholderConcepto}
                 value={characterState.concepto}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, concepto: e.target.value }))}
                 className="w-full"
@@ -475,7 +545,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               {/* Local upload */}
               <div className="p-4 bg-neutral-950/40 rounded-xl border border-dashed border-violet-500/25 flex flex-col items-center justify-center text-center">
                 <p className="text-xs text-neutral-400 mb-2 font-mono">
-                  {lang === "es" ? "Subir Archivo Local (Tamaño Máx: 2MB)" : "Upload File (Max Size: 2MB)"}
+                  {t.subirArchivoLocalMax}
                 </p>
                 <input
                   id="avatar-file-input"
@@ -518,7 +588,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-linaje">
           <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
             <Coins className="w-4 h-4 text-violet-400" />
-            3. {lang === "es" ? "Linaje, Destino y Economía" : "Heritage, Destiny & Economy"}
+            3. {t.secLinajeDestino}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -530,7 +600,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-linaje"
                 type="text"
-                placeholder="p. ej. Sangre Pura, Mítico"
+                placeholder={t.placeholderLinaje}
                 value={characterState.linaje}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, linaje: e.target.value }))}
                 className="w-full"
@@ -560,7 +630,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-economia"
                 type="text"
-                placeholder="p. ej. Normal, Precaria, Rica"
+                placeholder={t.placeholderEconomia}
                 value={characterState.economia}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, economia: e.target.value }))}
                 className="w-full"
@@ -582,21 +652,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               />
             </div>
 
-            {/* Complicaciones */}
-            <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
-                {t.complicaciones}
-              </label>
-              <textarea
-                id="input-complicaciones"
-                rows={2}
-                placeholder="p. ej. Maldición familiar latente, Temor irracional al fuego"
-                value={characterState.complicaciones}
-                onChange={(e) => setCharacterState(prev => ({ ...prev, complicaciones: e.target.value }))}
-                className="w-full text-xs font-sans leading-relaxed"
-              />
-            </div>
-
             {/* Aspecto Temporal */}
             <div className="flex flex-col gap-1.5 md:col-span-2">
               <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
@@ -605,7 +660,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-aspecto-temporal"
                 type="text"
-                placeholder="p. ej. Convertido en sapo (Temporal)"
+                placeholder={t.placeholderAspectoTemporal}
                 value={characterState.aspectoTemporal}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, aspectoTemporal: e.target.value }))}
                 className="w-full text-xs"
@@ -618,7 +673,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-familiar">
           <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-violet-400" />
-            4. {lang === "es" ? "Familiar y Varita" : "Companion Familiar & Wand"}
+            4. {t.secFamiliarVarita}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -629,7 +684,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-familiar"
                 type="text"
-                placeholder="p. ej. Gato negro de tres ojos"
+                placeholder={t.placeholderFamiliar}
                 value={characterState.familiar}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, familiar: e.target.value }))}
                 className="w-full text-xs"
@@ -643,7 +698,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <input
                 id="input-varita-sintonia"
                 type="text"
-                placeholder="p. ej. Madera de sauce con núcleo de pluma de fénix"
+                placeholder={t.placeholderVaritaSintonia}
                 value={characterState.varitaSintonia}
                 onChange={(e) => setCharacterState(prev => ({ ...prev, varitaSintonia: e.target.value }))}
                 className="w-full text-xs"
@@ -656,7 +711,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-estres">
           <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
             <Heart className="w-4 h-4 text-violet-400" />
-            5. {lang === "es" ? "Ajustar Rangos de Estrés" : "Stress Thresholds"}
+            5. {t.secEstresRango}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -667,7 +722,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               </h4>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelActual}</div>
                   <input
                     id="input-estres-fisico"
                     type="number"
@@ -679,7 +734,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   />
                 </div>
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelMaximo}</div>
                   <input
                     id="input-estres-fisico-max"
                     type="number"
@@ -699,7 +754,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               </h4>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelActual}</div>
                   <input
                     id="input-estres-mental"
                     type="number"
@@ -711,7 +766,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   />
                 </div>
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelMaximo}</div>
                   <input
                     id="input-estres-mental-max"
                     type="number"
@@ -729,7 +784,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 <input
                   id="input-estres-mental-consecuencia"
                   type="text"
-                  placeholder="p. ej. Memoria mermada"
+                  placeholder={t.placeholderConsecuenciaMental}
                   value={characterState.estresMentalConsecuencia}
                   onChange={(e) => setCharacterState(prev => ({ ...prev, estresMentalConsecuencia: e.target.value }))}
                   className="w-full text-xs"
@@ -744,7 +799,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               </h4>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">ACTUAL</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelActual}</div>
                   <input
                     id="input-estres-social"
                     type="number"
@@ -756,7 +811,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   />
                 </div>
                 <div>
-                  <div className="text-[9px] font-mono text-neutral-500">MÁXIMO</div>
+                  <div className="text-[9px] font-mono text-neutral-500">{t.labelMaximo}</div>
                   <input
                     id="input-estres-social-max"
                     type="number"
@@ -771,59 +826,122 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           </div>
         </div>
 
-        {/* 6. Aspectos Personales */}
+        {/* 6. Aspectos Personales y Complicaciones */}
         <div className="glass-panel p-6 rounded-2xl border border-violet-500/15" id="form-sec-aspectos">
           <h3 className="font-magic text-sm text-neutral-300 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-4 flex items-center gap-2">
             <FileText className="w-4 h-4 text-violet-400" />
-            6. {t.aspectosPersonales}
+            6. {t.aspectosPersonales} & {t.complicaciones}
           </h3>
 
-          <div className="space-y-4">
-            {/* Aspect Form */}
-            <div className="flex gap-2">
-              <input
-                id="input-new-aspect"
-                type="text"
-                placeholder="p. ej. Hijo Predilecto de Urania"
-                value={newAspectName}
-                onChange={(e) => setNewAspectName(e.target.value)}
-                className="flex-1 text-xs"
-              />
-              <button
-                id="btn-add-aspect"
-                type="button"
-                onClick={addAspect}
-                className="px-4 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-800 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                {lang === "es" ? "Añadir" : "Add"}
-              </button>
+          <div className="space-y-6">
+            {/* Aspectos Personales Block */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-magic text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                🌟 {t.aspectosPersonales}
+              </h4>
+              
+              {/* Aspect Form */}
+              <div className="flex gap-2">
+                <input
+                  id="input-new-aspect"
+                  type="text"
+                  placeholder={t.placeholderNuevoAspecto}
+                  value={newAspectName}
+                  onChange={(e) => setNewAspectName(e.target.value)}
+                  className="flex-1 text-xs"
+                />
+                <button
+                  id="btn-add-aspect"
+                  type="button"
+                  onClick={addAspect}
+                  className="px-4 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-850 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {t.addAspect || "Add Aspect"}
+                </button>
+              </div>
+
+              {/* Aspects List */}
+              {characterState.aspectosPersonales.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" id="aspects-editor-list">
+                  {characterState.aspectosPersonales.map((as, index) => (
+                    <div 
+                      key={index} 
+                      className="flex justify-between items-center bg-neutral-950/40 border border-violet-500/15 p-2 rounded-lg"
+                    >
+                      <span className="text-xs text-neutral-200 font-serif italic">“ {as} ”</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAspect(index)}
+                        className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-1.5">
+                  {t.labelAspectsEmpty}
+                </p>
+              )}
             </div>
 
-            {/* Aspects List */}
-            {characterState.aspectosPersonales.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" id="aspects-editor-list">
-                {characterState.aspectosPersonales.map((as, index) => (
-                  <div 
-                    key={index} 
-                    className="flex justify-between items-center bg-neutral-950/40 border border-violet-500/15 p-2 rounded-lg"
-                  >
-                    <span className="text-xs text-neutral-200 font-serif italic">“ {as} ”</span>
-                    <button
-                      type="button"
-                      onClick={() => removeAspect(index)}
-                      className="text-neutral-500 hover:text-rose-400 p-1"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
+            {/* Divider divider divider */}
+            <div className="border-t border-violet-500/10 pt-4"></div>
+
+            {/* Complicaciones Block */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-magic text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                ⚠️ {t.complicaciones}
+              </h4>
+
+              {/* Complication Form */}
+              <div className="flex gap-2">
+                <input
+                  id="input-new-complication"
+                  type="text"
+                  placeholder={t.placeholderComplicaciones}
+                  value={newComplicationName}
+                  onChange={(e) => setNewComplicationName(e.target.value)}
+                  className="flex-1 text-xs"
+                />
+                <button
+                  id="btn-add-complication"
+                  type="button"
+                  onClick={addComplication}
+                  className="px-4 py-1.5 bg-rose-950 border border-rose-550/30 hover:bg-rose-900 text-rose-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {lang === "es" ? "Añadir Complicación" : "Add Flaw"}
+                </button>
               </div>
-            ) : (
-              <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-1.5">
-                {lang === "es" ? "SIN ASPECTOS PERSONALES REGISTRADOS" : "NO PERSONAL ASPECTS DECLARED"}
-              </p>
-            )}
+
+              {/* Complications List */}
+              {characterState.complicaciones.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" id="complications-editor-list">
+                  {characterState.complicaciones.map((comp, index) => (
+                    <div 
+                      key={index} 
+                      className="flex justify-between items-center bg-neutral-950/40 border border-rose-500/15 p-2 rounded-lg"
+                    >
+                      <span className="text-xs text-rose-300 font-sans italic">“ {comp} ”</span>
+                      <button
+                        type="button"
+                        onClick={() => removeComplication(index)}
+                        className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] font-mono text-neutral-500 text-center select-none py-1.5">
+                  {t.labelComplicacionesEmpty}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

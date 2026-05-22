@@ -134,7 +134,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   };
 
   const removeSpell = (id: string) => {
-    if (!window.confirm(lang === "es" ? "¿Eliminar este conjuro?" : "Delete this spell?")) return;
+    if (!window.confirm(t.confirmDeleteSpell)) return;
     const clone = {
       ...character,
       conjuros: (character.conjuros || []).filter(sp => sp.id !== id)
@@ -164,7 +164,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   };
 
   const removePotion = (id: string) => {
-    if (!window.confirm(lang === "es" ? "¿Eliminar esta poción?" : "Delete this formula?")) return;
+    if (!window.confirm(t.confirmDeletePotion)) return;
     const clone = {
       ...character,
       pociones: (character.pociones || []).filter(po => po.id !== id)
@@ -184,7 +184,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert(lang === "es" ? "La imagen supera los 2MB. Selecciona un archivo menor." : "Image exceeds 2MB limit.");
+      alert(t.imageTooLarge);
       return;
     }
 
@@ -203,7 +203,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
   const removeGalleryImage = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid triggering click expansion
-    if (!window.confirm(lang === "es" ? "¿Eliminar esta imagen de la galería?" : "Delete this picture?")) return;
+    if (!window.confirm(t.confirmDeleteGalleryImage)) return;
     const clone = {
       ...character,
       galleryImages: (character.galleryImages || []).filter((_, i) => i !== idx)
@@ -300,7 +300,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         <div className="flex-1 text-center md:text-left self-center">
           <div className="flex flex-col md:flex-row md:items-center gap-2">
             <h1 className="font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber">
-              {character.nombre || "Ficha de Alumno"}
+              {character.nombre || t.noName}
             </h1>
             <span className={`text-[10px] font-mono tracking-wider bg-neutral-950/80 px-2 py-0.5 rounded border ${hInfo.borderClass} self-center mt-1 md:mt-0 font-extrabold ${hInfo.textClass}`}>
               {hInfo.nombre} • {character.curso}
@@ -308,17 +308,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           </div>
 
           <p className="text-xs text-neutral-400 mt-2 font-mono italic max-w-xl">
-            {character.concepto ? `“${character.concepto}”` : "— Sin Concepto Escrito —"}
+            {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
           </p>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 font-serif italic text-amber-200 text-xs">
             {character.lema && (
               <span>« {character.lema} »</span>
-            )}
-            {character.escudoText && (
-              <span className="text-neutral-500 font-mono text-[9px] not-italic select-none uppercase tracking-widest leading-none flex items-center bg-black/40 px-2 py-1 rounded">
-                ESCUELA: {character.escudoText}
-              </span>
             )}
           </div>
         </div>
@@ -361,85 +356,135 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         {activeTab === "perfil" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="detail-tab-perfil">
             
-            {/* Bio Column */}
-            <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
-              <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-550/10 pb-2 flex items-center gap-2">
-                <User className="w-4 h-4 text-violet-400" />
-                {lang === "es" ? "Datos de Alumno" : "Personal Dossier"}
-              </h3>
+{/* Bio Column */}
+<div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
+  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
+    <User className="w-4 h-4 text-violet-400" />
+    {t.secDatosAlumno}
+  </h3>
 
-              <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
-                  <div className="text-amber-300 mt-0.5 font-bold">{character.linaje || "Mítico"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
-                </div>
-              </div>
+  <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
+      <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
+    </div>
 
-              {/* Familar & Varita */}
-              <div className="border-t border-violet-500/10 pt-3 space-y-3">
-                <div className="text-xs">
-                  <span className="font-mono text-[9px] text-neutral-550 uppercase block">{t.familiar}</span>
-                  <span className="text-neutral-200 italic mt-0.5 block">{character.familiar || "Sin acompañante registrado"}</span>
-                </div>
-                <div className="text-xs">
-                  <span className="font-mono text-[9px] text-neutral-550 uppercase block">{t.varitaSintonia}</span>
-                  <span className="text-neutral-200 italic mt-0.5 block">{character.varitaSintonia || "Varita básica de la academia"}</span>
-                </div>
-              </div>
-            </div>
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
+      <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
+    </div>
+
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
+      <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
+    </div>
+
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
+      <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
+    </div>
+
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
+      <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
+    </div>
+
+    <div>
+      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
+      <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
+    </div>
+  </div>
+
+  {/* Familiar & Varita */}
+  <div className="border-t border-violet-500/10 pt-3">
+    <div className="grid grid-cols-1 gap-3 text-xs font-mono">
+      <div>
+        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+          {t.familiar}
+        </div>
+        <div className="text-neutral-200 mt-0.5">
+          {character.familiar || t.labelFamiliarEmpty}
+        </div>
+      </div>
+
+      <div>
+        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+          {t.varitaSintonia}
+        </div>
+        <div className="text-neutral-200 mt-0.5">
+          {character.varitaSintonia || t.labelVaritaEmpty}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* Complications & Aspects Column */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-5">
               
-              {/* Complications */}
-              <div>
-                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-                  ⚠️ {t.complicaciones}
-                </h3>
-                <div className="p-3 bg-neutral-950/30 rounded-lg border border-neutral-900 min-h-[4rem] text-xs text-rose-300 leading-relaxed font-sans">
-                  {character.complicaciones || (lang === "es" ? "El alumno no reporta trabas ni maldiciones latentes." : "No hardships documented.")}
-                </div>
-              </div>
+{/* Personal Aspects */}
+<div>
+  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
+    🌟 {t.aspectosPersonales}
+  </h3>
 
-              {/* Personal Aspects */}
-              <div>
-                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-                  🌟 {t.aspectosPersonales}
-                </h3>
-                {character.aspectosPersonales && character.aspectosPersonales.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2">
-                    {character.aspectosPersonales.map((as, idx) => (
-                      <div key={idx} className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300">
-                        “ {as} ”
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-                    {lang === "es" ? "Sin rasgos de guardián declarados." : "Empty personal qualities."}
-                  </span>
-                )}
-              </div>
+  {(() => {
+    const aspectList = Array.isArray(character.aspectosPersonales)
+      ? character.aspectosPersonales
+      : character.aspectosPersonales
+        ? [character.aspectosPersonales]
+        : [];
+
+    return aspectList.length > 0 ? (
+      <div className="grid grid-cols-1 gap-2">
+        {aspectList.map((aspect, idx) => (
+          <div
+            key={idx}
+            className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
+          >
+            “ {aspect} ”
+          </div>
+        ))}
+      </div>
+    ) : (
+      <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+        {t.labelAspectsEmpty}
+      </span>
+    );
+  })()}
+</div>
+
+{/* Complications */}
+<div>
+  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
+    ⚠️ {t.complicaciones}
+  </h3>
+
+  {(() => {
+    const compList = Array.isArray(character.complicaciones)
+      ? character.complicaciones
+      : character.complicaciones
+        ? [character.complicaciones]
+        : [];
+
+    return compList.length > 0 ? (
+      <div className="grid grid-cols-1 gap-2">
+        {compList.map((comp, idx) => (
+          <div
+            key={idx}
+            className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-300"
+          >
+            “ {comp} ”
+          </div>
+        ))}
+      </div>
+    ) : (
+      <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+        {t.labelComplicacionesEmpty}
+      </span>
+    );
+  })()}
+</div>
 
               {/* Custom fields display */}
               {character.camposPersonalizados && character.camposPersonalizados.length > 0 && (
@@ -470,14 +515,14 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
                 <Coins className="w-4 h-4 text-violet-400" />
-                {lang === "es" ? "Recursos y Destino" : "Wizards Counters"}
+                {lang === "es" ? "Recursos y Destino" : "Counters & Destiny"}
               </h3>
 
               {/* Destiny points control */}
               <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">{t.puntosDestino}</span>
-                  <span className="text-[10px] text-neutral-500 font-sans block">{lang === "es" ? "Puntos de fortuna" : "Action destiny pool"}</span>
+                  <span className="text-[10px] text-neutral-500 font-sans block">{lang === "es" ? "Puntos de destino" : "Destiny pool action tracking"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -529,7 +574,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <input
                   id="session-aspect-temporal"
                   type="text"
-                  placeholder="p. ej. Ninguno"
+                  placeholder={t.placeholderAspectoTemporal}
                   value={character.aspectoTemporal || ""}
                   onChange={handleAspectTemporalChange}
                   className="w-full text-xs font-serif italic"
@@ -540,7 +585,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Stress track Controls - Physical & Social */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-5">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2">
-                💪 {lang === "es" ? "Estrés Físico y Social" : "Physical & Social Tracks"}
+                💪 {t.estresFisico} & {t.estresSocial}
               </h3>
 
               {/* Physical track box */}
@@ -574,8 +619,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   })}
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-neutral-500 font-mono">
-                  <span>SALUD</span>
-                  <span className="text-rose-400 font-bold">{lang === "es" ? "HERIDO" : "HURT"}</span>
+                  <span>{t.labelSalud}</span>
+                  <span className="text-rose-400 font-bold">{t.labelHerido}</span>
                 </div>
               </div>
 
@@ -610,8 +655,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   })}
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-neutral-500 font-mono">
-                  <span>SERENO</span>
-                  <span className="text-indigo-400 font-bold">{lang === "es" ? "AISLADO" : "SHUNNED"}</span>
+                  <span>{t.labelSereno}</span>
+                  <span className="text-indigo-400 font-bold">{t.labelAislado}</span>
                 </div>
               </div>
             </div>
@@ -619,7 +664,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Stress track control - Mental */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2">
-                🧠 {lang === "es" ? "Estrés Mental" : "Mental Strain Track"}
+                🧠 {t.estresMental}
               </h3>
 
               <div className="p-4 bg-neutral-950/40 rounded-xl border border-violet-900/10 space-y-4">
@@ -654,8 +699,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </div>
 
                 <div className="flex justify-between items-center text-[10px] text-neutral-500 font-mono">
-                  <span>CORDOURA</span>
-                  <span className="text-violet-400 font-bold">{lang === "es" ? "LOCURA" : "SHATTERED"}</span>
+                  <span>{t.labelCordura}</span>
+                  <span className="text-violet-400 font-bold">{t.labelLocura}</span>
                 </div>
               </div>
 
@@ -667,7 +712,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <input
                   id="session-mental-consequence"
                   type="text"
-                  placeholder="p. ej. Ninguna"
+                  placeholder={t.placeholderConsecuenciaMental}
                   value={character.estresMentalConsecuencia || ""}
                   onChange={handleConsecuenciaChange}
                   className="w-full text-xs"
@@ -774,7 +819,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <input
                     id="input-spell-name"
                     type="text"
-                    placeholder="p. ej. Ignis Fatuus"
+                    placeholder={t.placeholderConjuroName}
                     value={newSpellName}
                     onChange={(e) => setNewSpellName(e.target.value)}
                     className="text-xs"
@@ -823,7 +868,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <span className="text-xs font-semibold text-neutral-200">{sp.nombre}</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[9px] font-mono uppercase bg-neutral-800 text-neutral-400 px-1 py-0.5 rounded">
-                            Grado {sp.valor}
+                            {t.labelGrado} {sp.valor}
                           </span>
                           {sp.specialized && (
                             <span className="text-[9px] font-mono uppercase bg-violet-950 text-violet-300 font-bold px-1 py-0.5 rounded border border-violet-500/10">
@@ -843,7 +888,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   ))
                 ) : (
                   <p className="text-[10px] font-mono text-neutral-600 text-center select-none py-6">
-                    {lang === "es" ? "GRIMORIO VACÍO" : "NO SPELLS INDEXED"}
+                    {t.labelSpellsEmpty}
                   </p>
                 )}
               </div>
@@ -864,7 +909,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <input
                     id="input-potion-name"
                     type="text"
-                    placeholder="p. ej. Filtro de paz"
+                    placeholder={t.placeholderPocionName}
                     value={newPotionName}
                     onChange={(e) => setNewPotionName(e.target.value)}
                     className="text-xs"
@@ -913,7 +958,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <span className="text-xs font-semibold text-neutral-200">{po.nombre}</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[9px] font-mono uppercase bg-neutral-800 text-neutral-400 px-1 py-0.5 rounded">
-                            Grado {po.valor}
+                            {t.labelGrado} {po.valor}
                           </span>
                           {po.specialized && (
                             <span className="text-[9px] font-mono uppercase bg-violet-950 text-violet-300 font-bold px-1 py-0.5 rounded border border-violet-500/10">
@@ -933,7 +978,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   ))
                 ) : (
                   <p className="text-[10px] font-mono text-neutral-600 text-center select-none py-6">
-                    {lang === "es" ? "ALAMBIQUE LIMPIO" : "NO POTIONS INDEXED"}
+                    {t.labelPotionsEmpty}
                   </p>
                 )}
               </div>
@@ -956,7 +1001,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <textarea
                   id="notes-clubes"
                   rows={3}
-                  placeholder="p. ej. Club de Duelo escolar (Rango Oro)"
+                  placeholder={t.placeholderClubes}
                   value={character.clubes || ""}
                   onChange={(e) => {
                     const clone = { ...character, clubes: e.target.value };
@@ -974,7 +1019,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <textarea
                   id="notes-equipo"
                   rows={6}
-                  placeholder="p. ej. Reloj de arena, caldero peltre, grimorio antiguo de transmutación"
+                  placeholder={t.placeholderEquipo}
                   value={character.equipo || ""}
                   onChange={(e) => {
                     const clone = { ...character, equipo: e.target.value };
@@ -993,7 +1038,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   🖋️ {t.notas}
                 </h3>
                 <span className="text-[9px] font-mono text-neutral-500 select-none animate-pulse">
-                  ACTIVO AUTOGUARDADO OFFLINE
+                  {t.labelOfflineAutoSave}
                 </span>
               </div>
               
@@ -1001,7 +1046,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <textarea
                   id="notes-diary-editor"
                   rows={16}
-                  placeholder="Escribe aquí las crónicas del alumno, registros de clase, pactos extraescolares o secretos que vaya descubriendo de la academia..."
+                  placeholder={t.placeholderNotasChronicle}
                   value={character.notas || ""}
                   onChange={handleNotesChange}
                   className="w-full h-full min-h-[300px] text-sm leading-relaxed font-sans bg-transparent/20 border-violet-500/5 focus:border-violet-500/20"
@@ -1077,7 +1122,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             ) : (
               <div className="text-center py-12 text-neutral-600 font-mono text-[10px] select-none" id="gallery-empty-notif">
                 <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-30 text-violet-400" />
-                {lang === "es" ? "GALERÍA DE FOTOS TOTALMENTE VACÍA" : "EMPTY GALLERIES"}
+                {t.labelGalleryEmpty}
               </div>
             )}
           </div>

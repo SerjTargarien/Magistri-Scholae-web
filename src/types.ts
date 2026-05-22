@@ -45,7 +45,7 @@ export interface Character {
   escudoText: string;
 
   // Complicación y Linaje
-  complicaciones: string;
+  complicaciones: string[];
   linaje: string;
   puntosDestino: number;
   economia: string;

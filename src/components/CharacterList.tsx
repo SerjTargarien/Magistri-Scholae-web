@@ -125,7 +125,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           {/* Quick House Select */}
           <div className="shrink-0 bg-neutral-950/40 border border-violet-500/15 rounded-xl p-1.5 flex items-center">
             <span className="text-[10px] font-mono text-neutral-400 uppercase px-2 font-bold hidden md:inline">
-              {lang === "es" ? "Filtrar por Casa" : "House Filter"}:
+              {t.filterByHouse}:
             </span>
             <select
               id="house-filter-dropdown"
@@ -217,7 +217,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   ) : (
                     <div className="w-full h-full bg-neutral-900/40 group-hover:bg-neutral-900/60 transition-colors flex flex-col justify-center items-center text-neutral-600 select-none p-4">
                       <Sparkles className="w-10 h-10 mb-2 opacity-50 text-violet-400 animate-pulse" />
-                      <span className="text-[9px] font-mono uppercase tracking-widest">{hInfo.nombre} STUDENT</span>
+                      <span className="text-[9px] font-mono uppercase tracking-widest">{t.studentPrefix} • {hInfo.nombre.toUpperCase()}</span>
                     </div>
                   )}
 
@@ -236,7 +236,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 className="font-magic text-sm font-bold text-neutral-100 uppercase tracking-wider group-hover:text-amber-400 transition-colors truncate">
-                      {c.nombre || "Sin Nombre"}
+                      {c.nombre || t.noName}
                     </h3>
 
                     {c.concepto ? (
@@ -245,7 +245,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </p>
                     ) : (
                       <p className="text-xs text-neutral-600 mt-1 font-mono min-h-[2rem]">
-                        Sin concepto definido
+                        {t.noConceptDefined}
                       </p>
                     )}
                   </div>
@@ -267,7 +267,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </div>
                     </div>
                     <div>
-                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{lang === "es" ? "Jugador" : "Player"}</div>
+                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.jugador}</div>
                       <div className="text-[10px] text-neutral-300 font-semibold truncate max-w-full">
                         {c.jugador || "—"}
                       </div>

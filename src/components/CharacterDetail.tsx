@@ -1433,7 +1433,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="text-amber-500">{character.estresFisico}/{character.estresFisicoMax}</span>
                   </div>
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center items-center">
+                    <button
+                      id="stress-phys-box-0"
+                      onClick={() => {
+                        const clone = { ...character, estresFisico: 0 };
+                        saveStateToDB(clone);
+                      }}
+                      className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresFisico === 0
+                          ? "bg-rose-950/30 border-rose-500/40 text-rose-300 shadow-inner"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                        }`}
+                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                    >
+                      0
+                    </button>
                     {Array.from({ length: character.estresFisicoMax }).map((_, idx) => {
                       const count = idx + 1;
                       const isChecked = character.estresFisico >= count;
@@ -1442,7 +1456,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           id={`stress-phys-box-${count}`}
                           key={idx}
                           onClick={() => {
-                            const clone = { ...character, estresFisico: isChecked ? count - 1 : count };
+                            const clone = { ...character, estresFisico: count };
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
@@ -1545,7 +1559,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   </div>
 
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center items-center">
+                    <button
+                      id="stress-mental-box-0"
+                      onClick={() => {
+                        const clone = { ...character, estresMental: 0 };
+                        saveStateToDB(clone);
+                      }}
+                      className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresMental === 0
+                          ? "bg-violet-950/30 border-violet-500/40 text-violet-300 shadow-inner"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                        }`}
+                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                    >
+                      0
+                    </button>
                     {Array.from({ length: character.estresMentalMax }).map((_, idx) => {
                       const count = idx + 1;
                       const isChecked = character.estresMental >= count;
@@ -1554,7 +1582,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           id={`stress-mental-box-${count}`}
                           key={idx}
                           onClick={() => {
-                            const clone = { ...character, estresMental: isChecked ? count - 1 : count };
+                            const clone = { ...character, estresMental: count };
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
@@ -1658,7 +1686,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="text-amber-550">{character.estresSocial}/{character.estresSocialMax}</span>
                   </div>
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center items-center">
+                    <button
+                      id="stress-soc-box-0"
+                      onClick={() => {
+                        const clone = { ...character, estresSocial: 0 };
+                        saveStateToDB(clone);
+                      }}
+                      className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresSocial === 0
+                          ? "bg-indigo-950/30 border-indigo-550/40 text-indigo-300 shadow-inner"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                        }`}
+                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                    >
+                      0
+                    </button>
                     {Array.from({ length: character.estresSocialMax }).map((_, idx) => {
                       const count = idx + 1;
                       const isChecked = character.estresSocial >= count;
@@ -1667,7 +1709,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           id={`stress-soc-box-${count}`}
                           key={idx}
                           onClick={() => {
-                            const clone = { ...character, estresSocial: isChecked ? count - 1 : count };
+                            const clone = { ...character, estresSocial: count };
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked

@@ -26,7 +26,8 @@ import {
   Activity,
   Trash,
   X,
-  Maximize2
+  Maximize2,
+  Gem
 } from "lucide-react";
 
 interface CharacterDetailProps {
@@ -111,6 +112,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     const newVal = Math.max(0, Math.min(maxVal, currentVal + count));
     (clone[field] as any) = newVal;
 
+    saveStateToDB(clone);
+  };
+
+  const setDestinyPoints = (val: number) => {
+    const clone = { ...character };
+    clone.puntosDestino = Math.max(0, Math.min(5, val));
     saveStateToDB(clone);
   };
 
@@ -856,16 +863,47 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       id="btn-dest-minus"
-                      onClick={() => changeStat("puntosDestino", -1)}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 cursor-pointer"
+                      onClick={() => setDestinyPoints((character.puntosDestino || 0) - 1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer"
+                      title={lang === "es" ? "Disminuir destino" : "Decrease destiny"}
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-8 text-center text-lg font-mono font-bold text-amber-500">{character.puntosDestino}</span>
+                    
+                    <div className="flex items-center gap-1.5 px-1.5" id="destiny-gems-container">
+                      {[1, 2, 3, 4, 5].map((num) => {
+                        const isActive = (character.puntosDestino || 0) >= num;
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => {
+                              // Direct click toggle behavior
+                              const currentPoints = character.puntosDestino || 0;
+                              if (currentPoints === num) {
+                                setDestinyPoints(num - 1);
+                              } else {
+                                setDestinyPoints(num);
+                              }
+                            }}
+                            className={`transition-all duration-300 transform hover:scale-125 focus:outline-none cursor-pointer p-0.5 ${
+                              isActive 
+                                ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)] hover:text-amber-300" 
+                                : "text-neutral-800 hover:text-neutral-600"
+                            }`}
+                            title={`${lang === "es" ? "Puntos de destino" : "Destiny points"}: ${num}`}
+                          >
+                            <Gem className={`w-5 h-5 ${isActive ? 'fill-amber-400/30' : 'fill-transparent'} transition-all`} />
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <button
                       id="btn-dest-plus"
-                      onClick={() => changeStat("puntosDestino", 1)}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 cursor-pointer"
+                      onClick={() => setDestinyPoints((character.puntosDestino || 0) + 1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer"
+                      title={lang === "es" ? "Aumentar destino" : "Increase destiny"}
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>

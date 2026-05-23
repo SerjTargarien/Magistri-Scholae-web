@@ -14,7 +14,6 @@ import {
   Info, 
   Languages, 
   Database, 
-  HelpCircle,
   Sparkles,
   ArrowLeft,
   CheckCircle,
@@ -287,24 +286,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* PWA & Sandbox Info */}
-        <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-info">
-          <div className="flex items-center gap-2 mb-4">
-            <HelpCircle className="w-5 h-5 text-amber-400" />
-            <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">
-              {t.installHelp}
-            </h2>
-          </div>
-          
-          <div className="text-xs text-neutral-300 font-sans leading-relaxed space-y-3 bg-neutral-950/30 p-4 border border-violet-900/10 rounded-lg">
-            <p>{t.installHelpText}</p>
-            <div className="border-t border-violet-500/10 pt-2 flex items-center gap-2 text-neutral-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>{t.pwaStatusLabel}: {t.pwaOfflineStatusSuffix}</span>
-            </div>
-          </div>
-        </div>
-
         {/* Storage Details */}
         <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-storage">
           <div className="flex items-center gap-2 mb-4">
@@ -326,7 +307,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* About App */}
-        <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2" id="settings-card-about">
+        <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-about">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-5 h-5 text-amber-500" />
             <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">

@@ -83,7 +83,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
         {/* Header Right menu with languages and configuration */}
         <div className="flex items-center gap-3">
-          <LanguageSelector currentLanguage={lang} onLanguageChange={onLanguageChange} />
 
           <button
             id="btn-settings"

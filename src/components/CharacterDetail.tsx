@@ -8,21 +8,21 @@ import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem } from "..
 import { Language, TRANSLATIONS } from "../localization";
 import { db } from "../db";
 import { compressImage } from "../utils/imageCompressor";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Shield, 
-  User, 
-  Flame, 
-  BookOpen, 
-  FileText, 
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Shield,
+  User,
+  Flame,
+  BookOpen,
+  FileText,
   Image as ImageIcon,
-  Plus, 
-  Minus, 
-  Sparkles, 
-  Award, 
-  Coins, 
+  Plus,
+  Minus,
+  Sparkles,
+  Award,
+  Coins,
   Activity,
   Trash,
   X,
@@ -126,9 +126,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     const list = Array.isArray(character.aspectoTemporal)
       ? character.aspectoTemporal
       : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
-    const clone = { 
-      ...character, 
-      aspectoTemporal: [...list, aspectName.trim()] 
+    const clone = {
+      ...character,
+      aspectoTemporal: [...list, aspectName.trim()]
     };
     saveStateToDB(clone);
   };
@@ -137,9 +137,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     const list = Array.isArray(character.aspectoTemporal)
       ? character.aspectoTemporal
       : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
-    const clone = { 
-      ...character, 
-      aspectoTemporal: list.filter((_, i) => i !== idx) 
+    const clone = {
+      ...character,
+      aspectoTemporal: list.filter((_, i) => i !== idx)
     };
     saveStateToDB(clone);
   };
@@ -218,7 +218,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     const clone = { ...character };
     const skills = [...clone.habilidades];
     const originalSkill = skills[skillIdx];
-    
+
     // Ensure base level from 0 to 5 for standard play
     const newVal = Math.max(0, Math.min(5, originalSkill.valor + val));
     skills[skillIdx] = { ...originalSkill, valor: newVal };
@@ -343,7 +343,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     try {
       // Auto compress to under ~200-400KB so it never fails or crashes the client state
       const base64Str = await compressImage(file, 1600, 1600, 0.75);
-      
+
       const clone = {
         ...character,
         galleryImages: [...(character.galleryImages || []), base64Str]
@@ -572,7 +572,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-4" id="character-detail-screen">
-      
+
       {/* Top Navigation & Action Bar - Highly Visible with 44px+ touch targets */}
       <div className="flex flex-row justify-between items-center mb-6 bg-white/5 border border-white/10 p-3 rounded-xl gap-2 z-20 relative shadow-sm" id="detail-top-nav-bar">
         <button
@@ -672,11 +672,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               id={`tab-button-${tb.id}`}
               key={tb.id}
               onClick={() => setActiveTab(tb.id as any)}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg border transition-all shrink-0 snap-start cursor-pointer select-none ${
-                IsActive
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg border transition-all shrink-0 snap-start cursor-pointer select-none ${IsActive
                   ? "bg-violet-950/70 border-amber-500/50 text-amber-300"
                   : "bg-neutral-950/40 border-neutral-800 text-neutral-400 hover:text-neutral-200"
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4 text-violet-400" />
               {tb.label}
@@ -687,140 +686,140 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
       {/* Primary Tabs Board */}
       <div className="min-h-[400px]" id="detail-active-tab-box">
-        
+
         {/* TAF 1: PERFIL */}
         {activeTab === "perfil" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="detail-tab-perfil">
-            
+
             {/* Bio Column */}
-<div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
-  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
-    <User className="w-4 h-4 text-violet-400" />
-    {t.secDatosAlumno}
-  </h3>
+            <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
+              <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
+                <User className="w-4 h-4 text-violet-400" />
+                {t.secDatosAlumno}
+              </h3>
 
-  <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
-      <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
-    </div>
+              <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
+                </div>
 
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
-      <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
-    </div>
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
+                </div>
 
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-      <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
-    </div>
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
+                </div>
 
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
-      <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
-    </div>
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
+                </div>
 
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
-      <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
-    </div>
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
+                </div>
 
-    <div>
-      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
-      <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
-    </div>
-  </div>
+                <div>
+                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
+                  <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
+                </div>
+              </div>
 
-  {/* Familiar & Varita */}
-  <div className="border-t border-violet-500/10 pt-3">
-    <div className="grid grid-cols-1 gap-3 text-xs font-mono">
-      <div>
-        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-          {t.familiar}
-        </div>
-        <div className="text-neutral-200 mt-0.5">
-          {character.familiar || t.labelFamiliarEmpty}
-        </div>
-      </div>
+              {/* Familiar & Varita */}
+              <div className="border-t border-violet-500/10 pt-3">
+                <div className="grid grid-cols-1 gap-3 text-xs font-mono">
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+                      {t.familiar}
+                    </div>
+                    <div className="text-neutral-200 mt-0.5">
+                      {character.familiar || t.labelFamiliarEmpty}
+                    </div>
+                  </div>
 
-      <div>
-        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-          {t.varitaSintonia}
-        </div>
-        <div className="text-neutral-200 mt-0.5">
-          {character.varitaSintonia || t.labelVaritaEmpty}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+                      {t.varitaSintonia}
+                    </div>
+                    <div className="text-neutral-200 mt-0.5">
+                      {character.varitaSintonia || t.labelVaritaEmpty}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Complications & Aspects Column */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-5">
-              
-{/* Personal Aspects */}
-<div>
-  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-    🌟 {t.aspectosPersonales}
-  </h3>
 
-  {(() => {
-    const aspectList = Array.isArray(character.aspectosPersonales)
-      ? character.aspectosPersonales
-      : character.aspectosPersonales
-        ? [character.aspectosPersonales]
-        : [];
+              {/* Personal Aspects */}
+              <div>
+                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
+                  🌟 {t.aspectosPersonales}
+                </h3>
 
-    return aspectList.length > 0 ? (
-      <div className="grid grid-cols-1 gap-2">
-        {aspectList.map((aspect, idx) => (
-          <div
-            key={idx}
-            className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
-          >
-            “ {aspect} ”
-          </div>
-        ))}
-      </div>
-    ) : (
-      <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-        {t.labelAspectsEmpty}
-      </span>
-    );
-  })()}
-</div>
+                {(() => {
+                  const aspectList = Array.isArray(character.aspectosPersonales)
+                    ? character.aspectosPersonales
+                    : character.aspectosPersonales
+                      ? [character.aspectosPersonales]
+                      : [];
 
-{/* Complications */}
-<div>
-  <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-    ⚠️ {t.complicaciones}
-  </h3>
+                  return aspectList.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {aspectList.map((aspect, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
+                        >
+                          “ {aspect} ”
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                      {t.labelAspectsEmpty}
+                    </span>
+                  );
+                })()}
+              </div>
 
-  {(() => {
-    const compList = Array.isArray(character.complicaciones)
-      ? character.complicaciones
-      : character.complicaciones
-        ? [character.complicaciones]
-        : [];
+              {/* Complications */}
+              <div>
+                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
+                  ⚠️ {t.complicaciones}
+                </h3>
 
-    return compList.length > 0 ? (
-      <div className="grid grid-cols-1 gap-2">
-        {compList.map((comp, idx) => (
-          <div
-            key={idx}
-            className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-300"
-          >
-            “ {comp} ”
-          </div>
-        ))}
-      </div>
-    ) : (
-      <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-        {t.labelComplicacionesEmpty}
-      </span>
-    );
-  })()}
-</div>
+                {(() => {
+                  const compList = Array.isArray(character.complicaciones)
+                    ? character.complicaciones
+                    : character.complicaciones
+                      ? [character.complicaciones]
+                      : [];
+
+                  return compList.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {compList.map((comp, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-300"
+                        >
+                          “ {comp} ”
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                      {t.labelComplicacionesEmpty}
+                    </span>
+                  );
+                })()}
+              </div>
 
               {/* Custom fields display */}
               {character.camposPersonalizados && character.camposPersonalizados.length > 0 && (
@@ -846,7 +845,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         {/* TAB 2: SESIÓN (Tracker mode) */}
         {activeTab === "sesion" && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 animate-fade-in" id="detail-tab-sesion">
-            
+
             {/* Core Stats Adjustments */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6 flex flex-col justify-between">
               <div className="space-y-6">
@@ -856,92 +855,91 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </h3>
 
                 {/* Destiny points control */}
-<div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl flex flex-col gap-3">
-  <div>
-    <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">
-      {t.puntosDestino}
-    </span>
-  </div>
+                <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl flex flex-col gap-3">
+                  <div>
+                    <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">
+                      {t.puntosDestino}
+                    </span>
+                  </div>
 
-  <div className="flex items-center justify-center gap-2">
-    <button
-      id="btn-dest-minus"
-      onClick={() => setDestinyPoints((character.puntosDestino || 0) - 1)}
-      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
-      title={lang === "es" ? "Disminuir destino" : "Decrease destiny"}
-    >
-      <Minus className="w-3.5 h-3.5" />
-    </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      id="btn-dest-minus"
+                      onClick={() => setDestinyPoints((character.puntosDestino || 0) - 1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
+                      title={lang === "es" ? "Disminuir destino" : "Decrease destiny"}
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
 
-    <div className="flex items-center justify-center gap-1.5 px-1.5 min-w-0" id="destiny-gems-container">
-      {[1, 2, 3, 4, 5].map((num) => {
-        const isActive = (character.puntosDestino || 0) >= num;
-        return (
-          <button
-            key={num}
-            type="button"
-            onClick={() => {
-              const currentPoints = character.puntosDestino || 0;
-              if (currentPoints === num) {
-                setDestinyPoints(num - 1);
-              } else {
-                setDestinyPoints(num);
-              }
-            }}
-            className={`transition-all duration-300 transform hover:scale-125 focus:outline-none cursor-pointer p-0.5 shrink-0 ${
-              isActive
-                ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)] hover:text-amber-300"
-                : "text-neutral-800 hover:text-neutral-600"
-            }`}
-            title={`${lang === "es" ? "Puntos de destino" : "Destiny points"}: ${num}`}
-          >
-            <Sparkles className={`w-5 h-5 ${isActive ? "fill-amber-400/20" : "fill-transparent"} transition-all`} />
-          </button>
-        );
-      })}
-    </div>
+                    <div className="flex items-center justify-center gap-1.5 px-1.5 min-w-0" id="destiny-gems-container">
+                      {[1, 2, 3, 4, 5].map((num) => {
+                        const isActive = (character.puntosDestino || 0) >= num;
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => {
+                              const currentPoints = character.puntosDestino || 0;
+                              if (currentPoints === num) {
+                                setDestinyPoints(num - 1);
+                              } else {
+                                setDestinyPoints(num);
+                              }
+                            }}
+                            className={`transition-all duration-300 transform hover:scale-125 focus:outline-none cursor-pointer p-0.5 shrink-0 ${isActive
+                                ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)] hover:text-amber-300"
+                                : "text-neutral-800 hover:text-neutral-600"
+                              }`}
+                            title={`${lang === "es" ? "Puntos de destino" : "Destiny points"}: ${num}`}
+                          >
+                            <Sparkles className={`w-5 h-5 ${isActive ? "fill-amber-400/20" : "fill-transparent"} transition-all`} />
+                          </button>
+                        );
+                      })}
+                    </div>
 
-    <button
-      id="btn-dest-plus"
-      onClick={() => setDestinyPoints((character.puntosDestino || 0) + 1)}
-      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
-      title={lang === "es" ? "Aumentar destino" : "Increase destiny"}
-    >
-      <Plus className="w-3.5 h-3.5" />
-    </button>
-  </div>
-</div>
+                    <button
+                      id="btn-dest-plus"
+                      onClick={() => setDestinyPoints((character.puntosDestino || 0) + 1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
+                      title={lang === "es" ? "Aumentar destino" : "Increase destiny"}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
 
                 {/* Experience control */}
-<div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl flex flex-col gap-3">
-  <div>
-    <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">
-      {t.pxs}
-    </span>
-  </div>
+                <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl flex flex-col gap-3">
+                  <div>
+                    <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">
+                      {t.pxs}
+                    </span>
+                  </div>
 
-  <div className="flex items-center justify-center gap-2">
-    <button
-      id="btn-exp-minus"
-      onClick={() => changeStat("pxs", -1)}
-      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-violet-400 cursor-pointer shrink-0"
-    >
-      <Minus className="w-3.5 h-3.5" />
-    </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      id="btn-exp-minus"
+                      onClick={() => changeStat("pxs", -1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-violet-400 cursor-pointer shrink-0"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
 
-    <span className="w-8 text-center text-lg font-mono font-bold text-violet-455">
-      {character.pxs}
-    </span>
+                    <span className="w-8 text-center text-lg font-mono font-bold text-violet-455">
+                      {character.pxs}
+                    </span>
 
-    <button
-      id="btn-exp-plus"
-      onClick={() => changeStat("pxs", 1)}
-      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-violet-400 cursor-pointer shrink-0"
-    >
-      <Plus className="w-3.5 h-3.5" />
-    </button>
-  </div>
-</div>
+                    <button
+                      id="btn-exp-plus"
+                      onClick={() => changeStat("pxs", 1)}
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-violet-400 cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
 
                 {/* Dynamic Temporary Aspects List */}
                 <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3">
@@ -1039,11 +1037,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             const clone = { ...character, estresFisico: isChecked ? count - 1 : count };
                             saveStateToDB(clone);
                           }}
-                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${
-                            isChecked 
-                              ? "bg-rose-950/80 border-rose-500 text-rose-350 shadow-inner" 
+                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
+                              ? "bg-rose-950/80 border-rose-500 text-rose-350 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
-                          }`}
+                            }`}
                         >
                           {count}
                         </button>
@@ -1138,7 +1135,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <span className="text-neutral-300">{t.estresMental}</span>
                     <span className="text-amber-500">{character.estresMental}/{character.estresMentalMax}</span>
                   </div>
-                  
+
                   {/* Visual grid checkboxes */}
                   <div className="flex gap-2 justify-center">
                     {Array.from({ length: character.estresMentalMax }).map((_, idx) => {
@@ -1152,11 +1149,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             const clone = { ...character, estresMental: isChecked ? count - 1 : count };
                             saveStateToDB(clone);
                           }}
-                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${
-                            isChecked 
-                              ? "bg-violet-950/80 border-violet-500 text-violet-350 shadow-inner" 
+                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
+                              ? "bg-violet-950/80 border-violet-500 text-violet-350 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
-                          }`}
+                            }`}
                         >
                           {count}
                         </button>
@@ -1266,11 +1262,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             const clone = { ...character, estresSocial: isChecked ? count - 1 : count };
                             saveStateToDB(clone);
                           }}
-                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${
-                            isChecked 
-                              ? "bg-indigo-950/80 border-indigo-550 text-indigo-350 shadow-inner" 
+                          className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
+                              ? "bg-indigo-950/80 border-indigo-550 text-indigo-350 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
-                          }`}
+                            }`}
                         >
                           {count}
                         </button>
@@ -1374,11 +1369,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <button
                       id={`btn-toggle-edit-skills-${catKey}`}
                       onClick={() => toggleSkillEditMode(catKey)}
-                      className={`flex items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all cursor-pointer select-none ${
-                        activeEditCat === catKey 
-                          ? "text-neutral-950 bg-amber-500 hover:bg-amber-400" 
+                      className={`flex items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all cursor-pointer select-none ${activeEditCat === catKey
+                          ? "text-neutral-950 bg-amber-500 hover:bg-amber-400"
                           : "text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20"
-                      }`}
+                        }`}
                       style={{ width: "32px", height: "32px" }}
                       title={lang === "es" ? "Añadir o eliminar habilidades de esta sección" : "Add or remove skills in this section"}
                     >
@@ -1420,7 +1414,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       {character.habilidades.map((sk, index) => {
                         if (sk.categoria !== catKey) return null;
                         return (
-                          <div 
+                          <div
                             id={`skill-row-${sk.nombre}`}
                             key={sk.nombre}
                             className="bg-neutral-950/30 border border-neutral-900 px-3 py-2.5 rounded-xl flex items-center justify-between shadow-inner"
@@ -1442,8 +1436,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                 <div className="flex gap-1 mt-1">
                                   {/* Small glowing pips indicating score weights */}
                                   {Array.from({ length: 5 }).map((_, i) => (
-                                    <span 
-                                      key={i} 
+                                    <span
+                                      key={i}
                                       className={`w-2 h-2 rounded-full ${i < sk.valor ? "bg-amber-500 shadow-sm shadow-amber-500/50" : "bg-neutral-800"}`}
                                     ></span>
                                   ))}
@@ -1457,11 +1451,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                 id={`btn-skill-${sk.nombre}-minus`}
                                 onClick={() => changeSkillValue(index, -1)}
                                 disabled={sk.valor === 0}
-                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${
-                                  sk.valor === 0 
-                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed" 
+                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 0
+                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
                                     : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-rose-455"
-                                }`}
+                                  }`}
                               >
                                 -
                               </button>
@@ -1473,11 +1466,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                 id={`btn-skill-${sk.nombre}-plus`}
                                 onClick={() => changeSkillValue(index, 1)}
                                 disabled={sk.valor === 5}
-                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${
-                                  sk.valor === 5 
-                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed" 
+                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 5
+                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
                                     : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-emerald-450"
-                                }`}
+                                  }`}
                               >
                                 +
                               </button>
@@ -1500,7 +1492,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         {/* TAB 4: HECHIZOS (Conjuros y Pociones) */}
         {activeTab === "hechizos" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" id="detail-tab-hechizos">
-            
+
             {/* Spells Panel */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2">
@@ -1511,8 +1503,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <div className="space-y-2">
                 {character.conjuros && character.conjuros.length > 0 ? (
                   character.conjuros.map((sp) => (
-                    <div 
-                      key={sp.id} 
+                    <div
+                      key={sp.id}
                       className="flex justify-between items-center bg-neutral-950/20 px-3 py-2 border border-neutral-900 rounded-lg"
                     >
                       <div>
@@ -1601,8 +1593,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <div className="space-y-2">
                 {character.pociones && character.pociones.length > 0 ? (
                   character.pociones.map((po) => (
-                    <div 
-                      key={po.id} 
+                    <div
+                      key={po.id}
                       className="flex justify-between items-center bg-neutral-950/20 px-3 py-2 border border-neutral-900 rounded-lg"
                     >
                       <div>
@@ -1689,20 +1681,20 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" id="detail-tab-notas">
             {/* Left side: Clubs & Inventory */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
-              
+
               {/* Clubes */}
               <div className="space-y-3">
                 <h4 className="font-magic text-[10px] text-amber-400 uppercase tracking-widest border-b border-violet-900/10 pb-1.5 font-bold flex items-center justify-between">
                   <span>🛡️ {t.clubes}</span>
                   <span className="text-[9px] font-mono text-neutral-500">{(character.clubesList || []).length}</span>
                 </h4>
-                
+
                 {/* List First: Consultation Priority */}
                 <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
                   {character.clubesList && character.clubesList.length > 0 ? (
                     character.clubesList.map((cl) => (
-                      <div 
-                        key={cl.id} 
+                      <div
+                        key={cl.id}
                         className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all"
                       >
                         <span className="text-xs text-neutral-200 font-sans break-words max-w-[80%]">{cl.nombre}</span>
@@ -1754,8 +1746,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
                   {character.equipoList && character.equipoList.length > 0 ? (
                     character.equipoList.map((eq) => (
-                      <div 
-                        key={eq.id} 
+                      <div
+                        key={eq.id}
                         className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all"
                       >
                         <div className="flex items-center gap-2 max-w-[80%]">
@@ -1816,7 +1808,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    
+
                     <button
                       id="btn-add-inventory-item"
                       onClick={handleAddInventoryItem}
@@ -1847,7 +1839,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <div className="space-y-3 overflow-y-auto max-h-[480px] pr-1 flex-1">
                 {character.notasList && character.notasList.length > 0 ? (
                   [...character.notasList].sort((a, b) => b.fecha - a.fecha).map((note) => (
-                    <div 
+                    <div
                       key={note.id}
                       className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-4 space-y-2 hover:border-violet-500/10 transition-all shadow-inner"
                     >
@@ -1929,7 +1921,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         {/* TAB 6: GALERÍA DE FOTOS (Base64 list) */}
         {activeTab === "galeria" && (
           <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6 animate-fade-in" id="detail-tab-galeria">
-            
+
             {/* Top Info with file picker */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-violet-550/10 pb-3">
               <div>
@@ -1988,7 +1980,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       className="w-full h-auto object-contain block transition-transform group-hover:scale-[1.02] duration-350"
                       referrerPolicy="no-referrer"
                     />
-                    
+
                     {/* Delete action indicator hover */}
                     <button
                       id={`btn-del-gal-pic-${idx}`}
@@ -2018,7 +2010,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
       {/* Lightbox Modal overlay */}
       {lightboxImage && (
-        <div 
+        <div
           id="lightbox-backdrop"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur duration-300 pointer-events-auto"
           onClick={() => setLightboxImage(null)}
@@ -2026,12 +2018,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <div className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-100 cursor-pointer">
             <X className="w-8 h-8" />
           </div>
-          
+
           <div className="max-w-[90vw] max-h-[85vh] overflow-hidden rounded-xl border border-violet-500/20" onClick={(e) => e.stopPropagation()}>
-            <img 
+            <img
               id="lightbox-img"
-              src={lightboxImage} 
-              alt="Expanded" 
+              src={lightboxImage}
+              alt="Expanded"
               className="max-w-full max-h-[85vh] object-contain"
               referrerPolicy="referrer"
             />
@@ -2050,7 +2042,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             <p className="text-neutral-300 text-sm">
               {t.confirmDeleteText}
             </p>
-            
+
             {/* Double check checkbox */}
             <div className="bg-neutral-950/40 p-3 rounded-lg border border-neutral-900 flex items-start gap-3 mt-2">
               <input
@@ -2060,7 +2052,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 onChange={(e) => setDeleteStudentUnderstood(e.target.checked)}
                 className="mt-0.5 rounded text-rose-600 bg-neutral-900 border-rose-500/20 focus:ring-rose-500/50"
               />
-              <label 
+              <label
                 htmlFor="checkbox-confirm-student-delete"
                 className="text-xs text-neutral-400 hover:text-neutral-200 cursor-pointer select-none leading-relaxed"
               >
@@ -2080,11 +2072,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 id="btn-confirm-delete-student-action"
                 disabled={!deleteStudentUnderstood}
                 onClick={confirmDeleteCharacter}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  deleteStudentUnderstood
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${deleteStudentUnderstood
                     ? "bg-rose-600 text-white hover:bg-rose-505 shadow-md shadow-rose-600/25"
                     : "bg-neutral-900 text-neutral-600 border border-neutral-950 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <Trash2 className="w-4 h-4" />
                 {t.confirmDeleteButton}

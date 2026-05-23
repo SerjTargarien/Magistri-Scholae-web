@@ -23,6 +23,12 @@ export interface TranslationDict {
   loadingMessage: string;
   errorStoringStudent: string;
   resetConfirmPhrase: string;
+  btnFinish: string;
+  confirmDelete: string;
+  confirmDeleteText: string;
+  confirmDeleteCheckbox: string;
+  confirmDeleteButton: string;
+  confirmDeleteTitle: string;
 
   // 2. Navigation Tabs
   perfil: string;
@@ -48,6 +54,9 @@ export interface TranslationDict {
   economia: string;
   familiar: string;
   varitaSintonia: string;
+  noConceptDefined: string;
+  labelFamiliarEmpty: string;
+  labelVaritaEmpty: string;
 
   // 4. Input Field Placeholders
   placeholderNombre: string;
@@ -288,6 +297,12 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     loadingMessage: "Abriendo grimorio de la escuela...",
     errorStoringStudent: "Error al guardar el alumno en la base de datos.",
     resetConfirmPhrase: "ELIMINAR TODO",
+    btnFinish: "Finalizar Edición",
+    confirmDelete: "Eliminar Alumno permanentemente",
+    confirmDeleteText: "¿Estás seguro de que deseas eliminar permanentemente a este alumno? Esta acción es irreversible, destruirá de forma completa su bitácora de crónicas, galería de retratos, conjuros, pociones y equipamiento.",
+    confirmDeleteCheckbox: "Entiendo que esta acción es definitiva y no podré recuperar de ningún modo la ficha de este alumno.",
+    confirmDeleteButton: "Eliminar Permanente",
+    confirmDeleteTitle: "Confirmar Eliminación",
 
     // 2. Navigation Tabs
     perfil: "Perfil",
@@ -313,6 +328,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     economia: "Economía",
     familiar: "Familiar",
     varitaSintonia: "Varita",
+    noConceptDefined: "Sin arquetipo ni concepto definido",
+    labelFamiliarEmpty: "Ningún animal o familiar en sintonía.",
+    labelVaritaEmpty: "Sin varita vinculada.",
 
     // 4. Input Field Placeholders
     placeholderNombre: "p. ej. Leonora Vance",
@@ -495,7 +513,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 13. Settings, Storage, Purging & Backups
     about: "Acerca de",
-    aboutDescription: "Herramienta mágica diseñada para directores de juego y alumnos de academias mágicas. Permite administrar fichas completas, niveles, habilidades, conjuros e imágenes sin riesgo de pérdidas de datos en tu red o dispositivo. Desarrollado con tecnología de seguridad local IndexedDB.",
+    aboutDescription: "Herramienta mágica diseñada para directores de juego y alumnos de academias mágicas. Permite administrar fichas completas, niveles, habilidades, conjuros e imágenes.",
     installHelp: "Instalación PWA",
     installHelpText: "Esta aplicación se ejecuta localmente y sin conexión. En tu dispositivo móvil o de escritorio, selecciona 'Instalar aplicación' o 'Añadir a pantalla de inicio' en el menú de tu navegador para llevar la experiencia mágica a pantalla completa.",
     storageInfo: "Información de Almacenamiento",
@@ -551,6 +569,12 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     loadingMessage: "Decrypting School Tomes...",
     errorStoringStudent: "Error storing student in the database.",
     resetConfirmPhrase: "DELETE ALL",
+    btnFinish: "Finish Editing",
+    confirmDelete: "Permanently Delete Student",
+    confirmDeleteText: "Are you sure you want to permanently delete this student from the academic archives? This action is completely irreversible and will permanently delete all of their chronicled journals, photo galleries, spells, custom potions, and belongings.",
+    confirmDeleteCheckbox: "I understand that this action is permanent and I will not be able to recover this student's character sheet under any circumstance.",
+    confirmDeleteButton: "Delete Permanently",
+    confirmDeleteTitle: "Confirm Deletion",
 
     // 2. Navigation Tabs
     perfil: "Profile",
@@ -576,6 +600,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     economia: "Monetary Funds",
     familiar: "Familiar Companion",
     varitaSintonia: "Wand Tunement (Sintonía)",
+    noConceptDefined: "No archetype or concept defined",
+    labelFamiliarEmpty: "No companion animal or familiar attuned.",
+    labelVaritaEmpty: "No linked wand.",
 
     // 4. Input Field Placeholders
     placeholderNombre: "e.g., Leonora Vance",

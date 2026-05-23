@@ -315,7 +315,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     uploadGallery: "Añadir Foto a la Galería",
     pasteUrl: "Pegar URL remota",
     invalidUrl: "URL inválida",
-    galleryInstructions: "Haz clic o arrastra imágenes locales para almancenarlas directamente en tu base de datos offline. También puedes pegar enlaces de internet.",
+    galleryInstructions: "Haz clic para añadir fotos a tu galería de imágenes.",
 
     // New localized entries
     placeholderNombre: "p. ej. Leonora Vance",

@@ -484,9 +484,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         }}
                         className="rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-amber-500/30 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-mono text-[9px] bg-neutral-950 px-1.5 py-0.5 rounded border border-neutral-800 text-neutral-400 uppercase font-bold shrink-0">
-                        {c.casa.slice(0, 3).toUpperCase()}
-                      </span>
                       <div className="truncate flex flex-col min-w-0">
                         <span className="truncate font-sans font-medium text-neutral-200">{c.nombre || t.noName}</span>
                         {c.concepto && (

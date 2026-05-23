@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField } from "../types";
+import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField, HOUSE_ICONS } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
 import Cropper from "react-easy-crop";
 import { compressImage, getCroppedImg } from "../utils/imageCompressor";
@@ -501,7 +501,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               >
                 {Object.keys(HOUSES).map((hKey) => (
                   <option key={hKey} value={hKey}>
-                    🏰 {HOUSES[hKey].nombre}
+                    {HOUSE_ICONS[hKey] || "🏰"} {HOUSES[hKey].nombre}
                   </option>
                 ))}
               </select>

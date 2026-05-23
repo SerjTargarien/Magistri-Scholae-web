@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
-import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem } from "../types";
+import React, { useState, useEffect, useRef } from "react";
+import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
 import { db } from "../db";
-import { compressImage } from "../utils/imageCompressor";
+import Cropper from "react-easy-crop";
+import { compressImage, getCroppedImg } from "../utils/imageCompressor";
 import {
   ArrowLeft,
   Edit,
@@ -27,7 +28,8 @@ import {
   Trash,
   X,
   Maximize2,
-  Gem
+  Gem,
+  Check
 } from "lucide-react";
 
 interface CharacterDetailProps {
@@ -81,8 +83,20 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   const [newMentalConsequence, setNewMentalConsequence] = useState("");
   const [newSocialConsequence, setNewSocialConsequence] = useState("");
 
+  // Quick Edit Mode states
+  const [isQuickEditing, setIsQuickEditing] = useState(false);
+  const [newPersonalAspectInput, setNewPersonalAspectInput] = useState("");
+  const [newComplicationInput, setNewComplicationInput] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Cropper states for Portrait inside Quick Edit Mode
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
   // Skills dynamic customization states
-  const [activeEditCat, setActiveEditCat] = useState<string | null>(null);
   const [newSkillNames, setNewSkillNames] = useState<Record<string, string>>({});
 
   // Confirmation states to avoid window.confirm (blocked/unreliable in sandboxed iframes)
@@ -118,6 +132,89 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   const setDestinyPoints = (val: number) => {
     const clone = { ...character };
     clone.puntosDestino = Math.max(0, Math.min(5, val));
+    saveStateToDB(clone);
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const rawBase64 = event.target?.result as string;
+        setCropImageSrc(rawBase64);
+        setZoom(1);
+        setCrop({ x: 0, y: 0 });
+        setIsCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Error reading file for avatar crop:", err);
+    } finally {
+      e.target.value = ""; // refresh picker
+    }
+  };
+
+  const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleConfirmCrop = async () => {
+    if (!cropImageSrc || !croppedAreaPixels) return;
+    try {
+      const croppedBase64 = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      const clone = { ...character, avatarImage: croppedBase64 };
+      saveStateToDB(clone);
+      setIsCropperOpen(false);
+      setCropImageSrc(null);
+    } catch (err: any) {
+      console.error("Cropping confirm error:", err);
+    }
+  };
+
+  const handleDeleteAspect = (idx: number) => {
+    const list = Array.isArray(character.aspectosPersonales)
+      ? character.aspectosPersonales
+      : (character.aspectosPersonales ? [character.aspectosPersonales] : []);
+    const clone = {
+      ...character,
+      aspectosPersonales: list.filter((_, i) => i !== idx)
+    };
+    saveStateToDB(clone);
+  };
+
+  const handleAddNewAspect = (name: string) => {
+    if (!name.trim()) return;
+    const list = Array.isArray(character.aspectosPersonales)
+      ? character.aspectosPersonales
+      : (character.aspectosPersonales ? [character.aspectosPersonales] : []);
+    const clone = {
+      ...character,
+      aspectosPersonales: [...list, name.trim()]
+    };
+    saveStateToDB(clone);
+  };
+
+  const handleDeleteComplication = (idx: number) => {
+    const list = Array.isArray(character.complicaciones)
+      ? character.complicaciones
+      : (character.complicaciones ? [character.complicaciones] : []);
+    const clone = {
+      ...character,
+      complicaciones: list.filter((_, i) => i !== idx)
+    };
+    saveStateToDB(clone);
+  };
+
+  const handleAddNewComplication = (name: string) => {
+    if (!name.trim()) return;
+    const list = Array.isArray(character.complicaciones)
+      ? character.complicaciones
+      : (character.complicaciones ? [character.complicaciones] : []);
+    const clone = {
+      ...character,
+      complicaciones: [...list, name.trim()]
+    };
     saveStateToDB(clone);
   };
 
@@ -225,10 +322,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     clone.habilidades = skills;
 
     saveStateToDB(clone);
-  };
-
-  const toggleSkillEditMode = (catKey: string) => {
-    setActiveEditCat(prev => prev === catKey ? null : catKey);
   };
 
   const handleNewSkillNameChange = (catKey: string, val: string) => {
@@ -588,11 +681,24 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           {/* Edit Button */}
           <button
             id="btn-detail-edit"
-            onClick={onEdit}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-neutral-950 bg-amber-500 hover:bg-amber-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+            onClick={() => setIsQuickEditing(!isQuickEditing)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg focus:outline-none focus:ring-2 min-h-[44px] transition-all cursor-pointer select-none ${
+              isQuickEditing 
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white focus:ring-emerald-500/50" 
+                : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
+            }`}
           >
-            <Edit className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">{t.edit}</span>
+            {isQuickEditing ? (
+              <>
+                <Check className="w-4 h-4 shrink-0" />
+                <span>{lang === "es" ? "Finalizar" : "Finish"}</span>
+              </>
+            ) : (
+              <>
+                <Edit className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.edit}</span>
+              </>
+            )}
           </button>
 
           {/* Delete Button */}
@@ -614,8 +720,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none"></div>
 
         {/* Left Aspect - Avatar */}
-        <div className="shrink-0">
-          <div className="w-28 aspect-[3/4] bg-neutral-950 rounded-xl border border-violet-500/30 overflow-hidden shadow-md flex items-center justify-center relative">
+        <div className="shrink-0 flex flex-col items-center gap-2">
+          <div
+            onClick={isQuickEditing ? () => avatarInputRef.current?.click() : undefined}
+            className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl border border-violet-500/30 overflow-hidden shadow-md flex items-center justify-center relative ${
+              isQuickEditing ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+            }`}
+          >
             {character.avatarImage ? (
               <img
                 src={character.avatarImage}
@@ -629,29 +740,126 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 No pic
               </div>
             )}
-            <div className={`absolute bottom-0 inset-x-0 text-center text-[8px] font-mono uppercase bg-neutral-900/95 py-0.5 border-t ${hInfo.borderClass} text-neutral-400 font-bold`}>
-              {hInfo.nombre}
-            </div>
+
+            {/* Editing overlay */}
+            {isQuickEditing && (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-1 text-[10px] font-mono text-amber-350">
+                <ImageIcon className="w-5 h-5 mb-1 text-amber-400" />
+                <span>{lang === "es" ? "Cambiar foto" : "Change photo"}</span>
+              </div>
+            )}
+
+            {!isQuickEditing && (
+              <div className={`absolute bottom-0 inset-x-0 text-center text-[8px] font-mono uppercase bg-neutral-900/95 py-0.5 border-t ${hInfo.borderClass} text-neutral-400 font-bold`}>
+                {hInfo.nombre}
+              </div>
+            )}
           </div>
+
+          <input
+            type="file"
+            ref={avatarInputRef}
+            onChange={handleAvatarChange}
+            accept="image/*"
+            className="hidden"
+          />
+
+          {isQuickEditing && (
+            <div className="w-28">
+              <select
+                id="edit-banner-casa"
+                value={character.casa.toUpperCase()}
+                onChange={(e) => {
+                  const newVal = e.target.value;
+                  const clone = { ...character, casa: newVal };
+                  saveStateToDB(clone);
+                }}
+                className="w-full text-xs bg-neutral-950 text-neutral-200 border border-neutral-800 rounded p-1 font-mono focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              >
+                {Object.keys(HOUSES).map((hKey) => (
+                  <option key={hKey} value={hKey}>
+                    {HOUSE_ICONS[hKey] || "🏰"} {HOUSES[hKey].nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Center Aspect - Name, House & Concept Info */}
-        <div className="flex-1 text-center md:text-left self-center">
-          <div className="flex flex-col md:flex-row md:items-center gap-2">
-            <h1 className="font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber">
-              {character.nombre || t.noName}
-            </h1>
-          </div>
+        <div className="flex-1 text-center md:text-left self-center w-full">
+          {isQuickEditing ? (
+            <div className="flex flex-col gap-2.5 max-w-md mx-auto md:mx-0">
+              {/* Name field */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
+                  {lang === "es" ? "Nombre" : "Name"}
+                </label>
+                <input
+                  type="text"
+                  value={character.nombre || ""}
+                  onChange={(e) => {
+                    const clone = { ...character, nombre: e.target.value };
+                    saveStateToDB(clone);
+                  }}
+                  className="w-full text-sm font-magic bg-neutral-950 text-neutral-100 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  placeholder={t.placeholderNombre}
+                />
+              </div>
 
-          <p className="text-xs text-neutral-400 mt-2 font-mono italic max-w-xl">
-            {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
-          </p>
+              {/* Concept field */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
+                  {lang === "es" ? "Concepto" : "Concept"}
+                </label>
+                <input
+                  type="text"
+                  value={character.concepto || ""}
+                  onChange={(e) => {
+                    const clone = { ...character, concepto: e.target.value };
+                    saveStateToDB(clone);
+                  }}
+                  className="w-full text-xs font-mono bg-neutral-950 text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  placeholder={lang === "es" ? "Concepto del alumno" : "Student concept"}
+                />
+              </div>
 
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 font-serif italic text-amber-200 text-xs">
-            {character.lema && (
-              <span>« {character.lema} »</span>
-            )}
-          </div>
+              {/* Lema field */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
+                  {lang === "es" ? "Lema" : "Motto"}
+                </label>
+                <input
+                  type="text"
+                  value={character.lema || ""}
+                  onChange={(e) => {
+                    const clone = { ...character, lema: e.target.value };
+                    saveStateToDB(clone);
+                  }}
+                  className="w-full text-xs font-serif italic bg-neutral-950 text-amber-200/90 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  placeholder="Lema"
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <h1 className="font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber">
+                  {character.nombre || t.noName}
+                </h1>
+              </div>
+
+              <p className="text-xs text-neutral-400 mt-2 font-mono italic max-w-xl">
+                {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
+              </p>
+
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 font-serif italic text-amber-200 text-xs text-center md:text-left">
+                {character.lema && (
+                  <span>« {character.lema} »</span>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -698,59 +906,171 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 {t.secDatosAlumno}
               </h3>
 
-              <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
-                </div>
+              {isQuickEditing ? (
+                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.jugador}</label>
+                    <input
+                      type="text"
+                      value={character.jugador || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, jugador: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
 
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.edad}</label>
+                    <input
+                      type="text"
+                      value={character.edad || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, edad: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
 
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
+                    <input
+                      type="text"
+                      value={character.curso || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, curso: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
 
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
+                    <input
+                      type="text"
+                      value={character.puestoClase || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, puestoClase: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
 
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.linaje}</label>
+                    <input
+                      type="text"
+                      value={character.linaje || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, linaje: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
 
-                <div>
-                  <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
-                  <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.economia}</label>
+                    <input
+                      type="text"
+                      value={character.economia || ""}
+                      onChange={(e) => {
+                        const clone = { ...character, economia: e.target.value };
+                        saveStateToDB(clone);
+                      }}
+                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
+                  </div>
+                </div>
+              )}
 
               {/* Familiar & Varita */}
               <div className="border-t border-violet-500/10 pt-3">
-                <div className="grid grid-cols-1 gap-3 text-xs font-mono">
-                  <div>
-                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-                      {t.familiar}
+                {isQuickEditing ? (
+                  <div className="grid grid-cols-1 gap-3 text-xs font-mono">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.familiar}</label>
+                      <input
+                        type="text"
+                        value={character.familiar || ""}
+                        onChange={(e) => {
+                          const clone = { ...character, familiar: e.target.value };
+                          saveStateToDB(clone);
+                        }}
+                        className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                      />
                     </div>
-                    <div className="text-neutral-200 mt-0.5">
-                      {character.familiar || t.labelFamiliarEmpty}
-                    </div>
-                  </div>
 
-                  <div>
-                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-                      {t.varitaSintonia}
-                    </div>
-                    <div className="text-neutral-200 mt-0.5">
-                      {character.varitaSintonia || t.labelVaritaEmpty}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
+                      <input
+                        type="text"
+                        value={character.varitaSintonia || ""}
+                        onChange={(e) => {
+                          const clone = { ...character, varitaSintonia: e.target.value };
+                          saveStateToDB(clone);
+                        }}
+                        className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                      />
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 text-xs font-mono">
+                    <div>
+                      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+                        {t.familiar}
+                      </div>
+                      <div className="text-neutral-200 mt-0.5">
+                        {character.familiar || t.labelFamiliarEmpty}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
+                        {t.varitaSintonia}
+                      </div>
+                      <div className="text-neutral-200 mt-0.5">
+                        {character.varitaSintonia || t.labelVaritaEmpty}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -770,21 +1090,65 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       ? [character.aspectosPersonales]
                       : [];
 
-                  return aspectList.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2">
-                      {aspectList.map((aspect, idx) => (
-                        <div
-                          key={idx}
-                          className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
-                        >
-                          “ {aspect} ”
+                  return (
+                    <div className="space-y-3">
+                      {aspectList.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-2">
+                          {aspectList.map((aspect, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300 flex items-center justify-between gap-2"
+                            >
+                              <span>“ {aspect} ”</span>
+                              {isQuickEditing && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAspect(idx)}
+                                  className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                                  title={lang === "es" ? "Eliminar aspecto" : "Delete aspect"}
+                                >
+                                  <X className="w-3.5 h-3.5 shrink-0" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                          {t.labelAspectsEmpty}
+                        </span>
+                      )}
+
+                      {/* Option to add more aspects at the bottom */}
+                      {isQuickEditing && (
+                        <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
+                          <input
+                            type="text"
+                            placeholder={lang === "es" ? "Añadir nuevo aspecto..." : "Add new aspect..."}
+                            value={newPersonalAspectInput}
+                            onChange={(e) => setNewPersonalAspectInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddNewAspect(newPersonalAspectInput);
+                                setNewPersonalAspectInput("");
+                              }
+                            }}
+                            className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleAddNewAspect(newPersonalAspectInput);
+                              setNewPersonalAspectInput("");
+                            }}
+                            className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-                      {t.labelAspectsEmpty}
-                    </span>
                   );
                 })()}
               </div>
@@ -802,21 +1166,65 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       ? [character.complicaciones]
                       : [];
 
-                  return compList.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2">
-                      {compList.map((comp, idx) => (
-                        <div
-                          key={idx}
-                          className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-300"
-                        >
-                          “ {comp} ”
+                  return (
+                    <div className="space-y-3">
+                      {compList.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-2">
+                          {compList.map((comp, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-350 flex items-center justify-between gap-2"
+                            >
+                              <span>“ {comp} ”</span>
+                              {isQuickEditing && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteComplication(idx)}
+                                  className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                                  title={lang === "es" ? "Eliminar complicación" : "Delete complication"}
+                                >
+                                  <X className="w-3.5 h-3.5 shrink-0" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                          {t.labelComplicacionesEmpty}
+                        </span>
+                      )}
+
+                      {/* Option to add more complications at the bottom */}
+                      {isQuickEditing && (
+                        <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
+                          <input
+                            type="text"
+                            placeholder={lang === "es" ? "Añadir complicación..." : "Add complication..."}
+                            value={newComplicationInput}
+                            onChange={(e) => setNewComplicationInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddNewComplication(newComplicationInput);
+                                setNewComplicationInput("");
+                              }
+                            }}
+                            className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleAddNewComplication(newComplicationInput);
+                              setNewComplicationInput("");
+                            }}
+                            className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-                      {t.labelComplicacionesEmpty}
-                    </span>
                   );
                 })()}
               </div>
@@ -1364,24 +1772,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-2">
                       🛡️ {getCategoryTitle(catKey)}
                     </h3>
-
-                    {/* Discrete Edit Box in the top right, smaller and textless */}
-                    <button
-                      id={`btn-toggle-edit-skills-${catKey}`}
-                      onClick={() => toggleSkillEditMode(catKey)}
-                      className={`flex items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all cursor-pointer select-none ${activeEditCat === catKey
-                          ? "text-neutral-950 bg-amber-500 hover:bg-amber-400"
-                          : "text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20"
-                        }`}
-                      style={{ width: "32px", height: "32px" }}
-                      title={lang === "es" ? "Añadir o eliminar habilidades de esta sección" : "Add or remove skills in this section"}
-                    >
-                      <Plus className="w-3.5 h-3.5 shrink-0" />
-                    </button>
                   </div>
 
                   {/* Inline insertion form */}
-                  {activeEditCat === catKey && (
+                  {isQuickEditing && (
                     <div className="bg-neutral-950/40 p-3 rounded-xl border border-violet-500/10 mb-4 flex gap-2 items-center" id={`add-skill-form-${catKey}`}>
                       <input
                         id={`input-new-skill-name-${catKey}`}
@@ -1421,7 +1815,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           >
                             <div className="max-w-[130px] sm:max-w-[180px] flex items-center gap-1.5">
                               {/* Removal button shown when edit mode is toggled */}
-                              {activeEditCat === catKey && (
+                              {isQuickEditing && (
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveSkill(index)}
@@ -1447,32 +1841,36 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
                             <div className="flex items-center gap-2">
                               {/* Decrement Key */}
-                              <button
-                                id={`btn-skill-${sk.nombre}-minus`}
-                                onClick={() => changeSkillValue(index, -1)}
-                                disabled={sk.valor === 0}
-                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 0
-                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
-                                    : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-rose-455"
-                                  }`}
-                              >
-                                -
-                              </button>
+                              {isQuickEditing && (
+                                <button
+                                  id={`btn-skill-${sk.nombre}-minus`}
+                                  onClick={() => changeSkillValue(index, -1)}
+                                  disabled={sk.valor === 0}
+                                  className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 0
+                                      ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
+                                      : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-rose-455"
+                                    }`}
+                                >
+                                  -
+                                </button>
+                              )}
                               <span className="w-4 text-center font-mono font-bold text-amber-300 text-sm">
                                 +{sk.valor}
                               </span>
                               {/* Increment key */}
-                              <button
-                                id={`btn-skill-${sk.nombre}-plus`}
-                                onClick={() => changeSkillValue(index, 1)}
-                                disabled={sk.valor === 5}
-                                className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 5
-                                    ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
-                                    : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-emerald-450"
-                                  }`}
-                              >
-                                +
-                              </button>
+                              {isQuickEditing && (
+                                <button
+                                  id={`btn-skill-${sk.nombre}-plus`}
+                                  onClick={() => changeSkillValue(index, 1)}
+                                  disabled={sk.valor === 5}
+                                  className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 5
+                                      ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
+                                      : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-emerald-450"
+                                    }`}
+                                >
+                                  +
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
@@ -1520,13 +1918,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           )}
                         </div>
                       </div>
-                      <button
-                        id={`btn-del-spell-${sp.id}`}
-                        onClick={() => removeSpell(sp.id)}
-                        className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                      {isQuickEditing && (
+                        <button
+                          id={`btn-del-spell-${sp.id}`}
+                          onClick={() => removeSpell(sp.id)}
+                          className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -1537,50 +1937,52 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               </div>
 
               {/* Add form */}
-              <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3">
-                <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
-                  <span>✨</span> {lang === "es" ? "Registrar Nuevo Hechizo" : "Register New Spell"}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <input
-                    id="input-spell-name"
-                    type="text"
-                    placeholder={t.placeholderConjuroName}
-                    value={newSpellName}
-                    onChange={(e) => setNewSpellName(e.target.value)}
-                    className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  />
-                  <select
-                    id="select-spell-val"
-                    value={newSpellVal}
-                    onChange={(e) => setNewSpellVal(parseInt(e.target.value) || 1)}
-                    className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  >
-                    <option value="1">{t.labelDificultad} I</option>
-                    <option value="2">{t.labelDificultad} II</option>
-                    <option value="3">{t.labelDificultad} III</option>
-                    <option value="4">{t.labelDificultad} IV</option>
-                    <option value="5">{t.labelDificultad} V</option>
-                  </select>
-                  <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
+              {isQuickEditing && (
+                <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3 animate-fade-in">
+                  <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
+                    <span>✨</span> {lang === "es" ? "Registrar Nuevo Hechizo" : "Register New Spell"}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
-                      id="checkbox-spell-spec"
-                      type="checkbox"
-                      checked={newSpellSpec}
-                      onChange={(e) => setNewSpellSpec(e.target.checked)}
-                      className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
+                      id="input-spell-name"
+                      type="text"
+                      placeholder={t.placeholderConjuroName}
+                      value={newSpellName}
+                      onChange={(e) => setNewSpellName(e.target.value)}
+                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                     />
-                    {t.specialized}?
-                  </label>
+                    <select
+                      id="select-spell-val"
+                      value={newSpellVal}
+                      onChange={(e) => setNewSpellVal(parseInt(e.target.value) || 1)}
+                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
+                    >
+                      <option value="1">{t.labelDificultad} I</option>
+                      <option value="2">{t.labelDificultad} II</option>
+                      <option value="3">{t.labelDificultad} III</option>
+                      <option value="4">{t.labelDificultad} IV</option>
+                      <option value="5">{t.labelDificultad} V</option>
+                    </select>
+                    <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
+                      <input
+                        id="checkbox-spell-spec"
+                        type="checkbox"
+                        checked={newSpellSpec}
+                        onChange={(e) => setNewSpellSpec(e.target.checked)}
+                        className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
+                      />
+                      {t.specialized}?
+                    </label>
+                  </div>
+                  <button
+                    id="btn-add-spell"
+                    onClick={addSpell}
+                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
+                  >
+                    {lang === "es" ? "Registrar" : "Register"}
+                  </button>
                 </div>
-                <button
-                  id="btn-add-spell"
-                  onClick={addSpell}
-                  className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
-                >
-                  {lang === "es" ? "Registrar" : "Register"}
-                </button>
-              </div>
+              )}
             </div>
 
             {/* Potions Panel */}
@@ -1610,13 +2012,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           )}
                         </div>
                       </div>
-                      <button
-                        id={`btn-del-potion-${po.id}`}
-                        onClick={() => removePotion(po.id)}
-                        className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                      {isQuickEditing && (
+                        <button
+                          id={`btn-del-potion-${po.id}`}
+                          onClick={() => removePotion(po.id)}
+                          className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -1627,50 +2031,52 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               </div>
 
               {/* Add form */}
-              <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3">
-                <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
-                  <span>🧪</span> {lang === "es" ? "Registrar Nueva Poción" : "Register New Potion"}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <input
-                    id="input-potion-name"
-                    type="text"
-                    placeholder={t.placeholderPocionName}
-                    value={newPotionName}
-                    onChange={(e) => setNewPotionName(e.target.value)}
-                    className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  />
-                  <select
-                    id="select-potion-val"
-                    value={newPotionVal}
-                    onChange={(e) => setNewPotionVal(parseInt(e.target.value) || 1)}
-                    className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  >
-                    <option value="1">{t.labelDificultad} I</option>
-                    <option value="2">{t.labelDificultad} II</option>
-                    <option value="3">{t.labelDificultad} III</option>
-                    <option value="4">{t.labelDificultad} IV</option>
-                    <option value="5">{t.labelDificultad} V</option>
-                  </select>
-                  <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
+              {isQuickEditing && (
+                <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3 animate-fade-in">
+                  <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
+                    <span>🧪</span> {lang === "es" ? "Registrar Nueva Poción" : "Register New Potion"}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
-                      id="checkbox-potion-spec"
-                      type="checkbox"
-                      checked={newPotionSpec}
-                      onChange={(e) => setNewPotionSpec(e.target.checked)}
-                      className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
+                      id="input-potion-name"
+                      type="text"
+                      placeholder={t.placeholderPocionName}
+                      value={newPotionName}
+                      onChange={(e) => setNewPotionName(e.target.value)}
+                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                     />
-                    {t.specialized}?
-                  </label>
+                    <select
+                      id="select-potion-val"
+                      value={newPotionVal}
+                      onChange={(e) => setNewPotionVal(parseInt(e.target.value) || 1)}
+                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
+                    >
+                      <option value="1">{t.labelDificultad} I</option>
+                      <option value="2">{t.labelDificultad} II</option>
+                      <option value="3">{t.labelDificultad} III</option>
+                      <option value="4">{t.labelDificultad} IV</option>
+                      <option value="5">{t.labelDificultad} V</option>
+                    </select>
+                    <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
+                      <input
+                        id="checkbox-potion-spec"
+                        type="checkbox"
+                        checked={newPotionSpec}
+                        onChange={(e) => setNewPotionSpec(e.target.checked)}
+                        className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
+                      />
+                      {t.specialized}?
+                    </label>
+                  </div>
+                  <button
+                    id="btn-add-potion"
+                    onClick={addPotion}
+                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
+                  >
+                    {lang === "es" ? "Registrar" : "Register"}
+                  </button>
                 </div>
-                <button
-                  id="btn-add-potion"
-                  onClick={addPotion}
-                  className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
-                >
-                  {lang === "es" ? "Registrar" : "Register"}
-                </button>
-              </div>
+              )}
             </div>
 
           </div>
@@ -1681,7 +2087,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" id="detail-tab-notas">
             {/* Left side: Clubs & Inventory */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
-
               {/* Clubes */}
               <div className="space-y-3">
                 <h4 className="font-magic text-[10px] text-amber-400 uppercase tracking-widest border-b border-violet-900/10 pb-1.5 font-bold flex items-center justify-between">
@@ -1698,13 +2103,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all"
                       >
                         <span className="text-xs text-neutral-200 font-sans break-words max-w-[80%]">{cl.nombre}</span>
-                        <button
-                          id={`btn-del-club-${cl.id}`}
-                          onClick={() => handleRemoveClub(cl.id)}
-                          className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
-                        >
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        {isQuickEditing && (
+                          <button
+                            id={`btn-del-club-${cl.id}`}
+                            onClick={() => handleRemoveClub(cl.id)}
+                            className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
+                          >
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -1715,24 +2122,26 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </div>
 
                 {/* Add Club Input Form */}
-                <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2">
-                  <input
-                    id="input-new-club"
-                    type="text"
-                    placeholder={t.placeholderClubes}
-                    value={newClubName}
-                    onChange={(e) => setNewClubName(e.target.value)}
-                    className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  />
-                  <button
-                    id="btn-add-club"
-                    onClick={handleAddClub}
-                    className="w-full py-1.5 bg-violet-950/40 hover:bg-violet-900/60 border border-violet-500/10 text-violet-300 hover:text-neutral-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    {t.addClub}
-                  </button>
-                </div>
+                {isQuickEditing && (
+                  <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
+                    <input
+                      id="input-new-club"
+                      type="text"
+                      placeholder={t.placeholderClubes}
+                      value={newClubName}
+                      onChange={(e) => setNewClubName(e.target.value)}
+                      className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
+                    />
+                    <button
+                      id="btn-add-club"
+                      onClick={handleAddClub}
+                      className="w-full py-1.5 bg-violet-950/40 hover:bg-violet-900/60 border border-violet-500/10 text-violet-300 hover:text-neutral-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {t.addClub}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Equipo / Grimorio / Inventario */}
@@ -1756,13 +2165,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             x{eq.cantidad}
                           </span>
                         </div>
-                        <button
-                          id={`btn-del-item-${eq.id}`}
-                          onClick={() => handleRemoveInventoryItem(eq.id)}
-                          className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
-                        >
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        {isQuickEditing && (
+                          <button
+                            id={`btn-del-item-${eq.id}`}
+                            onClick={() => handleRemoveInventoryItem(eq.id)}
+                            className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
+                          >
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -1773,55 +2184,55 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </div>
 
                 {/* Add Inventory Item Input Form */}
-                <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2">
-                  <input
-                    id="input-new-item"
-                    type="text"
-                    placeholder={t.placeholderEquipo}
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                  />
-                  <div className="flex items-center gap-2">
-                    {/* Quantity Input */}
-                    <div className="flex items-center border border-neutral-800 bg-neutral-900 rounded-lg overflow-hidden h-8">
+                {isQuickEditing && (
+                  <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
+                    <input
+                      id="input-new-item"
+                      type="text"
+                      placeholder={t.placeholderEquipo}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
+                    />
+                    <div className="flex items-center gap-2">
+                      {/* Quantity Input */}
+                      <div className="flex items-center border border-neutral-800 bg-neutral-900 rounded-lg overflow-hidden h-8">
+                        <button
+                          id="btn-qty-minus"
+                          onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
+                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          id="input-new-item-qty"
+                          type="number"
+                          min="1"
+                          value={newItemQty}
+                          onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-10 text-center bg-transparent text-xs text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
+                        />
+                        <button
+                          id="btn-qty-plus"
+                          onClick={() => setNewItemQty(q => q + 1)}
+                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+
                       <button
-                        id="btn-qty-minus"
-                        onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
-                        className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
+                        id="btn-add-inventory-item"
+                        onClick={handleAddInventoryItem}
+                        className="flex-1 py-1.5 h-8 bg-violet-950/40 hover:bg-violet-900/60 border border-violet-500/10 text-violet-300 hover:text-neutral-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1"
                       >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <input
-                        id="input-new-item-qty"
-                        type="number"
-                        min="1"
-                        value={newItemQty}
-                        onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-10 text-center bg-transparent text-xs text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
-                      />
-                      <button
-                        id="btn-qty-plus"
-                        onClick={() => setNewItemQty(q => q + 1)}
-                        className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3.5 h-3.5" />
+                        {t.addItem}
                       </button>
                     </div>
-
-                    <button
-                      id="btn-add-inventory-item"
-                      onClick={handleAddInventoryItem}
-                      className="flex-1 py-1.5 h-8 bg-violet-950/40 hover:bg-violet-900/60 border border-violet-500/10 text-violet-300 hover:text-neutral-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      {t.addItem}
-                    </button>
                   </div>
-                </div>
-
+                )}
               </div>
-
             </div>
 
             {/* Right side: Student Notepad overhaul */}
@@ -1858,13 +2269,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             })}
                           </span>
                         </div>
-                        <button
-                          id={`btn-del-note-${note.id}`}
-                          onClick={() => handleRemoveNote(note.id)}
-                          className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer hover:bg-neutral-900 rounded transition-colors"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
+                        {isQuickEditing && (
+                          <button
+                            id={`btn-del-note-${note.id}`}
+                            onClick={() => handleRemoveNote(note.id)}
+                            className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer hover:bg-neutral-900 rounded transition-colors"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                       <p className="text-xs text-neutral-300 font-sans leading-relaxed whitespace-pre-wrap select-text selection:bg-violet-900 selection:text-white pt-1">
                         {note.contenido}
@@ -1932,19 +2345,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <p className="text-[10px] text-neutral-400 mt-1 font-mono">{t.galleryInstructions}</p>
               </div>
 
-              <div>
-                <label className="flex items-center gap-2 px-4 py-2 bg-violet-950 hover:bg-violet-900 border border-violet-500/35 rounded-xl text-xs font-bold transition-all cursor-pointer text-violet-100">
-                  <Plus className="w-4 h-4" />
-                  {t.uploadGallery}
-                  <input
-                    id="input-gallery-picker"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleGalleryAdd}
-                    className="hidden"
-                  />
-                </label>
-              </div>
+              {isQuickEditing && (
+                <div>
+                  <label className="flex items-center gap-2 px-4 py-2 bg-violet-950 hover:bg-violet-900 border border-violet-500/35 rounded-xl text-xs font-bold transition-all cursor-pointer text-violet-100">
+                    <Plus className="w-4 h-4" />
+                    {t.uploadGallery}
+                    <input
+                      id="input-gallery-picker"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleGalleryAdd}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Gallery Error Alert */}
@@ -1982,14 +2397,16 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     />
 
                     {/* Delete action indicator hover */}
-                    <button
-                      id={`btn-del-gal-pic-${idx}`}
-                      onClick={(e) => removeGalleryImage(idx, e)}
-                      className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
-                      title="Delete picture"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
+                    {isQuickEditing && (
+                      <button
+                        id={`btn-del-gal-pic-${idx}`}
+                        onClick={(e) => removeGalleryImage(idx, e)}
+                        className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
+                        title="Delete picture"
+                      >
+                        <Trash className="w-3.5 h-3.5" />
+                      </button>
+                    )}
 
                     <div className="absolute bottom-2 left-2 bg-neutral-900/80 px-1.5 py-0.5 text-[8px] font-mono rounded text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
                       #{idx + 1}
@@ -2131,6 +2548,84 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 {t.delete}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Interactive Crop Wizard Modal */}
+      {isCropperOpen && cropImageSrc && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" id="crop-avatar-modal">
+          <div className="bg-neutral-900 border border-violet-500/25 rounded-2xl w-full max-w-md p-6 flex flex-col space-y-4 shadow-2xl">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
+              <h4 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                <span>📐</span> {t.cropHeader || (lang === "es" ? "Reencuadrar Retrato" : "Crop Portrait")}
+              </h4>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCropperOpen(false);
+                  setCropImageSrc(null);
+                }}
+                className="text-neutral-500 hover:text-neutral-300 transition-colors p-1 rounded-lg cursor-pointer max-w-max bg-transparent border-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Cropper Box */}
+            <div className="relative w-full aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden border border-neutral-800 select-none">
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={3 / 4}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            {/* Zoom control Slider */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[11px] font-mono text-neutral-400">
+                <span>🔍 {t.cropZoom || (lang === "es" ? "Zoom" : "Zoom")}</span>
+                <span>{Math.round(zoom * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-violet-500"
+              />
+            </div>
+
+            {/* Confirm & Cancel Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCropperOpen(false);
+                  setCropImageSrc(null);
+                }}
+                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-neutral-200 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCrop}
+                className="w-full py-2.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                {lang === "es" ? "Confirmar Recorte" : "Confirm Crop"}
+              </button>
+            </div>
+
           </div>
         </div>
       )}

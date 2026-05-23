@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { Character, HOUSES } from "../types";
+import { Character, HOUSES, HOUSE_ICONS } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
 import { 
   Plus, 
@@ -65,12 +65,13 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       {/* Top Header with App Branding and global controllers */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 border-b border-violet-500/15 pb-6">
         <div className="flex items-center gap-3 text-center md:text-left">
-          {/* Circular Magic Crest */}
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-amber-500 p-0.5 shadow-lg shadow-violet-500/20">
-            <div className="w-full h-full bg-[#0d091a] rounded-full flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-amber-500" />
-            </div>
-          </div>
+          {/* School Crest */}
+<img
+  src="/icon.svg"
+  alt="Crest"
+  className="w-14 h-14 object-contain drop-shadow-lg"
+  referrerPolicy="no-referrer"
+/>
           <div>
             <h1 className="font-magic text-2xl md:text-3xl text-neutral-100 uppercase tracking-widest glow-amber">
               {t.appName}
@@ -135,7 +136,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               <option value="ALL">🌟 {t.filterAllHouses}</option>
               {Object.keys(HOUSES).map((hKey) => (
                 <option key={hKey} value={hKey}>
-                  🏰 {HOUSES[hKey].nombre}
+                  {HOUSE_ICONS[hKey] || "🏰"} {HOUSES[hKey].nombre}
                 </option>
               ))}
             </select>

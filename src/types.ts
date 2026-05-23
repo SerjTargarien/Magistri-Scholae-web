@@ -133,6 +133,14 @@ export interface HouseInfo {
   textClass: string;
 }
 
+export const HOUSE_ICONS: Record<string, string> = {
+  IRATI: "🦉",
+  URANIA: "🐂",
+  "AL-KHWARIZMI": "😼",
+  CALANTES: "🐙",
+  ALEIXIS: "🐺",
+};
+
 export const HOUSES: Record<string, HouseInfo> = {
   IRATI: {
     key: "IRATI",

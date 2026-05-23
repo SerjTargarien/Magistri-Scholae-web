@@ -1,7 +1,7 @@
 {
   "short_name": "Magistri Scholae",
-  "name": "Magistri Scholae - Fichas de Academia",
-  "description": "Fichas de personajes mágicos sin conexión para la academia de rol",
+  "name": "Magistri Scholae - Fichas",
+  "description": "Editor de Fichas de Personaje.",
   "start_url": "/",
   "background_color": "#0f0a15",
   "theme_color": "#7c3aed",

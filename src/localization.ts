@@ -276,6 +276,17 @@ export interface TranslationDict {
   labelOfflineAutoSave: string;
   pwaOfflineStatusSuffix: string;
   pwaStatusLabel: string;
+  exportSelect: string;
+  selectStudents: string;
+  selectAll: string;
+  deselectAll: string;
+  exportStudent: string;
+  studentListEmptyBackup: string;
+  exportSelectTitle: string;
+  exportSelectDescription: string;
+  searchBackupStudents: string;
+  exportSelectedCount: string;
+  exportFullBackup: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -347,7 +358,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 5. Dashboard / List View Elements
     filterAllHouses: "Todas las Casas",
     noCharacters: "No se encontraron alumnos. ¡Crea el primero!",
-    addCharacter: "Añadir Alumno",
+    addCharacter: "Nuevo Alumno",
     filterByHouse: "Filtrar por Casa",
     emptyRecords: "Bóveda Vacía",
     lblDestino: "Destino",
@@ -513,20 +524,20 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 13. Settings, Storage, Purging & Backups
     about: "Acerca de",
-    aboutDescription: "Herramienta mágica diseñada para directores de juego y alumnos de academias mágicas. Permite administrar fichas completas, niveles, habilidades, conjuros e imágenes.",
+    aboutDescription: "Herramienta diseñada para directores de juego y alumnos de academias mágicas. Permite administrar fichas completas.",
     installHelp: "Instalación PWA",
     installHelpText: "Esta aplicación se ejecuta localmente y sin conexión. En tu dispositivo móvil o de escritorio, selecciona 'Instalar aplicación' o 'Añadir a pantalla de inicio' en el menú de tu navegador para llevar la experiencia mágica a pantalla completa.",
     storageInfo: "Información de Almacenamiento",
     storageInfoText: "Tus datos se guardan de forma permanente e individual en la base de datos IndexedDB de tu propio navegador. El almacenamiento es local y privado.",
     estimatedUsage: "Uso estimado:",
     totalQuota: "Cuota total:",
-    schoolSealPrefix: "Sello de la Escuela Magistri Scholae — 2026",
+    schoolSealPrefix: "Diseñado con cariño por Serj, en 2026",
     languageSelector: "Seleccionar Idioma",
     settingsCurrentLanguage: "Idioma Actual",
     settingsLanguageExplanation: "Configura el idioma preferido para la interfaz mágica y todas las fichas.",
     exportBackup: "Exportar Copia de Seguridad",
     importBackup: "Importar Copia de Seguridad",
-    resetData: "Restablecer Base de Datos",
+    resetData: "Purgar Base de Datos",
     resetDataConfirmPlaceholder: "Escribe 'ELIMINAR TODO' para confirmar",
     resetDataConfirmError: "El texto de confirmación no coincide.",
     resetSuccess: "Se ha restablecido la base de datos por completo.",
@@ -550,6 +561,17 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelOfflineAutoSave: "ACTIVO AUTOGUARDADO OFFLINE",
     pwaOfflineStatusSuffix: "Activo",
     pwaStatusLabel: "Estado: Sin conexión",
+    exportSelect: "Copia parcial",
+    selectStudents: "Seleccionar Alumnos",
+    selectAll: "Seleccionar Todos",
+    deselectAll: "Deseleccionar Todos",
+    exportStudent: "Exportar Alumno",
+    studentListEmptyBackup: "No hay alumnos inscritos en este navegador para exportar.",
+    exportSelectTitle: "Exportación Selectiva",
+    exportSelectDescription: "Selecciona qué fichas de alumnos deseas empaquetar en el archivo de copia de seguridad JSON.",
+    searchBackupStudents: "Buscar alumno (por nombre o casa)...",
+    exportSelectedCount: "Fichas a exportar: {n}",
+    exportFullBackup: "Copia Completa",
   },
   en: {
     // 1. General UI Elements & Common Labels
@@ -822,5 +844,16 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelOfflineAutoSave: "OFFLINE AUTO-SAVE ENABLED",
     pwaOfflineStatusSuffix: "Cached",
     pwaStatusLabel: "PWA Status: Offline",
+    exportSelect: "Export Selected",
+    selectStudents: "Select Students",
+    selectAll: "Select All",
+    deselectAll: "Deselect All",
+    exportStudent: "Export Student",
+    studentListEmptyBackup: "No registered students in this browser to export.",
+    exportSelectTitle: "Selective Export",
+    exportSelectDescription: "Select which student sheets you want to package into the JSON backup file.",
+    searchBackupStudents: "Search student (by name or house)...",
+    exportSelectedCount: "Cards to export: {n}",
+    exportFullBackup: "Full Backup (All)",
   },
 };

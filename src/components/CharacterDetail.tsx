@@ -29,7 +29,8 @@ import {
   X,
   Maximize2,
   Gem,
-  Check
+  Check,
+  Download
 } from "lucide-react";
 
 interface CharacterDetailProps {
@@ -651,6 +652,44 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     }
   };
 
+  const handleExportCharacter = () => {
+    try {
+      const backupData = {
+        backupVersion: "1.0",
+        app: "Magistri Scholae",
+        exportedAt: new Date().toISOString(),
+        characters: [character],
+      };
+      
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const cleanName = (character.nombre || "student")
+        .trim()
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .toUpperCase();
+        
+      const getExportTimestamp = () => {
+        const now = new Date();
+        const pad = (num: number) => String(num).padStart(2, '0');
+        return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      };
+
+      const filename = `${getExportTimestamp()}_magistri_scholae_${cleanName}.json`;
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export individual student character:", err);
+    }
+  };
+
   // Category Translation Helpers
   const getCategoryTitle = (catKey: string) => {
     switch (catKey) {
@@ -678,6 +717,17 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         </button>
 
         <div className="flex gap-2">
+          {/* Direct Student Export Button */}
+          <button
+            id="btn-detail-export"
+            onClick={handleExportCharacter}
+            title={t.exportStudent}
+            className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-violet-100 bg-violet-950/70 border border-violet-500/35 hover:bg-violet-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+          >
+            <Download className="w-4 h-4 shrink-0 text-violet-400" />
+            <span className="hidden md:inline">{t.exportStudent}</span>
+          </button>
+
           {/* Edit Button */}
           <button
             id="btn-detail-edit"

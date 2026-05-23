@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { Character, HOUSES, HOUSE_ICONS } from "../types";
+import { Character, HOUSES, HOUSE_ICONS, BackupData } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
 import { 
   Plus, 
@@ -15,7 +15,8 @@ import {
   BookOpen, 
   Coins, 
   Award,
-  CircleDot
+  CircleDot,
+  Upload
 } from "lucide-react";
 import { LanguageSelector } from "./LanguageSelector";
 
@@ -26,6 +27,7 @@ interface CharacterListProps {
   onAddCharacter: () => void;
   onOpenSettings: () => void;
   onLanguageChange: (lang: Language) => void;
+  onImportBackup: (backup: BackupData) => void;
 }
 
 export const CharacterList: React.FC<CharacterListProps> = ({
@@ -35,11 +37,39 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onAddCharacter,
   onOpenSettings,
   onLanguageChange,
+  onImportBackup,
 }) => {
   const t = TRANSLATIONS[lang];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedHouseFilter, setSelectedHouseFilter] = useState<string>("ALL");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const rawText = event.target?.result as string;
+        const backupData = JSON.parse(rawText) as BackupData;
+
+        // Validation
+        if (!backupData || backupData.app !== "Magistri Scholae" || !Array.isArray(backupData.characters)) {
+          alert(t.importError);
+          return;
+        }
+
+        onImportBackup(backupData);
+      } catch (err) {
+        console.error(err);
+        alert(t.importError);
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input
+    e.target.value = "";
+  };
 
   // Filter & Search Logic
   const filteredCharacters = characters.filter((c) => {
@@ -94,6 +124,25 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             <Settings className="w-4 h-4 mr-1 md:mr-2" />
             <span className="hidden md:inline">{t.settings}</span>
           </button>
+
+          {/* Import Backup Trigger */}
+          <button
+            id="btn-import-header"
+            type="button"
+            onClick={() => document.getElementById("file-input-header")?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 bg-neutral-900/60 hover:bg-neutral-800 border border-violet-500/20 text-neutral-300 hover:text-amber-400 font-mono text-xs rounded-lg transition-all cursor-pointer min-h-[36px]"
+            title={t.importBackup}
+          >
+            <Upload className="w-4 h-4 text-violet-400" />
+            <span className="hidden sm:inline">{lang === "es" ? "Importar" : "Import"}</span>
+          </button>
+          <input 
+            id="file-input-header"
+            type="file" 
+            accept=".json" 
+            onChange={handleFileChange} 
+            className="hidden" 
+          />
 
           <button
             id="btn-add-character-header"

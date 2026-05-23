@@ -4,14 +4,14 @@
  */
 
 import { useState, useEffect } from "react";
-import { Character } from "./types";
+import { Character, BackupData } from "./types";
 import { db } from "./db";
 import { Language, TRANSLATIONS } from "./localization";
 import { CharacterList } from "./components/CharacterList";
 import { CharacterDetail } from "./components/CharacterDetail";
 import { CharacterForm } from "./components/CharacterForm";
 import { SettingsScreen } from "./components/SettingsScreen";
-import { Sparkles, Loader } from "lucide-react";
+import { Sparkles, Loader, CheckCircle } from "lucide-react";
 
 export default function App() {
   // Screens: LIST, DETAIL, FORM, SETTINGS
@@ -28,6 +28,11 @@ export default function App() {
     const saved = localStorage.getItem("magistri_scholae_lang");
     return (saved === "es" || saved === "en") ? saved : "es";
   });
+
+  // Import Flow States
+  const [pendingBackup, setPendingBackup] = useState<BackupData | null>(null);
+  const [showImportModal, setShowImportModal] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const t = TRANSLATIONS[lang];
 
@@ -110,6 +115,54 @@ export default function App() {
     setCharacters((prev) => prev.map((c) => (c.id === updatedChar.id ? updatedChar : c)));
   };
 
+  // Clear toast feedback automatically
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  const handleImportBackup = (backup: BackupData) => {
+    setPendingBackup(backup);
+    setShowImportModal(true);
+  };
+
+  const handleImportReplace = async () => {
+    if (!pendingBackup) return;
+    try {
+      await db.characters.clear();
+      const toInsert = pendingBackup.characters.map(({ id, ...rest }) => rest);
+      await db.characters.bulkAdd(toInsert as Character[]);
+      
+      setShowImportModal(false);
+      setPendingBackup(null);
+      await loadCharacters();
+      setToastMessage({ type: "success", text: t.importSuccess });
+    } catch (e) {
+      console.error(e);
+      setToastMessage({ type: "error", text: t.backupErrorOverwriteMsg });
+    }
+  };
+
+  const handleImportAdd = async () => {
+    if (!pendingBackup) return;
+    try {
+      const toInsert = pendingBackup.characters.map(({ id, ...rest }) => rest);
+      await db.characters.bulkAdd(toInsert as Character[]);
+
+      setShowImportModal(false);
+      setPendingBackup(null);
+      await loadCharacters();
+      setToastMessage({ type: "success", text: t.importSuccess });
+    } catch (e) {
+      console.error(e);
+      setToastMessage({ type: "error", text: t.backupErrorMergeMsg });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0514] text-neutral-200 font-sans selection:bg-violet-900/50 selection:text-amber-300 pb-12" id="academy-app-root">
       
@@ -138,6 +191,7 @@ export default function App() {
               onAddCharacter={handleAddCharacterClick}
               onOpenSettings={() => setScreen("SETTINGS")}
               onLanguageChange={handleLanguageChange}
+              onImportBackup={handleImportBackup}
             />
           )}
 
@@ -175,6 +229,86 @@ export default function App() {
             />
           )}
         </main>
+      )}
+
+      {/* Dual Import Choice Modal / Overlay */}
+      {showImportModal && pendingBackup && (
+        <div 
+          id="backup-import-dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md text-neutral-200"
+        >
+          <div className="w-full max-w-lg glass-panel p-6 rounded-2xl border-2 border-amber-500/30 shadow-2xl animate-fade-in">
+            <div className="flex items-center gap-3 mb-4 text-amber-500">
+              <CheckCircle className="w-7 h-7 shrink-0" />
+              <h3 className="font-magic text-lg md:text-xl uppercase tracking-wider">
+                {t.importMergeRequestTitle}
+              </h3>
+            </div>
+
+            <p className="text-sm text-neutral-300 leading-relaxed mb-6 font-sans">
+              {t.importMergeRequestText}
+            </p>
+
+            <div className="bg-neutral-950/70 p-4 rounded-lg border border-neutral-800 mb-6 text-xs font-mono text-neutral-400 space-y-1">
+              <div>• {t.backupTotalStudentsInFile}: <span className="text-amber-400 font-bold">{pendingBackup.characters.length}</span></div>
+              <div>• {t.backupExportedOn}: {new Date(pendingBackup.exportedAt).toLocaleString()}</div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Replace Option */}
+              <button
+                id="btn-import-replace"
+                onClick={handleImportReplace}
+                className="bg-rose-900/80 hover:bg-rose-900 border border-rose-600/40 text-rose-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
+              >
+                🗑️ {lang === "es" ? "Reemplazar" : "Replace"}
+              </button>
+
+              {/* Add/Merge Option */}
+              <button
+                id="btn-import-merge"
+                onClick={handleImportAdd}
+                className="bg-violet-950 hover:bg-violet-900 border border-violet-500/40 text-violet-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
+              >
+                ➕ {lang === "es" ? "Combinar" : "Merge"}
+              </button>
+
+              {/* Cancel Option */}
+              <button
+                id="btn-import-cancel"
+                onClick={() => {
+                  setPendingBackup(null);
+                  setShowImportModal(false);
+                }}
+                className="bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-400 py-2.5 px-3 rounded-xl text-xs transition-all cursor-pointer text-center uppercase font-bold"
+              >
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Toast / Feedback Alert */}
+      {toastMessage && (
+        <div 
+          id="app-global-toast"
+          className={`fixed bottom-5 right-5 z-50 max-w-sm p-4 rounded-xl border-2 shadow-2xl animate-fade-in flex items-start gap-3 text-xs leading-relaxed ${
+            toastMessage.type === "success" 
+              ? "bg-emerald-950/95 border-emerald-500/40 text-emerald-200" 
+              : "bg-rose-950/95 border-rose-500/40 text-rose-200"
+          }`}
+        >
+          <CheckCircle className={`w-5 h-5 shrink-0 mt-0.5 ${toastMessage.type === "success" ? "text-emerald-400" : "text-rose-400"}`} />
+          <div className="flex-1 font-sans font-medium">{toastMessage.text}</div>
+          <button 
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-base font-mono hover:text-amber-400 opacity-60 hover:opacity-100 transition-opacity ml-2 shrink-0 cursor-pointer"
+          >
+            ×
+          </button>
+        </div>
       )}
     </div>
   );

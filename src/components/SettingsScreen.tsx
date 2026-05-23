@@ -34,7 +34,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onReloadRequested,
 }) => {
   const t = TRANSLATIONS[lang];
-  const wipePhrase = lang === "es" ? "ELIMINAR TODO" : "DELETE ALL";
+  const wipePhrase = t.resetConfirmPhrase;
 
   const [storageUsed, setStorageUsed] = useState<string>("0");
   const [storageQuota, setStorageQuota] = useState<string>("0");
@@ -298,9 +298,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-3 text-xs text-neutral-300 leading-relaxed bg-neutral-950/30 p-4 border border-violet-900/10 rounded-lg">
             <p>{t.storageInfoText}</p>
             <div className="grid grid-cols-2 gap-2 font-mono text-neutral-400 text-[11px] pt-1">
-              <div>{lang === "es" ? "Uso estimado:" : "Estimated usage:"}</div>
+              <div>{t.estimatedUsage}</div>
               <div className="text-amber-300 text-right">{storageUsed} MB</div>
-              <div>{lang === "es" ? "Cuota total:" : "Total quota:"}</div>
+              <div>{t.totalQuota}</div>
               <div className="text-neutral-400 text-right">{storageQuota} MB</div>
             </div>
           </div>
@@ -315,9 +315,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </h2>
           </div>
           <p className="text-xs text-neutral-400 font-sans leading-relaxed mb-3">
-            {lang === "es"
-              ? "Herramienta mágica diseñada para directores de juego y alumnos de academias mágicas. Permite administrar fichas completas, niveles, habilidades, conjuros e imágenes sin riesgo de pérdidas de datos en tu red o dispositivo. Desarrollado con tecnología de seguridad local IndexedDB."
-              : "Companion ledger for roleplaying magic academy campaigns. Keeps all students, spells, spellbooks, and profiles safe locally inside your browser sandstone."}
+            {t.aboutDescription}
           </p>
           <div className="text-[11px] text-neutral-500 font-mono text-center pt-2 border-t border-violet-500/10">
             {t.schoolSealPrefix}

@@ -91,6 +91,9 @@ export const getCroppedImg = (
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    if (imageSrc && !imageSrc.startsWith("data:")) {
+      image.crossOrigin = "anonymous";
+    }
     image.src = imageSrc;
     image.onload = () => {
       const canvas = document.createElement("canvas");

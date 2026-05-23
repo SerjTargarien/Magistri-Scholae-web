@@ -122,25 +122,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             />
           </div>
 
-          {/* Quick House Select */}
-          <div className="shrink-0 bg-neutral-950/40 border border-violet-500/15 rounded-xl p-1.5 flex items-center">
-            <span className="text-[10px] font-mono text-neutral-400 uppercase px-2 font-bold hidden md:inline">
-              {t.filterByHouse}:
-            </span>
-            <select
-              id="house-filter-dropdown"
-              value={selectedHouseFilter}
-              onChange={(e) => setSelectedHouseFilter(e.target.value)}
-              className="bg-[#120c1f] text-xs font-semibold py-1.5 px-3 rounded-lg border-none focus:ring-0 cursor-pointer text-amber-300 font-mono"
-            >
-              <option value="ALL">🌟 {t.filterAllHouses}</option>
-              {Object.keys(HOUSES).map((hKey) => (
-                <option key={hKey} value={hKey}>
-                  {HOUSE_ICONS[hKey] || "🏰"} {HOUSES[hKey].nombre}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Quick house badge filter strip (Desktop & Mobile tap grid) */}
@@ -253,14 +234,14 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   {/* Summary row */}
                   <div className="mt-4 pt-3 border-t border-violet-500/10 grid grid-cols-3 gap-1 text-center font-mono">
                     <div>
-                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{lang === "es" ? "Destino" : "Destiny"}</div>
+                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.lblDestino}</div>
                       <div className="text-xs text-amber-500 font-bold flex items-center justify-center gap-0.5">
                         <Coins className="w-3 h-3 text-amber-500 shrink-0" />
                         {c.puntosDestino}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{lang === "es" ? "Exp" : "Pxs"}</div>
+                      <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.lblExp}</div>
                       <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-0.5">
                         <Award className="w-3 h-3 text-violet-400 shrink-0" />
                         {c.pxs}
@@ -283,7 +264,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         <div className="glass-panel p-12 text-center rounded-2xl border border-violet-500/15 max-w-lg mx-auto mt-12" id="empty-list-state">
           <BadgeHelp className="w-16 h-16 text-violet-400/50 mx-auto mb-4 animate-bounce" />
           <h3 className="font-magic text-lg text-neutral-200 uppercase tracking-widest glow-violet">
-            {lang === "es" ? "Bóveda Vacía" : "Empty Records"}
+            {t.emptyRecords}
           </h3>
           <p className="text-sm text-neutral-400 font-sans mt-2">
             {t.noCharacters}

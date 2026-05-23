@@ -29,6 +29,8 @@ export default function App() {
     return (saved === "es" || saved === "en") ? saved : "es";
   });
 
+  const t = TRANSLATIONS[lang];
+
   // Load characters on boot or reload
   useEffect(() => {
     loadCharacters();
@@ -88,7 +90,7 @@ export default function App() {
       setScreen("DETAIL");
     } catch (error) {
       console.error("IndexedDB Save Blocked:", error);
-      alert(lang === "es" ? "Error al guardar el alumno en la base de datos." : "Error storing student in the database.");
+      alert(t.errorStoringStudent);
     }
   };
 
@@ -123,7 +125,7 @@ export default function App() {
         <div className="flex flex-col justify-center items-center h-screen gap-4" id="app-loading-screen">
           <Loader className="w-10 h-10 text-amber-500 animate-spin" />
           <span className="font-magic text-sm tracking-widest text-neutral-400 uppercase animate-pulse">
-            {lang === "es" ? "Abriendo grimorio de la escuela..." : "Decrypting School Tomes..."}
+            {t.loadingMessage}
           </span>
         </div>
       ) : (

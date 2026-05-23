@@ -550,7 +550,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
       hour: "2-digit",
       minute: "2-digit"
     });
-    return (lang === "es" ? "Entrada del " : "Entry from ") + timestamp;
+    return t.entryFrom + timestamp;
   };
 
   const handleRemoveNote = (id: string) => {
@@ -574,7 +574,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     if (character.notas && character.notas.trim() && (!character.notasList || character.notasList.length === 0)) {
       const legacyNote = {
         id: "note_mig_" + Date.now(),
-        titulo: lang === "es" ? "Bitácora Consolidada" : "Consolidated Journal",
+        titulo: t.consolidatedJournal,
         contenido: character.notas,
         fecha: Date.now()
       };
@@ -691,7 +691,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {isQuickEditing ? (
               <>
                 <Check className="w-4 h-4 shrink-0" />
-                <span>{lang === "es" ? "Finalizar" : "Finish"}</span>
+                <span>{t.btnFinish}</span>
               </>
             ) : (
               <>
@@ -745,7 +745,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {isQuickEditing && (
               <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-1 text-[10px] font-mono text-amber-350">
                 <ImageIcon className="w-5 h-5 mb-1 text-amber-400" />
-                <span>{lang === "es" ? "Cambiar foto" : "Change photo"}</span>
+                <span>{t.btnChangePhoto}</span>
               </div>
             )}
 
@@ -771,7 +771,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 value={character.casa.toUpperCase()}
                 onChange={(e) => {
                   const newVal = e.target.value;
-                  const clone = { ...character, casa: newVal };
+                  const hData = HOUSES[newVal];
+                  const clone = { 
+                    ...character, 
+                    casa: newVal,
+                    lema: hData ? hData.lema : (character.lema || ""),
+                    escudoText: hData ? hData.escudo : (character.escudoText || "")
+                  };
                   saveStateToDB(clone);
                 }}
                 className="w-full text-xs bg-neutral-950 text-neutral-200 border border-neutral-800 rounded p-1 font-mono focus:ring-1 focus:ring-amber-500 focus:outline-none"
@@ -793,7 +799,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               {/* Name field */}
               <div>
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
-                  {lang === "es" ? "Nombre" : "Name"}
+                  {t.nombre}
                 </label>
                 <input
                   type="text"
@@ -810,7 +816,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               {/* Concept field */}
               <div>
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
-                  {lang === "es" ? "Concepto" : "Concept"}
+                  {t.concepto}
                 </label>
                 <input
                   type="text"
@@ -820,24 +826,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     saveStateToDB(clone);
                   }}
                   className="w-full text-xs font-mono bg-neutral-950 text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  placeholder={lang === "es" ? "Concepto del alumno" : "Student concept"}
-                />
-              </div>
-
-              {/* Lema field */}
-              <div>
-                <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
-                  {lang === "es" ? "Lema" : "Motto"}
-                </label>
-                <input
-                  type="text"
-                  value={character.lema || ""}
-                  onChange={(e) => {
-                    const clone = { ...character, lema: e.target.value };
-                    saveStateToDB(clone);
-                  }}
-                  className="w-full text-xs font-serif italic bg-neutral-950 text-amber-200/90 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  placeholder="Lema"
+                  placeholder={t.placeholderConceptEdit}
                 />
               </div>
             </div>
@@ -1105,7 +1094,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                   type="button"
                                   onClick={() => handleDeleteAspect(idx)}
                                   className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                                  title={lang === "es" ? "Eliminar aspecto" : "Delete aspect"}
+                                  title={t.deleteAspect}
                                 >
                                   <X className="w-3.5 h-3.5 shrink-0" />
                                 </button>
@@ -1124,7 +1113,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                           <input
                             type="text"
-                            placeholder={lang === "es" ? "Añadir nuevo aspecto..." : "Add new aspect..."}
+                            placeholder={t.placeholderAddAspect}
                             value={newPersonalAspectInput}
                             onChange={(e) => setNewPersonalAspectInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -1181,7 +1170,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                   type="button"
                                   onClick={() => handleDeleteComplication(idx)}
                                   className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                                  title={lang === "es" ? "Eliminar complicación" : "Delete complication"}
+                                  title={t.deleteComplication}
                                 >
                                   <X className="w-3.5 h-3.5 shrink-0" />
                                 </button>
@@ -1200,7 +1189,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                           <input
                             type="text"
-                            placeholder={lang === "es" ? "Añadir complicación..." : "Add complication..."}
+                            placeholder={t.placeholderAddComplication}
                             value={newComplicationInput}
                             onChange={(e) => setNewComplicationInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -1259,7 +1248,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <div className="space-y-6">
                 <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
                   <Coins className="w-4 h-4 text-violet-400" />
-                  {lang === "es" ? "Recursos y Destino" : "Counters & Destiny"}
+                  {t.countersAndDestiny}
                 </h3>
 
                 {/* Destiny points control */}
@@ -1275,7 +1264,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       id="btn-dest-minus"
                       onClick={() => setDestinyPoints((character.puntosDestino || 0) - 1)}
                       className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
-                      title={lang === "es" ? "Disminuir destino" : "Decrease destiny"}
+                      title={t.decreaseDestiny}
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
@@ -1299,7 +1288,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                 ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)] hover:text-amber-300"
                                 : "text-neutral-800 hover:text-neutral-600"
                               }`}
-                            title={`${lang === "es" ? "Puntos de destino" : "Destiny points"}: ${num}`}
+                            title={`${t.puntosDestino}: ${num}`}
                           >
                             <Sparkles className={`w-5 h-5 ${isActive ? "fill-amber-400/20" : "fill-transparent"} transition-all`} />
                           </button>
@@ -1311,7 +1300,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       id="btn-dest-plus"
                       onClick={() => setDestinyPoints((character.puntosDestino || 0) + 1)}
                       className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold flex items-center justify-center border border-neutral-700 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
-                      title={lang === "es" ? "Aumentar destino" : "Increase destiny"}
+                      title={t.increaseDestiny}
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -1372,7 +1361,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                               type="button"
                               onClick={() => handleRemoveTempAspect(idx)}
                               className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
-                              title={lang === "es" ? "Eliminar aspecto" : "Remove aspect"}
+                              title={t.deleteAspect}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1444,7 +1433,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           ? "bg-rose-950/30 border-rose-500/40 text-rose-300 shadow-inner"
                           : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
                         }`}
-                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                      title={t.noStress}
                     >
                       0
                     </button>
@@ -1498,7 +1487,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                               type="button"
                               onClick={() => handleRemovePhysicalConsequence(idx)}
                               className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
-                              title={lang === "es" ? "Eliminar consecuencia" : "Remove consequence"}
+                              title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1570,7 +1559,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           ? "bg-violet-950/30 border-violet-500/40 text-violet-300 shadow-inner"
                           : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
                         }`}
-                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                      title={t.noStress}
                     >
                       0
                     </button>
@@ -1625,7 +1614,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                               type="button"
                               onClick={() => handleRemoveMentalConsequence(idx)}
                               className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
-                              title={lang === "es" ? "Eliminar consecuencia" : "Remove consequence"}
+                              title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1697,7 +1686,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           ? "bg-indigo-950/30 border-indigo-550/40 text-indigo-300 shadow-inner"
                           : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
                         }`}
-                      title={lang === "es" ? "Sin estrés" : "No stress"}
+                      title={t.noStress}
                     >
                       0
                     </button>
@@ -1751,7 +1740,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                               type="button"
                               onClick={() => handleRemoveSocialConsequence(idx)}
                               className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
-                              title={lang === "es" ? "Eliminar consecuencia" : "Remove consequence"}
+                              title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1822,7 +1811,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       <input
                         id={`input-new-skill-name-${catKey}`}
                         type="text"
-                        placeholder={lang === "es" ? "Nueva habilidad..." : "New skill name..."}
+                        placeholder={t.placeholderNewSkillName}
                         value={newSkillNames[catKey] || ""}
                         onChange={(e) => handleNewSkillNameChange(catKey, e.target.value)}
                         onKeyDown={(e) => {
@@ -1840,7 +1829,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         className="px-3 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-850 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
-                        <span className="text-[10px]">{lang === "es" ? "Añadir" : "Add"}</span>
+                        <span className="text-[10px]">{t.add}</span>
                       </button>
                     </div>
                   )}
@@ -1862,7 +1851,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                   type="button"
                                   onClick={() => handleRemoveSkill(index)}
                                   className="w-6 h-6 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-350 flex items-center justify-center transition-all cursor-pointer border border-rose-500/10 p-0 mr-1"
-                                  title={lang === "es" ? `Eliminar ${sk.nombre}` : `Remove ${sk.nombre}`}
+                                  title={`${t.delete} ${sk.nombre}`}
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1920,7 +1909,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     </div>
                   ) : (
                     <p className="text-[10px] font-mono text-neutral-500 text-center py-4 italic select-none">
-                      {lang === "es" ? "No hay habilidades en esta categoría" : "No skills in this category"}
+                      {t.noSkillsInCategory}
                     </p>
                   )}
                 </div>
@@ -1936,7 +1925,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Spells Panel */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2">
-                ⚡ {lang === "es" ? "Grimorio de Conjuros" : "Grimoire of Spells"}
+                ⚡ {t.grimoireOfSpells}
               </h3>
 
               {/* Spells list display */}
@@ -1982,7 +1971,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               {isQuickEditing && (
                 <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3 animate-fade-in">
                   <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
-                    <span>✨</span> {lang === "es" ? "Registrar Nuevo Hechizo" : "Register New Spell"}
+                    <span>✨</span> {t.registerNewSpell}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
@@ -2021,7 +2010,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     onClick={addSpell}
                     className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
                   >
-                    {lang === "es" ? "Registrar" : "Register"}
+                    {t.register}
                   </button>
                 </div>
               )}
@@ -2030,7 +2019,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Potions Panel */}
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2">
-                🧪 {lang === "es" ? "Catálogo de Pociones" : "Laboratory Potions"}
+                🧪 {t.catalogOfPotions}
               </h3>
 
               {/* Potions list display */}
@@ -2076,7 +2065,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               {isQuickEditing && (
                 <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3 animate-fade-in">
                   <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
-                    <span>🧪</span> {lang === "es" ? "Registrar Nueva Poción" : "Register New Potion"}
+                    <span>🧪</span> {t.registerNewPotion}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
@@ -2115,7 +2104,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     onClick={addPotion}
                     className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
                   >
-                    {lang === "es" ? "Registrar" : "Register"}
+                    {t.register}
                   </button>
                 </div>
               )}
@@ -2284,7 +2273,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <span>📖</span> {t.labelNotesChronicleTitle}
                 </h3>
                 <span className="text-[9px] font-mono text-neutral-500 select-none bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded">
-                  {(character.notasList || []).length} {lang === "es" ? "Notas" : "Notes"}
+                  {(character.notasList || []).length} {t.notesLabel}
                 </span>
               </div>
 
@@ -2364,7 +2353,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     className="w-full py-2 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
-                    {lang === "es" ? "Registrar Entrada" : "Register Note"}
+                    {t.registerNote}
                   </button>
                 </div>
               </div>
@@ -2602,7 +2591,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Header */}
             <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
               <h4 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span>📐</span> {t.cropHeader || (lang === "es" ? "Reencuadrar Retrato" : "Crop Portrait")}
+                <span>📐</span> {t.cropHeader}
               </h4>
               <button
                 type="button"
@@ -2632,7 +2621,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {/* Zoom control Slider */}
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-mono text-neutral-400">
-                <span>🔍 {t.cropZoom || (lang === "es" ? "Zoom" : "Zoom")}</span>
+                <span>🔍 {t.cropZoom}</span>
                 <span>{Math.round(zoom * 100)}%</span>
               </div>
               <input
@@ -2664,7 +2653,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 className="w-full py-2.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Check className="w-4 h-4" />
-                {lang === "es" ? "Confirmar Recorte" : "Confirm Crop"}
+                {t.cropConfirm}
               </button>
             </div>
 

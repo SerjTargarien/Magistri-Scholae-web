@@ -238,8 +238,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onChange={(e) => onLanguageChange(e.target.value as Language)}
               className="bg-neutral-900 border border-violet-500/30 text-amber-300 p-2 rounded-md font-medium font-mono text-sm cursor-pointer ml-auto"
             >
-              <option value="es">🇪🇸 Español (Castellano)</option>
-              <option value="en">🇬🇧 English (PWA Ready)</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="en">🇬🇧 English</option>
             </select>
           </div>
         </div>

@@ -30,10 +30,12 @@ import {
   Minus
 } from "lucide-react";
 import { createDefaultCharacter, getInitialDefaultSkills } from "../utils/characterFactory";
+import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 
 interface CharacterFormProps {
   lang: Language;
   initialCharacter?: Character | null; // If null, we are creating a new character
+  newCharacterType?: CharacterType;
   onSave: (character: Character) => void;
   onCancel: () => void;
 }
@@ -41,6 +43,7 @@ interface CharacterFormProps {
 export const CharacterForm: React.FC<CharacterFormProps> = ({
   lang,
   initialCharacter,
+  newCharacterType,
   onSave,
   onCancel,
 }) => {
@@ -53,8 +56,36 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
 
   // Load initial values or prefilled default draft
   const [characterState, setCharacterState] = useState<Omit<Character, "id" | "createdAt" | "updatedAt">>(
-    createDefaultCharacter("student")
+    createDefaultCharacter(newCharacterType || "student")
   );
+
+  const characterType = characterState.characterType || "student";
+
+  const profile = characterState.adultWizardProfile || {
+    role: "",
+    institution: "",
+    isTeacher: false,
+    teachingSubjects: [],
+    formerHouse: "",
+    magicalFocus: "",
+    reputation: "",
+  };
+
+  const updateProfileField = (field: string, value: any) => {
+    setCharacterState(prev => ({
+      ...prev,
+      adultWizardProfile: {
+        role: prev.adultWizardProfile?.role || "",
+        institution: prev.adultWizardProfile?.institution || "",
+        isTeacher: typeof prev.adultWizardProfile?.isTeacher === "boolean" ? prev.adultWizardProfile.isTeacher : false,
+        teachingSubjects: prev.adultWizardProfile?.teachingSubjects || [],
+        formerHouse: prev.adultWizardProfile?.formerHouse || "",
+        magicalFocus: prev.adultWizardProfile?.magicalFocus || "",
+        reputation: prev.adultWizardProfile?.reputation || "",
+        [field]: value
+      }
+    }));
+  };
 
   const [formError, setFormError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -140,9 +171,28 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         avatarFit: initialCharacter.avatarFit || "cover",
         galleryImages: initialCharacter.galleryImages || [],
         camposPersonalizados: initialCharacter.camposPersonalizados || [],
+        adultWizardProfile: initialCharacter.adultWizardProfile ? {
+          role: initialCharacter.adultWizardProfile.role || "",
+          institution: initialCharacter.adultWizardProfile.institution || "",
+          isTeacher: !!initialCharacter.adultWizardProfile.isTeacher,
+          teachingSubjects: initialCharacter.adultWizardProfile.teachingSubjects || [],
+          formerHouse: initialCharacter.adultWizardProfile.formerHouse || "",
+          magicalFocus: initialCharacter.adultWizardProfile.magicalFocus || "",
+          reputation: initialCharacter.adultWizardProfile.reputation || "",
+        } : (initialCharacter.characterType === "adult_wizard" ? {
+          role: "",
+          institution: "",
+          isTeacher: false,
+          teachingSubjects: [],
+          formerHouse: "",
+          magicalFocus: "",
+          reputation: "",
+        } : undefined),
       });
+    } else {
+      setCharacterState(createDefaultCharacter(newCharacterType || "student"));
     }
-  }, [initialCharacter]);
+  }, [initialCharacter, newCharacterType]);
 
   // Handle house selection change and apply its typical crest/motto
   const handleHouseChange = (houseName: string) => {
@@ -468,48 +518,46 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     onCancel();
   };
 
-  // Obtain current chosen house metadata for dynamic accenting
-  const chosenHouseKey = characterState.casa.toUpperCase();
-  const chosenHouseInfo = HOUSES[chosenHouseKey] || HOUSES.IRATI;
+  // Obtain current visual theme for dynamic accenting and styling
+  const theme = getCharacterVisualTheme(characterState);
+  
   const houseAccentBorder = 
-    chosenHouseKey === "IRATI" ? "border-emerald-500/30 text-emerald-400 focus:border-emerald-400" :
-    chosenHouseKey === "URANIA" ? "border-amber-500/30 text-amber-400 focus:border-amber-400" :
-    chosenHouseKey === "AL-KHWARIZMI" ? "border-violet-500/30 text-violet-400 focus:border-violet-400" :
-    chosenHouseKey === "CALANTES" ? "border-indigo-500/30 text-indigo-400 focus:border-indigo-400" :
+    theme.key === "IRATI" ? "border-emerald-500/30 text-emerald-400 focus:border-emerald-400" :
+    theme.key === "URANIA" ? "border-amber-500/30 text-amber-400 focus:border-amber-400" :
+    theme.key === "AL-KHWARIZMI" ? "border-violet-500/30 text-violet-400 focus:border-violet-400" :
+    theme.key === "CALANTES" ? "border-indigo-500/30 text-indigo-400 focus:border-indigo-400" :
+    theme.key === "adult_wizard" ? "border-violet-500/30 text-violet-400 focus:border-violet-400" :
     "border-rose-500/30 text-rose-400 focus:border-rose-400";
 
   const houseTabBtnStyle = (tabId: typeof activeFormTab) => {
     const isActive = activeFormTab === tabId;
     if (isActive) {
-      if (chosenHouseKey === "IRATI") return "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-950/25";
-      if (chosenHouseKey === "URANIA") return "bg-amber-950/60 border-amber-500/50 text-amber-300 shadow-md shadow-amber-950/25";
-      if (chosenHouseKey === "AL-KHWARIZMI") return "bg-violet-950/60 border-violet-500/50 text-violet-300 shadow-md shadow-violet-950/25";
-      if (chosenHouseKey === "CALANTES") return "bg-indigo-950/60 border-indigo-500/50 text-indigo-300 shadow-md shadow-indigo-950/25";
+      if (theme.key === "IRATI") return "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-950/25";
+      if (theme.key === "URANIA") return "bg-amber-950/60 border-amber-500/50 text-amber-300 shadow-md shadow-amber-950/25";
+      if (theme.key === "AL-KHWARIZMI" || theme.key === "adult_wizard") return "bg-violet-950/60 border-violet-500/50 text-violet-300 shadow-md shadow-violet-950/25";
+      if (theme.key === "CALANTES") return "bg-indigo-950/60 border-indigo-500/50 text-indigo-300 shadow-md shadow-indigo-950/25";
       return "bg-rose-950/60 border-rose-500/50 text-rose-300 shadow-md shadow-rose-950/25";
     }
     return "bg-neutral-950/40 border-neutral-850 hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200";
   };
 
-  const houseIconColor = 
-    chosenHouseKey === "IRATI" ? "text-emerald-400" :
-    chosenHouseKey === "URANIA" ? "text-amber-400" :
-    chosenHouseKey === "AL-KHWARIZMI" ? "text-violet-400" :
-    chosenHouseKey === "CALANTES" ? "text-indigo-400" :
-    "text-rose-400";
+  const houseIconColor = theme.textClass;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 py-4 sm:py-6" id="character-form-container">
       
       {/* Dynamic Styled Banner Decor matching academic theme */}
-      <div className={`p-6 rounded-2xl bg-gradient-to-r ${chosenHouseInfo.bgClass} border border-violet-500/10 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden shadow-2xl transition-all duration-300`}>
+      <div className={`p-6 rounded-2xl bg-gradient-to-r ${theme.bgClass} border border-violet-500/10 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden shadow-2xl transition-all duration-300`}>
         {/* Ambient Magic Grid backdrops */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(124,58,237,0.1),transparent_50%)] pointer-events-none" />
         
         <div className="z-10 space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">{HOUSE_ICONS[chosenHouseKey] || "🏰"}</span>
+            <span className="text-2xl">{theme.icon}</span>
             <h2 className="font-magic text-xl md:text-2xl text-neutral-100 uppercase tracking-widest glow-amber">
-              {initialCharacter ? t.edit : t.studentRegistration}
+              {initialCharacter 
+                ? t.edit 
+                : (characterType === "adult_wizard" ? t.adultWizardRegistration : t.studentRegistration)}
             </h2>
           </div>
           <p className="text-xs text-neutral-300 italic font-serif">
@@ -558,7 +606,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           {[
             { id: "perfil", label: t.tabIdentification, icon: User },
             { id: "aspectos", label: t.tabAspects, icon: Sparkles },
-            { id: "afiliacion", label: t.tabHouseMotto, icon: Award },
+            ...(characterType !== "adult_wizard" ? [{ id: "afiliacion", label: t.tabHouseMotto, icon: Award }] : []),
             { id: "habilidades", label: t.tabAcademicSkills, icon: BookOpen },
             { id: "estres", label: t.tabStress, icon: Activity },
           ].map((formTab) => {
@@ -743,34 +791,39 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                     />
                   </div>
 
-                  {/* Curso */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                      {t.curso}
-                    </label>
-                    <input
-                      id="input-curso"
-                      type="text"
-                      value={characterState.curso}
-                      onChange={(e) => setCharacterState(prev => ({ ...prev, curso: e.target.value }))}
-                      className="w-full text-xs font-mono"
-                    />
-                  </div>
+                  {/* School Fields (Student Only) */}
+                  {characterType !== "adult_wizard" && (
+                    <>
+                      {/* Curso */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                          {t.curso}
+                        </label>
+                        <input
+                          id="input-curso"
+                          type="text"
+                          value={characterState.curso}
+                          onChange={(e) => setCharacterState(prev => ({ ...prev, curso: e.target.value }))}
+                          className="w-full text-xs font-mono"
+                        />
+                      </div>
 
-                  {/* Puesto de Clase */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                      {t.puestoClase}
-                    </label>
-                    <input
-                      id="input-puesto-clase"
-                      type="text"
-                      placeholder={t.placeholderPuestoClase}
-                      value={characterState.puestoClase}
-                      onChange={(e) => setCharacterState(prev => ({ ...prev, puestoClase: e.target.value }))}
-                      className="w-full text-xs font-sans"
-                    />
-                  </div>
+                      {/* Puesto de Clase */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                          {t.puestoClase}
+                        </label>
+                        <input
+                          id="input-puesto-clase"
+                          type="text"
+                          placeholder={t.placeholderPuestoClase}
+                          value={characterState.puestoClase}
+                          onChange={(e) => setCharacterState(prev => ({ ...prev, puestoClase: e.target.value }))}
+                          className="w-full text-xs font-sans"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {/* Linaje familiar */}
                   <div className="flex flex-col gap-1.5">
@@ -831,6 +884,130 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       className="w-full text-xs font-sans"
                     />
                   </div>
+
+                  {/* Adult Wizard Fields */}
+                  {characterType === "adult_wizard" && (
+                    <div className="col-span-1 sm:col-span-2 border-t border-violet-500/10 pt-5 mt-4 space-y-4">
+                      <div className="flex items-center gap-1.5 border-b border-violet-500/10 pb-2">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <h4 className="font-magic text-xs uppercase tracking-widest text-neutral-200">
+                          {t.adultWizardProfileSection}
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Rol */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                            {t.adultWizardRole}
+                          </label>
+                          <input
+                            id="input-aw-role"
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Investigador de Runas, Auror" : "E.g. Rune Researcher, Auror"}
+                            value={profile.role}
+                            onChange={(e) => updateProfileField("role", e.target.value)}
+                            className="w-full text-xs font-sans"
+                          />
+                        </div>
+
+                        {/* Institución */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                            {t.adultWizardInstitution}
+                          </label>
+                          <input
+                            id="input-aw-institution"
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Ministerio de Magia" : "E.g. Ministry of Magic"}
+                            value={profile.institution}
+                            onChange={(e) => updateProfileField("institution", e.target.value)}
+                            className="w-full text-xs font-sans"
+                          />
+                        </div>
+
+                        {/* Antigua Casa */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                            {t.adultWizardFormerHouse}
+                          </label>
+                          <input
+                            id="input-aw-former-house"
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Irati, Urania" : "E.g. Irati, Urania"}
+                            value={profile.formerHouse}
+                            onChange={(e) => updateProfileField("formerHouse", e.target.value)}
+                            className="w-full text-xs font-sans"
+                          />
+                        </div>
+
+                        {/* Foco Mágico */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                            {t.adultWizardMagicalFocus}
+                          </label>
+                          <input
+                            id="input-aw-magical-focus"
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Báculo de Sauco" : "E.g. Elder Staff"}
+                            value={profile.magicalFocus}
+                            onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
+                            className="w-full text-xs font-sans"
+                          />
+                        </div>
+
+                        {/* Reputación */}
+                        <div className="flex flex-col gap-1.5 sm:col-span-2">
+                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                            {t.adultWizardReputation}
+                          </label>
+                          <input
+                            id="input-aw-reputation"
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Conocido en el gremio de pociones" : "E.g. Well-known in the Potions Guild"}
+                            value={profile.reputation}
+                            onChange={(e) => updateProfileField("reputation", e.target.value)}
+                            className="w-full text-xs font-sans"
+                          />
+                        </div>
+
+                        {/* Es Profesor (Checkbox) */}
+                        <div className="flex items-center gap-2 sm:col-span-2 py-1">
+                          <input
+                            id="checkbox-aw-is-teacher"
+                            type="checkbox"
+                            checked={profile.isTeacher}
+                            onChange={(e) => updateProfileField("isTeacher", e.target.checked)}
+                            className="w-4 h-4 rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
+                          />
+                          <label htmlFor="checkbox-aw-is-teacher" className="text-xs text-neutral-300 font-sans cursor-pointer select-none">
+                            {t.adultWizardIsTeacher}
+                          </label>
+                        </div>
+
+                        {/* Asignaturas que imparte */}
+                        {profile.isTeacher && (
+                          <div className="flex flex-col gap-1.5 sm:col-span-2 animate-fade-in">
+                            <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold flex justify-between">
+                              <span>{t.adultWizardTeachingSubjects}</span>
+                              <span className="text-[9px] text-neutral-500 normal-case font-normal">{lang === "es" ? "Separadas por comas" : "Separated by commas"}</span>
+                            </label>
+                            <input
+                              id="input-aw-teaching-subjects"
+                              type="text"
+                              placeholder={lang === "es" ? "Ej: Runas Antiguas, Defensa contra las Artes Oscuras" : "E.g. Ancient Runes, Defense against the Dark Arts"}
+                              value={profile.teachingSubjects.join(", ")}
+                              onChange={(e) => {
+                                const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                                updateProfileField("teachingSubjects", arr);
+                              }}
+                              className="w-full text-xs font-sans"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
 

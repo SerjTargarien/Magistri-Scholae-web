@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS } from "../types";
+import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS, getCharacterType } from "../types";
+import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 import { Language, TRANSLATIONS } from "../localization";
 import { db } from "../db";
 import Cropper from "react-easy-crop";
@@ -52,6 +53,35 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 }) => {
   const t = TRANSLATIONS[lang];
   const hInfo = HOUSES[character.casa.toUpperCase()] || HOUSES.IRATI;
+  const characterType = getCharacterType(character);
+  const theme = getCharacterVisualTheme(character);
+
+  const profile = character.adultWizardProfile || {
+    role: "",
+    institution: "",
+    isTeacher: false,
+    teachingSubjects: [],
+    formerHouse: "",
+    magicalFocus: "",
+    reputation: "",
+  };
+
+  const updateProfileField = (field: string, value: any) => {
+    const clone = {
+      ...character,
+      adultWizardProfile: {
+        role: character.adultWizardProfile?.role || "",
+        institution: character.adultWizardProfile?.institution || "",
+        isTeacher: typeof character.adultWizardProfile?.isTeacher === "boolean" ? character.adultWizardProfile.isTeacher : false,
+        teachingSubjects: character.adultWizardProfile?.teachingSubjects || [],
+        formerHouse: character.adultWizardProfile?.formerHouse || "",
+        magicalFocus: character.adultWizardProfile?.magicalFocus || "",
+        reputation: character.adultWizardProfile?.reputation || "",
+        [field]: value
+      }
+    };
+    saveStateToDB(clone);
+  };
 
   // Tabs: perfil, sesion, habilidades, hechizos, notas, galeria
   const [activeTab, setActiveTab] = useState<"perfil" | "sesion" | "habilidades" | "hechizos" | "notas" | "galeria">("perfil");
@@ -764,7 +794,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
       </div>
 
       {/* Dynamic Profile Cover Banner */}
-      <div className={`relative w-full rounded-2xl overflow-hidden bg-gradient-to-r ${hInfo.bgClass} border border-violet-500/15 p-6 mb-6 flex flex-col md:flex-row gap-6 items-center shadow-lg shadow-neutral-950/40`}>
+      <div className={`relative w-full rounded-2xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border border-violet-500/15 p-6 mb-6 flex flex-col md:flex-row gap-6 items-center shadow-lg shadow-neutral-950/40`}>
         {/* Decorative corner glows */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -786,7 +816,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               />
             ) : (
               <div className="text-center text-[10px] font-mono text-neutral-600 uppercase select-none p-2">
-                <User className="w-8 h-8 opacity-40 mx-auto mb-1 text-violet-400" />
+                {characterType === "adult_wizard" ? (
+                  <span className="text-3xl mb-1 block select-none" role="img" aria-label="adult wizard icon">
+                    {theme.icon}
+                  </span>
+                ) : (
+                  <User className="w-8 h-8 opacity-40 mx-auto mb-1 text-violet-400" />
+                )}
                 No pic
               </div>
             )}
@@ -800,8 +836,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             )}
 
             {!isQuickEditing && (
-              <div className={`absolute bottom-0 inset-x-0 text-center text-[8px] font-mono uppercase bg-neutral-900/95 py-0.5 border-t ${hInfo.borderClass} text-neutral-400 font-bold`}>
-                {hInfo.nombre}
+              <div className={`absolute bottom-0 inset-x-0 text-center text-[8px] font-mono uppercase bg-neutral-900/95 py-0.5 border-t ${theme.borderClass} text-neutral-400 font-bold`}>
+                {characterType === "adult_wizard" ? t.characterTypeAdultWizard : hInfo.nombre}
               </div>
             )}
           </div>
@@ -814,7 +850,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             className="hidden"
           />
 
-          {isQuickEditing && (
+          {isQuickEditing && characterType !== "adult_wizard" && (
             <div className="w-28">
               <select
                 id="edit-banner-casa"
@@ -942,7 +978,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
               <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
                 <User className="w-4 h-4 text-violet-400" />
-                {t.secDatosAlumno}
+                {characterType === "adult_wizard" ? t.characterTypeAdultWizard : t.secDatosAlumno}
               </h3>
 
               {isQuickEditing ? (
@@ -973,31 +1009,35 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
-                    <input
-                      type="text"
-                      value={character.curso || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, curso: e.target.value };
-                        saveStateToDB(clone);
-                      }}
-                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                    />
-                  </div>
+                  {characterType !== "adult_wizard" && (
+                    <>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
+                        <input
+                          type="text"
+                          value={character.curso || ""}
+                          onChange={(e) => {
+                            const clone = { ...character, curso: e.target.value };
+                            saveStateToDB(clone);
+                          }}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
-                    <input
-                      type="text"
-                      value={character.puestoClase || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, puestoClase: e.target.value };
-                        saveStateToDB(clone);
-                      }}
-                      className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                    />
-                  </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
+                        <input
+                          type="text"
+                          value={character.puestoClase || ""}
+                          onChange={(e) => {
+                            const clone = { ...character, puestoClase: e.target.value };
+                            saveStateToDB(clone);
+                          }}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.linaje}</label>
@@ -1024,6 +1064,92 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
+
+                  {characterType === "adult_wizard" && (
+                    <>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardRole}</label>
+                        <input
+                          type="text"
+                          value={profile.role || ""}
+                          onChange={(e) => updateProfileField("role", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardInstitution}</label>
+                        <input
+                          type="text"
+                          value={profile.institution || ""}
+                          onChange={(e) => updateProfileField("institution", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardFormerHouse}</label>
+                        <input
+                          type="text"
+                          value={profile.formerHouse || ""}
+                          onChange={(e) => updateProfileField("formerHouse", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardMagicalFocus}</label>
+                        <input
+                          type="text"
+                          value={profile.magicalFocus || ""}
+                          onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1 col-span-2">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardReputation}</label>
+                        <input
+                          type="text"
+                          value={profile.reputation || ""}
+                          onChange={(e) => updateProfileField("reputation", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 col-span-2 py-1">
+                        <input
+                          id="edit-aw-is-teacher"
+                          type="checkbox"
+                          checked={profile.isTeacher || false}
+                          onChange={(e) => updateProfileField("isTeacher", e.target.checked)}
+                          className="rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
+                        />
+                        <label htmlFor="edit-aw-is-teacher" className="text-[10px] text-neutral-300 font-sans cursor-pointer select-none font-bold uppercase tracking-wider">
+                          {t.adultWizardIsTeacher}
+                        </label>
+                      </div>
+
+                      {profile.isTeacher && (
+                        <div className="flex flex-col gap-1 col-span-2">
+                          <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider flex justify-between">
+                            <span>{t.adultWizardTeachingSubjects}</span>
+                            <span className="text-[8px] text-neutral-500 normal-case font-normal">{lang === "es" ? "Separadas por comas" : "Separated by commas"}</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={lang === "es" ? "Ej: Runas Antiguas, Defensa" : "E.g. Ancient Runes, Defense"}
+                            value={(profile.teachingSubjects || []).join(", ")}
+                            onChange={(e) => {
+                              const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                              updateProfileField("teachingSubjects", arr);
+                            }}
+                            className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono">
@@ -1037,15 +1163,19 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
                   </div>
 
-                  <div>
-                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
-                  </div>
+                  {characterType !== "adult_wizard" && (
+                    <>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
+                        <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
+                      </div>
 
-                  <div>
-                    <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
-                  </div>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
+                        <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
+                      </div>
+                    </>
+                  )}
 
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
@@ -1056,6 +1186,47 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
                     <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
                   </div>
+
+                  {characterType === "adult_wizard" && (
+                    <>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardRole}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.role || "—"}</div>
+                      </div>
+
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardInstitution}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.institution || "—"}</div>
+                      </div>
+
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardFormerHouse}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.formerHouse || "—"}</div>
+                      </div>
+
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardMagicalFocus}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.magicalFocus || "—"}</div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardReputation}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.reputation || "—"}</div>
+                      </div>
+
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardIsTeacher}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.isTeacher ? (lang === "es" ? "Sí" : "Yes") : "No"}</div>
+                      </div>
+
+                      {profile.isTeacher && (
+                        <div className="col-span-2">
+                          <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardTeachingSubjects}</div>
+                          <div className="text-neutral-200 mt-0.5">{(profile.teachingSubjects || []).join(", ") || "—"}</div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 

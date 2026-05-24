@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from "react";
-import { Character, HOUSES, HOUSE_ICONS, BackupData } from "../types";
+import { Character, HOUSES, HOUSE_ICONS, BackupData, getCharacterType } from "../types";
+import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 import { Language, TRANSLATIONS } from "../localization";
 import { 
   Plus, 
@@ -74,8 +75,14 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   // Filter & Search Logic
   const filteredCharacters = characters.filter((c) => {
     // House filter
-    if (selectedHouseFilter !== "ALL" && c.casa.toUpperCase() !== selectedHouseFilter) {
-      return false;
+    if (selectedHouseFilter !== "ALL") {
+      const charType = getCharacterType(c);
+      if (charType === "adult_wizard") {
+        return false;
+      }
+      if (c.casa.toUpperCase() !== selectedHouseFilter) {
+        return false;
+      }
     }
 
     // Search query matches name, concept, or player
@@ -218,6 +225,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="characters-grid">
           {filteredCharacters.map((c) => {
             const hInfo = HOUSES[c.casa.toUpperCase()] || HOUSES.IRATI;
+            const characterType = getCharacterType(c);
+            const theme = getCharacterVisualTheme(c);
             
             return (
               <div
@@ -228,10 +237,10 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               >
                 {/* Colored Top Crest-Accent Strip */}
                 <div className={`h-1.5 w-full bg-gradient-to-r ${
-                  c.casa.toUpperCase() === "IRATI" ? "from-emerald-500 to-emerald-950" :
-                  c.casa.toUpperCase() === "URANIA" ? "from-amber-500 to-amber-950" :
-                  c.casa.toUpperCase() === "AL-KHWARIZMI" ? "from-violet-500 to-violet-950" :
-                  c.casa.toUpperCase() === "CALANTES" ? "from-indigo-500 to-indigo-950" :
+                  theme.key === "IRATI" ? "from-emerald-500 to-emerald-950" :
+                  theme.key === "URANIA" ? "from-amber-500 to-amber-950" :
+                  (theme.key === "AL-KHWARIZMI" || theme.key === "adult_wizard") ? "from-violet-500 to-violet-950" :
+                  theme.key === "CALANTES" ? "from-indigo-500 to-indigo-950" :
                   "from-rose-500 to-rose-950"
                 }`}></div>
 
@@ -246,19 +255,29 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                     />
                   ) : (
                     <div className="w-full h-full bg-neutral-900/40 group-hover:bg-neutral-900/60 transition-colors flex flex-col justify-center items-center text-neutral-600 select-none p-4">
-                      <Sparkles className="w-10 h-10 mb-2 opacity-50 text-violet-400 animate-pulse" />
-                      <span className="text-[9px] font-mono uppercase tracking-widest">{t.studentPrefix} • {hInfo.nombre.toUpperCase()}</span>
+                      {characterType === "adult_wizard" ? (
+                        <span className="text-3xl mb-2 select-none" role="img" aria-label="adult wizard icon">
+                          {theme.icon}
+                        </span>
+                      ) : (
+                        <Sparkles className="w-10 h-10 mb-2 opacity-50 text-violet-400 animate-pulse" />
+                      )}
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-center">
+                        {characterType === "adult_wizard" 
+                          ? t.characterTypeAdultWizard 
+                          : `${t.studentPrefix} • ${hInfo.nombre.toUpperCase()}`}
+                      </span>
                     </div>
                   )}
 
-                  {/* House Ribbon Tag */}
-                  <div className={`absolute top-2 left-2 px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded border ${hInfo.accentClass}`}>
-                    {hInfo.nombre}
+                  {/* House/Type Ribbon Tag */}
+                  <div className={`absolute top-2 left-2 px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded border ${theme.accentClass}`}>
+                    {characterType === "adult_wizard" ? t.characterTypeAdultWizard : hInfo.nombre}
                   </div>
 
-                  {/* Year Tag */}
-                  <div className="absolute top-2 right-2 px-2 py-0.5 text-[9px] font-mono font-bold bg-neutral-900/90 text-neutral-300 border border-neutral-700/50 rounded">
-                    {c.curso}
+                  {/* Year Tag / Adult Label */}
+                  <div className="absolute top-2 right-2 px-2 py-0.5 text-[9px] font-mono font-bold bg-neutral-900/90 text-neutral-300 border border-neutral-700/50 rounded flex items-center justify-center">
+                    {characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : c.curso}
                   </div>
                 </div>
 

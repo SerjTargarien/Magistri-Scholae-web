@@ -4,23 +4,25 @@
  */
 
 import { useState, useEffect } from "react";
-import { Character, BackupData } from "./types";
+import { Character, BackupData, CharacterType } from "./types";
 import { db } from "./db";
 import { Language, TRANSLATIONS } from "./localization";
 import { CharacterList } from "./components/CharacterList";
 import { CharacterDetail } from "./components/CharacterDetail";
 import { CharacterForm } from "./components/CharacterForm";
+import { CharacterTypeSelect } from "./components/CharacterTypeSelect";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { Sparkles, Loader, CheckCircle } from "lucide-react";
 
 export default function App() {
-  // Screens: LIST, DETAIL, FORM, SETTINGS
-  const [screen, setScreen] = useState<"LIST" | "DETAIL" | "FORM" | "SETTINGS">("LIST");
+  // Screens: LIST, DETAIL, TYPE_SELECT, FORM, SETTINGS
+  const [screen, setScreen] = useState<"LIST" | "DETAIL" | "TYPE_SELECT" | "FORM" | "SETTINGS">("LIST");
   
   // Storage arrays & selections
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharId, setSelectedCharId] = useState<number | null>(null);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
+  const [newCharacterType, setNewCharacterType] = useState<CharacterType>("student");
   const [loading, setLoading] = useState<boolean>(true);
 
   // Localization Language State (Spanish default)
@@ -70,7 +72,7 @@ export default function App() {
 
   const handleAddCharacterClick = () => {
     setEditingCharacter(null); // Indicates fresh new character
-    setScreen("FORM");
+    setScreen("TYPE_SELECT");
   };
 
   const handleEditCharacterClick = () => {
@@ -209,10 +211,24 @@ export default function App() {
             />
           )}
 
+          {screen === "TYPE_SELECT" && (
+            <CharacterTypeSelect
+              lang={lang}
+              onSelectType={(type) => {
+                setNewCharacterType(type);
+                setScreen("FORM");
+              }}
+              onCancel={() => {
+                setScreen("LIST");
+              }}
+            />
+          )}
+
           {screen === "FORM" && (
             <CharacterForm
               lang={lang}
               initialCharacter={editingCharacter}
+              newCharacterType={newCharacterType}
               onSave={handleSaveForm}
               onCancel={() => {
                 setScreen(editingCharacter ? "DETAIL" : "LIST");

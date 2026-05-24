@@ -904,7 +904,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <input
                             id="input-aw-role"
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Investigador de Runas, Auror" : "E.g. Rune Researcher, Auror"}
+                            placeholder={t.adultWizardRolePlaceholder}
                             value={profile.role}
                             onChange={(e) => updateProfileField("role", e.target.value)}
                             className="w-full text-xs font-sans"
@@ -919,7 +919,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <input
                             id="input-aw-institution"
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Ministerio de Magia" : "E.g. Ministry of Magic"}
+                            placeholder={t.adultWizardInstitutionPlaceholder}
                             value={profile.institution}
                             onChange={(e) => updateProfileField("institution", e.target.value)}
                             className="w-full text-xs font-sans"
@@ -934,7 +934,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <input
                             id="input-aw-former-house"
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Irati, Urania" : "E.g. Irati, Urania"}
+                            placeholder={t.adultWizardFormerHousePlaceholder}
                             value={profile.formerHouse}
                             onChange={(e) => updateProfileField("formerHouse", e.target.value)}
                             className="w-full text-xs font-sans"
@@ -949,7 +949,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <input
                             id="input-aw-magical-focus"
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Báculo de Sauco" : "E.g. Elder Staff"}
+                            placeholder={t.adultWizardMagicalFocusPlaceholder}
                             value={profile.magicalFocus}
                             onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
                             className="w-full text-xs font-sans"
@@ -964,7 +964,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <input
                             id="input-aw-reputation"
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Conocido en el gremio de pociones" : "E.g. Well-known in the Potions Guild"}
+                            placeholder={t.adultWizardReputationPlaceholder}
                             value={profile.reputation}
                             onChange={(e) => updateProfileField("reputation", e.target.value)}
                             className="w-full text-xs font-sans"
@@ -990,12 +990,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           <div className="flex flex-col gap-1.5 sm:col-span-2 animate-fade-in">
                             <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold flex justify-between">
                               <span>{t.adultWizardTeachingSubjects}</span>
-                              <span className="text-[9px] text-neutral-500 normal-case font-normal">{lang === "es" ? "Separadas por comas" : "Separated by commas"}</span>
+                              <span className="text-[9px] text-neutral-500 normal-case font-normal">{t.commaSeparatedHint}</span>
                             </label>
                             <input
                               id="input-aw-teaching-subjects"
                               type="text"
-                              placeholder={lang === "es" ? "Ej: Runas Antiguas, Defensa contra las Artes Oscuras" : "E.g. Ancient Runes, Defense against the Dark Arts"}
+                              placeholder={t.adultWizardTeachingSubjectsPlaceholder}
                               value={profile.teachingSubjects.join(", ")}
                               onChange={(e) => {
                                 const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);

@@ -1134,11 +1134,11 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         <div className="flex flex-col gap-1 col-span-2">
                           <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider flex justify-between">
                             <span>{t.adultWizardTeachingSubjects}</span>
-                            <span className="text-[8px] text-neutral-500 normal-case font-normal">{lang === "es" ? "Separadas por comas" : "Separated by commas"}</span>
+                            <span className="text-[8px] text-neutral-500 normal-case font-normal">{t.commaSeparatedHint}</span>
                           </label>
                           <input
                             type="text"
-                            placeholder={lang === "es" ? "Ej: Runas Antiguas, Defensa" : "E.g. Ancient Runes, Defense"}
+                            placeholder={t.adultWizardTeachingSubjectsPlaceholder}
                             value={(profile.teachingSubjects || []).join(", ")}
                             onChange={(e) => {
                               const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
@@ -1216,7 +1216,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardIsTeacher}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.isTeacher ? (lang === "es" ? "Sí" : "Yes") : "No"}</div>
+                        <div className="text-neutral-200 mt-0.5">{profile.isTeacher ? t.yes : t.no}</div>
                       </div>
 
                       {profile.isTeacher && (

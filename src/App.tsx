@@ -277,16 +277,16 @@ export default function App() {
                 onClick={handleImportReplace}
                 className="bg-rose-900/80 hover:bg-rose-900 border border-rose-600/40 text-rose-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
               >
-                🗑️ {lang === "es" ? "Reemplazar" : "Replace"}
+                🗑️ {t.importReplace}
               </button>
 
               {/* Add/Merge Option */}
               <button
                 id="btn-import-merge"
                 onClick={handleImportAdd}
-                className="bg-violet-950 hover:bg-violet-900 border border-violet-500/40 text-violet-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
+                className="bg-violet-950 hover:bg-violet-905 border border-violet-500/40 text-violet-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
               >
-                ➕ {lang === "es" ? "Combinar" : "Merge"}
+                ➕ {t.importAdd}
               </button>
 
               {/* Cancel Option */}

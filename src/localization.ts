@@ -301,6 +301,17 @@ export interface TranslationDict {
   adultWizardMagicalFocus: string;
   adultWizardReputation: string;
   characterTypeAdultWizardShort: string;
+  characterTypeSelectTitle: string;
+  characterTypeSelectDescription: string;
+  adultWizardRolePlaceholder: string;
+  adultWizardInstitutionPlaceholder: string;
+  adultWizardFormerHousePlaceholder: string;
+  adultWizardMagicalFocusPlaceholder: string;
+  adultWizardReputationPlaceholder: string;
+  adultWizardTeachingSubjectsPlaceholder: string;
+  commaSeparatedHint: string;
+  yes: string;
+  no: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -341,7 +352,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     nombre: "Nombre del Personaje",
     jugador: "Jugador",
     edad: "Edad",
-    casa: "Casa Funadadora",
+    casa: "Casa Fundadora",
     curso: "Curso Académico",
     puestoClase: "Puesto en la Clase",
     concepto: "Concepto",
@@ -600,6 +611,17 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardMagicalFocus: "Foco mágico / Varita",
     adultWizardReputation: "Reputación / Estatus",
     characterTypeAdultWizardShort: "Adulto",
+    characterTypeSelectTitle: "Elegir Sendero Mágico",
+    characterTypeSelectDescription: "Selecciona el arquetipo inicial para la nueva ficha de personaje académica.",
+    adultWizardRolePlaceholder: "Ej: Investigador de Runas, Auror",
+    adultWizardInstitutionPlaceholder: "Ej: Ministerio de Magia",
+    adultWizardFormerHousePlaceholder: "Ej: Irati, Urania",
+    adultWizardMagicalFocusPlaceholder: "Ej: Báculo de Sauco",
+    adultWizardReputationPlaceholder: "Ej: Conocido en el gremio de pociones",
+    adultWizardTeachingSubjectsPlaceholder: "Ej: Runas Antiguas, Defensa contra las Artes Oscuras",
+    commaSeparatedHint: "Separadas por comas",
+    yes: "Sí",
+    no: "No",
   },
   en: {
     // 1. General UI Elements & Common Labels
@@ -897,5 +919,16 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardMagicalFocus: "Magical Focus / Wand",
     adultWizardReputation: "Reputation / Status",
     characterTypeAdultWizardShort: "Adult",
+    characterTypeSelectTitle: "Choose Magical Path",
+    characterTypeSelectDescription: "Select the starting archetype for the new academic character ledger.",
+    adultWizardRolePlaceholder: "E.g. Rune Researcher, Auror",
+    adultWizardInstitutionPlaceholder: "E.g. Ministry of Magic",
+    adultWizardFormerHousePlaceholder: "E.g. Irati, Urania",
+    adultWizardMagicalFocusPlaceholder: "E.g. Elder Staff",
+    adultWizardReputationPlaceholder: "E.g. Well-known in the Potions Guild",
+    adultWizardTeachingSubjectsPlaceholder: "E.g. Ancient Runes, Defense against the Dark Arts",
+    commaSeparatedHint: "Separated by commas",
+    yes: "Yes",
+    no: "No",
   },
 };

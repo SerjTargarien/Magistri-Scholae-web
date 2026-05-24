@@ -35,12 +35,10 @@ export const CharacterTypeSelect: React.FC<CharacterTypeSelectProps> = ({
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="font-magic text-xl md:text-2xl text-neutral-100 uppercase tracking-widest glow-amber mb-2">
-            {lang === "es" ? "Elegir Sendero Mágico" : "Choose Magical Path"}
+            {t.characterTypeSelectTitle}
           </h2>
           <p className="text-xs font-mono text-neutral-400 max-w-md mx-auto">
-            {lang === "es" 
-              ? "Selecciona el arquetipo inicial para la nueva ficha de personaje académica." 
-              : "Select the starting archetype for the new academic character ledger."}
+            {t.characterTypeSelectDescription}
           </p>
         </div>
 

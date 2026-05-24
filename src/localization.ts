@@ -318,10 +318,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 2. Navigation Tabs
     perfil: "Perfil",
     sesion: "Sesión",
-    habilidades: "Atributos y Habilidades",
+    habilidades: "Habilidades",
     hechizos: "Conjuros y Pociones",
-    notas: "Notas del Alumno",
-    galeria: "Galería de Fotos",
+    notas: "Inventario y Notas",
+    galeria: "Galería",
 
     // 3. Student Personal Details & Fields
     nombre: "Nombre del Alumno",

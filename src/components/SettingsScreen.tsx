@@ -8,7 +8,7 @@ import { Language, TRANSLATIONS } from "../localization";
 import { db, getStorageEstimate } from "../db";
 import { Character, BackupData } from "../types";
 import { 
-  Download, 
+  Upload, 
   Trash2, 
   Info, 
   Languages, 
@@ -276,7 +276,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onClick={handleExportAll}
               className="flex items-center justify-center gap-2 bg-violet-950/60 hover:bg-violet-900 border border-violet-500/35 py-3 px-3 rounded-xl text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] text-violet-100 cursor-pointer"
             >
-              <Download className="w-4 h-4 text-violet-400 shrink-0" />
+              <Upload className="w-4 h-4 text-violet-400 shrink-0" />
               <span className="truncate">{t.exportFullBackup}</span>
             </button>
 
@@ -519,7 +519,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : "bg-neutral-900 text-neutral-650 border-neutral-800 cursor-not-allowed"
                 }`}
               >
-                <Download className="w-4 h-4 text-violet-450 shrink-0" />
+                <Upload className="w-4 h-4 text-violet-450 shrink-0" />
                 {lang === "es" ? "Descargar" : "Download"}
               </button>
             </div>

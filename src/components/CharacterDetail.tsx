@@ -31,7 +31,7 @@ import {
   Maximize2,
   Gem,
   Check,
-  Download
+  Upload
 } from "lucide-react";
 
 interface CharacterDetailProps {
@@ -754,7 +754,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             title={t.exportStudent}
             className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-violet-100 bg-violet-950/70 border border-violet-500/35 hover:bg-violet-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[44px] transition-all cursor-pointer select-none"
           >
-            <Download className="w-4 h-4 shrink-0 text-violet-400" />
+            <Upload className="w-4 h-4 shrink-0 text-violet-400" />
             <span className="hidden md:inline">{t.exportStudent}</span>
           </button>
 

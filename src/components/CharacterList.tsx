@@ -17,7 +17,7 @@ import {
   Coins, 
   Award,
   CircleDot,
-  Upload
+  Download
 } from "lucide-react";
 import { LanguageSelector } from "./LanguageSelector";
 
@@ -140,7 +140,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             className="flex items-center gap-1.5 px-3 py-2 bg-neutral-900/60 hover:bg-neutral-800 border border-violet-500/20 text-neutral-300 hover:text-amber-400 font-mono text-xs rounded-lg transition-all cursor-pointer min-h-[36px]"
             title={t.importBackup}
           >
-            <Upload className="w-4 h-4 text-violet-400" />
+            <Download className="w-4 h-4 text-violet-400" />
             <span className="hidden sm:inline">{lang === "es" ? "Importar" : "Import"}</span>
           </button>
           <input 

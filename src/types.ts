@@ -47,9 +47,38 @@ export interface JournalNote {
   fecha: number;
 }
 
+export type CharacterType = "student" | "adult_wizard";
+
+export interface AdultWizardProfile {
+  role: string;
+  institution: string;
+  isTeacher: boolean;
+  teachingSubjects: string[];
+  formerHouse: string;
+  magicalFocus: string;
+  reputation: string;
+}
+
+export const CHARACTER_TYPES = {
+  student: {
+    key: "student",
+    icon: "🎓",
+  },
+  adult_wizard: {
+    key: "adult_wizard",
+    icon: "🧙",
+  },
+} as const;
+
+export const getCharacterType = (character: Character): CharacterType => {
+  return character.characterType || "student";
+};
+
 export interface Character {
   id?: number; // IndexedDB primary auto-increment key
   tempId?: string; // For unsaved drafts
+  characterType?: CharacterType;
+  adultWizardProfile?: AdultWizardProfile;
 
   // Datos de Alumno
   nombre: string;

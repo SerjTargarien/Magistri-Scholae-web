@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Character, HOUSES, DEFAULT_SKILLS, Skill, CustomField, HOUSE_ICONS } from "../types";
+import { Character, HOUSES, Skill, CustomField, HOUSE_ICONS, CharacterType } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
 import Cropper from "react-easy-crop";
 import { compressImage, getCroppedImg } from "../utils/imageCompressor";
@@ -29,25 +29,7 @@ import {
   BookOpen,
   Minus
 } from "lucide-react";
-
-const getInitialDefaultSkills = (): Skill[] => {
-  try {
-    const saved = localStorage.getItem("fate_wizardry_custom_default_skills");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((sk: any) => ({
-          nombre: sk.nombre,
-          categoria: sk.categoria || "Asignaturas Troncales",
-          valor: sk.valor || 0
-        }));
-      }
-    }
-  } catch (e) {
-    console.error("Error reading custom default skills:", e);
-  }
-  return DEFAULT_SKILLS.map(sk => ({ ...sk, valor: 0 }));
-};
+import { createDefaultCharacter, getInitialDefaultSkills } from "../utils/characterFactory";
 
 interface CharacterFormProps {
   lang: Language;
@@ -70,49 +52,9 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
   >("perfil");
 
   // Load initial values or prefilled default draft
-  const [characterState, setCharacterState] = useState<Omit<Character, "id" | "createdAt" | "updatedAt">>({
-    nombre: "",
-    jugador: "",
-    edad: "11 años",
-    casa: "IRATI",
-    curso: "1º",
-    puestoClase: "",
-    concepto: "",
-    lema: "Creer es ver",
-    escudoText: "IRATI",
-    complicaciones: [],
-    linaje: "Mítico",
-    puntosDestino: 3,
-    economia: "Normal",
-    familiar: "",
-    varitaSintonia: "",
-    estresFisico: 0,
-    estresFisicoMax: 5,
-    estresMental: 0,
-    estresMentalMax: 5,
-    estresMentalConsecuencia: "",
-    estresSocial: 0,
-    estresSocialMax: 5,
-    consecuenciasFisicas: [],
-    consecuenciasMentales: [],
-    consecuenciasSociales: [],
-    pxs: 0,
-    aspectoTemporal: [],
-    aspectosPersonales: [],
-    habilidades: getInitialDefaultSkills(),
-    conjuros: [],
-    pociones: [],
-    clubes: "",
-    clubesList: [],
-    equipo: "",
-    equipoList: [],
-    notas: "",
-    notasList: [],
-    avatarImage: "",
-    avatarFit: "cover",
-    galleryImages: [],
-    camposPersonalizados: [],
-  });
+  const [characterState, setCharacterState] = useState<Omit<Character, "id" | "createdAt" | "updatedAt">>(
+    createDefaultCharacter("student")
+  );
 
   const [formError, setFormError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -146,6 +88,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     if (initialCharacter) {
       // Load existing editing character
       setCharacterState({
+        characterType: initialCharacter.characterType || "student",
         nombre: initialCharacter.nombre,
         jugador: initialCharacter.jugador,
         edad: initialCharacter.edad,

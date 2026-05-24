@@ -287,6 +287,9 @@ export interface TranslationDict {
   searchBackupStudents: string;
   exportSelectedCount: string;
   exportFullBackup: string;
+  characterTypeStudent: string;
+  characterTypeAdultWizard: string;
+  characterTypeAdultWizardDescription: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -572,6 +575,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     searchBackupStudents: "Buscar alumno (por nombre o casa)...",
     exportSelectedCount: "Fichas a exportar: {n}",
     exportFullBackup: "Copia Completa",
+    characterTypeStudent: "Alumno",
+    characterTypeAdultWizard: "Mago adulto",
+    characterTypeAdultWizardDescription: "Mago adulto, profesor o personaje mágico externo.",
   },
   en: {
     // 1. General UI Elements & Common Labels
@@ -855,5 +861,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     searchBackupStudents: "Search student (by name or house)...",
     exportSelectedCount: "Cards to export: {n}",
     exportFullBackup: "Full Backup (All)",
+    characterTypeStudent: "Student",
+    characterTypeAdultWizard: "Adult Wizard",
+    characterTypeAdultWizardDescription: "Adult wizard, teacher, or external magical character.",
   },
 };

@@ -4,15 +4,20 @@
  */
 
 import Dexie, { Table } from "dexie";
-import { Character } from "./types";
+import { Character, Familiar } from "./types";
 
 export class MagistriScholaeDB extends Dexie {
   characters!: Table<Character, number>;
+  familiars!: Table<Familiar, string>;
 
   constructor() {
     super("MagistriScholaeDB");
     this.version(1).stores({
       characters: "++id, nombre, casa, jugador, concepto, createdAt, updatedAt",
+    });
+    this.version(2).stores({
+      characters: "++id, nombre, casa, jugador, concepto, createdAt, updatedAt",
+      familiars: "id, nombre, especie, studentId, createdAt, updatedAt",
     });
   }
 }

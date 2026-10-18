@@ -1,0 +1,6 @@
+{
+  "summary": "Plan de rediseño para el banner de perfil en dispositivos móviles (< 768px), manteniendo intacta la vista de escritorio y tablet (md+). En teléfonos, el retrato del mago se muestra junto al escudo de la casa en formato compacto en la parte superior, con la tarjeta del familiar superpuesta en la esquina inferior derecha del retrato del mago (tipo insignia/retrato en esquina) y el nombre y concepto debajo.",
+  "updatedAt": "2026-10-18T13:40:35.585518710Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

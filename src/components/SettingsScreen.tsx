@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { Language, TRANSLATIONS } from "../localization";
 import { db, getStorageEstimate } from "../db";
-import { Character, BackupData } from "../types";
+import { Character, BackupData, VisualStyle } from "../types";
 import { 
   Upload, 
   Trash2, 
@@ -19,12 +19,15 @@ import {
   Skull,
   Users,
   Search,
-  X
+  X,
+  Palette
 } from "lucide-react";
 
 interface SettingsScreenProps {
   lang: Language;
   onLanguageChange: (lang: Language) => void;
+  visualStyle: VisualStyle;
+  onStyleChange: (style: VisualStyle) => void;
   onBack: () => void;
   onReloadRequested: () => void;
 }
@@ -32,6 +35,8 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   lang,
   onLanguageChange,
+  visualStyle,
+  onStyleChange,
   onBack,
   onReloadRequested,
 }) => {
@@ -78,18 +83,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   };
 
-  const triggerExport = (charsToExport: Character[], isFullBackup: boolean) => {
+  const triggerExport = async (charsToExport: Character[], isFullBackup: boolean) => {
     try {
       if (charsToExport.length === 0) {
         setStatusMessage({ type: "error", text: t.studentListEmptyBackup });
         return;
       }
 
+      const allFamiliars = isFullBackup ? await db.familiars.toArray() : undefined;
+
       const backup: BackupData = {
         backupVersion: "1.0",
         app: "Magistri Scholae",
         exportedAt: new Date().toISOString(),
         characters: charsToExport,
+        familiars: allFamiliars && allFamiliars.length > 0 ? allFamiliars : undefined,
       };
 
       const jsonStr = JSON.stringify(backup, null, 2);
@@ -133,24 +141,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         setStatusMessage({ type: "error", text: t.studentListEmptyBackup });
         return;
       }
-      triggerExport(allCharacters, true);
+      await triggerExport(allCharacters, true);
     } catch (e) {
       console.error(e);
       setStatusMessage({ type: "error", text: t.backupErrorExportMsg });
     }
   };
 
-  const handleExportSelected = () => {
+  const handleExportSelected = async () => {
     const selectedChars = dbCharacters.filter(c => c.id !== undefined && selectedCharIds.includes(c.id));
     if (selectedChars.length === 0) {
       setStatusMessage({ 
         type: "error", 
-        text: lang === "es" ? "Por favor, selecciona al menos un alumno para exportar." : "Please select at least one student to export." 
+        text: t.selectAtLeastOneError
       });
       return;
     }
     const isFullBackup = selectedChars.length === dbCharacters.length && dbCharacters.length > 1;
-    triggerExport(selectedChars, isFullBackup);
+    await triggerExport(selectedChars, isFullBackup);
     setShowExportSelectModal(false);
   };
 
@@ -162,7 +170,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     try {
-      await db.characters.clear();
+      await Promise.all([
+        db.characters.clear(),
+        db.familiars.clear(),
+      ]);
       setResetConfirmText("");
       await updateStorageStats();
       setStatusMessage({ type: "success", text: t.resetSuccess });
@@ -227,6 +238,86 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Main Settings Panel */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
+        {/* Visual Style Selector Card */}
+        <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2 relative overflow-hidden" id="settings-card-style">
+          <div className="flex items-center gap-2 mb-2">
+            <Palette className="w-5 h-5 text-amber-500" />
+            <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">
+              {t.settingsStyleTitle}
+            </h2>
+          </div>
+
+          <p className="text-xs text-neutral-400 mb-4 font-sans leading-relaxed">
+            {t.settingsStyleExplanation}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Option 1: Magic Academy */}
+            <button
+              type="button"
+              id="btn-style-academy"
+              onClick={() => onStyleChange("academy")}
+              className={`relative text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                visualStyle === "academy"
+                  ? "bg-gradient-to-br from-[#231838] to-[#110c1d] border-[#c8a248] shadow-[0_0_20px_rgba(200,162,72,0.2)]"
+                  : "bg-neutral-950/50 border-neutral-800 hover:border-amber-500/40"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-[#f3d88c] to-[#9b7424] border border-amber-200 shadow-sm shrink-0" />
+                  <span className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wider">
+                    {t.styleAcademyName}
+                  </span>
+                </div>
+                {visualStyle === "academy" && (
+                  <CheckCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                {t.styleAcademyDesc}
+              </p>
+              <div className="flex items-center gap-1.5 pt-1">
+                <span className="w-5 h-2.5 rounded-xs bg-[#161224] border border-[#c8a248]/60" />
+                <span className="w-5 h-2.5 rounded-xs bg-[#e5d6b8] border border-[#8c6722]" />
+                <span className="w-5 h-2.5 rounded-xs bg-[#c8a248]" />
+              </div>
+            </button>
+
+            {/* Option 2: Classic */}
+            <button
+              type="button"
+              id="btn-style-classic"
+              onClick={() => onStyleChange("classic")}
+              className={`relative text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                visualStyle === "classic"
+                  ? "bg-violet-950/60 border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.2)]"
+                  : "bg-neutral-950/50 border-neutral-800 hover:border-violet-500/40"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-violet-400 to-indigo-900 border border-violet-300 shadow-sm shrink-0" />
+                  <span className="font-magic text-sm font-bold text-violet-200 uppercase tracking-wider">
+                    {t.styleClassicName}
+                  </span>
+                </div>
+                {visualStyle === "classic" && (
+                  <CheckCircle className="w-4 h-4 text-violet-400 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-neutral-400 font-sans leading-relaxed">
+                {t.styleClassicDesc}
+              </p>
+              <div className="flex items-center gap-1.5 pt-1">
+                <span className="w-5 h-2.5 rounded-xs bg-[#08040f] border border-violet-500/40" />
+                <span className="w-5 h-2.5 rounded-xs bg-[#140d26] border border-violet-500/40" />
+                <span className="w-5 h-2.5 rounded-xs bg-amber-500" />
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Localization & Preferences Card */}
         <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-lang">
           <div className="flex items-center gap-2 mb-4">
@@ -288,7 +379,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 setBackupSearchQuery(""); // Clear old search
                 setShowExportSelectModal(true);
               }}
-              className="flex items-center justify-center gap-2 bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-500/25 py-3 px-3 rounded-xl text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] text-indigo-255 cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-500/25 py-3 px-3 rounded-xl text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] text-indigo-200 cursor-pointer"
             >
               <Users className="w-4 h-4 text-indigo-400 shrink-0" />
               <span className="truncate">{t.exportSelect}</span>
@@ -412,7 +503,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 placeholder={t.searchBackupStudents}
                 value={backupSearchQuery}
                 onChange={(e) => setBackupSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-neutral-905 border border-neutral-805 text-neutral-200 rounded-lg text-xs font-sans placeholder-neutral-500 focus:outline-none focus:border-indigo-500/50"
+                className="w-full pl-9 pr-3 py-2 bg-neutral-900 border border-neutral-800 text-neutral-200 rounded-lg text-xs font-sans placeholder-neutral-500 focus:outline-none focus:border-indigo-500/50"
               />
             </div>
 
@@ -457,7 +548,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </p>
               ) : filteredChars.length === 0 ? (
                 <p className="text-[11px] text-neutral-500 font-mono text-center py-6 italic">
-                  {lang === "es" ? "No se encontraron alumnos para esta búsqueda." : "No matching students found."}
+                  {t.noMatchingStudents}
                 </p>
               ) : (
                 filteredChars.map((c) => {
@@ -487,7 +578,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       <div className="truncate flex flex-col min-w-0">
                         <span className="truncate font-sans font-medium text-neutral-200">{c.nombre || t.noName}</span>
                         {c.concepto && (
-                          <span className="truncate text-[9px] font-mono text-neutral-505 mt-0.5 uppercase tracking-wider">
+                          <span className="truncate text-[9px] font-mono text-neutral-500 mt-0.5 uppercase tracking-wider">
                             {c.concepto}
                           </span>
                         )}
@@ -504,7 +595,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 type="button"
                 id="btn-export-selective-cancel"
                 onClick={() => setShowExportSelectModal(false)}
-                className="bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-400 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                className="bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-400 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
               >
                 {t.cancel}
               </button>
@@ -516,11 +607,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className={`py-3 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 border uppercase ${
                   selectedCharIds.length > 0
                     ? "bg-violet-900 hover:bg-violet-800 text-violet-100 border-violet-600/50 cursor-pointer"
-                    : "bg-neutral-900 text-neutral-650 border-neutral-800 cursor-not-allowed"
+                    : "bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed"
                 }`}
               >
-                <Upload className="w-4 h-4 text-violet-450 shrink-0" />
-                {lang === "es" ? "Descargar" : "Download"}
+                <Upload className="w-4 h-4 text-violet-400 shrink-0" />
+                {t.downloadAction}
               </button>
             </div>
           </div>

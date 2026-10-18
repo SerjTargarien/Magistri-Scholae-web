@@ -52,10 +52,8 @@ export interface TranslationDict {
   linaje: string;
   puntosDestino: number | string;
   economia: string;
-  familiar: string;
   varitaSintonia: string;
   noConceptDefined: string;
-  labelFamiliarEmpty: string;
   labelVaritaEmpty: string;
 
   // 4. Input Field Placeholders
@@ -66,7 +64,6 @@ export interface TranslationDict {
   placeholderLinaje: string;
   placeholderEconomia: string;
   placeholderComplicaciones: string;
-  placeholderFamiliar: string;
   placeholderVaritaSintonia: string;
   placeholderConceptoEdit: string;
 
@@ -97,7 +94,6 @@ export interface TranslationDict {
   schoolShield: string;
   secDatosAlumno: string;
   secLinajeDestino: string;
-  secFamiliarVarita: string;
   secEstresRango: string;
   secPersonalAspects: string;
   secCustomFields: string;
@@ -182,6 +178,7 @@ export interface TranslationDict {
   savedPreset: string;
   descSaveSkillPreset: string;
   errSkillExists: string;
+  noSkillsInCategory: string;
 
   // 10. Spellbooks, Brews & Grimoires
   conjuroName: string;
@@ -312,6 +309,85 @@ export interface TranslationDict {
   commaSeparatedHint: string;
   yes: string;
   no: string;
+  noPortrait: string;
+  idealRatio: string;
+  minOneChar: string;
+  labelProvenance: string;
+  labelColors: string;
+  labelElement: string;
+  labelTotem: string;
+  labelMotto: string;
+  filterAdultWizards: string;
+  editNote: string;
+  saveNote: string;
+  discardDraftTitle: string;
+  discardDraftConfirmBtn: string;
+  removeAvatar: string;
+  importAction: string;
+  downloadAction: string;
+  selectAtLeastOneError: string;
+  noMatchingStudents: string;
+  deleteCustomField: string;
+  emptyCustomFields: string;
+  settingsStyleTitle: string;
+  settingsStyleExplanation: string;
+  styleAcademyName: string;
+  styleAcademyDesc: string;
+  styleClassicName: string;
+  styleClassicDesc: string;
+  familiarEditorCardTitle: string;
+  familiarEditorCardDescription: string;
+  familiarEditorTitle: string;
+  familiarEditorSubtitle: string;
+  familiarName: string;
+  familiarNamePlaceholder: string;
+  familiarSpecies: string;
+  familiarSpeciesPlaceholder: string;
+  familiarDescription: string;
+  familiarDescriptionPlaceholder: string;
+  familiarValidationError: string;
+  familiarSavedToast: string;
+  familiarDeletedToast: string;
+  familiarGalleryTitle: string;
+  familiarGalleryEmpty: string;
+  familiarCreateNewBtn: string;
+  familiarUpdateBtn: string;
+  familiarSaveNewBtn: string;
+  familiarOpenEditorBtn: string;
+  familiarConfirmDelete: string;
+  filterFamiliars: string;
+  familiarSpeciesShort: string;
+  familiarBondLabel: string;
+  familiarUnbound: string;
+  noDescriptionDefined: string;
+  familiarDetailTitle: string;
+  familiarBondSectionTitle: string;
+  familiarBondWithWizard: string;
+  familiarBondNone: string;
+  familiarChangeBond: string;
+  familiarUnbind: string;
+  familiarBondStudent: string;
+  familiarSelectMasterPlaceholder: string;
+  familiarEditInEditor: string;
+  familiarQuickEdit: string;
+  familiarBackToList: string;
+  familiarDeleteTitle: string;
+  familiarDeletePrompt: string;
+  familiarDeleteConfirmBtn: string;
+  familiarSavedInlineToast: string;
+  familiarViewDetail: string;
+  wizardViewDetail: string;
+  tabFamiliarProfile: string;
+  tabFamiliarNotes: string;
+  tabFamiliarGallery: string;
+  archetypeStudent: string;
+  archetypeAdultWizard: string;
+  archetypeFamiliar: string;
+  noFamiliarBonded: string;
+  bondExistingFamiliar: string;
+  createNewFamiliar: string;
+  selectFamiliarToBond: string;
+  selectFamiliarPlaceholder: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -362,10 +438,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     linaje: "Linaje Familiar",
     puntosDestino: "Puntos de Destino",
     economia: "Economía",
-    familiar: "Familiar",
     varitaSintonia: "Varita",
     noConceptDefined: "Sin arquetipo ni concepto definido",
-    labelFamiliarEmpty: "Ningún animal o familiar en sintonía.",
     labelVaritaEmpty: "Sin varita vinculada.",
 
     // 4. Input Field Placeholders
@@ -376,7 +450,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderLinaje: "p. ej. Sangre Pura, Mítico",
     placeholderEconomia: "p. ej. Normal, Precaria, Rica",
     placeholderComplicaciones: "p. ej. Maldición familiar latente, Temor irracional al fuego",
-    placeholderFamiliar: "p. ej. Gato negro de tres ojos",
     placeholderVaritaSintonia: "p. ej. Madera de sauce con núcleo de pluma de fénix",
     placeholderConceptoEdit: "Concepto del personaje",
 
@@ -407,7 +480,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     schoolShield: "ESCUELA:",
     secDatosAlumno: "Datos Personales",
     secLinajeDestino: "Linaje, Destino y Economía",
-    secFamiliarVarita: "Familiar y Varita",
     secEstresRango: "Ajustar Rangos de Estrés",
     secPersonalAspects: "Aspectos Personales",
     secCustomFields: "Atributos Personalizados",
@@ -492,6 +564,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     savedPreset: "¡Registrado!",
     descSaveSkillPreset: "Establece la lista de habilidades actual como el borrador predeterminado para futuras matrículas.",
     errSkillExists: 'La habilidad "{name}" ya existe',
+    noSkillsInCategory: "No hay habilidades registradas en esta categoría.",
 
     // 10. Spellbooks, Brews & Grimoires
     conjuroName: "Nombre del Conjuro",
@@ -622,6 +695,85 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     commaSeparatedHint: "Separadas por comas",
     yes: "Sí",
     no: "No",
+    noPortrait: "SIN RETRATO",
+    idealRatio: "Ratio 3:4 Ideal",
+    minOneChar: "Mín. 1 letra",
+    labelProvenance: "Procedencia",
+    labelColors: "Colores",
+    labelElement: "Elemento",
+    labelTotem: "Tótem",
+    labelMotto: "Lema",
+    filterAdultWizards: "Magos Adultos",
+    editNote: "Editar nota",
+    saveNote: "Guardar cambios",
+    discardDraftTitle: "Descartar Borrador",
+    discardDraftConfirmBtn: "Descartar Cambios",
+    removeAvatar: "Quitar retrato",
+    importAction: "Importar",
+    downloadAction: "Descargar",
+    selectAtLeastOneError: "Por favor, selecciona al menos un personaje para exportar.",
+    noMatchingStudents: "No se encontraron personajes para esta búsqueda.",
+    deleteCustomField: "Eliminar atributo personalizado",
+    emptyCustomFields: "Sin atributos personalizados registrados.",
+    settingsStyleTitle: "Estilo Visual",
+    settingsStyleExplanation: "Selecciona la apariencia visual de la aplicación.",
+    styleAcademyName: "Academia Mágica",
+    styleAcademyDesc: "Filigranas doradas, tarjetas en pergamino y escritorio arcano.",
+    styleClassicName: "Clásico",
+    styleClassicDesc: "Tema original en tonos violeta oscuro.",
+    familiarEditorCardTitle: "Familiar",
+    familiarEditorCardDescription: "Familiares mágicos asignables a los alumnos de la academia.",
+    familiarEditorTitle: "Registro y Editor de Familiares",
+    familiarEditorSubtitle: "Retrato, nombre, especie y descripción del familiar.",
+    familiarName: "Nombre del Familiar",
+    familiarNamePlaceholder: "p. ej. Nyx, Archimedes, Bruma...",
+    familiarSpecies: "Especie / Criatura",
+    familiarSpeciesPlaceholder: "p. ej. Lechuza Nival, Gato de Sombra, Sapo Cristalino...",
+    familiarDescription: "Descripción y Vínculo",
+    familiarDescriptionPlaceholder: "Describe su apariencia física, personalidad, peculiaridades mágicas o cómo conoció al alumno...",
+    familiarValidationError: "El nombre y la especie del familiar son obligatorios.",
+    familiarSavedToast: "Familiar guardado correctamente en el registro mágico.",
+    familiarDeletedToast: "Familiar eliminado del registro.",
+    familiarGalleryTitle: "Familiares Registrados",
+    familiarGalleryEmpty: "Aún no hay familiares creados en el registro.",
+    familiarCreateNewBtn: "Nuevo Familiar",
+    familiarUpdateBtn: "Actualizar Familiar",
+    familiarSaveNewBtn: "Guardar Familiar",
+    familiarOpenEditorBtn: "Abrir Editor de Familiares",
+    familiarConfirmDelete: "¿Eliminar permanentemente esta ficha de familiar?",
+    filterFamiliars: "Familiares",
+    familiarSpeciesShort: "Especie",
+    familiarBondLabel: "Vínculo",
+    familiarUnbound: "Sin asignar",
+    noDescriptionDefined: "Sin descripción registrada",
+    familiarDetailTitle: "Ficha de Familiar Mágico",
+    familiarBondSectionTitle: "Vínculo Mágico",
+    familiarBondWithWizard: "Mago Asignado",
+    familiarBondNone: "Sin Mago Asignado (Familiar Libre)",
+    familiarChangeBond: "Cambiar Vínculo",
+    familiarUnbind: "Desvincular",
+    familiarBondStudent: "Vincular a Alumno o Mago",
+    familiarSelectMasterPlaceholder: "Seleccionar mago...",
+    familiarEditInEditor: "Editor Completo",
+    familiarQuickEdit: "Edición Rápida",
+    familiarBackToList: "Volver a Personajes",
+    familiarDeleteTitle: "Liberar / Eliminar Familiar",
+    familiarDeletePrompt: "¿Estás seguro de que deseas eliminar permanentemente la ficha de este familiar? Se perderán sus notas y galería.",
+    familiarDeleteConfirmBtn: "Sí, Eliminar Familiar",
+    familiarSavedInlineToast: "Familiar actualizado correctamente",
+    familiarViewDetail: "Ver Ficha de Familiar",
+    wizardViewDetail: "Ver Ficha del Mago",
+    tabFamiliarProfile: "Perfil y Vínculo",
+    tabFamiliarNotes: "Diario del Familiar",
+    tabFamiliarGallery: "Galería de Recuerdos",
+    archetypeStudent: "Alumno de la Academia",
+    archetypeAdultWizard: "Mago Adulto / Profesor",
+    archetypeFamiliar: "Familiar Mágico",
+    noFamiliarBonded: "Sin familiar vinculado",
+    bondExistingFamiliar: "Vincular Familiar",
+    createNewFamiliar: "Crear Familiar",
+    selectFamiliarToBond: "Seleccionar un familiar para vincular a este personaje:",
+    selectFamiliarPlaceholder: "Elige un familiar de la academia...",
   },
   en: {
     // 1. General UI Elements & Common Labels
@@ -670,10 +822,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     linaje: "Heritage / Bloodline",
     puntosDestino: "Destiny Points",
     economia: "Monetary Funds",
-    familiar: "Familiar Companion",
     varitaSintonia: "Wand Tunement (Sintonía)",
     noConceptDefined: "No archetype or concept defined",
-    labelFamiliarEmpty: "No companion animal or familiar attuned.",
     labelVaritaEmpty: "No linked wand.",
 
     // 4. Input Field Placeholders
@@ -684,7 +834,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderLinaje: "e.g., Pureblood, Mythical",
     placeholderEconomia: "e.g., Normal, Poor, Rich",
     placeholderComplicaciones: "e.g., Latent family curse, Irrational fear of fire",
-    placeholderFamiliar: "e.g., Three-eyed black cat",
     placeholderVaritaSintonia: "e.g., Willow wood with phoenix feather core",
     placeholderConceptoEdit: "Character concept",
 
@@ -715,7 +864,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     schoolShield: "ACADEMY:",
     secDatosAlumno: "Character Personal Details",
     secLinajeDestino: "Heritage, Destiny & Economy",
-    secFamiliarVarita: "Companion Familiar & Wand",
     secEstresRango: "Stress Thresholds",
     secPersonalAspects: "Personal Aspects",
     secCustomFields: "Custom Attributes",
@@ -800,6 +948,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     savedPreset: "Saved preset!",
     descSaveSkillPreset: "Saves the current skill list layout as the standard template for all future created characters.",
     errSkillExists: 'Skill "{name}" already exists',
+    noSkillsInCategory: "No skills registered in this category.",
 
     // 10. Spellbooks, Brews & Grimoires
     conjuroName: "Spell Name",
@@ -930,5 +1079,261 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     commaSeparatedHint: "Separated by commas",
     yes: "Yes",
     no: "No",
+    noPortrait: "NO PORTRAIT",
+    idealRatio: "3:4 Ideal Ratio",
+    minOneChar: "Min. 1 char",
+    labelProvenance: "Provenance",
+    labelColors: "Colors",
+    labelElement: "Element",
+    labelTotem: "Totem",
+    labelMotto: "Motto",
+    filterAdultWizards: "Adult Wizards",
+    editNote: "Edit note",
+    saveNote: "Save changes",
+    discardDraftTitle: "Discard Draft",
+    discardDraftConfirmBtn: "Discard Changes",
+    removeAvatar: "Remove portrait",
+    importAction: "Import",
+    downloadAction: "Download",
+    selectAtLeastOneError: "Please select at least one character to export.",
+    noMatchingStudents: "No matching characters found.",
+    deleteCustomField: "Delete custom attribute",
+    emptyCustomFields: "No custom attributes registered.",
+    settingsStyleTitle: "Visual Style",
+    settingsStyleExplanation: "Select the visual appearance of the application.",
+    styleAcademyName: "Magic Academy",
+    styleAcademyDesc: "Golden filigree frames, parchment cards, and arcane study desk.",
+    styleClassicName: "Classic",
+    styleClassicDesc: "Original dark violet theme.",
+    familiarEditorCardTitle: "Familiar Editor",
+    familiarEditorCardDescription: "Create and manage magical familiars assignable to academy students.",
+    familiarEditorTitle: "Familiar Registry & Editor",
+    familiarEditorSubtitle: "Forge the arcane bond: portrait, name, species, and description of the familiar.",
+    familiarName: "Familiar Name",
+    familiarNamePlaceholder: "e.g. Nyx, Archimedes, Mist...",
+    familiarSpecies: "Species / Creature",
+    familiarSpeciesPlaceholder: "e.g. Snowy Owl, Shadow Cat, Crystal Toad...",
+    familiarDescription: "Description & Bond",
+    familiarDescriptionPlaceholder: "Describe its physical appearance, personality, magical quirks, or how it met the student...",
+    familiarValidationError: "Both the familiar's name and species are required.",
+    familiarSavedToast: "Familiar saved to the magical registry.",
+    familiarDeletedToast: "Familiar removed from the registry.",
+    familiarGalleryTitle: "Registered Familiars",
+    familiarGalleryEmpty: "No familiars have been created in the registry yet.",
+    familiarCreateNewBtn: "New Familiar",
+    familiarUpdateBtn: "Update Familiar",
+    familiarSaveNewBtn: "Save Familiar",
+    familiarOpenEditorBtn: "Open Familiar Editor",
+    familiarConfirmDelete: "Permanently delete this familiar sheet?",
+    filterFamiliars: "Familiars",
+    familiarSpeciesShort: "Species",
+    familiarBondLabel: "Bond",
+    familiarUnbound: "Unbound",
+    noDescriptionDefined: "No description recorded",
+    familiarDetailTitle: "Magical Familiar Sheet",
+    familiarBondSectionTitle: "Magical Bond",
+    familiarBondWithWizard: "Bonded Wizard",
+    familiarBondNone: "Unbound Familiar (Free)",
+    familiarChangeBond: "Change Bond",
+    familiarUnbind: "Unbind",
+    familiarBondStudent: "Bond to Student or Wizard",
+    familiarSelectMasterPlaceholder: "Select wizard...",
+    familiarEditInEditor: "Full Editor",
+    familiarQuickEdit: "Quick Edit",
+    familiarBackToList: "Back to Characters",
+    familiarDeleteTitle: "Release / Delete Familiar",
+    familiarDeletePrompt: "Are you sure you want to permanently delete this familiar sheet? Its chronicles and gallery will be deleted.",
+    familiarDeleteConfirmBtn: "Yes, Delete Familiar",
+    familiarSavedInlineToast: "Familiar updated successfully",
+    familiarViewDetail: "View Familiar Sheet",
+    wizardViewDetail: "View Wizard Sheet",
+    tabFamiliarProfile: "Profile & Bond",
+    tabFamiliarNotes: "Familiar Chronicles",
+    tabFamiliarGallery: "Memory Gallery",
+    archetypeStudent: "Academy Student",
+    archetypeAdultWizard: "Adult Wizard / Professor",
+    archetypeFamiliar: "Magical Familiar",
+    noFamiliarBonded: "No familiar bonded",
+    bondExistingFamiliar: "Bond Familiar",
+    createNewFamiliar: "Create Familiar",
+    selectFamiliarToBond: "Select a familiar to bond with this character:",
+    selectFamiliarPlaceholder: "Choose an academy familiar...",
   },
 };
+
+export interface LocalizedHouseLore {
+  procedencia: string;
+  colores: string;
+  elemento: string;
+  totem: string;
+  lema: string;
+}
+
+export const HOUSE_LORE: Record<Language, Record<string, LocalizedHouseLore>> = {
+  es: {
+    IRATI: {
+      procedencia: "Navarra",
+      colores: "Verde y Negro",
+      elemento: "Aire",
+      totem: "Mochuelo boreal",
+      lema: "Creer es ver",
+    },
+    URANIA: {
+      procedencia: "Castilla",
+      colores: "Mostaza y Azul",
+      elemento: "Tierra",
+      totem: "Toro",
+      lema: "Ni por esperanza ni por miedo",
+    },
+    "AL-KHWARIZMI": {
+      procedencia: "Al-Ándalus",
+      colores: "Violeta y Dorado",
+      elemento: "Fuego",
+      totem: "Lince ibérico",
+      lema: "El conocimiento es la puerta",
+    },
+    CALANTES: {
+      procedencia: "Portugal",
+      colores: "Añil y Blanco",
+      elemento: "Agua",
+      totem: "Pulpo",
+      lema: "El horizonte como límite",
+    },
+    ALEIXIS: {
+      procedencia: "Aragón",
+      colores: "Plata y Granate",
+      elemento: "Metal",
+      totem: "Lobo ibérico",
+      lema: "Mérito obliga",
+    },
+  },
+  en: {
+    IRATI: {
+      procedencia: "Navarre",
+      colores: "Green and Black",
+      elemento: "Air",
+      totem: "Boreal Owl",
+      lema: "To believe is to see",
+    },
+    URANIA: {
+      procedencia: "Castile",
+      colores: "Mustard and Blue",
+      elemento: "Earth",
+      totem: "Bull",
+      lema: "Neither by hope nor by fear",
+    },
+    "AL-KHWARIZMI": {
+      procedencia: "Al-Andalus",
+      colores: "Violet and Gold",
+      elemento: "Fire",
+      totem: "Iberian Lynx",
+      lema: "Knowledge is the gateway",
+    },
+    CALANTES: {
+      procedencia: "Portugal",
+      colores: "Indigo and White",
+      elemento: "Water",
+      totem: "Octopus",
+      lema: "The horizon as the limit",
+    },
+    ALEIXIS: {
+      procedencia: "Aragon",
+      colores: "Silver and Garnet",
+      elemento: "Metal",
+      totem: "Iberian Wolf",
+      lema: "Merit obliges",
+    },
+  },
+};
+
+export const getLocalizedHouseLore = (houseKey: string, lang: Language): LocalizedHouseLore => {
+  const key = (houseKey || "IRATI").toUpperCase();
+  return HOUSE_LORE[lang][key] || HOUSE_LORE[lang].IRATI;
+};
+
+export const translateHouseMotto = (motto: string, lang: Language): string => {
+  if (!motto) return "";
+  const trimmed = motto.trim().toLowerCase();
+  for (const hKey of Object.keys(HOUSE_LORE.es)) {
+    const esMotto = HOUSE_LORE.es[hKey].lema;
+    const enMotto = HOUSE_LORE.en[hKey].lema;
+    if (trimmed === esMotto.toLowerCase() || trimmed === enMotto.toLowerCase()) {
+      return HOUSE_LORE[lang][hKey].lema;
+    }
+  }
+  return motto;
+};
+
+const SKILL_PAIRS: Array<{ es: string; en: string }> = [
+  // Físicas / Physical
+  { es: "Atletismo", en: "Athletics" },
+  { es: "Físico", en: "Physique" },
+  { es: "Deportes", en: "Sports" },
+  { es: "Sigilo", en: "Stealth" },
+  { es: "Prestidigitación", en: "Sleight of Hand" },
+  { es: "Duelo", en: "Dueling" },
+  { es: "Supervivencia", en: "Survival" },
+  // Mentales / Mental
+  { es: "Investigar", en: "Investigate" },
+  { es: "Percepción", en: "Perception" },
+  { es: "Voluntad", en: "Willpower" },
+  { es: "Espiritismo", en: "Spiritualism" },
+  { es: "Empatía", en: "Empathy" },
+  // Sociales / Social
+  { es: "Contactos", en: "Contacts" },
+  { es: "Provocar", en: "Provoke" },
+  { es: "Carisma", en: "Charisma" },
+  { es: "Engaño", en: "Deception" },
+  // Asignaturas Troncales / Core Curriculum
+  { es: "Transmutación", en: "Transmutation" },
+  { es: "Pociones", en: "Potions" },
+  { es: "Historia del mundo mágico", en: "History of Magic" },
+  { es: "Herbología", en: "Herbology" },
+  { es: "Astronomía", en: "Astronomy" },
+  { es: "Trivium", en: "Trivium" },
+  { es: "Quadrivium", en: "Quadrivium" },
+  { es: "Cábala", en: "Kabbalah" },
+  { es: "Simpática", en: "Sympathetic Magic" },
+  { es: "Hermética", en: "Hermetics" },
+  // Asignaturas Optativas / Elective Subjects
+  { es: "Seres mágicos", en: "Magical Creatures" },
+  { es: "Magia druídica", en: "Druidic Magic" },
+  { es: "Arte", en: "Art" },
+  { es: "Conocimiento muggle", en: "Muggle Studies" },
+  { es: "Oráculo", en: "Oracle & Divination" },
+  { es: "Quimerismo", en: "Chimerism" },
+  { es: "Musología", en: "Museology" },
+  { es: "Numerología", en: "Numerology" },
+  { es: "Espejismo", en: "Mirage & Illusion" },
+  { es: "Climática", en: "Weather Magic" },
+  { es: "Entropía", en: "Entropy" },
+  { es: "Cronomancia", en: "Chronomancy" },
+  { es: "Sanación", en: "Healing" },
+];
+
+export const translateSkillName = (skillName: string, lang: Language): string => {
+  if (!skillName) return "";
+  const lower = skillName.trim().toLowerCase();
+  const match = SKILL_PAIRS.find(
+    (p) => p.es.toLowerCase() === lower || p.en.toLowerCase() === lower
+  );
+  if (match) {
+    return match[lang];
+  }
+  return skillName;
+};
+
+export const canonicalizeSkillName = (skillName: string): string => {
+  if (!skillName) return "";
+  const lower = skillName.trim().toLowerCase();
+  const match = SKILL_PAIRS.find(
+    (p) => p.es.toLowerCase() === lower || p.en.toLowerCase() === lower
+  );
+  return match ? match.es : skillName.trim();
+};
+
+export const areSameSkill = (a: string, b: string): boolean => {
+  return canonicalizeSkillName(a).toLowerCase() === canonicalizeSkillName(b).toLowerCase();
+};
+
+

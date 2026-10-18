@@ -98,7 +98,7 @@ export interface Character {
   economia: string;
 
   // Familiar y Varita
-  familiar: string;
+  familiarId?: string;
   varitaSintonia: string;
 
   // Estrés
@@ -180,9 +180,9 @@ export const HOUSES: Record<string, HouseInfo> = {
     totem: "Mochuelo boreal",
     lema: "Creer es ver",
     escudo: "IRATI",
-    bgClass: "from-emerald-950 to-neutral-950",
-    accentClass: "bg-emerald-600 hover:bg-emerald-500 text-emerald-100 border-emerald-500/30",
-    borderClass: "border-emerald-500/20",
+    bgClass: "from-emerald-900/90 via-emerald-950 to-neutral-950",
+    accentClass: "bg-emerald-700 hover:bg-emerald-600 text-emerald-100 border-emerald-500/30",
+    borderClass: "border-emerald-500/30",
     textClass: "text-emerald-400",
   },
   URANIA: {
@@ -194,37 +194,37 @@ export const HOUSES: Record<string, HouseInfo> = {
     totem: "Toro",
     lema: "Ni por esperanza ni por miedo",
     escudo: "URANIA",
-    bgClass: "from-amber-950 to-neutral-950",
-    accentClass: "bg-amber-600 hover:bg-amber-550 text-amber-100 border-amber-550/30",
-    borderClass: "border-amber-500/20",
+    bgClass: "from-amber-700/80 via-amber-950/90 to-blue-950",
+    accentClass: "bg-amber-600 hover:bg-amber-500 text-amber-100 border-amber-500/30",
+    borderClass: "border-amber-500/30",
     textClass: "text-amber-400",
   },
   "AL-KHWARIZMI": {
     key: "AL-KHWARIZMI",
     nombre: "Al-Khwarizmi",
-    procedencia: "Al-Andalus",
-    colores: "Violeta y Oro",
+    procedencia: "Al-Ándalus",
+    colores: "Violeta y Dorado",
     elemento: "Fuego",
-    totem: "Lince",
+    totem: "Lince ibérico",
     lema: "El conocimiento es la puerta",
     escudo: "AL-KHWARIZMI",
-    bgClass: "from-violet-950 to-neutral-950",
+    bgClass: "from-violet-950 via-purple-950/90 to-amber-800/75",
     accentClass: "bg-violet-600 hover:bg-violet-500 text-violet-100 border-violet-500/30",
-    borderClass: "border-violet-500/20",
+    borderClass: "border-violet-500/30",
     textClass: "text-violet-400",
   },
   CALANTES: {
     key: "CALANTES",
     nombre: "Calantes",
     procedencia: "Portugal",
-    colores: "Índigo y Blanco",
+    colores: "Añil y Blanco",
     elemento: "Agua",
     totem: "Pulpo",
     lema: "El horizonte como límite",
     escudo: "CALANTES",
-    bgClass: "from-indigo-950 to-neutral-950",
+    bgClass: "from-indigo-950 via-indigo-900/85 to-slate-300/35",
     accentClass: "bg-indigo-600 hover:bg-indigo-500 text-indigo-100 border-indigo-500/30",
-    borderClass: "border-indigo-500/20",
+    borderClass: "border-indigo-500/30",
     textClass: "text-indigo-400",
   },
   ALEIXIS: {
@@ -236,9 +236,9 @@ export const HOUSES: Record<string, HouseInfo> = {
     totem: "Lobo ibérico",
     lema: "Mérito obliga",
     escudo: "ALEIXIS",
-    bgClass: "from-rose-950 to-neutral-950",
-    accentClass: "bg-rose-600 hover:bg-rose-500 text-rose-100 border-rose-500/30",
-    borderClass: "border-rose-500/20",
+    bgClass: "from-rose-950 via-red-950/90 to-zinc-400/40",
+    accentClass: "bg-rose-700 hover:bg-rose-600 text-rose-100 border-rose-500/30",
+    borderClass: "border-rose-500/30",
     textClass: "text-rose-400",
   },
 };
@@ -294,9 +294,28 @@ export const DEFAULT_SKILLS = [
   { nombre: "Sanación", categoria: "Asignaturas Optativas", valor: 0 },
 ];
 
+export interface Familiar {
+  id: string;
+  nombre: string;
+  especie: string;
+  descripcion: string;
+  imagen?: string;
+  imageFit?: "cover" | "contain";
+  studentId?: number | string;
+  notasList?: JournalNote[];
+  galleryImages?: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface BackupData {
   backupVersion: string;
   app: string;
   exportedAt: string;
   characters: Character[];
+  familiars?: Familiar[];
 }
+
+export type VisualStyle = "academy" | "classic";
+
+

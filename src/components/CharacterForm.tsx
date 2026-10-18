@@ -5,7 +5,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Character, HOUSES, Skill, CustomField, HOUSE_ICONS, CharacterType } from "../types";
-import { Language, TRANSLATIONS } from "../localization";
+import {
+  Language,
+  TRANSLATIONS,
+  getLocalizedHouseLore,
+  translateHouseMotto,
+  translateSkillName,
+  canonicalizeSkillName,
+} from "../localization";
 import Cropper from "react-easy-crop";
 import { compressImage, getCroppedImg } from "../utils/imageCompressor";
 import { 
@@ -27,10 +34,13 @@ import {
   Activity,
   Award,
   BookOpen,
-  Minus
+  Minus,
+  PawPrint
 } from "lucide-react";
 import { createDefaultCharacter, getInitialDefaultSkills } from "../utils/characterFactory";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
+import { HouseCrest } from "./HouseCrest";
+import { FamiliarEditor } from "./FamiliarEditor";
 
 interface CharacterFormProps {
   lang: Language;
@@ -107,6 +117,14 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
   const [newItemName, setNewItemName] = useState("");
   const [newItemQty, setNewItemQty] = useState(1);
 
+  // Custom fields inputs
+  const [newCustomFieldName, setNewCustomFieldName] = useState("");
+  const [newCustomFieldValue, setNewCustomFieldValue] = useState("");
+
+  // Custom Discard Draft Modal state (replaces window.confirm)
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showFamiliarEditorModal, setShowFamiliarEditorModal] = useState(false);
+
   // Cropper states for interactive portrait portal
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -134,10 +152,10 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               ? initialCharacter.complicaciones
               : [initialCharacter.complicaciones])
           : [],
-        linaje: initialCharacter.linaje || "Mítico",
+        linaje: initialCharacter.linaje || "",
         puntosDestino: initialCharacter.puntosDestino !== undefined ? initialCharacter.puntosDestino : 3,
-        economia: initialCharacter.economia || "Normal",
-        familiar: initialCharacter.familiar || "",
+        economia: initialCharacter.economia || "",
+        familiarId: initialCharacter.familiarId,
         varitaSintonia: initialCharacter.varitaSintonia || "",
         estresFisico: initialCharacter.estresFisico !== undefined ? initialCharacter.estresFisico : 0,
         estresFisicoMax: initialCharacter.estresFisicoMax !== undefined ? initialCharacter.estresFisicoMax : 5,
@@ -190,7 +208,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         } : undefined),
       });
     } else {
-      setCharacterState(createDefaultCharacter(newCharacterType || "student"));
+      const def = createDefaultCharacter(newCharacterType || "student");
+      if (def.characterType === "student") {
+        def.lema = getLocalizedHouseLore(def.casa || "IRATI", lang).lema;
+        def.edad = lang === "en" ? "11 years" : "11 años";
+      }
+      setCharacterState(def);
     }
   }, [initialCharacter, newCharacterType]);
 
@@ -198,11 +221,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
   const handleHouseChange = (houseName: string) => {
     const houseKey = houseName.toUpperCase();
     const houseData = HOUSES[houseKey];
+    const houseLore = getLocalizedHouseLore(houseKey, lang);
     
     setCharacterState(prev => ({
       ...prev,
       casa: houseName,
-      lema: houseData ? houseData.lema : prev.lema,
+      lema: houseLore ? houseLore.lema : prev.lema,
       escudoText: houseData ? houseData.escudo : prev.escudoText,
     }));
   };
@@ -340,6 +364,37 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   };
 
+  // Custom Fields Management
+  const addCustomField = () => {
+    if (!newCustomFieldName.trim() || !newCustomFieldValue.trim()) return;
+    const newField: CustomField = {
+      nombre: newCustomFieldName.trim(),
+      valor: newCustomFieldValue.trim(),
+    };
+    setCharacterState(prev => ({
+      ...prev,
+      camposPersonalizados: [...(prev.camposPersonalizados || []), newField]
+    }));
+    setNewCustomFieldName("");
+    setNewCustomFieldValue("");
+  };
+
+  const updateCustomField = (idx: number, field: keyof CustomField, value: string) => {
+    setCharacterState(prev => ({
+      ...prev,
+      camposPersonalizados: (prev.camposPersonalizados || []).map((cf, i) =>
+        i === idx ? { ...cf, [field]: value } : cf
+      )
+    }));
+  };
+
+  const removeCustomField = (idx: number) => {
+    setCharacterState(prev => ({
+      ...prev,
+      camposPersonalizados: (prev.camposPersonalizados || []).filter((_, i) => i !== idx)
+    }));
+  };
+
   // Consequences Add Handlers
   const addPhysConsequence = () => {
     if (!newPhysConsequence.trim()) return;
@@ -409,8 +464,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
     const rawVal = inlineSkillNames[category] || "";
     if (!rawVal.trim()) return;
     setSkillError(null);
+    const canonicalNew = canonicalizeSkillName(rawVal).toLowerCase();
     const exists = characterState.habilidades.some(
-      s => s.nombre.toLowerCase() === rawVal.trim().toLowerCase()
+      s =>
+        s.nombre.toLowerCase() === rawVal.trim().toLowerCase() ||
+        canonicalizeSkillName(s.nombre).toLowerCase() === canonicalNew ||
+        translateSkillName(s.nombre, lang).toLowerCase() === rawVal.trim().toLowerCase()
     );
     if (exists) {
       setSkillError(t.errSkillExists.replace("{name}", rawVal.trim()));
@@ -481,10 +540,10 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         characterState.lema !== initialCharacter.lema ||
         characterState.escudoText !== initialCharacter.escudoText ||
         JSON.stringify(characterState.complicaciones) !== JSON.stringify(Array.isArray(initialCharacter.complicaciones) ? initialCharacter.complicaciones : (initialCharacter.complicaciones ? [initialCharacter.complicaciones] : [])) ||
-        characterState.linaje !== (initialCharacter.linaje || "Mítico") ||
+        characterState.linaje !== (initialCharacter.linaje || "") ||
         characterState.puntosDestino !== (initialCharacter.puntosDestino !== undefined ? initialCharacter.puntosDestino : 3) ||
-        characterState.economia !== (initialCharacter.economia || "Normal") ||
-        characterState.familiar !== (initialCharacter.familiar || "") ||
+        characterState.economia !== (initialCharacter.economia || "") ||
+        characterState.familiarId !== initialCharacter.familiarId ||
         characterState.varitaSintonia !== (initialCharacter.varitaSintonia || "") ||
         characterState.estresFisico !== (initialCharacter.estresFisico !== undefined ? initialCharacter.estresFisico : 0) ||
         characterState.estresFisicoMax !== (initialCharacter.estresFisicoMax !== undefined ? initialCharacter.estresFisicoMax : 5) ||
@@ -502,18 +561,23 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
         characterState.avatarFit !== (initialCharacter.avatarFit || "cover")
       );
     } else {
-      return characterState.nombre.trim() !== "" || characterState.concepto.trim() !== "";
+      return (
+        characterState.nombre.trim() !== "" ||
+        characterState.concepto.trim() !== "" ||
+        characterState.jugador.trim() !== "" ||
+        characterState.avatarImage !== "" ||
+        characterState.aspectosPersonales.length > 0 ||
+        characterState.complicaciones.length > 0 ||
+        (characterState.equipoList || []).length > 0 ||
+        (characterState.camposPersonalizados || []).length > 0
+      );
     }
   };
 
   const handleCancelClick = () => {
     if (isStateDirty()) {
-      try {
-        const confirmDiscard = window.confirm(t.draftDiscardConfirm || "Are you sure you want to discard changes?");
-        if (!confirmDiscard) return;
-      } catch (e) {
-        console.warn("window.confirm blocked or failed in sandbox iframe:", e);
-      }
+      setShowDiscardModal(true);
+      return;
     }
     onCancel();
   };
@@ -538,7 +602,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
       if (theme.key === "CALANTES") return "bg-indigo-950/60 border-indigo-500/50 text-indigo-300 shadow-md shadow-indigo-950/25";
       return "bg-rose-950/60 border-rose-500/50 text-rose-300 shadow-md shadow-rose-950/25";
     }
-    return "bg-neutral-950/40 border-neutral-850 hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200";
+    return "bg-neutral-950/40 border-neutral-800 hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200";
   };
 
   const houseIconColor = theme.textClass;
@@ -561,7 +625,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
             </h2>
           </div>
           <p className="text-xs text-neutral-300 italic font-serif">
-            {characterState.lema ? `« ${characterState.lema} »` : "Magistri Scholae Academy Register Desk"}
+            {characterState.lema ? `« ${translateHouseMotto(characterState.lema, lang)} »` : t.tagline}
           </p>
         </div>
 
@@ -624,6 +688,18 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               </button>
             );
           })}
+
+          {characterType !== "adult_wizard" && (
+            <button
+              id="btn-form-open-familiar-editor-nav"
+              type="button"
+              onClick={() => setShowFamiliarEditorModal(true)}
+              className="flex items-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-950/60 text-emerald-300 transition-all text-left shrink-0 snap-center cursor-pointer select-none lg:w-full lg:mt-2"
+            >
+              <PawPrint className="w-4 h-4 shrink-0 text-emerald-400" />
+              <span className="truncate">{t.familiarEditorCardTitle}</span>
+            </button>
+          )}
         </div>
 
         {/* Right column: Form Fields Sheet inside single gorgeous Panel */}
@@ -649,15 +725,15 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       <img
                         id="avatar-edit-preview"
                         src={characterState.avatarImage}
-                        alt="Retrato"
-                        className="w-full h-full object-cover"
+                        alt={characterState.nombre || t.uploadAvatar}
+                        className={`w-full h-full ${characterState.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="text-center text-neutral-600 p-4 select-none">
                         <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-violet-400" />
-                        <span className="text-[10px] font-mono block uppercase">SIN RETRATO</span>
-                        <span className="text-[8px] font-mono text-neutral-500 mt-1 block">Ratio 3:4 Ideal</span>
+                        <span className="text-[10px] font-mono block uppercase">{t.noPortrait}</span>
+                        <span className="text-[8px] font-mono text-neutral-500 mt-1 block">{t.idealRatio}</span>
                       </div>
                     )}
                     {characterState.avatarImage && (
@@ -665,8 +741,8 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                         id="btn-remove-avatar"
                         type="button"
                         onClick={() => setCharacterState(prev => ({ ...prev, avatarImage: "" }))}
-                        className="absolute bottom-2 right-2 bg-rose-950/80 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 transition-all cursor-pointer shadow"
-                        title="Remove avatar"
+                        className="absolute bottom-2 right-2 bg-rose-950/80 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 transition-all cursor-pointer shadow"
+                        title={t.removeAvatar}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -674,9 +750,9 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   </div>
 
                   {/* Portrait File / URL uploader controls */}
-                  <div className="w-full p-3 bg-neutral-950/50 rounded-xl border border-neutral-850 space-y-3">
+                  <div className="w-full p-3 bg-neutral-950/50 rounded-xl border border-neutral-800 space-y-3">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.uploadAvatar || "Retrato Local"}</span>
+                      <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.uploadAvatar}</span>
                       <input
                         id="avatar-file-input"
                         type="file"
@@ -686,13 +762,13 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       />
                     </div>
 
-                    <div className="border-t border-neutral-850/60 pt-2 space-y-1">
-                      <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.pasteUrl || "Enlace URL"}</span>
+                    <div className="border-t border-neutral-800/60 pt-2 space-y-1">
+                      <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.pasteUrl}</span>
                       <div className="flex gap-1.5">
                         <input
                           id="input-avatar-url"
                           type="text"
-                          placeholder="https://images.unsplash.com/..."
+                          placeholder="https://..."
                           value={pastedAvatarUrl}
                           onChange={(e) => setPastedAvatarUrl(e.target.value)}
                           className="flex-1 text-[10px] py-1 px-1.5 min-w-0"
@@ -701,9 +777,40 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           id="btn-apply-avatar-url"
                           type="button"
                           onClick={handleUrlAvatarSubmit}
-                          className="px-2 bg-violet-900/60 border border-violet-500/25 text-violet-100 rounded text-[9px] font-mono font-bold hover:bg-violet-850 transition-all h-6 cursor-pointer"
+                          className="px-2 bg-violet-900/60 border border-violet-500/25 text-violet-100 rounded text-[9px] font-mono font-bold hover:bg-violet-800 transition-all h-6 cursor-pointer"
                         >
                           OK
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Portrait Fit Selector (cover vs contain) */}
+                    <div className="border-t border-neutral-800/60 pt-2 space-y-1">
+                      <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.lblAvatarFit}</span>
+                      <div className="grid grid-cols-2 gap-1.5" id="form-avatar-fit-toggle">
+                        <button
+                          id="btn-form-fit-cover"
+                          type="button"
+                          onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "cover" }))}
+                          className={`px-2 py-1 rounded text-[9px] font-mono font-bold border transition-all cursor-pointer truncate ${
+                            (characterState.avatarFit || "cover") === "cover"
+                              ? "bg-amber-500/20 border-amber-500 text-amber-300"
+                              : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200"
+                          }`}
+                        >
+                          {t.optAvatarCover}
+                        </button>
+                        <button
+                          id="btn-form-fit-contain"
+                          type="button"
+                          onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "contain" }))}
+                          className={`px-2 py-1 rounded text-[9px] font-mono font-bold border transition-all cursor-pointer truncate ${
+                            characterState.avatarFit === "contain"
+                              ? "bg-amber-500/20 border-amber-500 text-amber-300"
+                              : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200"
+                          }`}
+                        >
+                          {t.optAvatarContain}
                         </button>
                       </div>
                     </div>
@@ -731,7 +838,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold flex items-center justify-between">
                       <span>{t.nombre} <span className="text-rose-400">*</span></span>
-                      <span className="text-[9px] text-neutral-500 normal-case font-normal leading-none">Min. 1 letra</span>
+                      <span className="text-[9px] text-neutral-500 normal-case font-normal leading-none">{t.minOneChar}</span>
                     </label>
                     <input
                       id="input-nombre"
@@ -851,21 +958,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       placeholder={t.placeholderEconomia}
                       value={characterState.economia}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, economia: e.target.value }))}
-                      className="w-full text-xs font-sans"
-                    />
-                  </div>
-
-                  {/* Familiar */}
-                  <div className="flex flex-col gap-1.5 sm:col-span-2">
-                    <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                      {t.familiar}
-                    </label>
-                    <input
-                      id="input-familiar"
-                      type="text"
-                      placeholder={t.placeholderFamiliar}
-                      value={characterState.familiar}
-                      onChange={(e) => setCharacterState(prev => ({ ...prev, familiar: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
                   </div>
@@ -1034,6 +1126,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="grid-house-select">
                     {Object.keys(HOUSES).map((hKey) => {
                       const hInfo = HOUSES[hKey];
+                      const hLore = getLocalizedHouseLore(hKey, lang);
                       const isChosen = characterState.casa.toUpperCase() === hKey;
                       return (
                         <button
@@ -1044,26 +1137,43 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                           className={`flex flex-col items-start p-4 bg-neutral-950/55 rounded-xl border text-left cursor-pointer transition-all ${
                             isChosen 
                               ? "border-amber-500/60 bg-violet-950/20 shadow-md ring-1 ring-amber-500/35" 
-                              : "border-neutral-850 hover:border-neutral-750"
+                              : "border-neutral-800 hover:border-neutral-700"
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{HOUSE_ICONS[hKey] || "🏰"}</span>
-                            <span className="font-sans font-bold text-xs text-neutral-100">{hInfo.nombre}</span>
+                          <div className="flex items-center gap-2.5">
+                            <HouseCrest house={hKey} className="w-7 h-8 shrink-0" />
+                            <span className="font-magic font-bold text-xs uppercase tracking-wider text-amber-300">{hInfo.nombre}</span>
                           </div>
                           <span className="text-[9.5px]/relaxed font-mono mt-2 text-neutral-300 w-full block">
-                            <strong>Procedencia:</strong> {hInfo.procedencia}
+                            <strong>{t.labelProvenance}:</strong> {hLore.procedencia}
                           </span>
                           <span className="text-[9px] font-mono text-neutral-400 block mt-1">
-                            <strong>Colores:</strong> {hInfo.colores}
+                            <strong>{t.labelColors}:</strong> {hLore.colores}
+                          </span>
+                          <span className="text-[9px] font-mono text-neutral-400 block mt-1">
+                            <strong>{t.labelElement}:</strong> {hLore.elemento} · <strong>{t.labelTotem}:</strong> {hLore.totem}
                           </span>
                           <span className="text-[9.5px]/relaxed font-serif text-amber-300/90 italic block mt-2 border-t border-neutral-800/70 pt-2 w-full">
-                            Lema: “{hInfo.lema}”
+                            {t.labelMotto}: “{hLore.lema}”
                           </span>
                         </button>
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Custom Motto override */}
+                <div className="flex flex-col gap-1.5 pt-2">
+                  <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                    {t.lema}
+                  </label>
+                  <input
+                    id="input-form-lema"
+                    type="text"
+                    value={characterState.lema}
+                    onChange={(e) => setCharacterState(prev => ({ ...prev, lema: e.target.value }))}
+                    className="w-full text-xs font-serif italic"
+                  />
                 </div>
               </div>
 
@@ -1089,7 +1199,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 <div className="bg-neutral-950/45 p-4 border border-violet-500/10 rounded-xl space-y-3">
                   <div className="flex items-center gap-1">
                     <span className="text-rose-400">💪</span>
-                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresFisico} (Máximo)</h4>
+                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresFisico} ({t.labelMaximo})</h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1105,7 +1215,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       min="1"
                       max="10"
                       value={characterState.estresFisicoMax}
-                      onChange={(e) => setCharacterState(p => ({ ...p, estresFisicoMax: parseInt(e.target.value) || 5 }))}
+                      onChange={(e) => setCharacterState(p => ({ ...p, estresFisicoMax: Math.max(1, Math.min(10, parseInt(e.target.value) || 5)) }))}
                       className="flex-1 text-center font-mono font-bold text-amber-500 bg-neutral-900 text-xs py-1"
                     />
                     <button
@@ -1122,7 +1232,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 <div className="bg-neutral-950/45 p-4 border border-violet-500/10 rounded-xl space-y-3">
                   <div className="flex items-center gap-1">
                     <span className="text-violet-400">🧠</span>
-                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresMental} (Máximo)</h4>
+                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresMental} ({t.labelMaximo})</h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1138,7 +1248,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       min="1"
                       max="10"
                       value={characterState.estresMentalMax}
-                      onChange={(e) => setCharacterState(p => ({ ...p, estresMentalMax: parseInt(e.target.value) || 5 }))}
+                      onChange={(e) => setCharacterState(p => ({ ...p, estresMentalMax: Math.max(1, Math.min(10, parseInt(e.target.value) || 5)) }))}
                       className="flex-1 text-center font-mono font-bold text-amber-500 bg-neutral-900 text-xs py-1"
                     />
                     <button
@@ -1155,7 +1265,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 <div className="bg-neutral-950/45 p-4 border border-violet-500/10 rounded-xl space-y-3">
                   <div className="flex items-center gap-1">
                     <span className="text-indigo-400">🗣️</span>
-                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresSocial} (Máximo)</h4>
+                    <h4 className="text-xs font-mono font-bold text-neutral-200 uppercase">{t.estresSocial} ({t.labelMaximo})</h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1171,7 +1281,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                       min="1"
                       max="10"
                       value={characterState.estresSocialMax}
-                      onChange={(e) => setCharacterState(p => ({ ...p, estresSocialMax: parseInt(e.target.value) || 5 }))}
+                      onChange={(e) => setCharacterState(p => ({ ...p, estresSocialMax: Math.max(1, Math.min(10, parseInt(e.target.value) || 5)) }))}
                       className="flex-1 text-center font-mono font-bold text-amber-500 bg-neutral-900 text-xs py-1"
                     />
                     <button
@@ -1209,63 +1319,66 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                 const skillsInCategory = characterState.habilidades.filter(s => s.categoria === category);
                 return (
                   <div key={category} className="space-y-3 bg-neutral-950/30 p-4 border border-violet-500/5 rounded-xl">
-                    <h4 className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-extrabold border-b border-neutral-850 pb-1">
-                      {category === "Físicas" ? "🛡️ " + (t.catFisicas || "Físicas") :
-                       category === "Mentales" ? "🧠 " + (t.catMentales || "Mentales") :
-                       category === "Sociales" ? "🗣️ " + (t.catSociales || "Sociales") :
-                       category === "Asignaturas Troncales" ? "📐 " + (t.catTroncales || "Asignaturas Troncales") :
-                       "🔮 " + (t.catOptativas || "Asignaturas Optativas")}
+                    <h4 className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-extrabold border-b border-neutral-800 pb-1">
+                      {category === "Físicas" ? "🛡️ " + t.catFisicas :
+                       category === "Mentales" ? "🧠 " + t.catMentales :
+                       category === "Sociales" ? "🗣️ " + t.catSociales :
+                       category === "Asignaturas Troncales" ? "📐 " + t.catTroncales :
+                       "🔮 " + t.catOptativas}
                     </h4>
 
                     {skillsInCategory.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        {skillsInCategory.map((sk) => (
-                          <div
-                            key={sk.nombre}
-                            className="flex items-center justify-between bg-neutral-900/40 border border-neutral-850 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
-                          >
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveSkill(sk.nombre)}
-                                className="text-neutral-500 hover:text-rose-450 p-0.5 transition-colors shrink-0 cursor-pointer"
-                                title={t.removeSkill}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                              <span className="text-[11px] font-sans text-neutral-350 font-bold truncate pr-1" title={sk.nombre}>
-                                {sk.nombre}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {/* Decrement */}
-                              <button
-                                type="button"
-                                onClick={() => adjustSkillValue(sk.nombre, -1)}
-                                disabled={sk.valor <= 0}
-                                className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
-                              >
-                                -
-                              </button>
+                        {skillsInCategory.map((sk) => {
+                          const displaySkillName = translateSkillName(sk.nombre, lang);
+                          return (
+                            <div
+                              key={sk.nombre}
+                              className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
+                            >
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSkill(sk.nombre)}
+                                  className="text-neutral-500 hover:text-rose-400 p-0.5 transition-colors shrink-0 cursor-pointer"
+                                  title={t.removeSkill}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                <span className="text-[11px] font-sans text-neutral-300 font-bold truncate pr-1" title={displaySkillName}>
+                                  {displaySkillName}
+                                </span>
+                              </div>
                               
-                              {/* Score displaying filled points */}
-                              <span className="text-[11px] min-w-[28px] font-mono font-bold text-center text-amber-400 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-800">
-                                {sk.valor}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {/* Decrement */}
+                                <button
+                                  type="button"
+                                  onClick={() => adjustSkillValue(sk.nombre, -1)}
+                                  disabled={sk.valor <= 0}
+                                  className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
+                                >
+                                  -
+                                </button>
+                                
+                                {/* Score displaying filled points */}
+                                <span className="text-[11px] min-w-[28px] font-mono font-bold text-center text-amber-400 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-800">
+                                  {sk.valor}
+                                </span>
 
-                              {/* Increment */}
-                              <button
-                                type="button"
-                                onClick={() => adjustSkillValue(sk.nombre, 1)}
-                                disabled={sk.valor >= 5}
-                                className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
-                              >
-                                +
-                              </button>
+                                {/* Increment */}
+                                <button
+                                  type="button"
+                                  onClick={() => adjustSkillValue(sk.nombre, 1)}
+                                  disabled={sk.valor >= 5}
+                                  className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
+                                >
+                                  +
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-[10px] font-mono text-neutral-500 italic">
@@ -1284,7 +1397,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                             setInlineSkillNames(prev => ({ ...prev, [category]: e.target.value }));
                             if (skillError) setSkillError(null);
                           }}
-                          className="flex-1 text-[11px] font-sans py-1 px-2.5 bg-neutral-950 border border-neutral-850 text-neutral-200 rounded-lg placeholder-neutral-550 focus:outline-none focus:ring-1 focus:ring-violet-500/50"
+                          className="flex-1 text-[11px] font-sans py-1 px-2.5 bg-neutral-950 border border-neutral-800 text-neutral-200 rounded-lg placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-violet-500/50"
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
@@ -1295,7 +1408,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                         <button
                           type="button"
                           onClick={() => handleAddInlineSkill(category)}
-                          className="p-1 px-3 bg-violet-900/60 hover:bg-violet-850 border border-violet-650/30 text-white rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                          className="p-1 px-3 bg-violet-900/60 hover:bg-violet-800 border border-violet-600/30 text-white rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                           title={t.addSkill}
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -1308,7 +1421,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
 
               {/* Unique skill input active error display */}
               {skillError && (
-                <div className="p-2.5 bg-rose-500/5 border border-rose-500/10 rounded-xl text-rose-450 text-[10.5px] font-mono animate-fade-in">
+                <div className="p-2.5 bg-rose-500/5 border border-rose-500/10 rounded-xl text-rose-400 text-[10.5px] font-mono animate-fade-in">
                   ⚠️ {skillError}
                 </div>
               )}
@@ -1327,7 +1440,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   <button
                     type="button"
                     onClick={handleSaveDefaultSkills}
-                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-450 text-neutral-950 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
                   >
                     <Save className="w-3.5 h-3.5" />
                     {t.btnSetDefaultPreset}
@@ -1368,13 +1481,13 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                         characterState.aspectosPersonales.map((asp, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between bg-neutral-900/40 border border-neutral-850 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
+                            className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                           >
                             <span className="text-[11px] text-neutral-200 italic font-serif">“ {asp} ”</span>
                             <button
                               type="button"
                               onClick={() => removeAspect(idx)}
-                              className="text-neutral-500 hover:text-rose-450 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
                               title={t.deleteAspect}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1400,12 +1513,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                             addAspect();
                           }
                         }}
-                        className="flex-1 text-[11px] font-sans bg-neutral-950 border border-neutral-850 focus:border-violet-500/55 rounded-lg px-2.5 py-1 text-neutral-200 focus:outline-none placeholder-neutral-600"
+                        className="flex-1 text-[11px] font-sans bg-neutral-950 border border-neutral-800 focus:border-violet-500/50 rounded-lg px-2.5 py-1 text-neutral-200 focus:outline-none placeholder-neutral-600"
                       />
                       <button
                         type="button"
                         onClick={addAspect}
-                        className="p-1 px-[10px] bg-violet-900/60 hover:bg-violet-850 text-white border border-violet-650/20 rounded-lg transition-all active:scale-95 cursor-pointer"
+                        className="p-1 px-[10px] bg-violet-900/60 hover:bg-violet-800 text-white border border-violet-600/20 rounded-lg transition-all active:scale-95 cursor-pointer"
                         title={t.addAspect}
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -1424,13 +1537,13 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                         characterState.complicaciones.map((comp, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between bg-neutral-900/40 border border-neutral-850 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
+                            className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                           >
-                            <span className="text-[11px] text-rose-350 font-serif italic">“ {comp} ”</span>
+                            <span className="text-[11px] text-rose-300 font-serif italic">“ {comp} ”</span>
                             <button
                               type="button"
                               onClick={() => removeComplication(idx)}
-                              className="text-neutral-500 hover:text-rose-450 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
                               title={t.deleteComplication}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1456,12 +1569,12 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                             addComplication();
                           }
                         }}
-                        className="flex-1 text-[11px] font-sans bg-neutral-950 border border-neutral-850 focus:border-violet-500/55 rounded-lg px-2.5 py-1 text-neutral-200 focus:outline-none placeholder-neutral-600"
+                        className="flex-1 text-[11px] font-sans bg-neutral-950 border border-neutral-800 focus:border-violet-500/50 rounded-lg px-2.5 py-1 text-neutral-200 focus:outline-none placeholder-neutral-600"
                       />
                       <button
                         type="button"
                         onClick={addComplication}
-                        className="p-1 px-[10px] bg-violet-900/60 hover:bg-violet-850 text-white border border-violet-650/20 rounded-lg transition-all active:scale-95 cursor-pointer"
+                        className="p-1 px-[10px] bg-violet-900/60 hover:bg-violet-800 text-white border border-violet-600/20 rounded-lg transition-all active:scale-95 cursor-pointer"
                         title={t.addComplication}
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -1470,91 +1583,175 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
                   </div>
                 </div>
 
-                {/* Column 2: Equipment / Posesiones */}
-                <div className="p-4 bg-neutral-950/20 border border-violet-500/5 rounded-2xl">
-                  <h4 className="text-xs font-magic text-amber-400 uppercase tracking-widest mb-3 flex items-center justify-between border-b border-violet-900/10 pb-1.5 font-bold">
-                    <span>🎒 {t.equipo}</span>
-                    <span className="text-[10px] font-mono text-neutral-500">{(characterState.equipoList || []).length}</span>
-                  </h4>
+                {/* Column 2: Equipment / Posesiones & Custom Attributes */}
+                <div className="space-y-6">
+                  <div className="p-4 bg-neutral-950/20 border border-violet-500/5 rounded-2xl">
+                    <h4 className="text-xs font-magic text-amber-400 uppercase tracking-widest mb-3 flex items-center justify-between border-b border-violet-900/10 pb-1.5 font-bold">
+                      <span>🎒 {t.equipo}</span>
+                      <span className="text-[10px] font-mono text-neutral-500">{(characterState.equipoList || []).length}</span>
+                    </h4>
 
-                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
-                    {characterState.equipoList && characterState.equipoList.length > 0 ? (
-                      characterState.equipoList.map((eq) => (
-                        <div
-                          key={eq.id}
-                          className="flex items-center justify-between bg-neutral-900/40 px-3 py-1.5 border border-neutral-850 rounded-lg hover:border-violet-500/10 transition-all"
-                        >
-                          <div className="flex items-center gap-2 max-w-[80%] min-w-0">
-                            <span className="text-[11px] text-neutral-200 font-mono truncate" title={eq.nombre}>{eq.nombre}</span>
-                            <span className="bg-neutral-950/80 text-[10px] px-1.5 py-0.2 rounded text-amber-400 font-bold border border-neutral-800">
-                              x{eq.cantidad}
-                            </span>
+                    <div className="space-y-1.5 max-h-[240px] overflow-y-auto pr-1">
+                      {characterState.equipoList && characterState.equipoList.length > 0 ? (
+                        characterState.equipoList.map((eq) => (
+                          <div
+                            key={eq.id}
+                            className="flex items-center justify-between bg-neutral-900/40 px-3 py-1.5 border border-neutral-800 rounded-lg hover:border-violet-500/10 transition-all"
+                          >
+                            <div className="flex items-center gap-2 max-w-[80%] min-w-0">
+                              <span className="text-[11px] text-neutral-200 font-mono truncate" title={eq.nombre}>{eq.nombre}</span>
+                              <span className="bg-neutral-950/80 text-[10px] px-1.5 py-0.5 rounded text-amber-400 font-bold border border-neutral-800">
+                                x{eq.cantidad}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeEquipmentItem(eq.id)}
+                              className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer transition-colors"
+                              title={t.deleteItem}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] font-mono text-neutral-600 italic py-6 text-center bg-neutral-950/10 border border-neutral-900/50 rounded-lg">
+                          {t.emptyInventory}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Add Inventory Item Input Form */}
+                    <div className="bg-neutral-950/40 p-3 border border-violet-500/10 rounded-xl space-y-3 mt-3">
+                      <input
+                        type="text"
+                        placeholder={t.placeholderEquipmentExample}
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        className="w-full text-[11px] font-sans bg-neutral-950 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none placeholder-neutral-600"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addEquipmentItem();
+                          }
+                        }}
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        {/* Quantity Input */}
+                        <div className="flex items-center border border-neutral-800 bg-neutral-950 rounded-lg overflow-hidden h-8 shrink-0">
                           <button
                             type="button"
-                            onClick={() => removeEquipmentItem(eq.id)}
-                            className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer transition-colors"
-                            title={t.deleteItem}
+                            onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
+                            className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            value={newItemQty}
+                            onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-8 text-center bg-transparent text-[11px] text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono font-bold"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setNewItemQty(q => q + 1)}
+                            className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
                           </button>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-[10px] font-mono text-neutral-600 italic py-8 text-center bg-neutral-950/10 border border-neutral-900/50 rounded-lg">
-                        {t.emptyInventory}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Add Inventory Item Input Form */}
-                  <div className="bg-neutral-950/40 p-3 border border-violet-500/10 rounded-xl space-y-3 mt-3">
-                    <input
-                      type="text"
-                      placeholder={t.placeholderEquipmentExample}
-                      value={newItemName}
-                      onChange={(e) => setNewItemName(e.target.value)}
-                      className="w-full text-[11px] font-sans bg-neutral-950 border border-neutral-850 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none placeholder-neutral-600"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addEquipmentItem();
-                        }
-                      }}
-                    />
-                    <div className="flex items-center justify-between gap-3">
-                      {/* Quantity Input */}
-                      <div className="flex items-center border border-neutral-850 bg-neutral-950 rounded-lg overflow-hidden h-8 shrink-0">
                         <button
                           type="button"
-                          onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
-                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
+                          onClick={addEquipmentItem}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-violet-900/60 hover:bg-violet-800 border border-violet-600/25 text-white text-[11px] font-bold rounded-lg transition-all active:scale-95 cursor-pointer h-8"
                         >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          value={newItemQty}
-                          onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-8 text-center bg-transparent text-[11px] text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono font-bold"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setNewItemQty(q => q + 1)}
-                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
-                        >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
+                          {t.add}
                         </button>
                       </div>
+                    </div>
+                  </div>
 
+                  {/* Custom Attributes / Campos Personalizados */}
+                  <div className="p-4 bg-neutral-950/20 border border-violet-500/5 rounded-2xl" id="form-custom-fields-section">
+                    <h4 className="text-xs font-magic text-indigo-400 uppercase tracking-widest mb-3 flex items-center justify-between border-b border-violet-900/10 pb-1.5 font-bold">
+                      <span>🔮 {t.customFields}</span>
+                      <span className="text-[10px] font-mono text-neutral-500">{(characterState.camposPersonalizados || []).length}</span>
+                    </h4>
+
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                      {characterState.camposPersonalizados && characterState.camposPersonalizados.length > 0 ? (
+                        characterState.camposPersonalizados.map((cf, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 bg-neutral-900/40 px-2.5 py-1.5 border border-neutral-800 rounded-lg"
+                          >
+                            <input
+                              type="text"
+                              value={cf.nombre}
+                              onChange={(e) => updateCustomField(idx, "nombre", e.target.value)}
+                              placeholder={t.fieldName}
+                              className="w-1/3 text-[10px] font-mono text-amber-400 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
+                            />
+                            <input
+                              type="text"
+                              value={cf.valor}
+                              onChange={(e) => updateCustomField(idx, "valor", e.target.value)}
+                              placeholder={t.fieldValue}
+                              className="flex-1 text-[11px] font-sans text-neutral-200 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeCustomField(idx)}
+                              className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer transition-colors shrink-0"
+                              title={t.deleteCustomField}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] font-mono text-neutral-600 italic py-4 text-center bg-neutral-950/10 border border-neutral-900/50 rounded-lg">
+                          {t.emptyCustomFields}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="bg-neutral-950/40 p-2.5 border border-violet-500/10 rounded-xl space-y-2 mt-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          id="input-form-custom-field-name"
+                          type="text"
+                          placeholder={t.fieldName}
+                          value={newCustomFieldName}
+                          onChange={(e) => setNewCustomFieldName(e.target.value)}
+                          className="text-[11px] font-mono bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-neutral-200"
+                        />
+                        <input
+                          id="input-form-custom-field-value"
+                          type="text"
+                          placeholder={t.fieldValue}
+                          value={newCustomFieldValue}
+                          onChange={(e) => setNewCustomFieldValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addCustomField();
+                            }
+                          }}
+                          className="text-[11px] font-sans bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-neutral-200"
+                        />
+                      </div>
                       <button
+                        id="btn-form-add-custom-field"
                         type="button"
-                        onClick={addEquipmentItem}
-                        className="flex items-center gap-1.5 px-3 py-1 bg-violet-900/60 hover:bg-violet-850 border border-violet-650/25 text-white text-[11px] font-bold rounded-lg transition-all active:scale-95 cursor-pointer h-8"
+                        onClick={addCustomField}
+                        className="w-full py-1.5 bg-violet-900/60 hover:bg-violet-800 border border-violet-600/25 text-white text-[11px] font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        {t.add}
+                        {t.addCustomField}
                       </button>
                     </div>
                   </div>
@@ -1563,9 +1760,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               </div>
             </div>
           )}
-
-
-
 
         </div>
 
@@ -1577,7 +1771,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           id="btn-form-bottom-cancel"
           type="button"
           onClick={handleCancelClick}
-          className="px-5 py-2.5 border border-neutral-750 bg-neutral-950/70 hover:bg-neutral-900 rounded-xl text-xs sm:text-sm font-semibold transition-all text-neutral-350 font-mono cursor-pointer"
+          className="px-5 py-2.5 border border-neutral-700 bg-neutral-950/70 hover:bg-neutral-900 rounded-xl text-xs sm:text-sm font-semibold transition-all text-neutral-300 font-mono cursor-pointer"
         >
           {t.cancel}
         </button>
@@ -1585,12 +1779,51 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
           id="btn-form-bottom-save"
           type="button"
           onClick={handleSave}
-          className={`flex items-center gap-2 px-7 py-2.5 text-xs sm:text-sm font-bold rounded-xl text-neutral-950 transition-all font-sans cursor-pointer shadow-lg hover:scale-[1.01] bg-amber-500 hover:bg-amber-400`}
+          className="flex items-center gap-2 px-7 py-2.5 text-xs sm:text-sm font-bold rounded-xl text-neutral-950 transition-all font-sans cursor-pointer shadow-lg hover:scale-[1.01] bg-amber-500 hover:bg-amber-400"
         >
           <Save className="w-4 h-4" />
           {t.save}
         </button>
       </div>
+
+      {/* Discard Draft Confirmation Modal (replaces window.confirm) */}
+      {showDiscardModal && (
+        <div
+          id="modal-discard-draft"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+        >
+          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-amber-500/30 bg-[#0e0a16] shadow-2xl space-y-4">
+            <h3 className="font-magic text-base text-amber-400 font-bold border-b border-amber-500/10 pb-2 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-400" />
+              {t.discardDraftTitle}
+            </h3>
+            <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed">
+              {t.draftDiscardConfirm}
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                id="btn-discard-draft-cancel"
+                type="button"
+                onClick={() => setShowDiscardModal(false)}
+                className="px-4 py-2 border border-neutral-700 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+              >
+                {t.cancel}
+              </button>
+              <button
+                id="btn-discard-draft-confirm"
+                type="button"
+                onClick={() => {
+                  setShowDiscardModal(false);
+                  onCancel();
+                }}
+                className="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+              >
+                {t.discardDraftConfirmBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full cropped portrait modal display */}
       {isCropperOpen && cropImageSrc && (
@@ -1599,7 +1832,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
             
             <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
               <h4 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span>📐</span> {t.cropHeader || "Crop Portrait"}
+                <span>📐</span> {t.cropHeader}
               </h4>
               <button
                 type="button"
@@ -1627,7 +1860,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
 
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-mono text-neutral-400">
-                <span>🔍 {t.cropZoom || "Zoom"}</span>
+                <span>🔍 {t.cropZoom}</span>
                 <span>{Math.round(zoom * 100)}%</span>
               </div>
               <input
@@ -1655,13 +1888,35 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmCrop}
-                className="w-full py-2.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-violet-900 hover:bg-violet-800 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Save className="w-4 h-4" />
-                {t.cropConfirm || "Apply Crop"}
+                {t.cropConfirm}
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Embedded Modal for Familiar Editor during character creation */}
+      {showFamiliarEditorModal && (
+        <div
+          id="modal-familiar-editor"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md p-2 sm:p-6 animate-fade-in flex items-start justify-center"
+        >
+          <div className="w-full max-w-6xl my-auto">
+            <FamiliarEditor
+              lang={lang}
+              isModal={true}
+              onBack={() => setShowFamiliarEditorModal(false)}
+              onFamiliarSaved={(savedFam) => {
+                setCharacterState((prev) => ({
+                  ...prev,
+                  familiarId: savedFam.id,
+                }));
+              }}
+            />
           </div>
         </div>
       )}

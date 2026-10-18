@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-magic: "Cinzel", Georgia, serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
@@ -26,7 +27,7 @@
   background: rgba(124, 58, 237, 0.7);
 }
 
-/* Glassmorphism Classes for Magical Academy theme */
+/* Glassmorphism Classes for Magical Academy theme (Classic) */
 .glass-panel {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px);
@@ -60,38 +61,33 @@
 }
 
 /* Input styles for dark academy theme */
-input, select, textarea {
-  color: #f3f4f6;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  transition: all 0.2s;
-}
+@layer base {
+  input, select, textarea {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s;
+  }
 
-/* Native dropdown options */
-select option {
-  background-color: #171717;
-  color: #e5e5e5;
-}
+  /* Native dropdown options */
+  select option {
+    background-color: #171717;
+    color: #e5e5e5;
+  }
 
-select option:checked {
-  background-color: #4c1d95;
-  color: #f5f3ff;
-}
+  select option:checked {
+    background-color: #4c1d95;
+    color: #f5f3ff;
+  }
 
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-  background-color: rgba(255, 255, 255, 0.08);
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(245, 158, 11, 0.6);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 /* Custom styled inputs for stats */
@@ -104,7 +100,89 @@ input:focus, select:focus, textarea:focus {
   color: #fbbf24;
 }
 
+/* ==========================================================================
+   MAGIC ACADEMY STYLE ([data-style="academy"])
+   Matches the ornate golden filigree, candlelit desk, and parchment cards
+   ========================================================================== */
+
+[data-style="academy"] .glass-panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(20, 15, 34, 0.94) 0%, rgba(13, 9, 22, 0.96) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 157, 60, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+}
+
+[data-style="academy"] .glass-panel-hover:hover {
+  border-color: rgba(235, 190, 82, 0.85);
+  box-shadow: 0 14px 36px -6px rgba(212, 175, 55, 0.28);
+  transform: translateY(-2px);
+}
+
+[data-style="academy"] .academy-outer-frame {
+  position: relative;
+  border: 1.5px solid rgba(205, 162, 62, 0.65);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.75);
+  background: rgba(12, 8, 20, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+[data-style="academy"] .academy-search-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(19, 14, 32, 0.94) 0%, rgba(13, 10, 23, 0.96) 100%);
+  border: 1px solid rgba(200, 157, 60, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-style="academy"] .academy-header-btn {
+  position: relative;
+  background: linear-gradient(180deg, rgba(24, 18, 40, 0.92) 0%, rgba(14, 10, 25, 0.95) 100%);
+  border: 1px solid rgba(200, 157, 60, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+[data-style="academy"] .academy-header-btn:hover {
+  border-color: rgba(235, 190, 82, 0.9);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+[data-style="academy"] .academy-card {
+  position: relative;
+  background: linear-gradient(180deg, #3d2b14 0%, #24180b 50%, #150e06 100%);
+  border: 2px solid #d4af37;
+  box-shadow:
+    inset 0 0 0 2px rgba(20, 13, 6, 0.95),
+    inset 0 0 0 3.5px rgba(212, 175, 55, 0.45),
+    0 16px 36px rgba(0, 0, 0, 0.85);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+[data-style="academy"] .academy-card:hover {
+  border-color: #fce288;
+  box-shadow:
+    inset 0 0 0 2px rgba(20, 13, 6, 0.95),
+    inset 0 0 0 3.5px rgba(252, 226, 136, 0.65),
+    0 0 26px rgba(212, 175, 55, 0.38),
+    0 18px 40px rgba(0, 0, 0, 0.92);
+  transform: translateY(-4px);
+}
+
+[data-style="academy"] .academy-parchment-plate {
+  background:
+    radial-gradient(circle at 50% 30%, #f5ead4 0%, #e7d5b4 62%, #d5bd92 100%);
+  color: #1f1309;
+  border-top: 1.5px solid #b88c32;
+  border-left: 1px solid rgba(168, 128, 52, 0.75);
+  border-right: 1px solid rgba(168, 128, 52, 0.75);
+  border-bottom: 1.5px solid #9e7422;
+  box-shadow:
+    inset 0 2px 10px rgba(68, 42, 14, 0.22),
+    inset 0 0 0 2px rgba(255, 248, 231, 0.35);
+}
+
 body {
   background-color: #0a0514;
   color: #d1d5db;
 }
+

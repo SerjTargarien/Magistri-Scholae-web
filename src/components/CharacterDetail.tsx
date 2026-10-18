@@ -4,9 +4,18 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { Character, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS, getCharacterType } from "../types";
+import { Character, Familiar, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS, getCharacterType, VisualStyle } from "../types";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { Language, TRANSLATIONS } from "../localization";
+import {
+  Language,
+  TRANSLATIONS,
+  translateSkillName,
+  translateHouseMotto,
+  getLocalizedHouseLore,
+  areSameSkill
+} from "../localization";
+import { FiligreeCorner, CompassStarDivider } from "./AcademyOrnaments";
+import { HouseCrest, hasRecognizedCrest } from "./HouseCrest";
 import { db } from "../db";
 import Cropper from "react-easy-crop";
 import { compressImage, getCroppedImg } from "../utils/imageCompressor";
@@ -31,30 +40,45 @@ import {
   Maximize2,
   Gem,
   Check,
-  Upload
+  Upload,
+  Save,
+  PawPrint,
+  Link as LinkIcon,
+  Unlink,
+  ExternalLink,
 } from "lucide-react";
 
 interface CharacterDetailProps {
   lang: Language;
   character: Character;
+  familiars?: Familiar[];
   onBack: () => void;
-  onEdit: () => void;
   onDelete: (id: number) => void;
   onUpdateCharacter: (updated: Character) => void; // For immediate state updates
+  onSelectFamiliar?: (familiarId: string) => void;
+  onBondFamiliar?: (characterId: number, familiarId: string | null) => void;
+  onOpenCreateFamiliar?: () => void;
+  visualStyle?: VisualStyle;
 }
 
 export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   lang,
   character,
+  familiars = [],
   onBack,
-  onEdit,
   onDelete,
   onUpdateCharacter,
+  onSelectFamiliar,
+  onBondFamiliar,
+  onOpenCreateFamiliar,
+  visualStyle = "academy",
 }) => {
   const t = TRANSLATIONS[lang];
   const hInfo = HOUSES[character.casa.toUpperCase()] || HOUSES.IRATI;
+  const localizedLore = getLocalizedHouseLore(character.casa, lang);
   const characterType = getCharacterType(character);
   const theme = getCharacterVisualTheme(character);
+  const isAcademy = visualStyle === "academy";
 
   const profile = character.adultWizardProfile || {
     role: "",
@@ -118,7 +142,14 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   const [isQuickEditing, setIsQuickEditing] = useState(false);
   const [newPersonalAspectInput, setNewPersonalAspectInput] = useState("");
   const [newComplicationInput, setNewComplicationInput] = useState("");
+  const [newCustomFieldName, setNewCustomFieldName] = useState("");
+  const [newCustomFieldValue, setNewCustomFieldValue] = useState("");
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Inline Note editing states
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteTitle, setEditingNoteTitle] = useState("");
+  const [editingNoteContent, setEditingNoteContent] = useState("");
 
   // Cropper states for Portrait inside Quick Edit Mode
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
@@ -129,11 +160,18 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
   // Skills dynamic customization states
   const [newSkillNames, setNewSkillNames] = useState<Record<string, string>>({});
+  const [skillErrorCat, setSkillErrorCat] = useState<string | null>(null);
+  const [presetSavedSuccess, setPresetSavedSuccess] = useState(false);
 
   // Confirmation states to avoid window.confirm (blocked/unreliable in sandboxed iframes)
   const [isDeleteStudentOpen, setIsDeleteStudentOpen] = useState(false);
   const [deleteStudentUnderstood, setDeleteStudentUnderstood] = useState(false);
   const [minorDeleteTarget, setMinorDeleteTarget] = useState<{ id: string | number; type: "spell" | "potion" | "gallery" | "club" | "item" | "note" } | null>(null);
+  const [isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen] = useState(false);
+
+  const linkedFamiliar = character.familiarId
+    ? familiars.find((f) => f.id === character.familiarId)
+    : undefined;
 
   // Safe Auto-Save to IndexedDB helper
   const saveStateToDB = async (updatedChar: Character) => {
@@ -163,6 +201,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   const setDestinyPoints = (val: number) => {
     const clone = { ...character };
     clone.puntosDestino = Math.max(0, Math.min(5, val));
+    saveStateToDB(clone);
+  };
+
+  const changeMaxStress = (
+    maxField: "estresFisicoMax" | "estresMentalMax" | "estresSocialMax",
+    currentField: "estresFisico" | "estresMental" | "estresSocial",
+    delta: number
+  ) => {
+    const clone = { ...character };
+    const currentMax = (clone[maxField] as number) || 3;
+    const nextMax = Math.max(1, Math.min(10, currentMax + delta));
+    clone[maxField] = nextMax;
+    if ((clone[currentField] as number) > nextMax) {
+      clone[currentField] = nextMax;
+    }
     saveStateToDB(clone);
   };
 
@@ -245,6 +298,47 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     const clone = {
       ...character,
       complicaciones: [...list, name.trim()]
+    };
+    saveStateToDB(clone);
+  };
+
+  const handleAddCustomField = () => {
+    if (!newCustomFieldName.trim()) return;
+    const list = Array.isArray(character.camposPersonalizados)
+      ? character.camposPersonalizados
+      : [];
+    const clone = {
+      ...character,
+      camposPersonalizados: [
+        ...list,
+        { nombre: newCustomFieldName.trim(), valor: newCustomFieldValue.trim() }
+      ]
+    };
+    saveStateToDB(clone);
+    setNewCustomFieldName("");
+    setNewCustomFieldValue("");
+  };
+
+  const handleUpdateCustomField = (idx: number, field: "nombre" | "valor", val: string) => {
+    const list = Array.isArray(character.camposPersonalizados)
+      ? [...character.camposPersonalizados]
+      : [];
+    if (!list[idx]) return;
+    list[idx] = { ...list[idx], [field]: val };
+    const clone = {
+      ...character,
+      camposPersonalizados: list
+    };
+    saveStateToDB(clone);
+  };
+
+  const handleRemoveCustomField = (idx: number) => {
+    const list = Array.isArray(character.camposPersonalizados)
+      ? character.camposPersonalizados
+      : [];
+    const clone = {
+      ...character,
+      camposPersonalizados: list.filter((_, i) => i !== idx)
     };
     saveStateToDB(clone);
   };
@@ -357,15 +451,21 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
   const handleNewSkillNameChange = (catKey: string, val: string) => {
     setNewSkillNames(prev => ({ ...prev, [catKey]: val }));
+    if (skillErrorCat === catKey) {
+      setSkillErrorCat(null);
+    }
   };
 
   const handleAddSkill = (catKey: string) => {
     const name = newSkillNames[catKey]?.trim();
     if (!name) return;
 
-    // Check if skill already exists
-    const exists = character.habilidades.some(sk => sk.nombre.toLowerCase() === name.toLowerCase());
-    if (exists) return;
+    // Check if skill already exists (including canonical translations)
+    const exists = character.habilidades.some(sk => areSameSkill(sk.nombre, name));
+    if (exists) {
+      setSkillErrorCat(catKey);
+      return;
+    }
 
     const newSkill: Skill = {
       nombre: name,
@@ -379,6 +479,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     };
     saveStateToDB(clone);
     setNewSkillNames(prev => ({ ...prev, [catKey]: "" }));
+    setSkillErrorCat(null);
   };
 
   const handleRemoveSkill = (skillIdx: number) => {
@@ -387,6 +488,16 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
       habilidades: character.habilidades.filter((_, i) => i !== skillIdx)
     };
     saveStateToDB(clone);
+  };
+
+  const handleSaveDefaultSkillPreset = () => {
+    try {
+      localStorage.setItem("magistri_default_skills_preset", JSON.stringify(character.habilidades));
+      setPresetSavedSuccess(true);
+      setTimeout(() => setPresetSavedSuccess(false), 3000);
+    } catch (e) {
+      console.error("Failed to save skill preset:", e);
+    }
   };
 
   // 3. Spells (Hechizos) Actions
@@ -540,6 +651,20 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     setNewItemQty(1);
   };
 
+  const handleChangeInventoryQty = (id: string, delta: number) => {
+    const list = (character.equipoList || []).map(eq => {
+      if (eq.id === id) {
+        return { ...eq, cantidad: Math.max(1, eq.cantidad + delta) };
+      }
+      return eq;
+    });
+    const clone = {
+      ...character,
+      equipoList: list
+    };
+    saveStateToDB(clone);
+  };
+
   const handleRemoveInventoryItem = (id: string) => {
     setMinorDeleteTarget({ id, type: "item" });
   };
@@ -572,6 +697,34 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     setNewNoteContent("");
   };
 
+  const handleStartEditNote = (note: { id: string; titulo: string; contenido: string }) => {
+    setEditingNoteId(note.id);
+    setEditingNoteTitle(note.titulo);
+    setEditingNoteContent(note.contenido);
+  };
+
+  const handleSaveEditedNote = (id: string) => {
+    if (!editingNoteContent.trim()) return;
+    const updatedNotes = (character.notasList || []).map(n => {
+      if (n.id === id) {
+        return {
+          ...n,
+          titulo: editingNoteTitle.trim() || n.titulo,
+          contenido: editingNoteContent.trim(),
+        };
+      }
+      return n;
+    });
+    const clone = {
+      ...character,
+      notasList: updatedNotes
+    };
+    saveStateToDB(clone);
+    setEditingNoteId(null);
+    setEditingNoteTitle("");
+    setEditingNoteContent("");
+  };
+
   const newNoteNoteTitle = () => {
     if (newNoteTitle.trim()) return newNoteTitle.trim();
     // Default fallback name
@@ -601,6 +754,16 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   useEffect(() => {
     let changed = false;
     const clone = { ...character };
+
+    if (
+      character.estresMentalConsecuencia &&
+      character.estresMentalConsecuencia.trim() &&
+      (!character.consecuenciasMentales || character.consecuenciasMentales.length === 0)
+    ) {
+      clone.consecuenciasMentales = [character.estresMentalConsecuencia.trim()];
+      clone.estresMentalConsecuencia = "";
+      changed = true;
+    }
 
     if (character.notas && character.notas.trim() && (!character.notasList || character.notasList.length === 0)) {
       const legacyNote = {
@@ -734,15 +897,35 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-4" id="character-detail-screen">
+      <div className={isAcademy ? "academy-outer-frame rounded-2xl p-4 sm:p-6 relative" : ""}>
+        {isAcademy && (
+          <>
+            <FiligreeCorner position="tl" className="w-8 h-8" />
+            <FiligreeCorner position="tr" className="w-8 h-8" />
+            <FiligreeCorner position="bl" className="w-8 h-8" />
+            <FiligreeCorner position="br" className="w-8 h-8" />
+          </>
+        )}
 
       {/* Top Navigation & Action Bar - Highly Visible with 44px+ touch targets */}
-      <div className="flex flex-row justify-between items-center mb-6 bg-white/5 border border-white/10 p-3 rounded-xl gap-2 z-20 relative shadow-sm" id="detail-top-nav-bar">
+      <div
+        className={
+          isAcademy
+            ? "flex flex-row justify-between items-center mb-5 bg-[#120e1c]/90 border border-[#c8a248]/35 p-2.5 rounded-xl gap-2 z-20 relative shadow-lg"
+            : "flex flex-row justify-between items-center mb-6 bg-white/5 border border-white/10 p-3 rounded-xl gap-2 z-20 relative shadow-sm"
+        }
+        id="detail-top-nav-bar"
+      >
         <button
           id="btn-detail-back"
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-neutral-100 bg-neutral-900 border border-neutral-700 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 min-h-[44px] transition-all cursor-pointer select-none shrink-0"
+          className={
+            isAcademy
+              ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#f3e5c0] bg-gradient-to-b from-[#231c35] to-[#130f1e] border border-[#c8a248]/50 rounded-lg hover:border-[#f3d88c] focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shrink-0 shadow-sm"
+              : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-neutral-100 bg-neutral-900 border border-neutral-700 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 min-h-[44px] transition-all cursor-pointer select-none shrink-0"
+          }
         >
-          <ArrowLeft className="w-4 h-4 text-amber-500 shrink-0" />
+          <ArrowLeft className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{t.back}</span>
         </button>
 
@@ -752,9 +935,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             id="btn-detail-export"
             onClick={handleExportCharacter}
             title={t.exportStudent}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-violet-100 bg-violet-950/70 border border-violet-500/35 hover:bg-violet-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+            className={
+              isAcademy
+                ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#e6d5b8] bg-gradient-to-b from-[#281c40] to-[#160f26] border border-[#c8a248]/45 hover:border-[#f3d88c] rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
+                : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-violet-100 bg-violet-950/70 border border-violet-500/35 hover:bg-violet-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+            }
           >
-            <Upload className="w-4 h-4 shrink-0 text-violet-400" />
+            <Upload className="w-4 h-4 shrink-0 text-amber-400" />
             <span className="hidden md:inline">{t.exportStudent}</span>
           </button>
 
@@ -762,10 +949,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <button
             id="btn-detail-edit"
             onClick={() => setIsQuickEditing(!isQuickEditing)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg focus:outline-none focus:ring-2 min-h-[44px] transition-all cursor-pointer select-none ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none ${
               isQuickEditing 
-                ? "bg-emerald-600 hover:bg-emerald-500 text-white focus:ring-emerald-500/50" 
-                : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400" 
+                : isAcademy
+                  ? "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
+                  : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
             }`}
           >
             {isQuickEditing ? (
@@ -785,61 +974,170 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <button
             id="btn-detail-delete"
             onClick={handleDeleteCharacterClick}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-350 bg-rose-950/70 border border-rose-500/30 hover:bg-rose-900 hover:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+            className={
+              isAcademy
+                ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-rose-200 bg-gradient-to-b from-[#4c1420] to-[#280910] border border-[#c8a248]/40 hover:border-rose-400 hover:text-white rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
+                : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-300 bg-rose-950/70 border border-rose-500/30 hover:bg-rose-900 hover:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/50 min-h-[44px] transition-all cursor-pointer select-none"
+            }
           >
-            <Trash2 className="w-4 h-4 shrink-0" />
+            <Trash2 className="w-4 h-4 shrink-0 text-rose-300" />
             <span className="hidden sm:inline">{t.delete}</span>
           </button>
         </div>
       </div>
 
       {/* Dynamic Profile Cover Banner */}
-      <div className={`relative w-full rounded-2xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border border-violet-500/15 p-6 mb-6 flex flex-col md:flex-row gap-6 items-center shadow-lg shadow-neutral-950/40`}>
-        {/* Decorative corner glows */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none"></div>
+      <div
+        className={
+          isAcademy
+            ? `relative w-full rounded-xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border-2 border-[#c8a248]/65 p-5 md:p-6 mb-5 flex flex-col md:flex-row gap-4 md:gap-6 items-center shadow-[0_10px_30px_rgba(0,0,0,0.8)]`
+            : `relative w-full rounded-2xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border ${theme.borderClass} p-5 md:p-6 mb-6 flex flex-col md:flex-row gap-4 md:gap-6 items-center shadow-lg shadow-neutral-950/40`
+        }
+      >
+        {isAcademy ? (
+          <>
+            <FiligreeCorner position="tl" className="w-7 h-7 z-10" />
+            <FiligreeCorner position="tr" className="w-7 h-7 z-10" />
+            <FiligreeCorner position="bl" className="w-7 h-7 z-10" />
+            <FiligreeCorner position="br" className="w-7 h-7 z-10" />
+          </>
+        ) : (
+          <>
+            {/* Decorative corner glows */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none"></div>
+          </>
+        )}
 
-        {/* Left Aspect - Avatar */}
-        <div className="shrink-0 flex flex-col items-center gap-2">
-          <div
-            onClick={isQuickEditing ? () => avatarInputRef.current?.click() : undefined}
-            className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl border border-violet-500/30 overflow-hidden shadow-md flex items-center justify-center relative ${
-              isQuickEditing ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
-            }`}
-          >
-            {character.avatarImage ? (
-              <img
-                src={character.avatarImage}
-                alt={character.nombre}
-                className={`w-full h-full ${character.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="text-center text-[10px] font-mono text-neutral-600 uppercase select-none p-2">
-                {characterType === "adult_wizard" ? (
-                  <span className="text-3xl mb-1 block select-none" role="img" aria-label="adult wizard icon">
-                    {theme.icon}
-                  </span>
+        {/* Left Aspect - Avatar (+ Mobile Corner Familiar & Mobile Compact Crest) */}
+        <div className="shrink-0 flex flex-col items-center gap-2.5 relative z-10">
+          <div className="flex items-center justify-center">
+            {/* Wizard Portrait Wrapper (with Mobile Corner-Overlaid Familiar & Bottom-Left Discrete Crest) */}
+            <div className="relative">
+              <div
+                onClick={isQuickEditing ? () => avatarInputRef.current?.click() : undefined}
+                className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl ${
+                  isAcademy
+                    ? "border-2 border-[#c8a248] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
+                    : "border border-violet-500/30 shadow-md"
+                } overflow-hidden flex items-center justify-center relative ${
+                  isQuickEditing ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+                }`}
+              >
+                {character.avatarImage ? (
+                  <img
+                    src={character.avatarImage}
+                    alt={character.nombre}
+                    className={`w-full h-full ${character.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
+                    referrerPolicy="no-referrer"
+                  />
                 ) : (
-                  <User className="w-8 h-8 opacity-40 mx-auto mb-1 text-violet-400" />
+                  <div className="text-center text-[10px] font-mono text-neutral-400 uppercase select-none p-2 flex flex-col items-center justify-center">
+                    <HouseCrest
+                      house={character.casa}
+                      isAdultWizard={characterType === "adult_wizard"}
+                      className="w-16 h-20 mb-1"
+                    />
+                    {t.noPortrait}
+                  </div>
                 )}
-                No pic
-              </div>
-            )}
 
-            {/* Editing overlay */}
-            {isQuickEditing && (
-              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-1 text-[10px] font-mono text-amber-350">
-                <ImageIcon className="w-5 h-5 mb-1 text-amber-400" />
-                <span>{t.btnChangePhoto}</span>
+                {/* Editing overlay */}
+                {isQuickEditing && (
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-1 text-[10px] font-mono text-amber-300">
+                    <ImageIcon className="w-5 h-5 mb-1 text-amber-400" />
+                    <span>{t.btnChangePhoto}</span>
+                  </div>
+                )}
               </div>
-            )}
 
-            {!isQuickEditing && (
-              <div className={`absolute bottom-0 inset-x-0 text-center text-[8px] font-mono uppercase bg-neutral-900/95 py-0.5 border-t ${theme.borderClass} text-neutral-400 font-bold`}>
-                {characterType === "adult_wizard" ? t.characterTypeAdultWizard : hInfo.nombre}
+              {/* Mobile-Only Discrete House Crest in Bottom-Left Corner of Student Photo (< md) */}
+              <div className="flex md:hidden items-center justify-center absolute -bottom-1.5 -left-2 z-20 pointer-events-none">
+                <HouseCrest
+                  house={character.casa}
+                  isAdultWizard={characterType === "adult_wizard"}
+                  className="w-7 h-9 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] opacity-95"
+                />
               </div>
-            )}
+
+              {/* Mobile-Only Corner Overlaid Familiar Portrait (< md) */}
+              {(linkedFamiliar || isQuickEditing) && (
+                <div className="md:hidden absolute -bottom-2.5 -right-5 z-20">
+                  {linkedFamiliar ? (
+                    <div
+                      id="header-familiar-card-mobile"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isQuickEditing) {
+                          setIsSelectFamiliarModalOpen(true);
+                        } else if (onSelectFamiliar) {
+                          onSelectFamiliar(linkedFamiliar.id);
+                        }
+                      }}
+                      title={isQuickEditing ? t.familiarChangeBond : t.familiarViewDetail}
+                      className={`group w-14 aspect-[3/4] bg-neutral-950 rounded-lg overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-transform active:scale-95 shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 ${
+                        isAcademy
+                          ? "border-2 border-[#fce8a6]"
+                          : "border-2 border-emerald-400/80"
+                      }`}
+                    >
+                      {linkedFamiliar.imagen ? (
+                        <img
+                          src={linkedFamiliar.imagen}
+                          alt={linkedFamiliar.nombre}
+                          className={`w-full h-full ${
+                            linkedFamiliar.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
+                          }`}
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-b from-emerald-950/90 via-[#0e1f18] to-[#0a0612] flex flex-col items-center justify-center p-1 select-none">
+                          <PawPrint className="w-5 h-5 text-emerald-400/80 mb-2" />
+                        </div>
+                      )}
+
+                      {/* Overlaid Familiar Name Scrim */}
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-3 pb-0.5 px-1 text-center">
+                        <div
+                          className={`font-magic text-[8px] font-bold uppercase tracking-wider truncate ${
+                            isAcademy ? "text-[#fce8a6]" : "text-emerald-200"
+                          }`}
+                        >
+                          {linkedFamiliar.nombre || t.noName}
+                        </div>
+                      </div>
+
+                      {/* Quick Edit Mode overlay on mobile corner badge */}
+                      {isQuickEditing && (
+                        <div className="absolute inset-0 bg-black/65 flex items-center justify-center text-amber-300">
+                          <LinkIcon className="w-4 h-4 text-amber-400" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      id="header-familiar-bond-btn-mobile"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsSelectFamiliarModalOpen(true);
+                      }}
+                      title={t.bondExistingFamiliar}
+                      className={`w-14 aspect-[3/4] rounded-lg flex flex-col items-center justify-center p-1 text-center transition-all cursor-pointer select-none shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 ${
+                        isAcademy
+                          ? "bg-[#120d1a]/95 border-2 border-dashed border-[#c8a248] text-[#fce8a6]"
+                          : "bg-neutral-950/95 border-2 border-dashed border-emerald-500/60 text-emerald-300"
+                      }`}
+                    >
+                      <PawPrint className="w-4 h-4 mb-0.5 text-emerald-400" />
+                      <span className="text-[7px] font-mono uppercase tracking-tighter leading-tight line-clamp-2">
+                        {t.bondExistingFamiliar}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <input
@@ -850,36 +1148,64 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             className="hidden"
           />
 
-          {isQuickEditing && characterType !== "adult_wizard" && (
-            <div className="w-28">
-              <select
-                id="edit-banner-casa"
-                value={character.casa.toUpperCase()}
-                onChange={(e) => {
-                  const newVal = e.target.value;
-                  const hData = HOUSES[newVal];
-                  const clone = { 
-                    ...character, 
-                    casa: newVal,
-                    lema: hData ? hData.lema : (character.lema || ""),
-                    escudoText: hData ? hData.escudo : (character.escudoText || "")
-                  };
-                  saveStateToDB(clone);
-                }}
-                className="w-full text-xs bg-neutral-950 text-neutral-200 border border-neutral-800 rounded p-1 font-mono focus:ring-1 focus:ring-amber-500 focus:outline-none"
-              >
-                {Object.keys(HOUSES).map((hKey) => (
-                  <option key={hKey} value={hKey}>
-                    {HOUSE_ICONS[hKey] || "🏰"} {HOUSES[hKey].nombre}
-                  </option>
-                ))}
-              </select>
+          {isQuickEditing && (character.avatarImage || (linkedFamiliar && onBondFamiliar && character.id)) && (
+            <div className="flex flex-col gap-1.5 w-36 md:w-28 mt-1">
+              {character.avatarImage && (
+                <>
+                  <div className="grid grid-cols-2 gap-1 bg-neutral-950 p-0.5 rounded-lg border border-neutral-800">
+                    <button
+                      type="button"
+                      onClick={() => saveStateToDB({ ...character, avatarFit: "cover" })}
+                      className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
+                        (character.avatarFit || "cover") === "cover"
+                          ? "bg-violet-900 text-amber-300 border border-amber-500/30"
+                          : "text-neutral-500 hover:text-neutral-300"
+                      }`}
+                      title={t.optAvatarCover}
+                    >
+                      Cover
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => saveStateToDB({ ...character, avatarFit: "contain" })}
+                      className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
+                        character.avatarFit === "contain"
+                          ? "bg-violet-900 text-amber-300 border border-amber-500/30"
+                          : "text-neutral-500 hover:text-neutral-300"
+                      }`}
+                      title={t.optAvatarContain}
+                    >
+                      Contain
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => saveStateToDB({ ...character, avatarImage: "" })}
+                    className="w-full py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono transition-colors cursor-pointer"
+                  >
+                    {t.removeAvatar}
+                  </button>
+                </>
+              )}
+
+              {/* Mobile-Only Unbind Familiar button in Quick Edit Mode */}
+              {linkedFamiliar && onBondFamiliar && character.id && (
+                <button
+                  type="button"
+                  onClick={() => onBondFamiliar(character.id!, null)}
+                  className="md:hidden w-full py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title={t.familiarUnbind}
+                >
+                  <Unlink className="w-3 h-3" />
+                  <span className="truncate">{t.familiarUnbind}</span>
+                </button>
+              )}
             </div>
           )}
         </div>
 
         {/* Center Aspect - Name, House & Concept Info */}
-        <div className="flex-1 text-center md:text-left self-center w-full">
+        <div className="flex-1 text-center md:text-left self-center w-full relative z-10">
           {isQuickEditing ? (
             <div className="flex flex-col gap-2.5 max-w-md mx-auto md:mx-0">
               {/* Name field */}
@@ -912,34 +1238,148 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     saveStateToDB(clone);
                   }}
                   className="w-full text-xs font-mono bg-neutral-950 text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  placeholder={t.placeholderConceptEdit}
+                  placeholder={t.placeholderConceptoEdit}
                 />
               </div>
             </div>
           ) : (
             <>
               <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <h1 className="font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber">
+                <h1
+                  className={
+                    isAcademy
+                      ? "font-magic text-2xl md:text-3xl font-bold text-[#fce8a6] uppercase tracking-widest drop-shadow-[0_2px_10px_rgba(212,175,55,0.45)]"
+                      : "font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber"
+                  }
+                >
                   {character.nombre || t.noName}
                 </h1>
               </div>
 
-              <p className="text-xs text-neutral-400 mt-2 font-mono italic max-w-xl">
+              <p
+                className={
+                  isAcademy
+                    ? "text-sm text-[#e6d5b8] mt-1.5 md:mt-2 font-serif italic max-w-xl mx-auto md:mx-0"
+                    : "text-xs text-neutral-400 mt-1.5 md:mt-2 font-mono italic max-w-xl mx-auto md:mx-0"
+                }
+              >
                 {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
               </p>
-
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 font-serif italic text-amber-200 text-xs text-center md:text-left">
-                {character.lema && (
-                  <span>« {character.lema} »</span>
-                )}
-              </div>
             </>
           )}
+        </div>
+
+        {/* Right Aspect (Tablet & Desktop md+) - Bonded Familiar Portrait (left of Crest) & Vector House Crest Shield */}
+        <div className="hidden md:flex shrink-0 items-center justify-center gap-5 relative z-10 md:pr-2">
+          {/* Familiar Portrait Card (Shown in Read Mode when bonded, or in Edit Mode to link/change) */}
+          {(linkedFamiliar || isQuickEditing) && (
+            <div className="flex flex-col items-center gap-1.5">
+              {linkedFamiliar ? (
+                <div
+                  id="header-familiar-card"
+                  onClick={() => {
+                    if (isQuickEditing) {
+                      setIsSelectFamiliarModalOpen(true);
+                    } else if (onSelectFamiliar) {
+                      onSelectFamiliar(linkedFamiliar.id);
+                    }
+                  }}
+                  title={isQuickEditing ? t.familiarChangeBond : t.familiarViewDetail}
+                  className={`group w-28 aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-all duration-300 ${
+                    isAcademy
+                      ? "border-2 border-[#c8a248] hover:border-[#fce8a6] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
+                      : "border border-emerald-500/40 hover:border-amber-400/70 shadow-md"
+                  } ${isQuickEditing ? "hover:ring-2 hover:ring-amber-500" : "hover:-translate-y-0.5"}`}
+                >
+                  {linkedFamiliar.imagen ? (
+                    <img
+                      src={linkedFamiliar.imagen}
+                      alt={linkedFamiliar.nombre}
+                      className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
+                        linkedFamiliar.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
+                      }`}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-b from-emerald-950/90 via-[#0e1f18] to-[#0a0612] flex flex-col items-center justify-center p-2 select-none">
+                      <PawPrint className="w-8 h-8 text-emerald-400/80 mb-3 group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                  )}
+
+                  {/* Bottom dark scrim with overlaid Familiar Name */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-6 pb-1.5 px-2 text-center">
+                    <div
+                      className={`font-magic text-[11px] font-bold uppercase tracking-wider truncate ${
+                        isAcademy
+                          ? "text-[#fce8a6] drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]"
+                          : "text-emerald-200"
+                      }`}
+                    >
+                      {linkedFamiliar.nombre || t.noName}
+                    </div>
+                  </div>
+
+                  {/* Quick Edit Mode overlay to change bond */}
+                  {isQuickEditing && (
+                    <div className="absolute inset-0 bg-black/65 flex flex-col items-center justify-center text-center p-1.5 text-[10px] font-mono text-amber-300">
+                      <LinkIcon className="w-5 h-5 mb-1 text-amber-400" />
+                      <span>{t.familiarChangeBond}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Unbound Familiar Slot — only visible when isQuickEditing is active */
+                <button
+                  type="button"
+                  id="header-familiar-bond-btn"
+                  onClick={() => setIsSelectFamiliarModalOpen(true)}
+                  className={`w-28 aspect-[3/4] rounded-xl flex flex-col items-center justify-center p-2 text-center transition-all cursor-pointer select-none ${
+                    isAcademy
+                      ? "bg-[#120d1a]/80 border-2 border-dashed border-[#c8a248]/60 hover:border-[#fce8a6] text-[#fce8a6]"
+                      : "bg-neutral-950/70 border-2 border-dashed border-emerald-500/40 hover:border-amber-400 text-emerald-300"
+                  }`}
+                >
+                  <PawPrint className="w-6 h-6 mb-1.5 text-emerald-400" />
+                  <span className="text-[10px] font-mono uppercase tracking-wider leading-tight">
+                    {t.bondExistingFamiliar}
+                  </span>
+                </button>
+              )}
+
+              {/* Quick Unlink button under portrait in Edit Mode when a familiar is bonded */}
+              {isQuickEditing && linkedFamiliar && onBondFamiliar && character.id && (
+                <button
+                  type="button"
+                  onClick={() => onBondFamiliar(character.id!, null)}
+                  className="w-28 py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title={t.familiarUnbind}
+                >
+                  <Unlink className="w-3 h-3" />
+                  <span className="truncate">{t.familiarUnbind}</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-center">
+            <HouseCrest
+              house={character.casa}
+              isAdultWizard={characterType === "adult_wizard"}
+              className="w-20 h-24"
+            />
+          </div>
         </div>
       </div>
 
       {/* Tabs Menu Ribbon */}
-      <div className="flex overflow-x-auto pb-2 border-b border-violet-500/10 mb-6 gap-2 snap-x" id="detail-tabs-menu">
+      <div
+        className={
+          isAcademy
+            ? "flex overflow-x-auto pb-3 border-b border-[#c8a248]/25 mb-6 gap-2.5 snap-x"
+            : "flex overflow-x-auto pb-2 border-b border-violet-500/10 mb-6 gap-2 snap-x"
+        }
+        id="detail-tabs-menu"
+      >
         {[
           { id: "perfil", label: t.perfil, icon: User },
           { id: "sesion", label: t.sesion, icon: Activity },
@@ -955,12 +1395,17 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               id={`tab-button-${tb.id}`}
               key={tb.id}
               onClick={() => setActiveTab(tb.id as any)}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg border transition-all shrink-0 snap-start cursor-pointer select-none ${IsActive
-                  ? "bg-violet-950/70 border-amber-500/50 text-amber-300"
-                  : "bg-neutral-950/40 border-neutral-800 text-neutral-400 hover:text-neutral-200"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all shrink-0 snap-start cursor-pointer select-none ${
+                isAcademy
+                  ? IsActive
+                    ? "bg-gradient-to-b from-[#352158] to-[#1d1133] border-[#c8a248] text-[#fce8a6] shadow-[0_0_15px_rgba(200,162,72,0.3)]"
+                    : "bg-[#140f21]/90 border-[#c8a248]/35 text-[#c4b79c] hover:text-[#f3e5c0] hover:border-[#c8a248]/65"
+                  : IsActive
+                    ? "bg-violet-950/70 border-amber-500/50 text-amber-300"
+                    : "bg-neutral-950/40 border-neutral-800 text-neutral-400 hover:text-neutral-200"
+              }`}
             >
-              <Icon className="w-4 h-4 text-violet-400" />
+              <Icon className={`w-4 h-4 ${isAcademy ? (IsActive ? "text-[#f3d88c]" : "text-[#c8a248]/80") : "text-violet-400"}`} />
               {tb.label}
             </button>
           );
@@ -970,16 +1415,25 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
       {/* Primary Tabs Board */}
       <div className="min-h-[400px]" id="detail-active-tab-box">
 
-        {/* TAF 1: PERFIL */}
+        {/* TAB 1: PERFIL */}
         {activeTab === "perfil" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="detail-tab-perfil">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-tab-perfil">
 
-            {/* Bio Column */}
-            <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4">
-              <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 flex items-center gap-2">
-                <User className="w-4 h-4 text-violet-400" />
+            {/* Personal Data Panel (Row 1 Left on Desktop; Position 1 on Mobile) */}
+            <div className={`glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4 relative overflow-hidden h-full flex flex-col ${characterType === "adult_wizard" ? "md:col-span-2" : ""}`} id="detail-panel-datos-personales">
+              {isAcademy && (
+                <>
+                  <FiligreeCorner position="tl" className="w-6 h-6" />
+                  <FiligreeCorner position="tr" className="w-6 h-6" />
+                  <FiligreeCorner position="bl" className="w-6 h-6" />
+                  <FiligreeCorner position="br" className="w-6 h-6" />
+                </>
+              )}
+              <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2"} flex items-center gap-2`}>
+                <User className={`w-4 h-4 ${isAcademy ? "text-amber-400" : "text-violet-400"}`} />
                 {characterType === "adult_wizard" ? t.characterTypeAdultWizard : t.secDatosAlumno}
               </h3>
+              {isAcademy && <CompassStarDivider className="-mt-2 mb-3" />}
 
               {isQuickEditing ? (
                 <div className="grid grid-cols-2 gap-3 text-xs font-mono">
@@ -1160,14 +1614,14 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.edad || "11 años"}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.edad || "—"}</div>
                   </div>
 
                   {characterType !== "adult_wizard" && (
                     <>
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-                        <div className="text-neutral-200 mt-0.5">{character.curso || "1º"}</div>
+                        <div className="text-neutral-200 mt-0.5">{character.curso || "—"}</div>
                       </div>
 
                       <div>
@@ -1179,12 +1633,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.linaje || "Mítico"}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.linaje || "—"}</div>
                   </div>
 
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.economia || "Normal"}</div>
+                    <div className="text-neutral-200 mt-0.5">{character.economia || "—"}</div>
                   </div>
 
                   {characterType === "adult_wizard" && (
@@ -1230,23 +1684,11 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </div>
               )}
 
-              {/* Familiar & Varita */}
-              <div className="border-t border-violet-500/10 pt-3">
+              {/* Varita */}
+              <div className={isAcademy ? "pt-2" : "border-t border-violet-500/10 pt-3"}>
+                {isAcademy && <CompassStarDivider className="mb-3" />}
                 {isQuickEditing ? (
                   <div className="grid grid-cols-1 gap-3 text-xs font-mono">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.familiar}</label>
-                      <input
-                        type="text"
-                        value={character.familiar || ""}
-                        onChange={(e) => {
-                          const clone = { ...character, familiar: e.target.value };
-                          saveStateToDB(clone);
-                        }}
-                        className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                      />
-                    </div>
-
                     <div className="flex flex-col gap-1">
                       <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
                       <input
@@ -1264,15 +1706,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <div className="grid grid-cols-1 gap-3 text-xs font-mono">
                     <div>
                       <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-                        {t.familiar}
-                      </div>
-                      <div className="text-neutral-200 mt-0.5">
-                        {character.familiar || t.labelFamiliarEmpty}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
                         {t.varitaSintonia}
                       </div>
                       <div className="text-neutral-200 mt-0.5">
@@ -1284,178 +1717,421 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               </div>
             </div>
 
-            {/* Complications & Aspects Column */}
-            <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-5">
+            {/* House Affiliation & Heraldry Panel (Row 1 Right on Desktop; Position 2 on Mobile) */}
+            {characterType !== "adult_wizard" && (
+              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-filiacion">
+                {isAcademy && (
+                  <>
+                    <FiligreeCorner position="tl" className="w-6 h-6" />
+                    <FiligreeCorner position="tr" className="w-6 h-6" />
+                    <FiligreeCorner position="bl" className="w-6 h-6" />
+                    <FiligreeCorner position="br" className="w-6 h-6" />
+                  </>
+                )}
 
-              {/* Personal Aspects */}
-              <div>
-                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-                  🌟 {t.aspectosPersonales}
-                </h3>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                      <Shield className={`w-4 h-4 ${isAcademy ? "text-amber-400" : "text-violet-400"}`} />
+                      {t.titleHouseHeraldry}
+                    </h3>
+                    {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
 
-                {(() => {
-                  const aspectList = Array.isArray(character.aspectosPersonales)
-                    ? character.aspectosPersonales
-                    : character.aspectosPersonales
-                      ? [character.aspectosPersonales]
-                      : [];
+                    {/* Upper Area: Crest on upper-left with name underneath, Lema to its right in bigger font */}
+                    <div className={`flex flex-row items-center gap-4 sm:gap-6 my-2 pb-4 ${isAcademy ? "border-b border-amber-500/15" : "border-b border-violet-500/15"}`}>
+                      {/* Left: House Crest with House Name Under It */}
+                      <div className="flex flex-col items-center justify-center shrink-0 min-w-[90px] sm:min-w-[105px]">
+                        <HouseCrest
+                          house={character.casa}
+                          isAdultWizard={false}
+                          className="w-20 h-20 sm:w-22 sm:h-22 filter drop-shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-transform hover:scale-105"
+                          variant="shield"
+                        />
+                        {isQuickEditing ? (
+                          <select
+                            value={character.casa.toUpperCase()}
+                            onChange={(e) => {
+                              const newVal = e.target.value;
+                              const hData = HOUSES[newVal];
+                              const clone = {
+                                ...character,
+                                casa: newVal,
+                                lema: hData ? translateHouseMotto(hData.lema, lang) : (character.lema || ""),
+                                escudoText: hData ? hData.escudo : (character.escudoText || "")
+                              };
+                              saveStateToDB(clone);
+                            }}
+                            className="mt-2 w-full text-center text-[10px] bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-1.5 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                          >
+                            {Object.keys(HOUSES).map((hKey) => (
+                              <option key={hKey} value={hKey}>
+                                {HOUSES[hKey].nombre}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className={`font-magic text-xs tracking-widest uppercase ${isAcademy ? "text-amber-300" : "text-amber-200"} font-bold mt-2 text-center drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]`}>
+                            {hInfo.nombre}
+                          </div>
+                        )}
+                      </div>
 
-                  return (
-                    <div className="space-y-3">
-                      {aspectList.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-2">
-                          {aspectList.map((aspect, idx) => (
-                            <div
-                              key={idx}
-                              className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300 flex items-center justify-between gap-2"
-                            >
-                              <span>“ {aspect} ”</span>
-                              {isQuickEditing && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteAspect(idx)}
-                                  className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                                  title={t.deleteAspect}
-                                >
-                                  <X className="w-3.5 h-3.5 shrink-0" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                      {/* Right: Lema in a bigger font (read-only, linked to the house/organization) */}
+                      <div className="flex-1 flex flex-col justify-center min-w-0 pl-1 sm:pl-3">
+                        <div className="text-[9px] text-neutral-400 uppercase tracking-widest font-mono mb-1.5 flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isAcademy ? "bg-amber-400/80" : "bg-violet-400/80"} inline-block`}></span>
+                          {t.labelMotto}
                         </div>
-                      ) : (
-                        <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-                          {t.labelAspectsEmpty}
-                        </span>
+                        <blockquote className={`font-serif italic text-base sm:text-lg md:text-xl font-medium ${isAcademy ? "text-amber-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-neutral-100"} leading-snug`}>
+                          « {translateHouseMotto(HOUSES[character.casa.toUpperCase()] ? hInfo.lema : (character.lema || hInfo.lema), lang)} »
+                        </blockquote>
+                      </div>
+                    </div>
+
+                    {/* Data grid: Casa Fundadora & Lema conditionally hidden when the house has a recognized crest */}
+                    <div className="relative grid grid-cols-2 gap-3 text-xs font-mono mt-4">
+                      {!hasRecognizedCrest(character.casa) && (
+                        <>
+                          <div>
+                            <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.casa}</div>
+                            {isQuickEditing ? (
+                              <select
+                                value={character.casa.toUpperCase()}
+                                onChange={(e) => {
+                                  const newVal = e.target.value;
+                                  const hData = HOUSES[newVal];
+                                  const clone = {
+                                    ...character,
+                                    casa: newVal,
+                                    lema: hData ? translateHouseMotto(hData.lema, lang) : (character.lema || ""),
+                                    escudoText: hData ? hData.escudo : (character.escudoText || "")
+                                  };
+                                  saveStateToDB(clone);
+                                }}
+                                className="mt-1 w-full text-xs bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-2 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                              >
+                                {Object.keys(HOUSES).map((hKey) => (
+                                  <option key={hKey} value={hKey}>
+                                    {HOUSES[hKey].nombre}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wider mt-0.5">
+                                {hInfo.nombre}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelMotto}</div>
+                            <div className="text-amber-300 font-serif italic text-sm mt-0.5">
+                              « {translateHouseMotto(HOUSES[character.casa.toUpperCase()] ? hInfo.lema : (character.lema || hInfo.lema), lang)} »
+                            </div>
+                          </div>
+                        </>
                       )}
 
-                      {/* Option to add more aspects at the bottom */}
-                      {isQuickEditing && (
-                        <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
-                          <input
-                            type="text"
-                            placeholder={t.placeholderAddAspect}
-                            value={newPersonalAspectInput}
-                            onChange={(e) => setNewPersonalAspectInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelProvenance}</div>
+                        <div className="text-neutral-200 mt-0.5">{localizedLore.procedencia}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelColors}</div>
+                        <div className="text-neutral-200 mt-0.5">{localizedLore.colores}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelElement}</div>
+                        <div className="text-neutral-200 mt-0.5">{localizedLore.elemento}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelTotem}</div>
+                        <div className="text-neutral-200 mt-0.5">{localizedLore.totem}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Row 2 on Desktop: Full-width container (md:col-span-2) with Aspectos Personales & Complicaciones side-by-side */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-aspectos-complicaciones-row">
+              {/* Personal Aspects Panel (Left on Desktop; Position 3 on Mobile) */}
+              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-aspectos">
+                {isAcademy && (
+                  <>
+                    <FiligreeCorner position="tl" className="w-6 h-6" />
+                    <FiligreeCorner position="tr" className="w-6 h-6" />
+                    <FiligreeCorner position="bl" className="w-6 h-6" />
+                    <FiligreeCorner position="br" className="w-6 h-6" />
+                  </>
+                )}
+                <div className="flex-1 flex flex-col justify-between">
+                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                    <span>🌟</span> {t.aspectosPersonales}
+                  </h3>
+                  {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+
+                  {(() => {
+                    const aspectList = Array.isArray(character.aspectosPersonales)
+                      ? character.aspectosPersonales
+                      : character.aspectosPersonales
+                        ? [character.aspectosPersonales]
+                        : [];
+
+                    return (
+                      <div className="space-y-3">
+                        {aspectList.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2">
+                            {aspectList.map((aspect, idx) => (
+                              <div
+                                key={idx}
+                                className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300 flex items-center justify-between gap-2"
+                              >
+                                <span>“ {aspect} ”</span>
+                                {isQuickEditing && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteAspect(idx)}
+                                    className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                                    title={t.deleteAspect}
+                                  >
+                                    <X className="w-3.5 h-3.5 shrink-0" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                            {t.labelAspectsEmpty}
+                          </span>
+                        )}
+
+                        {isQuickEditing && (
+                          <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
+                            <input
+                              type="text"
+                              placeholder={t.placeholderAddAspect}
+                              value={newPersonalAspectInput}
+                              onChange={(e) => setNewPersonalAspectInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddNewAspect(newPersonalAspectInput);
+                                  setNewPersonalAspectInput("");
+                                }
+                              }}
+                              className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
                                 handleAddNewAspect(newPersonalAspectInput);
                                 setNewPersonalAspectInput("");
-                              }
-                            }}
-                            className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleAddNewAspect(newPersonalAspectInput);
-                              setNewPersonalAspectInput("");
-                            }}
-                            className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                              }}
+                              className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
 
-              {/* Complications */}
-              <div>
-                <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-                  ⚠️ {t.complicaciones}
-                </h3>
+              {/* Complications Panel (Right on Desktop; Position 4 on Mobile) */}
+              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-complicaciones">
+                {isAcademy && (
+                  <>
+                    <FiligreeCorner position="tl" className="w-6 h-6" />
+                    <FiligreeCorner position="tr" className="w-6 h-6" />
+                    <FiligreeCorner position="bl" className="w-6 h-6" />
+                    <FiligreeCorner position="br" className="w-6 h-6" />
+                  </>
+                )}
+                <div className="flex-1 flex flex-col justify-between">
+                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                    <span>⚠️</span> {t.complicaciones}
+                  </h3>
+                  {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
 
-                {(() => {
-                  const compList = Array.isArray(character.complicaciones)
-                    ? character.complicaciones
-                    : character.complicaciones
-                      ? [character.complicaciones]
-                      : [];
+                  {(() => {
+                    const compList = Array.isArray(character.complicaciones)
+                      ? character.complicaciones
+                      : character.complicaciones
+                        ? [character.complicaciones]
+                        : [];
 
-                  return (
-                    <div className="space-y-3">
-                      {compList.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-2">
-                          {compList.map((comp, idx) => (
-                            <div
-                              key={idx}
-                              className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-red-350 flex items-center justify-between gap-2"
-                            >
-                              <span>“ {comp} ”</span>
-                              {isQuickEditing && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteComplication(idx)}
-                                  className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                                  title={t.deleteComplication}
-                                >
-                                  <X className="w-3.5 h-3.5 shrink-0" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
-                          {t.labelComplicacionesEmpty}
-                        </span>
-                      )}
+                    return (
+                      <div className="space-y-3">
+                        {compList.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2">
+                            {compList.map((comp, idx) => (
+                              <div
+                                key={idx}
+                                className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-rose-300 flex items-center justify-between gap-2"
+                              >
+                                <span>“ {comp} ”</span>
+                                {isQuickEditing && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComplication(idx)}
+                                    className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                                    title={t.deleteComplication}
+                                  >
+                                    <X className="w-3.5 h-3.5 shrink-0" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-4 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                            {t.labelComplicacionesEmpty}
+                          </span>
+                        )}
 
-                      {/* Option to add more complications at the bottom */}
-                      {isQuickEditing && (
-                        <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
-                          <input
-                            type="text"
-                            placeholder={t.placeholderAddComplication}
-                            value={newComplicationInput}
-                            onChange={(e) => setNewComplicationInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
+                        {isQuickEditing && (
+                          <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
+                            <input
+                              type="text"
+                              placeholder={t.placeholderAddComplication}
+                              value={newComplicationInput}
+                              onChange={(e) => setNewComplicationInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddNewComplication(newComplicationInput);
+                                  setNewComplicationInput("");
+                                }
+                              }}
+                              className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
                                 handleAddNewComplication(newComplicationInput);
                                 setNewComplicationInput("");
-                              }
-                            }}
-                            className="bg-neutral-900 text-xs text-neutral-200 px-2 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleAddNewComplication(newComplicationInput);
-                              setNewComplicationInput("");
-                            }}
-                            className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                              }}
+                              className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
+            </div>
 
-              {/* Custom fields display */}
-              {character.camposPersonalizados && character.camposPersonalizados.length > 0 && (
-                <div>
-                  <h3 className="font-magic text-xs text-indigo-400 uppercase tracking-widest border-b border-violet-500/10 pb-2 mb-3">
-                    🔮 {t.customFields}
-                  </h3>
-                  <div className="grid grid-cols-1 gap-2">
+            {/* Full-width Custom Fields Panel in both styles */}
+            {(isQuickEditing || (character.camposPersonalizados && character.camposPersonalizados.length > 0)) && (
+              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2 relative overflow-hidden" id="detail-panel-custom-fields">
+                {isAcademy && (
+                  <>
+                    <FiligreeCorner position="tl" className="w-6 h-6" />
+                    <FiligreeCorner position="tr" className="w-6 h-6" />
+                    <FiligreeCorner position="bl" className="w-6 h-6" />
+                    <FiligreeCorner position="br" className="w-6 h-6" />
+                  </>
+                )}
+                <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                  <span>🔮</span> {t.customFields}
+                </h3>
+                {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+                {character.camposPersonalizados && character.camposPersonalizados.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {character.camposPersonalizados.map((fd, idx) => (
-                      <div key={idx} className="p-2.5 bg-neutral-950/50 border border-neutral-800 rounded-lg text-xs flex justify-between">
-                        <span className="font-mono text-[10px] text-amber-500 uppercase tracking-wider">{fd.nombre}:</span>
-                        <span className="text-neutral-200 text-right">{fd.valor}</span>
+                      <div
+                        key={idx}
+                        className={
+                          isAcademy
+                            ? "p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs flex items-center justify-between gap-2"
+                            : "p-3 bg-neutral-950/50 border border-neutral-800 rounded-lg text-xs flex items-center justify-between gap-2"
+                        }
+                      >
+                        {isQuickEditing ? (
+                          <>
+                            <input
+                              type="text"
+                              value={fd.nombre}
+                              onChange={(e) => handleUpdateCustomField(idx, "nombre", e.target.value)}
+                              placeholder={t.fieldName}
+                              className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                            />
+                            <input
+                              type="text"
+                              value={fd.valor}
+                              onChange={(e) => handleUpdateCustomField(idx, "valor", e.target.value)}
+                              placeholder={t.fieldValue}
+                              className="flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomField(idx)}
+                              className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                              title={t.deleteCustomField}
+                            >
+                              <X className="w-3.5 h-3.5 shrink-0" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`font-mono text-[11px] ${isAcademy ? "text-[#f3d88c]" : "text-amber-400"} font-bold uppercase tracking-wider`}>
+                              {fd.nombre}:
+                            </span>
+                            <span className="text-neutral-100 text-right font-sans">{fd.valor}</span>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <span className="text-[10px] font-mono text-neutral-500 italic block text-center py-3 bg-neutral-950/10 border border-neutral-900 rounded-lg">
+                    {t.emptyCustomFields}
+                  </span>
+                )}
+
+                {isQuickEditing && (
+                  <div className={`flex flex-col sm:flex-row gap-2 items-center bg-neutral-950/40 p-2.5 border ${isAcademy ? "border-[#c8a248]/25" : "border-violet-500/10"} rounded-lg mt-3`}>
+                    <input
+                      type="text"
+                      placeholder={t.fieldName}
+                      value={newCustomFieldName}
+                      onChange={(e) => setNewCustomFieldName(e.target.value)}
+                      className="bg-neutral-900 text-xs text-neutral-200 px-2.5 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full sm:w-5/12"
+                    />
+                    <div className="flex gap-2 w-full sm:flex-1">
+                      <input
+                        type="text"
+                        placeholder={t.fieldValue}
+                        value={newCustomFieldValue}
+                        onChange={(e) => setNewCustomFieldValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCustomField();
+                          }
+                        }}
+                        className="bg-neutral-900 text-xs text-neutral-200 px-2.5 py-1.5 rounded border border-neutral-800 focus:outline-none focus:ring-1 focus:ring-amber-500 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomField}
+                        className="p-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded cursor-pointer shrink-0"
+                        title={t.addCustomField}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         )}
@@ -1545,7 +2221,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       <Minus className="w-3.5 h-3.5" />
                     </button>
 
-                    <span className="w-8 text-center text-lg font-mono font-bold text-violet-455">
+                    <span className="w-8 text-center text-lg font-mono font-bold text-violet-400">
                       {character.pxs}
                     </span>
 
@@ -1575,13 +2251,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         {tempAspects.map((aspect, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
+                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
                           >
                             <span className="break-words max-w-[85%]">“ {aspect} ”</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveTempAspect(idx)}
-                              className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
                               title={t.deleteAspect}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1640,10 +2316,33 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-violet-900/10 space-y-3">
                   <div className="flex justify-between items-center text-xs font-mono font-bold">
                     <span className="text-neutral-300">{t.estresFisico}</span>
-                    <span className="text-amber-500">{character.estresFisico}/{character.estresFisicoMax}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-500">{character.estresFisico}/{character.estresFisicoMax}</span>
+                      {isQuickEditing && (
+                        <div className="flex items-center gap-1 ml-1 bg-neutral-900 px-1 py-0.5 rounded border border-neutral-800">
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresFisicoMax", "estresFisico", -1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            -
+                          </button>
+                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresFisicoMax", "estresFisico", 1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center items-center">
+                  <div className="flex flex-wrap gap-2 justify-center items-center">
                     <button
                       id="stress-phys-box-0"
                       onClick={() => {
@@ -1652,7 +2351,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       }}
                       className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresFisico === 0
                           ? "bg-rose-950/30 border-rose-500/40 text-rose-300 shadow-inner"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-500 hover:border-neutral-700"
                         }`}
                       title={t.noStress}
                     >
@@ -1670,7 +2369,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
-                              ? "bg-rose-950/80 border-rose-500 text-rose-350 shadow-inner"
+                              ? "bg-rose-950/80 border-rose-500 text-rose-300 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
                             }`}
                         >
@@ -1701,13 +2400,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         {physCons.map((conseq, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
+                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
                           >
                             <span className="break-words max-w-[85%]">“ {conseq} ”</span>
                             <button
                               type="button"
                               onClick={() => handleRemovePhysicalConsequence(idx)}
-                              className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
                               title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1765,11 +2464,34 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-violet-900/10 space-y-4">
                   <div className="flex justify-between items-center text-xs font-mono font-bold">
                     <span className="text-neutral-300">{t.estresMental}</span>
-                    <span className="text-amber-500">{character.estresMental}/{character.estresMentalMax}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-500">{character.estresMental}/{character.estresMentalMax}</span>
+                      {isQuickEditing && (
+                        <div className="flex items-center gap-1 ml-1 bg-neutral-900 px-1 py-0.5 rounded border border-neutral-800">
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresMentalMax", "estresMental", -1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            -
+                          </button>
+                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresMentalMax", "estresMental", 1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center items-center">
+                  <div className="flex flex-wrap gap-2 justify-center items-center">
                     <button
                       id="stress-mental-box-0"
                       onClick={() => {
@@ -1778,7 +2500,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       }}
                       className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresMental === 0
                           ? "bg-violet-950/30 border-violet-500/40 text-violet-300 shadow-inner"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-500 hover:border-neutral-700"
                         }`}
                       title={t.noStress}
                     >
@@ -1796,7 +2518,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
-                              ? "bg-violet-950/80 border-violet-500 text-violet-350 shadow-inner"
+                              ? "bg-violet-950/80 border-violet-500 text-violet-300 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
                             }`}
                         >
@@ -1828,13 +2550,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         {mentalCons.map((conseq, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
+                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
                           >
                             <span className="break-words max-w-[85%]">“ {conseq} ”</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveMentalConsequence(idx)}
-                              className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
                               title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1892,11 +2614,34 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 {/* Social track box */}
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-violet-900/10 space-y-3">
                   <div className="flex justify-between items-center text-xs font-mono font-bold">
-                    <span className="text-neutral-350">{t.estresSocial}</span>
-                    <span className="text-amber-550">{character.estresSocial}/{character.estresSocialMax}</span>
+                    <span className="text-neutral-300">{t.estresSocial}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-500">{character.estresSocial}/{character.estresSocialMax}</span>
+                      {isQuickEditing && (
+                        <div className="flex items-center gap-1 ml-1 bg-neutral-900 px-1 py-0.5 rounded border border-neutral-800">
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresSocialMax", "estresSocial", -1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            -
+                          </button>
+                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <button
+                            type="button"
+                            onClick={() => changeMaxStress("estresSocialMax", "estresSocial", 1)}
+                            className="text-neutral-400 hover:text-amber-400 px-1 cursor-pointer"
+                            title={t.labelMaximo}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Visual grid checkboxes */}
-                  <div className="flex gap-2 justify-center items-center">
+                  <div className="flex flex-wrap gap-2 justify-center items-center">
                     <button
                       id="stress-soc-box-0"
                       onClick={() => {
@@ -1904,8 +2649,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         saveStateToDB(clone);
                       }}
                       className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${character.estresSocial === 0
-                          ? "bg-indigo-950/30 border-indigo-550/40 text-indigo-300 shadow-inner"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-550 hover:border-neutral-700"
+                          ? "bg-indigo-950/30 border-indigo-500/40 text-indigo-300 shadow-inner"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-500 hover:border-neutral-700"
                         }`}
                       title={t.noStress}
                     >
@@ -1923,7 +2668,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                             saveStateToDB(clone);
                           }}
                           className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition-all cursor-pointer ${isChecked
-                              ? "bg-indigo-950/80 border-indigo-550 text-indigo-350 shadow-inner"
+                              ? "bg-indigo-950/80 border-indigo-500 text-indigo-300 shadow-inner"
                               : "bg-neutral-900 border-neutral-800 text-neutral-600 hover:border-neutral-700"
                             }`}
                         >
@@ -1941,7 +2686,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 {/* Dynamic Social Consequences */}
                 <div className="bg-neutral-950/40 p-4 border border-violet-500/10 rounded-xl space-y-3">
                   <div className="flex flex-col gap-1">
-                    <span className="font-mono text-xs text-neutral-350 uppercase block font-bold">{t.consecuenciasSociales}</span>
+                    <span className="font-mono text-xs text-neutral-300 uppercase block font-bold">{t.consecuenciasSociales}</span>
                   </div>
 
                   {/* Consequences List */}
@@ -1954,13 +2699,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         {socialCons.map((conseq, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-350"
+                            className="flex items-center justify-between p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
                           >
                             <span className="break-words max-w-[85%]">“ {conseq} ”</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveSocialConsequence(idx)}
-                              className="text-neutral-500 hover:text-rose-455 p-1 transition-colors cursor-pointer"
+                              className="text-neutral-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
                               title={t.removeConsequence}
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1999,7 +2744,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                         handleAddSocialConsequence(newSocialConsequence);
                         setNewSocialConsequence("");
                       }}
-                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-450 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 font-bold border border-neutral-700 flex items-center justify-center transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -2014,6 +2759,23 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         {/* TAB 3: HABILIDADES (Skills tracker) */}
         {activeTab === "habilidades" && (
           <div className="space-y-6 animate-fade-in" id="detail-tab-habilidades">
+            {/* Save Default Skill Preset Banner in Quick Edit */}
+            {isQuickEditing && (
+              <div className="bg-violet-950/40 border border-violet-500/20 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <span className="text-xs text-neutral-300 font-mono">
+                  {t.descSaveSkillPreset}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSaveDefaultSkillPreset}
+                  className="px-4 py-2 bg-violet-900 hover:bg-violet-800 border border-violet-500/40 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0"
+                >
+                  <Save className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{presetSavedSuccess ? t.savedPreset : t.btnSaveSkillPreset}</span>
+                </button>
+              </div>
+            )}
+
             {/* Split Skills by structural headings */}
             {["Físicas", "Mentales", "Sociales", "Asignaturas Troncales", "Asignaturas Optativas"].map((catKey) => {
               const matchedSkills = character.habilidades.filter(sk => sk.categoria === catKey);
@@ -2028,30 +2790,37 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
                   {/* Inline insertion form */}
                   {isQuickEditing && (
-                    <div className="bg-neutral-950/40 p-3 rounded-xl border border-violet-500/10 mb-4 flex gap-2 items-center" id={`add-skill-form-${catKey}`}>
-                      <input
-                        id={`input-new-skill-name-${catKey}`}
-                        type="text"
-                        placeholder={t.placeholderNewSkillName}
-                        value={newSkillNames[catKey] || ""}
-                        onChange={(e) => handleNewSkillNameChange(catKey, e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddSkill(catKey);
-                          }
-                        }}
-                        className="flex-1 text-xs bg-neutral-900 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
-                      />
-                      <button
-                        id={`btn-add-skill-${catKey}`}
-                        type="button"
-                        onClick={() => handleAddSkill(catKey)}
-                        className="px-3 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-850 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span className="text-[10px]">{t.add}</span>
-                      </button>
+                    <div className="mb-4 space-y-1.5">
+                      <div className="bg-neutral-950/40 p-3 rounded-xl border border-violet-500/10 flex gap-2 items-center" id={`add-skill-form-${catKey}`}>
+                        <input
+                          id={`input-new-skill-name-${catKey}`}
+                          type="text"
+                          placeholder={t.placeholderNewSkillName}
+                          value={newSkillNames[catKey] || ""}
+                          onChange={(e) => handleNewSkillNameChange(catKey, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddSkill(catKey);
+                            }
+                          }}
+                          className="flex-1 text-xs bg-neutral-900 border border-neutral-700/60 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 text-neutral-200"
+                        />
+                        <button
+                          id={`btn-add-skill-${catKey}`}
+                          type="button"
+                          onClick={() => handleAddSkill(catKey)}
+                          className="px-3 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-800 text-violet-100 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span className="text-[10px]">{t.add}</span>
+                        </button>
+                      </div>
+                      {skillErrorCat === catKey && (
+                        <p className="text-[10px] font-mono text-rose-400 px-1">
+                          {t.errSkillExists.replace("{name}", newSkillNames[catKey] || "")}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -2059,6 +2828,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {character.habilidades.map((sk, index) => {
                         if (sk.categoria !== catKey) return null;
+                        const displaySkillName = translateSkillName(sk.nombre, lang);
                         return (
                           <div
                             id={`skill-row-${sk.nombre}`}
@@ -2071,14 +2841,14 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveSkill(index)}
-                                  className="w-6 h-6 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-350 flex items-center justify-center transition-all cursor-pointer border border-rose-500/10 p-0 mr-1"
-                                  title={`${t.delete} ${sk.nombre}`}
+                                  className="w-6 h-6 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer border border-rose-500/10 p-0 mr-1"
+                                  title={`${t.delete} ${displaySkillName}`}
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               )}
                               <div className="truncate flex-1">
-                                <span className="text-xs font-semibold text-neutral-200 block truncate" title={sk.nombre}>{sk.nombre}</span>
+                                <span className="text-xs font-semibold text-neutral-200 block truncate" title={displaySkillName}>{displaySkillName}</span>
                                 <div className="flex gap-1 mt-1">
                                   {/* Small glowing pips indicating score weights */}
                                   {Array.from({ length: 5 }).map((_, i) => (
@@ -2100,7 +2870,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                   disabled={sk.valor === 0}
                                   className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 0
                                       ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
-                                      : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-rose-455"
+                                      : "bg-neutral-900 hover:bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-rose-400"
                                     }`}
                                 >
                                   -
@@ -2117,7 +2887,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                                   disabled={sk.valor === 5}
                                   className={`w-6 h-6 rounded-md flex items-center justify-center border font-mono font-black text-xs transition-colors cursor-pointer ${sk.valor === 5
                                       ? "bg-neutral-900 border-neutral-950 text-neutral-700 cursor-not-allowed"
-                                      : "bg-neutral-900 hover:bg-neutral-850 border-neutral-700 text-neutral-400 hover:text-emerald-450"
+                                      : "bg-neutral-900 hover:bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-emerald-400"
                                     }`}
                                 >
                                   +
@@ -2229,7 +2999,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <button
                     id="btn-add-spell"
                     onClick={addSpell}
-                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
+                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-800 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
                   >
                     {t.register}
                   </button>
@@ -2323,7 +3093,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <button
                     id="btn-add-potion"
                     onClick={addPotion}
-                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
+                    className="w-full py-1.5 bg-violet-900 hover:bg-violet-800 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer"
                   >
                     {t.register}
                   </button>
@@ -2359,7 +3129,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                           <button
                             id={`btn-del-club-${cl.id}`}
                             onClick={() => handleRemoveClub(cl.id)}
-                            className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
+                            className="text-neutral-500 hover:text-rose-400 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
                           >
                             <Trash className="w-3.5 h-3.5" />
                           </button>
@@ -2409,23 +3179,44 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     character.equipoList.map((eq) => (
                       <div
                         key={eq.id}
-                        className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all"
+                        className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all gap-2"
                       >
-                        <div className="flex items-center gap-2 max-w-[80%]">
-                          <span className="text-xs text-neutral-200 font-mono break-all">{eq.nombre}</span>
-                          <span className="bg-neutral-850 text-[10px] px-1.5 py-0.2 rounded text-amber-400 font-bold border border-neutral-800">
-                            x{eq.cantidad}
-                          </span>
+                        <span className="text-xs text-neutral-200 font-mono break-all flex-1">{eq.nombre}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => handleChangeInventoryQty(eq.id, -1)}
+                              disabled={eq.cantidad <= 1}
+                              className={`px-1.5 py-0.5 text-[10px] font-mono font-bold transition-colors ${
+                                eq.cantidad <= 1
+                                  ? "text-neutral-700 cursor-not-allowed"
+                                  : "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 cursor-pointer"
+                              }`}
+                            >
+                              -
+                            </button>
+                            <span className="text-[10px] px-1.5 text-amber-400 font-mono font-bold tabular-nums">
+                              x{eq.cantidad}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleChangeInventoryQty(eq.id, 1)}
+                              className="px-1.5 py-0.5 text-[10px] font-mono font-bold text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 transition-colors cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                          {isQuickEditing && (
+                            <button
+                              id={`btn-del-item-${eq.id}`}
+                              onClick={() => handleRemoveInventoryItem(eq.id)}
+                              className="text-neutral-500 hover:text-rose-400 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
+                            >
+                              <Trash className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
-                        {isQuickEditing && (
-                          <button
-                            id={`btn-del-item-${eq.id}`}
-                            onClick={() => handleRemoveInventoryItem(eq.id)}
-                            className="text-neutral-500 hover:text-rose-450 p-0.5 cursor-pointer opacity-80 hover:opacity-100 transition-colors"
-                          >
-                            <Trash className="w-3.5 h-3.5" />
-                          </button>
-                        )}
                       </div>
                     ))
                   ) : (
@@ -2501,41 +3292,92 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               {/* List of custom notes - Order is consultation first, we render them neatly. Newest notes are at the top. */}
               <div className="space-y-3 overflow-y-auto max-h-[480px] pr-1 flex-1">
                 {character.notasList && character.notasList.length > 0 ? (
-                  [...character.notasList].sort((a, b) => b.fecha - a.fecha).map((note) => (
-                    <div
-                      key={note.id}
-                      className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-4 space-y-2 hover:border-violet-500/10 transition-all shadow-inner"
-                    >
-                      <div className="flex justify-between items-start gap-3">
-                        <div>
-                          <h4 className="text-xs font-semibold text-neutral-200 font-sans tracking-wide">
-                            {note.titulo}
-                          </h4>
-                          <span className="text-[9px] font-mono text-neutral-500">
-                            {new Date(note.fecha).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        </div>
-                        {isQuickEditing && (
-                          <button
-                            id={`btn-del-note-${note.id}`}
-                            onClick={() => handleRemoveNote(note.id)}
-                            className="text-neutral-500 hover:text-rose-450 p-1 cursor-pointer hover:bg-neutral-900 rounded transition-colors"
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
+                  [...character.notasList].sort((a, b) => b.fecha - a.fecha).map((note) => {
+                    const isEditingThisNote = editingNoteId === note.id;
+                    return (
+                      <div
+                        key={note.id}
+                        className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-4 space-y-2 hover:border-violet-500/10 transition-all shadow-inner"
+                      >
+                        {isEditingThisNote ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={editingNoteTitle}
+                              onChange={(e) => setEditingNoteTitle(e.target.value)}
+                              placeholder={t.placeholderNoteTitle}
+                              className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
+                            />
+                            <textarea
+                              rows={4}
+                              value={editingNoteContent}
+                              onChange={(e) => setEditingNoteContent(e.target.value)}
+                              placeholder={t.placeholderNoteContent}
+                              className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none min-h-[80px]"
+                            />
+                            <div className="flex justify-end gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setEditingNoteId(null)}
+                                className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-neutral-200 rounded-lg text-[11px] font-mono font-bold cursor-pointer"
+                              >
+                                {t.cancel}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditedNote(note.id)}
+                                className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1 cursor-pointer"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                {t.saveNote}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-start gap-3">
+                              <div>
+                                <h4 className="text-xs font-semibold text-neutral-200 font-sans tracking-wide">
+                                  {note.titulo}
+                                </h4>
+                                <span className="text-[9px] font-mono text-neutral-500">
+                                  {new Date(note.fecha).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditNote(note)}
+                                  className="text-neutral-500 hover:text-amber-400 p-1 cursor-pointer hover:bg-neutral-900 rounded transition-colors"
+                                  title={t.editNote}
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                {isQuickEditing && (
+                                  <button
+                                    id={`btn-del-note-${note.id}`}
+                                    onClick={() => handleRemoveNote(note.id)}
+                                    className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer hover:bg-neutral-900 rounded transition-colors"
+                                  >
+                                    <Trash className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-xs text-neutral-300 font-sans leading-relaxed whitespace-pre-wrap select-text selection:bg-violet-900 selection:text-white pt-1">
+                              {note.contenido}
+                            </p>
+                          </>
                         )}
                       </div>
-                      <p className="text-xs text-neutral-300 font-sans leading-relaxed whitespace-pre-wrap select-text selection:bg-violet-900 selection:text-white pt-1">
-                        {note.contenido}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 border border-dashed border-neutral-900 rounded-xl bg-neutral-950/10 text-center select-none">
                     <span className="text-xl mb-1.5">📝</span>
@@ -2571,7 +3413,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                   <button
                     id="btn-add-note"
                     onClick={handleAddNote}
-                    className="w-full py-2 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-violet-900 hover:bg-violet-800 border border-violet-600 text-violet-100 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
                     {t.registerNote}
@@ -2588,7 +3430,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6 animate-fade-in" id="detail-tab-galeria">
 
             {/* Top Info with file picker */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-violet-550/10 pb-3">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-violet-500/10 pb-3">
               <div>
                 <h3 className="font-magic text-xs text-amber-400 uppercase tracking-widest flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-violet-400" />
@@ -2644,7 +3486,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     <img
                       src={pic}
                       alt={`Relato ${idx}`}
-                      className="w-full h-auto object-contain block transition-transform group-hover:scale-[1.02] duration-350"
+                      className="w-full h-auto object-contain block transition-transform group-hover:scale-[1.02] duration-300"
                       referrerPolicy="no-referrer"
                     />
 
@@ -2653,7 +3495,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                       <button
                         id={`btn-del-gal-pic-${idx}`}
                         onClick={(e) => removeGalleryImage(idx, e)}
-                        className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-350 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
+                        className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
                         title="Delete picture"
                       >
                         <Trash className="w-3.5 h-3.5" />
@@ -2675,6 +3517,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           </div>
         )}
 
+      </div>
       </div>
 
       {/* Lightbox Modal overlay */}
@@ -2705,7 +3548,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         <div id="modal-delete-student" className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
           <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-rose-500/30 bg-[#0e0a16] shadow-2xl space-y-4">
             <h3 className="font-magic text-base text-rose-400 font-bold border-b border-rose-500/10 pb-2 flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-rose-450" />
+              <Trash2 className="w-5 h-5 text-rose-400" />
               {t.confirmDelete}
             </h3>
             <p className="text-neutral-300 text-sm">
@@ -2733,7 +3576,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <button
                 id="btn-confirm-delete-student-cancel"
                 onClick={() => setIsDeleteStudentOpen(false)}
-                className="px-4 py-2 border border-neutral-700/60 hover:bg-neutral-850 text-neutral-400 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                className="px-4 py-2 border border-neutral-700/60 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
               >
                 {t.cancel}
               </button>
@@ -2742,7 +3585,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 disabled={!deleteStudentUnderstood}
                 onClick={confirmDeleteCharacter}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${deleteStudentUnderstood
-                    ? "bg-rose-600 text-white hover:bg-rose-505 shadow-md shadow-rose-600/25"
+                    ? "bg-rose-600 text-white hover:bg-rose-500 shadow-md shadow-rose-600/25"
                     : "bg-neutral-900 text-neutral-600 border border-neutral-950 cursor-not-allowed"
                   }`}
               >
@@ -2759,7 +3602,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         <div id="modal-minor-delete" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
           <div className="glass-panel max-w-sm w-full p-5 rounded-xl border border-violet-500/20 bg-[#0c0814] shadow-xl space-y-4">
             <h4 className="font-sans text-xs font-mono text-neutral-400 uppercase tracking-widest flex items-center gap-1.5 border-b border-violet-500/10 pb-2">
-              <Trash className="w-3.5 h-3.5 text-rose-450" />
+              <Trash className="w-3.5 h-3.5 text-rose-400" />
               {t.confirmDeleteTitle}
             </h4>
             <p className="text-neutral-200 text-xs">
@@ -2774,7 +3617,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <button
                 id="btn-minor-delete-cancel"
                 onClick={() => setMinorDeleteTarget(null)}
-                className="px-3 py-1.5 border border-neutral-800 hover:bg-neutral-850 text-neutral-400 hover:text-white rounded-md text-[11px] font-bold transition-all cursor-pointer"
+                className="px-3 py-1.5 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-md text-[11px] font-bold transition-all cursor-pointer"
               >
                 {t.cancel}
               </button>
@@ -2795,7 +3638,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     confirmRemoveNote(minorDeleteTarget.id as string);
                   }
                 }}
-                className="px-3 py-1.5 bg-rose-955/80 hover:bg-rose-900 text-rose-400 hover:text-rose-200 rounded-md text-[11px] font-bold transition-all cursor-pointer border border-rose-500/10"
+                className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-200 rounded-md text-[11px] font-bold transition-all cursor-pointer border border-rose-500/10"
               >
                 {t.delete}
               </button>
@@ -2871,13 +3714,126 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmCrop}
-                className="w-full py-2.5 bg-violet-900 hover:bg-violet-850 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-violet-900 hover:bg-violet-800 border border-violet-600 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Check className="w-4 h-4" />
                 {t.cropConfirm}
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Vincular Familiar a este personaje */}
+      {isSelectFamiliarModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-amber-500/30 shadow-2xl space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="font-magic text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
+                <PawPrint className="w-4 h-4 text-emerald-400" />
+                {t.familiarBondSectionTitle}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsSelectFamiliarModalOpen(false)}
+                className="text-neutral-400 hover:text-neutral-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-300 font-sans">
+              {t.selectFamiliarPlaceholder}
+            </p>
+
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+              {/* Opción 1: Sin familiar / Desvincular */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onBondFamiliar && character.id) {
+                    onBondFamiliar(character.id, null);
+                  } else {
+                    const clone = { ...character, familiarId: undefined };
+                    saveStateToDB(clone);
+                  }
+                  setIsSelectFamiliarModalOpen(false);
+                }}
+                className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
+                  !character.familiarId
+                    ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
+                    : "bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700"
+                }`}
+              >
+                <span>{t.familiarBondNone}</span>
+                {!character.familiarId && <Check className="w-4 h-4 text-emerald-400" />}
+              </button>
+
+              {/* Lista de familiares creados */}
+              {familiars.map((fam) => (
+                <button
+                  key={fam.id}
+                  type="button"
+                  onClick={() => {
+                    if (onBondFamiliar && character.id) {
+                      onBondFamiliar(character.id, fam.id);
+                    } else {
+                      const clone = { ...character, familiarId: fam.id };
+                      saveStateToDB(clone);
+                    }
+                    setIsSelectFamiliarModalOpen(false);
+                  }}
+                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
+                    character.familiarId === fam.id
+                      ? "bg-amber-950/60 border-amber-500 text-amber-200"
+                      : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    {fam.imagen ? (
+                      <img
+                        src={fam.imagen}
+                        alt={fam.nombre}
+                        className="w-7 h-7 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-emerald-950/60 flex items-center justify-center shrink-0 text-emerald-400">
+                        <PawPrint className="w-4 h-4" />
+                      </div>
+                    )}
+                    <span className="truncate font-semibold">{fam.nombre}</span>
+                    <span className="text-[10px] text-emerald-400">
+                      ({fam.especie})
+                    </span>
+                  </div>
+                  {character.familiarId === fam.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-neutral-800">
+              {onOpenCreateFamiliar ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSelectFamiliarModalOpen(false);
+                    onOpenCreateFamiliar();
+                  }}
+                  className="text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t.createNewFamiliar}</span>
+                </button>
+              ) : <div />}
+              <button
+                type="button"
+                onClick={() => setIsSelectFamiliarModalOpen(false)}
+                className="px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl text-xs font-mono uppercase cursor-pointer"
+              >
+                {t.cancel}
+              </button>
+            </div>
           </div>
         </div>
       )}

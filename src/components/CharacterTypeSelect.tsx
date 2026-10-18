@@ -6,27 +6,29 @@
 import React from "react";
 import { CharacterType, CHARACTER_TYPES } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, PawPrint } from "lucide-react";
 
 interface CharacterTypeSelectProps {
   lang: Language;
   onSelectType: (type: CharacterType) => void;
+  onOpenFamiliarEditor: () => void;
   onCancel: () => void;
 }
 
 export const CharacterTypeSelect: React.FC<CharacterTypeSelectProps> = ({
   lang,
   onSelectType,
+  onOpenFamiliarEditor,
   onCancel,
 }) => {
   const t = TRANSLATIONS[lang];
 
   return (
     <div 
-      className="w-full max-w-4xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[70vh] animate-fade-in"
+      className="w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[70vh] animate-fade-in"
       id="character-type-select-container"
     >
-      <div className="w-full max-w-2xl bg-neutral-900/70 border border-violet-500/20 rounded-2xl p-6 md:p-8 backdrop-blur-md shadow-2xl relative">
+      <div className="w-full max-w-4xl bg-neutral-900/70 border border-violet-500/20 rounded-2xl p-6 md:p-8 backdrop-blur-md shadow-2xl relative">
         {/* Magic spark decorations */}
         <div className="absolute top-4 right-4 text-amber-500/40 animate-pulse">
           <Sparkles className="w-6 h-6" />
@@ -43,7 +45,7 @@ export const CharacterTypeSelect: React.FC<CharacterTypeSelectProps> = ({
         </div>
 
         {/* Options grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-stretch">
           {/* Student archetype */}
           <button
             type="button"
@@ -79,6 +81,24 @@ export const CharacterTypeSelect: React.FC<CharacterTypeSelectProps> = ({
               {t.characterTypeAdultWizardDescription}
             </p>
           </button>
+
+          {/* Familiar Editor section */}
+          <button
+            type="button"
+            id="type-select-familiar-editor"
+            onClick={onOpenFamiliarEditor}
+            className="group flex flex-col items-center p-6 bg-neutral-950/40 hover:bg-neutral-950/80 border border-emerald-500/15 hover:border-emerald-400/60 rounded-xl cursor-pointer text-center transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-950/30"
+          >
+            <div className="w-16 h-16 rounded-full bg-emerald-950/50 group-hover:bg-emerald-500/20 border border-emerald-500/25 group-hover:border-emerald-400/40 flex items-center justify-center text-emerald-400 mb-4 transition-colors">
+              <PawPrint className="w-8 h-8" />
+            </div>
+            <h3 className="font-sans font-bold text-neutral-200 group-hover:text-emerald-300 text-lg transition-colors mb-2">
+              {t.familiarEditorCardTitle}
+            </h3>
+            <p className="text-xs text-neutral-400 group-hover:text-neutral-300 leading-relaxed font-sans">
+              {t.familiarEditorCardDescription}
+            </p>
+          </button>
         </div>
 
         {/* Footer actions */}
@@ -87,7 +107,7 @@ export const CharacterTypeSelect: React.FC<CharacterTypeSelectProps> = ({
             type="button"
             id="btn-type-select-cancel"
             onClick={onCancel}
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-950/60 hover:bg-neutral-850 hover:text-neutral-200 border border-neutral-800 text-neutral-400 font-mono text-xs rounded-lg transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-950/60 hover:bg-neutral-800 hover:text-neutral-200 border border-neutral-800 text-neutral-400 font-mono text-xs rounded-lg transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.back}</span>

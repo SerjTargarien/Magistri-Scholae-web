@@ -27,10 +27,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           className="bg-transparent border-none p-0 pr-6 text-neutral-200 font-medium cursor-pointer focus:ring-0 focus:outline-none text-xs sm:text-sm"
           style={{ backgroundImage: "none" }} // remove default arrow styles if needed
         >
-          <option value="es" className="bg-neutral-930 text-neutral-200">
+          <option value="es" className="bg-neutral-900 text-neutral-200">
             🇪🇸 Español
           </option>
-          <option value="en" className="bg-neutral-930 text-neutral-200">
+          <option value="en" className="bg-neutral-900 text-neutral-200">
             🇬🇧 English
           </option>
         </select>

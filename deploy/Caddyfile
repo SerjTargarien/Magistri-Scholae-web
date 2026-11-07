@@ -1,0 +1,29 @@
+# Release R1: serves the static frontend build. R2 adds /api to Django.
+# SITE_ADDRESS is set in deploy/.env, e.g.
+#   staging only:  staging.magistrischolae.fyi
+#   after cutover: magistrischolae.fyi, www.magistrischolae.fyi, staging.magistrischolae.fyi
+# A local test uses ":80" (plain HTTP, no certificate).
+
+{$SITE_ADDRESS} {
+	root * /srv/releases/current
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+		-Server
+	}
+
+	# The shell and service worker must always revalidate so a release is
+	# picked up immediately; hashed build assets never change.
+	@shell path / /index.html /sw.js /manifest.json
+	header @shell Cache-Control "no-cache"
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Single-page app: unknown paths fall back to the shell, except assets.
+	@spa not path /assets/*
+	try_files @spa {path} /index.html
+	file_server
+}

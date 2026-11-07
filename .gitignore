@@ -16,6 +16,7 @@ __pycache__/
 .npm-cache/
 .DS_Store
 *.log
+deploy/releases/
 .env*
 !.env.example
 !.env.mock

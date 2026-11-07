@@ -28,7 +28,8 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 |---|---|---|---|
 | R0 Safety net (**done**) | Work pushed, CI and UI smoke tests running, Vercel frozen as rollback | S | Owner decision 1 |
 | R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
-| R2 Backend on staging | Django + PostgreSQL behind HTTPS on staging, backed up and restorable | M | R1 |
+| S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
+| R2 Backend on staging | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts | Existing screens run in local, mock and remote mode | L | R0 |
 | R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3c |
 | R5 Data carry-over | Existing records reach the server without loss | S–M | R3a, R4 |
@@ -36,6 +37,8 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R7 After launch | Offline viewing, privacy editor, transfers, GM library, cleanup | M–L | R6 |
 
 **Critical path:** R0 → R3 → R5 → R6. R1 and R2 form an infrastructure track that touches different files (`deploy/`, `backend/config/`). It can run in a parallel session while R3 is in progress. R4 overlaps the end of R3. **R1 is the quick win**: days after SSH access, with no feature change. **R3 is the long pole.**
+
+**Working order chosen by the owner (7 November 2026):** one release at a time, R2 → R3 → R4 → R5 → R6. Each step is explained before it is carried out. R0, R1 and S are done.
 
 ## Feature checklist
 
@@ -127,8 +130,13 @@ Every release that changes the UI must pass this list, in each mode it affects, 
    - Keep secrets in a server-only env file.
 3. **Maintenance (M5).** A scheduled command that runs `clearsessions`, purges expired invitations, reset codes, rate buckets and old receipts, and reports orphaned media.
 4. **Read locks (M1).** Remove write locks from the image and GM-note GET routes.
-5. **Backups.** Nightly encrypted `pg_dump` plus a media copy off the VPS, keeping 7 daily and 4 weekly copies. Do one restore drill on a clean environment.
-6. **Staging data.** Staging runs the remote build with fictional accounts only. The stopgap UI is acceptable here.
+5. **Backups to Backblaze B2** (decision 5):
+   - Each night, archive a `pg_dump` and the media volume, and encrypt the archive with [age](https://github.com/FiloSottile/age) to a public key. The private key is never on the server; it lives in the owner's password manager. A compromised server therefore cannot read past backups.
+   - Upload with rclone using a B2 application key restricted to the backup bucket **without the `deleteFiles` capability**, so the server can add backups but cannot destroy history.
+   - Retention comes from a bucket lifecycle rule (for example, 30 daily archives kept), not from the server.
+   - Keep the last few archives on the VPS as well, for quick restores.
+   - Restore drill: download an archive, decrypt it on the owner's PC, and restore it into a throwaway database and media folder. Record the steps in `deploy/README.md`.
+6. **Staging data.** Staging switches from the local-mode app to the remote build, with fictional accounts only; the stopgap UI is acceptable here. Model the data as one universe campaign with two tables (decision 9).
 
 **Exit criteria:**
 
@@ -138,7 +146,10 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - The restore drill succeeds.
 - `check --deploy` is clean apart from the documented HSTS-preload warning.
 
-**Owner actions:** choose the off-VPS backup destination (decision 5) and keep a copy of the backup encryption key off the VPS.
+**Owner actions:**
+
+- Create a Backblaze account (choose the **EU** data region at sign-up; it cannot be changed later), a private bucket, and the restricted application key. The agent guides each step.
+- Store the backup decryption key and the B2 credentials in a password manager.
 
 **Rollback:** staging only; tear it down.
 
@@ -171,38 +182,48 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - The smoke suite also runs in remote mode against a CI backend.
 - All existing tests pass.
 
-**Owner actions:** until R3d lands, limit AI Studio to presentation-only changes (decision 6).
+Lists also show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
+
+**Owner actions:** none beyond reviewing each step. AI Studio is paused until launch (decision 6).
 
 **Rollback:** revert the step's pull request; the smoke tests guard local mode.
 
 ## R4 — Admin essentials (M)
 
-**Goal:** the owner runs the group without API calls or the Django shell.
+**Goal:** the owner runs the group without API calls or the Django shell, and the GM manages his campaign through clear, visual screens.
+
+**Who does what (decision 10):** the owner is the site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players in total. The GM prefers simple, visual screens, and the owner handles setup when a screen is unclear. Administrator tasks therefore must never require the GM role, which would expose every sheet to the owner as a player.
 
 **Work:**
 
-- Backend: an administrator-only, paginated `GET api/v1/admin/users`.
-- Screens to:
-  - Create campaigns.
-  - Issue GM and player invitations (the token is shown once, with a copy button).
+- **Backend:**
+  - An administrator-only, paginated `GET api/v1/admin/users`.
+  - Administrator access to a campaign's member list (usernames and roles only, no sheet content). Today only GMs can list members.
+  - A per-campaign list of table names, and a GM-managed table label on each sheet (decision 9), validated server-side.
+- **Administrator screens:**
+  - Create the campaign.
+  - Issue the GM invitation and player invitations (the token is shown once, with a copy button).
   - List users.
   - Issue reset codes.
   - Enable and disable accounts.
   - Manage members and roles.
-  - Assign sheets.
-  - Archive and restore sheets.
+- **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
 
 The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).
 
-**Exit criteria:** on staging, after `createsuperuser`, the owner does everything else in the UI: a campaign, GM and player invitations, registration, assignment, a reset code and disabling an account.
+**Exit criteria:** on staging, after `createsuperuser`, the owner does everything else in the UI without becoming a GM: a campaign, GM and player invitations, registration, members, a reset code and disabling an account. A fictional GM account sets up two tables and moves a character between them. The owner, as a player, never sees another player's sheet.
 
 **Rollback:** revert.
 
 ## R5 — Data carry-over (S–M)
 
-**Decision first:** whose data exists? [design.md](design.md) records that nobody else uses the hosted site (decision 3).
+**Decided (decision 3): option A, only the owner's data.** The owner, logged in as a player, imports their backup file. The sheets are created as their own, at their table, through the existing endpoints with operation IDs. The import uploads images and links bonds. A dry-run summary comes first, and a rerun creates no duplicates.
 
-- **Option A, only your data:** import a backup file in the account UI; the GM imports and assigns the sheets.
+**Owner check before importing:** old journal entries normally become ordinary journal entries the GM can see. The import screen should let the owner mark selected entries to become **personal notes** (author-only) instead.
+
+Option B below is kept for reference only:
+
+- **Option A, only your data:** import a backup file in the account UI.
 - **Option B, players have data:** a migration screen in the remote build at the production origin.
   - It reads the old `MagistriScholaeDB` read-only and shows a dry run: counts, images, bonds, journals, warnings and oversized images.
   - It then creates the records through the existing endpoints with operation IDs, uploads images and links bonds.
@@ -225,6 +246,7 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 
 - Run the production stack on the VPS, with its database and media separate from staging.
 - Generate production secrets and bootstrap the administrator.
+- Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him). The owner imports their own data (R5).
 - Switch the apex frontend from the local build to the remote build (including the migrator under option B).
 - Run the first production backup and check it restores.
 - Tag the release.
@@ -238,7 +260,7 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 - Logs are visible.
 - `check --deploy` is clean.
 
-**Known regression:** the current app works offline. The account app allows online editing only, by product decision. Offline viewing is a confirmed requirement that arrives in R7.1 unless decision 2 pulls it before launch.
+**Known regression:** the current app works offline. The account app allows online editing only, by product decision. Offline viewing is a confirmed requirement that arrives in R7.1, shortly after launch (decision 2).
 
 **Owner actions:** invite the players and hand out their invitations.
 
@@ -257,19 +279,22 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
    - Reclaim orphaned media.
    - Trim the docs.
    - Retire the Vercel project once it is no longer needed (DNS already moved to the registrar in R1).
+6. Watch item: Porkbun's DNS runs on Cloudflare's network, and some Spanish ISPs (including the owner's) block Cloudflare addresses during football matches. If the domain ever fails to resolve during a match while working on mobile data, move DNS to a non-Cloudflare provider.
 
 ## Owner decisions
 
 | # | Decision | Needed by | Recommendation |
 |---|---|---|---|
 | 1 | Publish `docs/` in the public repository? | R0 | **Decided 7 November 2026:** publish; VPS, registrar and DNS specifics live only in the git-ignored `docs/infrastructure.local.md`. |
-| 2 | Offline viewing before or after launch? | R6 | Right after launch (R7.1), given no current users. |
-| 3 | Whose data needs carrying over? | R5 | Confirm. If only yours, use option A. |
+| 2 | Offline viewing before or after launch? | R6 | **Decided 7 November 2026:** shortly after launch (R7.1). |
+| 3 | Whose data needs carrying over? | R5 | **Decided 7 November 2026:** only the owner's (option A: import their backup file as a player). |
 | 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | **Decided 7 November 2026:** keep the two existing services running with automatic restart; the broken auto-updater was removed. |
-| 5 | Off-VPS backup destination | R2 | Any provider with encryption at rest, plus restic. |
-| 6 | AI Studio limited to presentation work until R3d? | R3 | Yes. |
+| 5 | Off-VPS backup destination | R2 | **Decided 7 November 2026:** Backblaze B2 (free tier, EU region), age-encrypted, uploaded with a key that cannot delete. Cloudflare R2 was rejected because the owner's internet provider blocks Cloudflare during football matches. A phone copy via Syncthing-Fork remains an optional second copy. |
+| 6 | AI Studio limited to presentation work until R3d? | R3 | **Decided 7 November 2026:** AI Studio is paused until launch; all changes go through this workflow. |
 | 7 | Agent SSH access to the VPS, or owner-run scripts? | R1 | **Decided 7 November 2026:** a dedicated `deploy` user with the agent's own key. Server hardening (SSH passwords, firewall, sudo scope) is deferred to a separate security step. |
-| 8 | Hosting providers after R1? | R1 | **Decided 7 November 2026:** only Porkbun (registrar and DNS) and Contabo; no Vercel dependency. |
+| 8 | Hosting providers after R1? | R1 | **Decided 7 November 2026:** only Porkbun (registrar and DNS) and Contabo; no Vercel dependency. Backblaze B2 holds backups. |
+| 9 | How to model the GM's two crossing-over campaigns? | R2 | **Decided 7 November 2026:** one universe campaign in the app, with two tables labelled per character (option A). Player characters cross over by sharing or reassignment within the same campaign. Players remain separated by default. Rejected: two campaigns with moving (B), or characters in two campaigns at once (C). |
+| 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
 
 ## Former milestones
 

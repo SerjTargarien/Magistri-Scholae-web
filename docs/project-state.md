@@ -69,7 +69,7 @@ None of those infrastructure details blocks a local storage-interface refactor.
 | 1. Local/mock storage boundary for characters and familiars | Implemented and verified locally; see checkpoint below. |
 | 2. Django/PostgreSQL API, accounts and privacy foundation | Implemented and verified locally; see checkpoint below. |
 | 3. Remote editing, private media and note promotion | Implemented and verified locally; see checkpoint below. |
-| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 complete (PR #1). **R1 complete on 7 November 2026** (PRs #2 and #3): `magistrischolae.fyi` served from Contabo, DNS at Porkbun; only removing the domain from the Vercel project remains (after 48 hours). Next: R2 and R3 (parallel tracks). See [implementation-plan.md](implementation-plan.md) and the checkpoints below. |
+| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 complete (PR #1). **R1 complete on 7 November 2026** (PRs #2 and #3): `magistrischolae.fyi` served from Contabo, DNS at Porkbun; only removing the domain from the Vercel project remains (after 48 hours). Server security step S done the same day. Next: R2, then R3–R6, one at a time. See [implementation-plan.md](implementation-plan.md) and the checkpoints below. |
 
 Documentation preparation validation: all eight Markdown files passed relative-file link checks, balanced-code-fence checks, and scans for replacement/zero-width characters. Installed copies matched staged SHA-256 hashes. Git status showed only the README edit plus new `AGENTS.md` and `docs/`; `git diff --check` passed for the tracked README change. Git emitted an informational LF-to-CRLF notice. No Git configuration was changed.
 
@@ -247,6 +247,21 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - **Phase 1 (DNS still at Vercel):** the owner added a `www` record and changed the main-domain record to the VPS. For each, a watcher waited until both Vercel nameservers returned exactly the VPS, then added the name to Caddy's address list. Let's Encrypt certificates were issued about 8 s later in both cases, with no mixed answers from Vercel's managed records. Verified: HTTPS, the HTTP and `www` redirects, deep links, `version.txt` from `main`, and local-desktop browser tests 5/5 against `https://magistrischolae.fyi`, including offline reload. **The owner confirmed all their existing records appear in their usual browser.** Their home router cached old DNS answers well beyond the 60 s TTL for several minutes (harmless: both paths worked).
 - **Phase 2 (DNS to Porkbun):** DNSSEC was off. The owner recreated the main-domain, `www` and `staging` records and a Let's Encrypt-only CAA record in Porkbun DNS, then switched the nameservers with Porkbun's "update my domain" button. The `.fyi` registry delegated to Porkbun about 9 minutes later; the site answered from the VPS through every resolver checked. Porkbun's form needs CAA as one line, `0 issue "letsencrypt.org"`; a first entry was saved but not published until re-entered in that format.
 - **Remaining:** after 48 hours, remove the domain from the Vercel project (and optionally the project). Deferred to a later security step at the owner's request: SSH password logins, the firewall and the `deploy` user's passwordless sudo. Next releases: R2 (backend on staging) and R3 (real UI on accounts).
+
+## Server security step S and plan decisions — 7 November 2026
+
+- **Why:** the server's SSH log showed hundreds of automated password guesses per hour (most against `root`), and no foreign successful login.
+- **Done:** the owner's Windows PC and Android phone (Termius) each have their own Ed25519 key in root's allowed keys, labelled per device. Each device and the VNC console fallback were tested first. Then SSH password and keyboard-interactive logins were disabled and root was limited to keys. The settings file must sort before the provider's cloud-init file, so the effective settings were verified with `sshd -T`. A login banner reminds the owner of key-only access. Verified: fresh key logins work, and a password login is refused (`Permission denied (publickey)`).
+- **Unaffected:** the two existing apps (web ports, used by devices such as the owner's MiSTer FPGA over HTTP) and the website. Before the change, no SSH login by any other user or device appears in the server's history.
+- **Deferred by owner choice:** firewall and narrowing the `deploy` user's sudo (low value now). Undo, add-device and remove-device procedures are in `docs/infrastructure.local.md`.
+- **Plan decisions recorded in [implementation-plan.md](implementation-plan.md):**
+  - Only the owner's data is carried over.
+  - Backups go to Backblaze B2: age-encrypted, with an upload key that cannot delete.
+  - Offline viewing comes shortly after launch.
+  - AI Studio is paused until launch.
+  - The GM's two crossing-over campaigns become one universe campaign with two tables.
+  - The owner is administrator and a player at one table, not a GM; one GM; 7–12 players; GM screens must be visual and simple.
+- **Next:** R2, backend on staging, step by step.
 
 ## Updating this handoff
 

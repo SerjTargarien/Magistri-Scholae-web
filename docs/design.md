@@ -23,7 +23,7 @@ Use Django and PostgreSQL for the backend, as selected by the owner. The expande
 
 | Area | Confirmed decision |
 |---|---|
-| Initial audience | One private group with one GM; allow multiple groups and GMs later. |
+| Initial audience | One private group with one GM; allow multiple groups and GMs later. Confirmed on 7 November 2026: one GM runs two crossing-over stories in one universe, modelled as **one campaign with two tables**; 7–12 players. The site owner is the administrator and a player at one table, not a GM. |
 | Accounts | Invitation-only, username/password accounts; no required email and no Google login. |
 | Recovery | A site administrator issues a short-lived reset code; the user chooses the replacement password. |
 | Character creation | Players create and edit their own characters. The GM can create, assign, and edit campaign characters. |

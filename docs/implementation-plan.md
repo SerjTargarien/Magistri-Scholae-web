@@ -29,7 +29,7 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R0 Safety net (**done**) | Work pushed, CI and UI smoke tests running, Vercel frozen as rollback | S | Owner decision 1 |
 | R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
-| R2 Backend on staging | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
+| R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts | Existing screens run in local, mock and remote mode | L | R0 |
 | R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3c |
 | R5 Data carry-over | Existing records reach the server without loss | S–M | R3a, R4 |
@@ -113,6 +113,8 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 **Rollback:** point the apex record back to Vercel. Browser data is untouched either way.
 
 ## R2 — Backend on staging (M; parallel with R3)
+
+**Status: done on 7 November 2026.** All exit criteria are met; see [project-state.md](project-state.md). Backups use a GnuPG passphrase kept on the server (with an owner-held paper copy) instead of age with an off-server key, by the owner's choice. The Backblaze key is the web console's "Write Only" key, which can also delete files and change lifecycle rules; the owner accepted that trade-off.
 
 **Goal:** Django and PostgreSQL run behind Caddy on the staging hostname with fictional accounts, backed up and restorable.
 

@@ -300,7 +300,15 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - Scripts: `backup.sh`, `b2_upload.py` and `restore-check.sh`.
   - **Tested on the VPS from the branch:** the first real backup was encrypted, verified and uploaded with a matching SHA-1. The restore drill matched all 22 tables row for row with live staging. No leftovers.
   - Limitation: media was tested with zero files; repeat once staging has an image (R2.5).
-- **Next:** merge R2.4, schedule nightly backups, then R2.5 (exit checks).
+- **R2.4 merged** (PR #9). The nightly backup is scheduled at 03:30 server time; a run identical to the scheduled one uploaded a verified backup.
+- **R2.5 exit checks (all met):**
+  - **HTTPS smoke session** through the public staging URL as a fictional player: 13/13 steps (login with a Secure session cookie, campaign, create and edit a character, portrait upload and download, personal note, promotion preview and apply, private source removed, logout, then 401).
+  - **Rate limits** count the real visitor address (R2.3).
+  - **Logging:** a deliberately triggered error (staging database stopped for 7 seconds) returned a clean JSON 500 and was logged with its traceback. The submitted password was not in the log, and staging recovered.
+  - **Restore drill** with one image: 22/22 tables and 1/1 media file matched.
+  - **`check --deploy`** shows only the intentional HSTS-preload warning.
+  - Fictional accounts (`test_gm`, `test_player`) and one fictional character were kept on staging on purpose, for the owner to explore; their passwords are only on the server.
+- **R2 is complete.** Next: R3, the real UI on accounts, starting with R3a (stable list IDs). Each step is explained before it is carried out.
 
 ## Updating this handoff
 

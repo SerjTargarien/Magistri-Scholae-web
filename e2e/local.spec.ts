@@ -45,6 +45,25 @@ async function importFile(page: Page, path: string, mode: "merge" | "replace") {
 const backlinks = (data: any) => data.characters.flatMap((c: any) =>
   data.familiars.filter((f: any) => f.id === c.familiarId && String(f.studentId) === String(c.id)).map(() => c.nombre));
 
+test.describe("deployed build", () => {
+  // The service worker caches only built assets, so this check is meaningful
+  // only against a production build (E2E_LOCAL_URL), not the dev server.
+  test.skip(!process.env.E2E_LOCAL_URL, "set E2E_LOCAL_URL to a deployed build");
+  test.use({ serviceWorkers: "allow" });
+
+  test("reloads offline from the service worker cache, keeping local records", async ({ page, context }) => {
+    await createCharacter(page, "Offline Student");
+    await page.locator("#btn-detail-back").click();
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await reloadApp(page); // first controlled load fills the cache
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    await context.setOffline(true);
+    await reloadApp(page);
+    await expect(characterCard(page, "Offline Student")).toBeVisible();
+    await context.setOffline(false);
+  });
+});
+
 test("local mode starts empty and shows no demo banner", async ({ page }) => {
   await expect(page.locator("#empty-list-state")).toBeVisible();
   await expect(page.locator("#mock-mode-banner")).toHaveCount(0);

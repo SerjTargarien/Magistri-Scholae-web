@@ -15,15 +15,19 @@
 		-Server
 	}
 
-	# The shell and service worker must always revalidate so a release is
-	# picked up immediately; hashed build assets never change.
-	@shell path / /index.html /sw.js /manifest.json
-	header @shell Cache-Control "no-cache"
-	@assets path /assets/*
-	header @assets Cache-Control "public, max-age=31536000, immutable"
+	# Hashed build assets never change. A missing one is a plain 404, never
+	# the app shell, so a stale browser cannot cache HTML as JavaScript.
+	handle /assets/* {
+		@exists file
+		header @exists Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
 
-	# Single-page app: unknown paths fall back to the shell, except assets.
-	@spa not path /assets/*
-	try_files @spa {path} /index.html
-	file_server
+	# Everything else (shell, service worker, manifest, icons, deep links)
+	# revalidates on every load so a new release is picked up immediately.
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
 }

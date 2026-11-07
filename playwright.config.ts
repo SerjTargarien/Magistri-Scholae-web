@@ -4,7 +4,9 @@ import { defineConfig, devices } from "@playwright/test";
 // fresh browser context, so mock and local databases start from scratch and
 // never touch a real browser profile.
 const MOCK_URL = "http://127.0.0.1:4310";
-const LOCAL_URL = "http://127.0.0.1:4311";
+// E2E_LOCAL_URL points the local-mode tests at a deployed build instead of a
+// dev server, e.g. a Caddy test on http://127.0.0.1:8088 or staging.
+const LOCAL_URL = process.env.E2E_LOCAL_URL ?? "http://127.0.0.1:4311";
 const CI = !!process.env.CI;
 
 export default defineConfig({
@@ -30,6 +32,8 @@ export default defineConfig({
   webServer: [
     { command: "npx vite --mode mock --port 4310 --strictPort --host 127.0.0.1", url: MOCK_URL, reuseExistingServer: !CI, timeout: 120_000 },
     // No --mode: VITE_STORAGE_MODE is unset, so the app uses local storage.
-    { command: "npx vite --port 4311 --strictPort --host 127.0.0.1", url: LOCAL_URL, reuseExistingServer: !CI, timeout: 120_000 },
+    ...(process.env.E2E_LOCAL_URL ? [] : [
+      { command: "npx vite --port 4311 --strictPort --host 127.0.0.1", url: LOCAL_URL, reuseExistingServer: !CI, timeout: 120_000 },
+    ]),
   ],
 });

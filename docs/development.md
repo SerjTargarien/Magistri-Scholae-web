@@ -23,6 +23,8 @@ npm run build:mock
 npm run test:baseline
 ```
 
+`npm run test:e2e` runs the Playwright browser smoke tests in `e2e/` (feature checklist from [implementation-plan.md](implementation-plan.md)): mock mode at desktop and mobile widths, plus local-mode backups and reset. It starts its own Vite servers on loopback ports 4310 (mock) and 4311 (local); every test uses a fresh browser context, never a real profile. First-time setup: `npx playwright install chromium`. GitHub Actions (`.github/workflows/ci.yml`) runs these, the checks below and the backend suite on every pull request.
+
 `lint` means `tsc --noEmit`, not ESLint. `npm test` uses Node's test runner through `tsx` and `fake-indexeddb` for isolated databases and boundary checks. `test:baseline` reproduces the pre-refactor handler defects from the original Git commit; it requires that commit to remain available locally. A production build outputs `dist/`. `npm run preview` serves the most recent build. `build:mock` writes a demo build to the same `dist/`; run `npm run build` again to return it to local mode.
 
 The existing `clean` script uses Unix `rm` and removes `dist` and `server.js`; it is not needed for the first refactor and is not a portable Windows setup prerequisite.

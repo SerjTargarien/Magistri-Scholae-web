@@ -2,6 +2,10 @@ node_modules/
 build/
 dist/
 coverage/
+test-results/
+playwright-report/
+blob-report/
+.claude/launch.json
 backend/.venv/
 backend/.tmp/
 backend/private-media/

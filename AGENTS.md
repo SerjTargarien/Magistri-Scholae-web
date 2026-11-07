@@ -42,13 +42,14 @@
 
 - Preserve the Vite `DISABLE_HMR` handling and AI Studio-compatible frontend root unless the requested task requires a change.
 - Prefer existing components, localization keys, field names, and archetype capabilities. Avoid broad styling or terminology changes during persistence work.
-- See [docs/development.md](docs/development.md) for current commands and implementation status. Current checks are `npm run lint` (TypeScript) and `npm run build`; there is no test script at the preparation baseline.
+- See [docs/development.md](docs/development.md) for current commands and implementation status. Current checks are `npm run lint` (TypeScript), `npm test`, `npm run test:e2e` (Playwright smoke tests of the feature checklist), the builds and the backend suite; CI in `.github/workflows/ci.yml` runs them all.
 - For behavior changes, use focused checks of data preservation, bonds, imports/exports, and affected UI flows. Add meaningful tests as needed; do not claim checks that did not run.
 - For documentation-only edits, check relative links, code fences, consistency, and whitespace; installing dependencies or rebuilding the app is not normally necessary.
 - Update `docs/project-state.md` with material changes, actual verification, limitations, and the next unfinished milestone. Keep planned capabilities clearly separate from implemented ones.
 
 ## Git and external systems
 
+- Commits are made in the owner's name, using the repository's configured Git user. Add no `Co-Authored-By`, tool or model attribution, or other trailers to commit messages or pull-request descriptions, and do not override the author.
 - Check remotes, branch, and working-tree status before edits. Use a development branch/worktree for implementation; do not reset or stash someone else's work.
 - Code changes do not themselves authorize production deployments, changes to DNS/Vercel, pushes to a live branch, destructive migrations, or force-pushes. Perform those only when the user requests the relevant action.
 - Do not expose credentials, personal-note bodies, or full secret-bearing environment/configuration dumps in logs or documentation.

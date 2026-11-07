@@ -69,7 +69,7 @@ None of those infrastructure details blocks a local storage-interface refactor.
 | 1. Local/mock storage boundary for characters and familiars | Implemented and verified locally; see checkpoint below. |
 | 2. Django/PostgreSQL API, accounts and privacy foundation | Implemented and verified locally; see checkpoint below. |
 | 3. Remote editing, private media and note promotion | Implemented and verified locally; see checkpoint below. |
-| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | Not started. Next: R0. See [implementation-plan.md](implementation-plan.md). |
+| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 in progress (local work done; push/merge and owner actions pending). See [implementation-plan.md](implementation-plan.md) and the R0 checkpoint below. |
 
 Documentation preparation validation: all eight Markdown files passed relative-file link checks, balanced-code-fence checks, and scans for replacement/zero-width characters. Installed copies matched staged SHA-256 hashes. Git status showed only the README edit plus new `AGENTS.md` and `docs/`; `git diff --check` passed for the tracked README change. Git emitted an informational LF-to-CRLF notice. No Git configuration was changed.
 
@@ -223,6 +223,14 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - Docker Desktop was started for the backend tests; the development database container was stopped afterwards with its volume retained.
 - The working tree was committed locally as `3b60075` on `codex/milestone-3-remote`, at the owner's request. Nothing was pushed.
 - The owner asked for the audit's proposal to become the roadmap. [implementation-plan.md](implementation-plan.md) now orders the work as releases R0–R7, aiming at the earliest working version on Contabo at `magistrischolae.fyi`. **Next: R0** (push, CI, UI smoke tests, freezing Vercel deploys). No release has started, and R0 still needs owner decision 1 (publishing `docs/`).
+
+## R0 checkpoint — 7 November 2026
+
+- **Done locally:** Playwright `@playwright/test` 1.64.1 (exact pin; 1.65.0 was two days old) with Chromium. `e2e/mock.spec.ts` has 10 tests (mock mode, desktop 1440 px and Pixel 7 widths). `e2e/local.spec.ts` has 4 tests (local mode). Between them they cover the feature checklist: student/adult-wizard profile, house, aspects, complications, custom fields; session tracking; skills, spells, potions, clubs, equipment and journals; familiars; bonds and delete cleanup; portrait crop and gallery; style and language persistence; the mobile/desktop familiar banner with no horizontal scroll; full, selected and familiar-only backups, add/replace import and reset. Tests assert persistence after reload through the app's own JSON export, and fail on any uncaught page error. `.github/workflows/ci.yml` runs frontend checks, all builds, baseline, e2e and the PostgreSQL backend suite.
+- **Checks run:** `npm run lint` passed; `npm test` 34 passed; `npm run test:e2e` 24 passed, then 72/72 with `--repeat-each=3`; `build:mock`, `build:remote` and `build` passed (final `dist/` local); backend `check`, `export_api_contract --check` and `makemigrations --check` passed with `config.test_settings` (database stopped; backend tests last ran earlier today, 89 passed). The CI workflow itself has not run yet; it first runs when the branch is pushed.
+- **Finding while writing tests:** a first bond test reloaded the page before an asynchronous IndexedDB delete committed. This was a test-harness race, not an app defect; the database was verified correct at every step. `e2e/helpers.ts` `flushWrites` now waits for pending writes before each reload.
+- **Still open for R0:** owner decision 1 (publish `docs/`), push and draft pull request, freezing Vercel auto-deploys, your own live-site backup, requiring CI on `main`, then merge.
+- Commit rule added to `AGENTS.md` at the owner's request: commits in the owner's name with no attribution trailers.
 
 ## Updating this handoff
 

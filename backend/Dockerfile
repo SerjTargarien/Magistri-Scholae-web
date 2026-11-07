@@ -23,9 +23,12 @@ EXPOSE 8000
 # Django's own middleware decides which proxy headers to trust
 # (DJANGO_TRUSTED_PROXIES); gunicorn is told to trust none itself.
 # Access logging is left to Caddy; gunicorn logs errors to stderr.
+# The optional control socket (gunicorn 26) is unused, and its default path
+# is not writable by the unprivileged user, so it is disabled.
 CMD ["gunicorn", "config.wsgi:application", \
      "--bind", "0.0.0.0:8000", \
      "--workers", "2", \
      "--timeout", "60", \
      "--forwarded-allow-ips", "", \
+     "--no-control-socket", \
      "--error-logfile", "-"]

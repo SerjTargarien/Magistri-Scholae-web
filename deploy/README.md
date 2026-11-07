@@ -113,6 +113,61 @@ The goal is a site that depends only on the registrar (Porkbun) and the VPS. It 
 
 The domain must always be served over HTTPS.
 
+## 6. Staging backend (release R2)
+
+Staging becomes the account version with its own Django backend and PostgreSQL database. The public site is unaffected. The services run only with the `staging-backend` profile; secrets live in `deploy/.env.staging`, created on the server and git-ignored (template: `.env.staging.example`). Commands run in `/opt/magistri/app` as `deploy`.
+
+1. Create the staging release folder first, so Docker does not create it owned by root:
+
+   ```bash
+   mkdir -p deploy/releases-staging
+   ```
+
+2. Generate the secrets on the server. They are never printed, committed or copied elsewhere:
+
+   ```bash
+   (umask 077; {
+     echo "DJANGO_SECRET_KEY=$(openssl rand -hex 40)"
+     echo "DJANGO_HMAC_KEY=$(openssl rand -hex 40)"
+     echo "DJANGO_ALLOWED_HOSTS=staging.magistrischolae.fyi"
+     echo "POSTGRES_DB=magistri_staging"
+     echo "POSTGRES_USER=magistri"
+     echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+   } > deploy/.env.staging)
+   ```
+
+3. Build the account version of the frontend: `deploy/release.sh --target staging main`.
+4. Build the backend image, start the database and apply migrations:
+
+   ```bash
+   docker compose -f deploy/compose.yaml --profile staging-backend build api-staging
+   docker compose -f deploy/compose.yaml --profile staging-backend up -d db-staging
+   docker compose -f deploy/compose.yaml --profile staging-backend run --rm api-staging python manage.py migrate
+   ```
+
+5. In `deploy/.env`, remove `staging.magistrischolae.fyi` from `SITE_ADDRESS`, then add `STAGING_ADDRESS=staging.magistrischolae.fyi` and `COMPOSE_PROFILES=staging-backend`. Apply with `docker compose -f deploy/compose.yaml up -d`. Caddy's container is recreated once, because its network changes: a few seconds of downtime for every site. The certificates are kept.
+6. Create the administrator interactively (the password is typed, never passed as an argument):
+
+   ```bash
+   docker compose -f deploy/compose.yaml run --rm api-staging python manage.py createsuperuser --username <name>
+   ```
+
+7. Schedule housekeeping in the `deploy` user's crontab (`crontab -e`):
+
+   ```text
+   17 4 * * * cd /opt/magistri/app && docker compose -f deploy/compose.yaml exec -T api-staging python manage.py maintenance >> $HOME/maintenance-staging.log 2>&1
+   ```
+
+**Updating the backend:** `git pull --ff-only`, then rebuild the image, apply migrations, and restart only the backend:
+
+```bash
+docker compose -f deploy/compose.yaml build api-staging
+docker compose -f deploy/compose.yaml run --rm api-staging python manage.py migrate
+docker compose -f deploy/compose.yaml up -d api-staging
+```
+
+Staging backups to Backblaze B2 are set up in release R2.4.
+
 ## Releasing and rolling back
 
 **Keep the server checkout on `main` and update it only with `git pull --ff-only`.** Never check out a branch or commit that lacks the `deploy/` folder while Caddy runs: Git deletes `deploy/caddy/`, and the running container stays attached to the deleted folder, so `caddy reload` fails until the container is restarted (`docker compose -f deploy/compose.yaml restart web`, about two seconds of downtime, certificate reused). Check the server's local `main` with `git status -sb` before switching: a clone keeps its own `main` at the commit it was cloned from.

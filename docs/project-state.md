@@ -272,7 +272,16 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - M1: image and GM-note reads take no row locks.
   - M5: a `maintenance` command removes expired bookkeeping and only reports media.
   - Locally: compile, `check` (test and development settings), contract check, startup refusal without a valid HMAC key, and `check --deploy` (only the intentional HSTS-preload warning plus one caused by the deliberately simple test key). The 103 backend tests (14 new) run in CI on PostgreSQL.
-- **Next:** R2.2, packaging (Dockerfile, gunicorn, staging Compose services).
+- **R2.1 merged** (PR #6). CI ran the full backend suite: 103 tests passed. One new test first failed because its simulated requests lacked a `Host` header, which browsers always send and Caddy forwards; the test was corrected, not the code.
+- **R2.2 (branch `r2/packaging`):**
+  - `backend/Dockerfile`: Python 3.14.7, non-root uid 10001, gunicorn 26.2.0, `DJANGO_MEDIA_ROOT`.
+  - Compose: `db-staging` (PostgreSQL 18.6, internal-only network) and `api-staging` behind the opt-in `staging-backend` profile; Caddy's network has a fixed subnet that Django trusts.
+  - Caddyfile: the public and staging sites share one snippet; staging serves the account build and forwards `/api`.
+  - `release.sh --target staging|production`.
+  - A CI job builds the image and validates the compose file and Caddyfile.
+  - Runbook section 6 covers the R2.3 server steps.
+  - **Tested on the VPS in throwaway containers on a private network:** image built (38 s, 305 MB, non-root); migrations applied to a fresh PostgreSQL 18.6; `check --deploy` showed only the intentional HSTS-preload warning; through a peer on the trusted network, HTTPS gave 200 with a Secure cookie, plain HTTP gave a 301 to HTTPS, and an unknown Host gave 400; the maintenance dry run worked; compose and Caddyfile were valid. Live containers were untouched, and no test containers, networks, images or folders remained. The `postgres:18.6` image stays on the server for R2.3.
+- **Next:** R2.3, start the staging backend on the server (runbook section 6), step by step.
 
 ## Updating this handoff
 

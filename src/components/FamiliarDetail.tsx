@@ -6,7 +6,8 @@
 import React, { useState, useRef } from "react";
 import { Familiar, Character, VisualStyle, JournalNote } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
-import { db } from "../db";
+import { storage } from "../storage";
+import { referencesCharacter } from "../storage/backup";
 import { FiligreeCorner, CompassStarDivider } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import Cropper from "react-easy-crop";
@@ -97,15 +98,15 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
 
   // Find linked character
   const linkedMaster = familiar.studentId
-    ? characters.find((c) => c.id === familiar.studentId)
+    ? characters.find((c) => referencesCharacter(familiar.studentId, c.id!))
     : undefined;
 
   // Auto-save helper
   const saveFamiliarToDB = async (updated: Familiar) => {
     try {
       updated.updatedAt = Date.now();
-      await db.familiars.put(updated);
-      onUpdateFamiliar(updated);
+      const saved = await storage.familiars.save(updated);
+      onUpdateFamiliar(saved);
     } catch (err) {
       console.error("Failed to save familiar to IndexedDB:", err);
     }
@@ -976,7 +977,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
                     }
                   }}
                   className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                    familiar.studentId === char.id
+                    referencesCharacter(familiar.studentId, char.id!)
                       ? "bg-amber-950/60 border-amber-500 text-amber-200"
                       : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
                   }`}
@@ -998,7 +999,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
                       ({char.characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : char.casa})
                     </span>
                   </div>
-                  {familiar.studentId === char.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  {referencesCharacter(familiar.studentId, char.id!) && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
                 </button>
               ))}
             </div>

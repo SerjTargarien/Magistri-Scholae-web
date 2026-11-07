@@ -21,6 +21,9 @@ export interface TranslationDict {
   noName: string;
   studentPrefix: string;
   loadingMessage: string;
+  mockModeBanner: string;
+  storageLoadError: string;
+  importBondWarnings: string;
   errorStoringStudent: string;
   resetConfirmPhrase: string;
   btnFinish: string;
@@ -664,7 +667,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     selectAll: "Seleccionar Todos",
     deselectAll: "Deseleccionar Todos",
     exportStudent: "Exportar Personaje",
-    studentListEmptyBackup: "No hay personajes inscritos en este navegador para exportar.",
+    mockModeBanner: "DEMO — Datos ficticios aislados. Los cambios no afectan a tus fichas locales.",
+    storageLoadError: "No se pudieron cargar los datos. Recarga para volver a intentarlo.",
+    importBondWarnings: "Importación completada. Se han desvinculado {n} referencias a fichas ausentes del archivo.",
+    studentListEmptyBackup: "No hay personajes ni familiares en este modo para exportar.",
     exportSelectTitle: "Exportación Selectiva",
     exportSelectDescription: "Selecciona qué fichas de personajes deseas empaquetar en el archivo de copia de seguridad JSON.",
     searchBackupStudents: "Buscar personaje (por nombre, tipo o casa)...",
@@ -1048,7 +1054,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     selectAll: "Select All",
     deselectAll: "Deselect All",
     exportStudent: "Export Character",
-    studentListEmptyBackup: "No registered characters in this browser to export.",
+    mockModeBanner: "DEMO — Isolated fictional data. Changes do not affect your local sheets.",
+    storageLoadError: "Could not load your data. Reload to retry.",
+    importBondWarnings: "Import complete. Detached {n} references to records missing from the file.",
+    studentListEmptyBackup: "No characters or familiars in this mode to export.",
     exportSelectTitle: "Selective Export",
     exportSelectDescription: "Select which character sheets you want to package into the JSON backup file.",
     searchBackupStudents: "Search character (by name, type or house)...",

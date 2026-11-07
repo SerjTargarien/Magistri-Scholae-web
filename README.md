@@ -1,8 +1,22 @@
+# Magistri Scholae
+
+The canonical working repository for Codex and Google AI Studio is `SerjTargarien/Magistri-Scholae-web`.
+
+- [Project documentation and reading order](docs/README.md)
+- [Accepted design and migration target](docs/design.md)
+- [Current source state and handoff](docs/project-state.md)
+- [Incremental implementation plan](docs/implementation-plan.md)
+- [Development commands and AI Studio workflow](docs/development.md)
+- [Starter prompt for the new Codex chat](docs/chat-starter.md)
+
+The app supports default local Dexie storage, isolated mock preview, and explicitly selected Django/PostgreSQL account storage. Milestones 1–3 are implemented locally; library, transfer/offline and deployment work remain later milestones. See the development guide for verified commands and limitations. The original AI Studio template instructions are retained below.
+
+---
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+## Run and deploy your AI Studio app
 
 This contains everything you need to run your app locally.
 
@@ -15,6 +29,6 @@ View your app in AI Studio: https://ai.studio/apps/8ed53db3-123f-4832-a0b0-7945a
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Review [the development guide](docs/development.md) for configuration. The inspected character manager has no active Gemini integration, so a Gemini key is not a prerequisite for this local UI workflow.
 3. Run the app:
    `npm run dev`

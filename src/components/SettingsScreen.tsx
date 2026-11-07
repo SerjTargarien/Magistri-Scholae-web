@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Language, TRANSLATIONS } from "../localization";
-import { db, getStorageEstimate } from "../db";
-import { Character, BackupData, VisualStyle } from "../types";
+import { storage } from "../storage";
+import { Character, VisualStyle } from "../types";
 import { 
   Upload, 
   Trash2, 
@@ -62,7 +62,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const loadCharacters = async () => {
     try {
-      const chars = await db.characters.toArray();
+      const chars = await storage.characters.list();
       setDbCharacters(chars);
       // Automatically pre-select all characters when loading/opening selective backup
       setSelectedCharIds(chars.map(c => c.id).filter((id): id is number => typeof id === "number"));
@@ -72,7 +72,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const updateStorageStats = async () => {
-    const stats = await getStorageEstimate();
+    const stats = await storage.maintenance.estimate();
     setStorageUsed(stats.usedMB);
     setStorageQuota(stats.quotaMB);
   };
@@ -85,20 +85,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const triggerExport = async (charsToExport: Character[], isFullBackup: boolean) => {
     try {
-      if (charsToExport.length === 0) {
+      const backup = await storage.backups.export(isFullBackup ? undefined : charsToExport.map(c => c.id!));
+      if (backup.characters.length === 0 && !backup.familiars?.length) {
         setStatusMessage({ type: "error", text: t.studentListEmptyBackup });
         return;
       }
-
-      const allFamiliars = isFullBackup ? await db.familiars.toArray() : undefined;
-
-      const backup: BackupData = {
-        backupVersion: "1.0",
-        app: "Magistri Scholae",
-        exportedAt: new Date().toISOString(),
-        characters: charsToExport,
-        familiars: allFamiliars && allFamiliars.length > 0 ? allFamiliars : undefined,
-      };
 
       const jsonStr = JSON.stringify(backup, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
@@ -136,12 +127,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleExportAll = async () => {
     try {
-      const allCharacters = await db.characters.toArray();
-      if (allCharacters.length === 0) {
-        setStatusMessage({ type: "error", text: t.studentListEmptyBackup });
-        return;
-      }
-      await triggerExport(allCharacters, true);
+      await triggerExport([], true);
     } catch (e) {
       console.error(e);
       setStatusMessage({ type: "error", text: t.backupErrorExportMsg });
@@ -170,11 +156,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     try {
-      await Promise.all([
-        db.characters.clear(),
-        db.familiars.clear(),
-      ]);
+      await storage.maintenance.reset();
       setResetConfirmText("");
+      setIsResetApproved(false);
+      await loadCharacters();
       await updateStorageStats();
       setStatusMessage({ type: "success", text: t.resetSuccess });
       onReloadRequested();

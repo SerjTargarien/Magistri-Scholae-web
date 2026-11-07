@@ -10,8 +10,8 @@ export class MagistriScholaeDB extends Dexie {
   characters!: Table<Character, number>;
   familiars!: Table<Familiar, string>;
 
-  constructor() {
-    super("MagistriScholaeDB");
+  constructor(name = "MagistriScholaeDB") {
+    super(name);
     this.version(1).stores({
       characters: "++id, nombre, casa, jugador, concepto, createdAt, updatedAt",
     });
@@ -22,11 +22,9 @@ export class MagistriScholaeDB extends Dexie {
   }
 }
 
-export const db = new MagistriScholaeDB();
-
 // Helper to retrieve storage info
 export async function getStorageEstimate() {
-  if (navigator.storage && navigator.storage.estimate) {
+  if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.estimate) {
     try {
       const estimate = await navigator.storage.estimate();
       const usedMB = estimate.usage ? (estimate.usage / (1024 * 1024)).toFixed(2) : "0";

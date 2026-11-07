@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { Character, Familiar, BackupData, CharacterType, VisualStyle } from "./types";
-import { db } from "./db";
+import { storage } from "./storage";
 import { Language, TRANSLATIONS } from "./localization";
 import { CharacterList } from "./components/CharacterList";
 import { CharacterDetail } from "./components/CharacterDetail";
@@ -58,13 +58,14 @@ export default function App() {
     setLoading(true);
     try {
       const [allChars, allFamiliars] = await Promise.all([
-        db.characters.reverse().sortBy("createdAt"),
-        db.familiars.reverse().sortBy("createdAt"),
+        storage.characters.list(),
+        storage.familiars.list(),
       ]);
       setCharacters(allChars);
       setFamiliars(allFamiliars);
     } catch (e) {
-      console.error("Failed to load records from IndexedDB:", e);
+      console.error("Failed to load records:", e);
+      setToastMessage({ type: "error", text: t.storageLoadError });
     } finally {
       setLoading(false);
     }
@@ -103,132 +104,62 @@ export default function App() {
 
   const handleSaveForm = async (savedChar: Character) => {
     try {
-      if (savedChar.id) {
-        // Updating existing character
-        await db.characters.put(savedChar);
-      } else {
-        // Adding new character
-        const newId = await db.characters.add(savedChar);
-        savedChar.id = newId;
-      }
+      const saved = await storage.characters.save(savedChar);
       
       // Re-fetch and route
       await loadCharacters();
-      setSelectedCharId(savedChar.id || null);
+      setSelectedCharId(saved.id);
       setScreen("DETAIL");
     } catch (error) {
-      console.error("IndexedDB Save Blocked:", error);
+      console.error("Save failed:", error);
       setToastMessage({ type: "error", text: t.errorStoringStudent });
     }
   };
 
   const handleDeleteCharacter = async (id: number) => {
     try {
-      // If a familiar had this studentId, clear it
-      const bondedFam = familiars.find((f) => f.studentId === id);
-      if (bondedFam) {
-        bondedFam.studentId = undefined;
-        bondedFam.updatedAt = Date.now();
-        await db.familiars.put(bondedFam);
-      }
-
-      await db.characters.delete(id);
+      await storage.characters.remove(id);
       await loadCharacters();
       setSelectedCharId(null);
       setScreen("LIST");
-    } catch (e) {
-      console.error("Delete failed:", e);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      setToastMessage({ type: "error", text: t.errorStoringStudent });
     }
   };
 
   const handleDeleteFamiliar = async (id: string) => {
     try {
-      // If a character had this familiarId, clear it
-      const bondedChar = characters.find((c) => c.familiarId === id);
-      if (bondedChar) {
-        bondedChar.familiarId = undefined;
-        bondedChar.updatedAt = Date.now();
-        await db.characters.put(bondedChar);
-      }
-
-      await db.familiars.delete(id);
+      await storage.familiars.remove(id);
       await loadCharacters();
       setSelectedFamiliarId(null);
       setScreen("LIST");
       setToastMessage({ type: "success", text: t.familiarDeletedToast });
-    } catch (e) {
-      console.error("Delete familiar failed:", e);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      setToastMessage({ type: "error", text: t.errorStoringStudent });
     }
   };
 
-  // Synchronized bonding handlers
   const handleBondFamiliar = async (characterId: number, familiarId: string | null) => {
     try {
-      const char = characters.find((c) => c.id === characterId);
-      if (!char) return;
-
-      const previousFamiliarId = char.familiarId;
-      if (previousFamiliarId && previousFamiliarId !== familiarId) {
-        const prevFam = familiars.find((f) => f.id === previousFamiliarId);
-        if (prevFam) {
-          prevFam.studentId = undefined;
-          prevFam.updatedAt = Date.now();
-          await db.familiars.put(prevFam);
-        }
-      }
-
-      char.familiarId = familiarId || undefined;
-      char.updatedAt = Date.now();
-      await db.characters.put(char);
-
-      if (familiarId) {
-        const newFam = familiars.find((f) => f.id === familiarId);
-        if (newFam) {
-          newFam.studentId = characterId;
-          newFam.updatedAt = Date.now();
-          await db.familiars.put(newFam);
-        }
-      }
-
+      await storage.bonds.assignCharacter(characterId, familiarId);
       await loadCharacters();
       setToastMessage({ type: "success", text: t.familiarSavedToast });
-    } catch (err) {
-      console.error("Bonding familiar failed:", err);
+    } catch (error) {
+      console.error("Bond failed:", error);
+      setToastMessage({ type: "error", text: t.errorStoringStudent });
     }
   };
 
   const handleBondMaster = async (familiarId: string, characterId: number | null) => {
     try {
-      const fam = familiars.find((f) => f.id === familiarId);
-      if (!fam) return;
-
-      const previousStudentId = fam.studentId;
-      if (previousStudentId && previousStudentId !== characterId) {
-        const prevChar = characters.find((c) => c.id === previousStudentId);
-        if (prevChar) {
-          prevChar.familiarId = undefined;
-          prevChar.updatedAt = Date.now();
-          await db.characters.put(prevChar);
-        }
-      }
-
-      fam.studentId = characterId || undefined;
-      fam.updatedAt = Date.now();
-      await db.familiars.put(fam);
-
-      if (characterId) {
-        const newChar = characters.find((c) => c.id === characterId);
-        if (newChar) {
-          newChar.familiarId = familiarId;
-          newChar.updatedAt = Date.now();
-          await db.characters.put(newChar);
-        }
-      }
-
+      await storage.bonds.assignFamiliar(familiarId, characterId);
       await loadCharacters();
       setToastMessage({ type: "success", text: t.familiarSavedToast });
-    } catch (err) {
-      console.error("Bonding master failed:", err);
+    } catch (error) {
+      console.error("Bond failed:", error);
+      setToastMessage({ type: "error", text: t.errorStoringStudent });
     }
   };
 
@@ -256,49 +187,23 @@ export default function App() {
     setShowImportModal(true);
   };
 
-  const handleImportReplace = async () => {
+  const applyImport = async (action: "add" | "replace") => {
     if (!pendingBackup) return;
     try {
-      await Promise.all([
-        db.characters.clear(),
-        db.familiars.clear(),
-      ]);
-      const toInsert = pendingBackup.characters.map(({ id, ...rest }) => rest);
-      await db.characters.bulkAdd(toInsert as Character[]);
-
-      if (pendingBackup.familiars && pendingBackup.familiars.length > 0) {
-        await db.familiars.bulkPut(pendingBackup.familiars);
-      }
-      
+      const result = await storage.backups.import(pendingBackup, action);
       setShowImportModal(false);
       setPendingBackup(null);
       await loadCharacters();
-      setToastMessage({ type: "success", text: t.importSuccess });
-    } catch (e) {
-      console.error(e);
-      setToastMessage({ type: "error", text: t.backupErrorOverwriteMsg });
+      setToastMessage({ type: "success", text: result.warnings.length
+        ? t.importBondWarnings.replace("{n}", String(result.warnings.length))
+        : t.importSuccess });
+    } catch (error) {
+      console.error("Import failed:", error);
+      setToastMessage({ type: "error", text: action === "replace" ? t.backupErrorOverwriteMsg : t.backupErrorMergeMsg });
     }
   };
-
-  const handleImportAdd = async () => {
-    if (!pendingBackup) return;
-    try {
-      const toInsert = pendingBackup.characters.map(({ id, ...rest }) => rest);
-      await db.characters.bulkAdd(toInsert as Character[]);
-
-      if (pendingBackup.familiars && pendingBackup.familiars.length > 0) {
-        await db.familiars.bulkPut(pendingBackup.familiars);
-      }
-
-      setShowImportModal(false);
-      setPendingBackup(null);
-      await loadCharacters();
-      setToastMessage({ type: "success", text: t.importSuccess });
-    } catch (e) {
-      console.error(e);
-      setToastMessage({ type: "error", text: t.backupErrorMergeMsg });
-    }
-  };
+  const handleImportReplace = () => applyImport("replace");
+  const handleImportAdd = () => applyImport("add");
 
   return (
     <div
@@ -306,6 +211,11 @@ export default function App() {
       id="academy-app-root"
       data-style={visualStyle}
     >
+      {storage.mode === "mock" && (
+        <div id="mock-mode-banner" role="status" className="relative z-40 bg-amber-950 text-amber-100 border-b border-amber-500/40 px-4 py-2 text-center text-sm">
+          {t.mockModeBanner}
+        </div>
+      )}
       {/* Dynamic Ambient Background Canvas */}
       {visualStyle === "academy" ? (
         <AcademyBackground />

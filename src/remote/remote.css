@@ -1,0 +1,26 @@
+.remote-app { min-height:100vh; background:#11091f; color:#f5e4c0; font-family:Georgia,serif; padding:1rem; }
+.remote-app.classic { background:#1a1625; color:#f0e8dd; font-family:system-ui,sans-serif; }
+.remote-app main { max-width:960px; margin:auto; }
+.remote-app header,.remote-toolbar { display:flex; gap:.65rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem; }
+.remote-app h1 { font-size:1.6rem; flex:1 1 220px; }
+.remote-app h2 { font-size:1.3rem; margin:.7rem 0; }
+.remote-app button,.remote-app select,.remote-app input,.remote-app textarea { border:1px solid #8b7355; border-radius:.4rem; background:#251736; color:inherit; padding:.5rem .7rem; font:inherit; max-width:100%; }
+.remote-app button { cursor:pointer; }
+.remote-app button:hover:not(:disabled) { background:#432c54; }
+.remote-app :disabled { opacity:.65; cursor:default; }
+.remote-app textarea { width:100%; resize:vertical; min-height:2.5rem; }
+.remote-app input:not([type=checkbox]):not([type=range]) { width:100%; }
+.remote-app label { display:block; }
+.remote-app .remote-field { display:block; margin:.7rem 0; min-width:0; }
+.remote-field>span { display:block; margin-bottom:.25rem; }
+.remote-section { border:1px solid #634a70; border-radius:.5rem; padding:.8rem; margin:1rem 0; min-width:0; }
+.remote-section legend { padding:0 .4rem; }
+.remote-item { border-left:2px solid #98784d; padding:.6rem; margin:.7rem 0; }
+.remote-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:.8rem; }
+.remote-card { padding:1rem; border:1px solid #846c48; border-radius:.6rem; overflow-wrap:anywhere; }
+.remote-status { position:sticky; top:0; z-index:10; background:#251736; padding:.7rem; border:1px solid #8b7355; margin:.5rem 0; }
+.remote-app pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.85rem; }
+.remote-app [role=alert] { padding:.7rem; color:#ffd0bb; overflow-wrap:anywhere; }
+.remote-image { max-width:100%; max-height:320px; object-fit:contain; border-radius:.5rem; }
+.remote-crop { border:1px solid #98784d; padding:1rem; margin:1rem 0; }
+.remote-crop-area { position:relative; height:320px; }

@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { Familiar, VisualStyle } from "../types";
 import { Language, TRANSLATIONS } from "../localization";
-import { db } from "../db";
+import { storage } from "../storage";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../utils/imageCompressor";
 import { FiligreeCorner } from "./AcademyOrnaments";
@@ -73,7 +73,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
   const loadFamiliars = async () => {
     try {
-      const list = await db.familiars.orderBy("createdAt").reverse().toArray();
+      const list = await storage.familiars.list();
       setFamiliars(list);
       return list;
     } catch (err) {
@@ -191,13 +191,13 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
     };
 
     try {
-      await db.familiars.put(familiarRecord);
+      const saved = await storage.familiars.save(familiarRecord);
       await loadFamiliars();
       if (onShowToast) {
         onShowToast("success", t.familiarSavedToast);
       }
       if (onFamiliarSaved) {
-        onFamiliarSaved(familiarRecord);
+        onFamiliarSaved(saved);
       }
       resetForm();
     } catch (err) {
@@ -208,7 +208,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
   const handleDeleteFamiliar = async (id: string) => {
     try {
-      await db.familiars.delete(id);
+      await storage.familiars.remove(id);
       if (editingId === id) {
         resetForm();
       }
@@ -357,7 +357,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     <img
                       id="familiar-avatar-preview"
                       src={imagen}
-                      alt={nombre || t.familiar}
+                      alt={nombre || t.archetypeFamiliar}
                       className={`w-full h-full ${
                         imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
                       }`}

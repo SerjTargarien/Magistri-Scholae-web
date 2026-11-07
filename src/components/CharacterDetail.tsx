@@ -16,7 +16,7 @@ import {
 } from "../localization";
 import { FiligreeCorner, CompassStarDivider } from "./AcademyOrnaments";
 import { HouseCrest, hasRecognizedCrest } from "./HouseCrest";
-import { db } from "../db";
+import { storage } from "../storage";
 import Cropper from "react-easy-crop";
 import { compressImage, getCroppedImg } from "../utils/imageCompressor";
 import {
@@ -178,8 +178,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     if (!updatedChar.id) return;
     try {
       updatedChar.updatedAt = Date.now();
-      await db.characters.put(updatedChar);
-      onUpdateCharacter(updatedChar);
+      const saved = await storage.characters.save(updatedChar);
+      onUpdateCharacter(saved);
     } catch (e) {
       console.error("IndexedDB auto-save failed:", e);
     }
@@ -845,14 +845,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
     }
   };
 
-  const handleExportCharacter = () => {
+  const handleExportCharacter = async () => {
     try {
-      const backupData = {
-        backupVersion: "1.0",
-        app: "Magistri Scholae",
-        exportedAt: new Date().toISOString(),
-        characters: [character],
-      };
+      const backupData = await storage.backups.export([character.id!]);
       
       const jsonStr = JSON.stringify(backupData, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
@@ -3537,7 +3532,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
               src={lightboxImage}
               alt="Expanded"
               className="max-w-full max-h-[85vh] object-contain"
-              referrerPolicy="referrer"
+              referrerPolicy="no-referrer"
             />
           </div>
         </div>

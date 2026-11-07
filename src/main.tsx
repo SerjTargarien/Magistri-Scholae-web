@@ -1,6 +1,5 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
 import './index.css';
 
 // Register service worker for PWA offline features
@@ -16,8 +15,13 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById('root')!).render(
+async function mount() {
+  const mode = import.meta.env.VITE_STORAGE_MODE;
+  const { default: App } = mode === 'remote' ? await import('./remote/RemoteApp') : await import('./App');
+  createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
+}
+void mount();

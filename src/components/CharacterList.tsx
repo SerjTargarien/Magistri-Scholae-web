@@ -5,6 +5,8 @@
 
 import React, { useState } from "react";
 import { Character, Familiar, HOUSES, BackupData, getCharacterType, VisualStyle } from "../types";
+import { storage } from "../storage";
+import { referencesCharacter } from "../storage/backup";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 import { Language, TRANSLATIONS } from "../localization";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
@@ -60,13 +62,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     reader.onload = async (event) => {
       try {
         const rawText = event.target?.result as string;
-        const backupData = JSON.parse(rawText) as BackupData;
-
-        // Validation
-        if (!backupData || backupData.app !== "Magistri Scholae" || !Array.isArray(backupData.characters)) {
-          onShowToast?.("error", t.importError);
-          return;
-        }
+        const backupData = storage.backups.parse(rawText);
 
         onImportBackup(backupData);
       } catch (err) {
@@ -128,7 +124,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
-      const linkedStudent = f.studentId ? characters.find((c) => c.id === f.studentId) : undefined;
+      const linkedStudent = f.studentId ? characters.find((c) => referencesCharacter(f.studentId, c.id!)) : undefined;
       const matchName = (f.nombre || "").toLowerCase().includes(query);
       const matchSpecies = (f.especie || "").toLowerCase().includes(query);
       const matchDesc = (f.descripcion || "").toLowerCase().includes(query);
@@ -560,7 +556,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
             {/* Familiar Cards */}
             {filteredFamiliars.map((f) => {
-              const linkedStudent = f.studentId ? characters.find((c) => c.id === f.studentId) : undefined;
+              const linkedStudent = f.studentId ? characters.find((c) => referencesCharacter(f.studentId, c.id!)) : undefined;
 
               if (isAcademy) {
                 return (

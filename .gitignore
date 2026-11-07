@@ -2,7 +2,15 @@ node_modules/
 build/
 dist/
 coverage/
+backend/.venv/
+backend/.tmp/
+backend/private-media/
+__pycache__/
+*.py[cod]
+.npm-cache/
 .DS_Store
 *.log
 .env*
 !.env.example
+!.env.mock
+!.env.remote

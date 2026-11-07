@@ -3,9 +3,9 @@
 ## Scope and sources
 
 - This repository, `SerjTargarien/Magistri-Scholae-web`, is the working source for Codex and Google AI Studio. The owner reports that newer AI Studio work was force-pushed here. Do not recreate a second synchronization workflow or rewrite history to repeat that operation.
-- Start migration work with [docs/README.md](docs/README.md), [docs/project-state.md](docs/project-state.md), the relevant milestone in [docs/implementation-plan.md](docs/implementation-plan.md), and the applicable requirements in [docs/design.md](docs/design.md).
+- Start migration work with [docs/README.md](docs/README.md), [docs/project-state.md](docs/project-state.md), the relevant release in [docs/implementation-plan.md](docs/implementation-plan.md), and the applicable requirements in [docs/design.md](docs/design.md).
 - Explicit current user instructions take precedence over these conventions. Preserve unrelated working-tree changes. Keep durable rules here and implementation progress in `docs/project-state.md`.
-- Execute the milestone requested by the user. Routine local edits and verification within that scope do not require repeated confirmation. Surface decisions that change agreed behavior, privacy, or data ownership before depending on them.
+- Execute the release (or release step) requested by the user. Routine local edits and verification within that scope do not require repeated confirmation. Surface decisions that change agreed behavior, privacy, or data ownership before depending on them.
 
 ## Current application
 

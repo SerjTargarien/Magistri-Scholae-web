@@ -1,98 +1,279 @@
-# Incremental implementation plan
+# Roadmap to launch on Contabo
+
+Adopted 7 November 2026, replacing the milestone 4–6 order. The goal is a working account-backed Magistri Scholae on Contabo at `magistrischolae.fyi` as soon as possible, without losing current features or code quality. [design.md](design.md) defines the target, [project-state.md](project-state.md) records what is actually implemented, and [audit-2026-11-07.md](audit-2026-11-07.md) explains why the order changed.
 
 ## Execution rules
 
-- [design.md](design.md) defines the target; [project-state.md](project-state.md) records actual implementation. Read both before starting migration work.
-- The initial implementation request is milestone 1 only. Later milestones are a roadmap, not blanket authorization to build or deploy everything.
-- Preserve the current application and recent AI Studio features. Treat familiars and bonds as first-class persistence concerns.
-- Inspect, explain a concise approach, implement, verify, and update the handoff. Do not pause for routine confirmation inside the requested milestone.
-- A newly found defect should be reproduced/characterized. Repair narrowly when necessary for the active milestone; record unrelated issues without expanding into a redesign.
-- Establish runtime/dependency baselines and report actual failures. No application checks are presumed to pass from the documentation preparation.
+- Work one release (or one release step) at a time. A request for a release authorizes routine edits and checks inside it, not the next release.
+- Each release or step lands as its own pull request with CI green. Keep local mode working throughout. Do not bump or rename `MagistriScholaeDB`.
+- Deployments, DNS, Vercel settings and VPS changes happen only in the release that names them, and only when the owner asks for that action.
+- Never turn a partial projection into a whole-record remote save. A new stored field needs a registry entry, a fixture and a test, not only a new input.
+- Prefer splitting large files to growing them. Add a dependency only when a release needs it.
+- Reproduce a defect before fixing it. Record unrelated issues instead of widening the release.
+- After each release, update `project-state.md` with what changed, the exact checks run and what remains.
 
-## 0. Local preparation and deployment inventory
+## Done so far
 
-Local documentation and source inspection are prepared. Verify the current checkout, branch, user changes, and runtime before implementation. Complete the VPS/deployment inventory before rollout; it does not block milestone 1.
+Milestones 1–3 are implemented and verified locally (re-verified 7 November 2026; commit `3b60075`):
 
-The canonical repository is `SerjTargarien/Magistri-Scholae-web`. The old force-push is reported as completed. Do not rewrite history, synchronize the obsolete AI Studio repository, or change Vercel/DNS during local refactoring.
+1. Local storage boundary and isolated mock mode.
+2. Django/PostgreSQL API with accounts, campaigns, field projection, path patches, bonds and notes.
+3. Remote editing with a save queue, retries, private images and note promotion.
 
-## 1. Persistence boundary and mock preview — first implementation task
+Remote mode still uses a stopgap generic form UI. See [project-state.md](project-state.md).
 
-### Outcome
+## Summary
 
-The existing frontend works with a local adapter or explicitly selected isolated mock data. UI screens no longer own direct character/familiar database calls. A later Django adapter can reuse the boundary without another UI-wide storage rewrite.
+| Release | Goal | Size | Depends on |
+|---|---|---|---|
+| R0 Safety net | Work pushed, CI and UI smoke tests running, Vercel frozen as rollback | S | Owner decision 1 |
+| R1 Same app, new home | Current app served from Contabo at `magistrischolae.fyi` | S–M | R0, SSH access |
+| R2 Backend on staging | Django + PostgreSQL behind HTTPS on staging, backed up and restorable | M | R1 |
+| R3 Real UI on accounts | Existing screens run in local, mock and remote mode | L | R0 |
+| R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3c |
+| R5 Data carry-over | Existing records reach the server without loss | S–M | R3a, R4 |
+| R6 Accounts launch | Account-backed app live at `magistrischolae.fyi` | S | R2–R5 |
+| R7 After launch | Offline viewing, privacy editor, transfers, GM library, cleanup | M–L | R6 |
 
-### Scope
+**Critical path:** R0 → R3 → R5 → R6. R1 and R2 form an infrastructure track that touches different files (`deploy/`, `backend/config/`). It can run in a parallel session while R3 is in progress. R4 overlaps the end of R3. **R1 is the quick win**: days after SSH access, with no feature change. **R3 is the long pole.**
 
-1. Inventory all persistence operations, including both tables, bidirectional bonds, autosave, imports, exports, quota reporting, and confirmed local reset.
-2. Establish a focused baseline with nontrivial numeric IDs, string familiar IDs, linked and unlinked records, journals, images, and both character types.
-3. Introduce typed character/familiar repositories and application-level operations for bonds, backups, and local reset. Coordinate multi-record operations in services/transactions instead of recreating storage logic in components.
-4. Wrap existing Dexie storage without changing its database name, schema declarations, stored IDs, or user data. Do not normalize string/numeric relationship references destructively on startup.
-5. Move direct data access from `App.tsx`, character/familiar detail/editors, and settings behind the boundary. Preserve form navigation, appearance, localization, and feedback.
-6. Introduce explicit local/mock selection, defaulting to local. Mocks use fictional data and isolated storage, never the user's database. Add a visible demo indicator.
-7. Separate complete local domain data from proposed future viewer projections/capabilities. Do not feed partial records into legacy full-record saves or claim mock filtering enforces security. Avoid building the full permission UI now.
-8. Document the actual storage contract, mode-selection command, and verification. A `docs/storage-contract.md` file can be introduced when concrete interfaces exist; do not treat speculative interfaces as already implemented.
+## Feature checklist
 
-### Preservation and known integrity gaps
+Every release that changes the UI must pass this list, in each mode it affects, on desktop and mobile widths. R0 automates as much of it as possible.
 
-- Retain student/adult-wizard profiles, familiar content, registry capabilities, language/style preferences, image operations, and responsive layouts.
-- Preserve `MagistriScholaeDB` version 2 and both table schemas. ID adapters must be lossless at the storage boundary; future remote IDs do not require rewriting current records.
-- Keep the existing backup version readable, including backups without a familiars collection. Do not silently discard familiar records when exporting or importing.
-- Characterize the current import/bond gaps listed in `project-state.md`. For a verified import fix, remap familiar backlinks using actual newly assigned character IDs, preserve unbound familiars, handle collisions deliberately, and test the affected round trip.
-- Keep local add/replace/reset operations explicitly scoped to local data and their existing user confirmation. Do not create a future unrestricted shared-database wipe endpoint.
-- No background deletion, reset, schema upgrade, or automatic migration of real user data. Tests must use isolated fixtures/databases and clean up only their own data.
+- Students and adult wizards: create, edit, delete, and the archetype tabs.
+- Familiars: create, edit, delete, including standalone familiars.
+- Bonds in both directions, including clean-up when either side is deleted.
+- Session tracking: stress tracks and maximums, consequences, destiny points, XP.
+- Skills, spells, potions, clubs, equipment, custom fields, aspects and complications.
+- Journals.
+- Portraits and gallery images, with cropping.
+- House crests and ornaments.
+- Academy and classic styles; English and Spanish.
+- The mobile profile banner.
+- Local mode only: backup export and import (full, selected, familiar-only) and the typed-phrase reset.
 
-### Out of scope
+## R0 — Safety net (S)
 
-Django/PostgreSQL implementation, login, production authorization, new privacy controls, remote media storage, complete remote autosave conflict handling, library sync, offline account caches, deployment automation, and visual redesigns.
+**Goal:** the work is on GitHub, checked automatically, and `main` can move without touching the live site.
 
-### Completion evidence
+**Work:**
 
-- `npm run lint` and `npm run build` results, plus a scoped test command documented if added.
-- Repository scan confirms UI/application entry points no longer directly access character/familiar Dexie tables; persistence implementations retain legitimate access.
-- Local create/edit/delete and reload work for both entities, with bond/unbond/reassignment/delete-cleanup checks in both directions.
-- Relevant import/export round trips retain content, media, and relationships, with known unsupported cases explicitly reported rather than claimed as passed.
-- Mock mode starts without backend services/production credentials and cannot write into the real database. Mode selection and isolation are exercised, not just described.
-- Browser smoke checks cover mobile/desktop and critical character/familiar flows where tooling permits. Report unrun browser checks explicitly.
-- `docs/project-state.md` records changes, actual checks, remaining defects, and the next unfinished milestone.
+1. Push `codex/milestone-3-remote` and open a draft pull request to `main` (once decision 1 is made).
+2. Add a GitHub Actions workflow:
+   - Frontend: `npm ci`, `lint`, `test`, all three builds, and `test:baseline` (needs `fetch-depth: 0`).
+   - Backend: a `postgres:18` service, then `check`, `makemigrations --check`, `export_api_contract --check` and the test suite.
+3. Add Playwright smoke tests of the current UI in mock mode, at desktop and mobile widths, covering the feature checklist. Run them in CI. They are the safety net for R3, which rewrites a 3,800-line screen.
+4. Check local mode in a browser, then merge to `main`.
 
-## 2. Django domain API, accounts, and permission foundation
+**Exit criteria:** CI is green on `main`, the smoke tests cover the checklist, and the live Vercel site is unchanged.
 
-Authorized by the owner after milestone 1. Confirmed familiar rule: independent assignment and read-only shares; bonds grant no access or note ownership. Separate character/familiar import/export is the intended transfer behavior, deferred until the backend foundation is solid. Keep legacy combined-backup compatibility in the current local app meanwhile.
+**Owner actions:**
 
-Create the backend and PostgreSQL development environment. Implement invitation-only username accounts, reset codes, server-backed sessions, campaign roles, explicit shares, private notes, and server projection/authorized field changes. Define the character/familiar relational model and bond invariants together; do not migrate characters while losing familiars.
+- Make decision 1 (whether `docs/` is published).
+- In Vercel, turn off automatic deployments from Git so today's site stays frozen as a rollback copy.
+- Export your own backup from the live site.
+- Require CI to pass before merging to `main`.
 
-Before exposing standalone familiars through accounts, record the ownership/share rule and its consistency with bonded wizard permissions. A bond must not grant weaker access to hidden data or transfer author-only notes.
+**Rollback:** nothing user-visible changes.
 
-Prove cross-user/campaign isolation, GM field restrictions, author-only personal notes, session revocation, and that no generic serializer/download route bypasses projection. Use versioned migrations and a documented API contract. Full privacy promises must be enforced before real sensitive content is entered.
+## R1 — Same app, new home (S–M)
 
-## 3. Remote editing and private media
+**Goal:** `magistrischolae.fyi` is served from Contabo, with the same app and features. Browser data is reachable only by code served from the same origin, and the origin stays `https://magistrischolae.fyi`. So every player's existing records stay readable, and the account release can later read them in place (see R5).
 
-Authorized by the owner after the milestone 2 pause. Implemented behavior, checks and limits are recorded in the milestone 3 checkpoint in [project-state.md](project-state.md). Milestone 4 is not started.
+**Work:**
 
-Add the remote adapter, serialized save queues, revisions, idempotent mutation handling, and permitted conflict reconciliation. Implement protected media and explicit personal-note promotion. Keep local/mock modes intentionally separated from remote failures.
+1. **Inventory (read-only).** Use the commands in [design.md](design.md) section 15. Record the OS, Docker version, ports, disk and memory. Note any existing containers; an auto-updating container manager must never manage the database container (decision 4; details in `docs/infrastructure.local.md`).
+2. **Hardening.** Create a non-root deploy user with key-only SSH. Allow only ports 22, 80 and 443 through the firewall, and enable automatic security updates. Only Caddy publishes ports; Docker otherwise bypasses the firewall.
+3. **`deploy/` folder.** A Compose file with Caddy serving the local-mode build, and a release script that builds a Git tag on the VPS. Caddy settings:
+   - Single-page-app fallback to `index.html`.
+   - `index.html` and `sw.js` served `no-cache`.
+   - `/assets/*` cached as immutable.
+4. **Staging first.** Add a `staging` A record in Vercel DNS (the nameservers are Vercel's). Verify the HTTPS certificate, the smoke tests and an offline reload.
+5. **Apex cutover.** Lower the record TTL a day ahead. Point the apex record (and `www` if it is used) at Contabo; Vercel may require removing the domain from the project first. Wait for the certificate, then check your own browser still shows its records.
 
-Prove rapid edits/retries/conflicts do not overwrite newer or hidden data. Exercise image authorization, relationship transactions, and note-promotion atomicity. Keep player-visible responses partial and preserve unseen fields on writes.
+**Exit criteria:**
 
-## 4. GM library, sharing, and selective updates
+- The apex is served over HTTPS from Contabo.
+- The smoke tests pass against it.
+- Your existing records are visible after cutover.
+- The frozen Vercel copy remains reachable at its `vercel.app` address.
 
-Implement private PCs/NPCs/templates and independent campaign copies, including safe familiar/media associations. Add per-copy manual source-to-copy previews with field selection and per-field baselines. Preserve target assignment, disclosure rules, notes, and campaign values unless explicitly changed by an authorized operation.
+**Owner actions:**
 
-Prove source deletion does not remove copies, stale previews cannot apply, and copying/sync never includes author-only notes or silently widens disclosure.
+- Provide SSH access, or run the documented commands yourself (decision 7).
+- Make the DNS edits.
+- Decide what to do with the old containers.
 
-## 5. Legacy transfer and account-aware offline viewing
+**Rollback:** point the apex record back to Vercel. Browser data is untouched either way.
 
-Implement a dry-run legacy importer, portable versioned exports, stable ID mapping for characters/familiars, per-item reports, and safe retries. Include older characters-only backups and the current familiar-capable format.
+## R2 — Backend on staging (M; parallel with R3)
 
-Restrict service-worker caching before authenticated data goes live. Add read-only viewer snapshots, automatic own/assigned caching, explicit GM additional downloads, online permission revalidation, and cross-tab logout cleanup. No offline mutation queue.
+**Goal:** Django and PostgreSQL run behind Caddy on the staging hostname with fictional accounts, backed up and restorable.
 
-Prove projections apply to exports, images, search, and offline data; a second account cannot reuse the first account's cache. Document the unavoidable limit on revoking copies while a device remains offline.
+**Work:**
 
-## 6. Staging, Contabo deployment, and cutover
+1. **Settings fixes from the audit.** These must land before any production secret or account exists:
+   - Trust the HTTPS proxy header from Caddy only (H1).
+   - Take the client IP for rate limits from the trusted proxy (H2).
+   - Log `django.request` and app errors to stdout (H3).
+   - Use a separate HMAC key for invitation, reset-code, revision and receipt hashes (M4).
+2. **Packaging (H4).**
+   - Pin gunicorn and add a backend Dockerfile.
+   - Write a production Compose file with Caddy, Django, a pinned `postgres:18.x`, a media volume and a private network. Caddy routes `/api` to Django and serves everything else as static files.
+   - Run migrations as a deliberate deploy step.
+   - Keep secrets in a server-only env file.
+3. **Maintenance (M5).** A scheduled command that runs `clearsessions`, purges expired invitations, reset codes, rate buckets and old receipts, and reports orphaned media.
+4. **Read locks (M1).** Remove write locks from the image and GM-note GET routes.
+5. **Backups.** Nightly encrypted `pg_dump` plus a media copy off the VPS, keeping 7 daily and 4 weekly copies. Do one restore drill on a clean environment.
+6. **Staging data.** Staging runs the remote build with fictional accounts only. The stopgap UI is acceptable here.
 
-Inventory the VPS and existing deployment. Build reproducible frontend/backend images and Compose services with private PostgreSQL and media volumes. Configure HTTPS, allowed hosts/proxy trust, CSRF/session settings, monitoring, and encrypted off-VPS backups. Verify database/media restoration on a clean test environment.
+**Exit criteria:**
 
-Keep the existing Vercel site available until the new deployment is verified. Confirm its current production commit/branch, retain recoverable old data, then perform any requested domain cutover as a separate release action. Document rollback and support/recovery procedures.
+- HTTPS smoke checks pass: login, edit, image upload and view, note promotion, logout.
+- Rate limits see real client IPs.
+- A deliberately triggered error appears in the logs.
+- The restore drill succeeds.
+- `check --deploy` is clean apart from the documented HSTS-preload warning.
 
-## Checkpoint reporting
+**Owner actions:** choose the off-VPS backup destination (decision 5) and keep a copy of the backup encryption key off the VPS.
 
-After each milestone, report outcomes, changed files, exact validation and its limitations, any agreed scope adjustment, and the next recommended milestone. Keep the handoff current. Do not mark the migration complete merely because the frontend compiles or a server container starts.
+**Rollback:** staging only; tear it down.
+
+## R3 — Real UI on accounts (L; critical path)
+
+**Entry:** the R0 smoke tests run in CI.
+
+**Goal:** the existing screens run in local, mock and remote mode through one sheet interface. Each step below is a separate pull request, and local mode behaves the same after each.
+
+- **R3a Stable list IDs.**
+  - UI state uses items with IDs for string lists, custom fields, skills and the gallery.
+  - The local adapter converts Dexie records to and from the registry v1 shape without loss. Unknown fields are kept, and round-trip tests run over the fixtures.
+  - Replace the nine index-based list edits in `CharacterDetail` with ID-based ones.
+  - The Dexie schema and stored data are unchanged. This step can ship to the R1 site on its own.
+- **R3b Sheet session.** The ~60 existing `saveStateToDB(clone)` call sites hand their edited draft to a session. The session diffs the draft against the last projection and sends only path patches. Guards, each with a unit test:
+  - Diff registered paths only; ignore `id`, `tempId`, `createdAt`, `updatedAt` and `familiarId`.
+  - Never send a removal or a blank for a path that was absent from the projection.
+  - Compare list items by ID.
+  - Send new image data URLs to the asset upload endpoint, and bond changes to the bond endpoint.
+  - Show server rejections as errors; never retry as a whole-record save.
+
+  The remote adapter is the existing `SaveQueue`. The local adapter keeps saving whole records, which is safe because local data has no hidden fields. Shared readers get a read-only sheet. Fields missing from the writable paths are disabled. Do not show the conflict screen when the refreshed projection is unchanged (M3).
+- **R3c App shell.** Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles. Text goes through `localization.ts`. No `window.confirm`.
+- **R3d Projected mock.** Fixtures in the server shape, with a visible role switcher (GM, assigned player, shared reader). It simulates hidden fields, conflicts, offline state and failed saves, and keeps the DEMO banner. AI Studio develops against this from then on.
+- **R3e Clean-up.** Remove the stopgap generic forms (or keep them behind a developer flag). Split `CharacterDetail` into per-tab files, which also fixes the bundle-size warning.
+
+**Exit criteria:**
+
+- The feature checklist passes in local mode, in mock mode for all three roles, and in remote mode on staging.
+- The smoke suite also runs in remote mode against a CI backend.
+- All existing tests pass.
+
+**Owner actions:** until R3d lands, limit AI Studio to presentation-only changes (decision 6).
+
+**Rollback:** revert the step's pull request; the smoke tests guard local mode.
+
+## R4 — Admin essentials (M)
+
+**Goal:** the owner runs the group without API calls or the Django shell.
+
+**Work:**
+
+- Backend: an administrator-only, paginated `GET api/v1/admin/users`.
+- Screens to:
+  - Create campaigns.
+  - Issue GM and player invitations (the token is shown once, with a copy button).
+  - List users.
+  - Issue reset codes.
+  - Enable and disable accounts.
+  - Manage members and roles.
+  - Assign sheets.
+  - Archive and restore sheets.
+
+The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).
+
+**Exit criteria:** on staging, after `createsuperuser`, the owner does everything else in the UI: a campaign, GM and player invitations, registration, assignment, a reset code and disabling an account.
+
+**Rollback:** revert.
+
+## R5 — Data carry-over (S–M)
+
+**Decision first:** whose data exists? [design.md](design.md) records that nobody else uses the hosted site (decision 3).
+
+- **Option A, only your data:** import a backup file in the account UI; the GM imports and assigns the sheets.
+- **Option B, players have data:** a migration screen in the remote build at the production origin.
+  - It reads the old `MagistriScholaeDB` read-only and shows a dry run: counts, images, bonds, journals, warnings and oversized images.
+  - It then creates the records through the existing endpoints with operation IDs, uploads images and links bonds.
+  - It keeps a local map from old to new IDs so a rerun creates no duplicates.
+  - It never changes or deletes the old database, and it can also export a backup file.
+
+Both options use the R3a converter. Old journal entries become ordinary journal entries the GM can see ([design.md](design.md) section 13).
+
+**Exit criteria:** copies of real backups import on staging with images, bonds and journals intact; a rerun creates no duplicates; the result checks out in a second browser.
+
+**Owner actions:** collect backup files from anyone with data, even with option B.
+
+**Rollback:** delete the imported staging sheets; the source data is untouched.
+
+## R6 — Accounts launch (S)
+
+**Goal:** `magistrischolae.fyi` runs the account-backed app.
+
+**Work:**
+
+- Run the production stack on the VPS, with its database and media separate from staging.
+- Generate production secrets and bootstrap the administrator.
+- Switch the apex frontend from the local build to the remote build (including the migrator under option B).
+- Run the first production backup and check it restores.
+- Tag the release.
+
+**Launch checklist:**
+
+- H1–H5 resolved.
+- CI green.
+- Backups verified.
+- The feature checklist passes on production.
+- Logs are visible.
+- `check --deploy` is clean.
+
+**Known regression:** the current app works offline. The account app allows online editing only, by product decision. Offline viewing is a confirmed requirement that arrives in R7.1 unless decision 2 pulls it before launch.
+
+**Owner actions:** invite the players and hand out their invitations.
+
+**Rollback:** redeploy the local build at the apex. Players' browser data is untouched because R5 only reads it; server data is kept for a retry.
+
+## R7 — After launch (in order)
+
+1. Read-only offline snapshots per account, cleared on logout ([design.md](design.md) section 12).
+2. The visibility editor (GM defaults and overrides, player restrictions) and read-only sharing.
+3. Separate character and familiar export/import for accounts (the owner's decision).
+4. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11).
+5. Clean-up:
+   - Remove unused dependencies (L1).
+   - Fix the skill-preset key (L3).
+   - Reduce list query counts (M2).
+   - Reclaim orphaned media.
+   - Trim the docs.
+   - Optionally move DNS to the registrar, and retire the Vercel project once it is no longer needed.
+
+## Owner decisions
+
+| # | Decision | Needed by | Recommendation |
+|---|---|---|---|
+| 1 | Publish `docs/` (hosting and VPS details, no secrets) in the public repository? | R0 | Trim the VPS details, then publish; agents need these docs. |
+| 2 | Offline viewing before or after launch? | R6 | Right after launch (R7.1), given no current users. |
+| 3 | Whose data needs carrying over? | R5 | Confirm. If only yours, use option A. |
+| 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | Back them up, and keep any auto-updater away from this project's containers. |
+| 5 | Off-VPS backup destination | R2 | Any provider with encryption at rest, plus restic. |
+| 6 | AI Studio limited to presentation work until R3d? | R3 | Yes. |
+| 7 | Agent SSH access to the VPS, or owner-run scripts? | R1 | A dedicated deploy user with key access. |
+
+## Former milestones
+
+Older documents refer to milestones 4–6. They map to releases as follows:
+
+| Former milestone | Now |
+|---|---|
+| 4 — GM library and selective sync | R7.4 |
+| 5 — Legacy transfer and offline viewing | R5 (legacy import), R7.1 (offline snapshots), R7.3 (separate transfers). Static-only service-worker caching already shipped in milestone 3. |
+| 6 — Staging, deployment and cutover | R1 (hosting and DNS), R2 (backend staging and backups), R6 (launch) |

@@ -69,7 +69,7 @@ None of those infrastructure details blocks a local storage-interface refactor.
 | 1. Local/mock storage boundary for characters and familiars | Implemented and verified locally; see checkpoint below. |
 | 2. Django/PostgreSQL API, accounts and privacy foundation | Implemented and verified locally; see checkpoint below. |
 | 3. Remote editing, private media and note promotion | Implemented and verified locally; see checkpoint below. |
-| 4–6. Library, transfers/offline, rollout | Not started. |
+| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | Not started. Next: R0. See [implementation-plan.md](implementation-plan.md). |
 
 Documentation preparation validation: all eight Markdown files passed relative-file link checks, balanced-code-fence checks, and scans for replacement/zero-width characters. Installed copies matched staged SHA-256 hashes. Git status showed only the README edit plus new `AGENTS.md` and `docs/`; `git diff --check` passed for the tracked README change. Git emitted an informational LF-to-CRLF notice. No Git configuration was changed.
 
@@ -203,7 +203,7 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - Detached files and operation receipts are retained. A file/database commit failure can leave an unreferenced file, which has no authorized download route. Reclamation, quotas, receipt retention, production media serving/backups and restore verification require operational hardening before release.
 - Separate character/familiar transfers and account-aware offline snapshots remain milestone 5. No remote transfer/wipe or automatic local-record migration was introduced.
 
-**Next unfinished milestone:** milestone 4, GM library, independent copies, sharing and manual selective updates. Review milestone 3 and save a Git checkpoint before authorizing it. Deployment remains separate.
+**Next unfinished milestone (as of 18 October; superseded on 7 November):** milestone 4, GM library, independent copies, sharing and manual selective updates. The roadmap adopted on 7 November moves milestone 4 to R7.4; see [implementation-plan.md](implementation-plan.md).
 
 ## Session paused after milestone 3 — 18 October 2026
 
@@ -221,7 +221,8 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - Working tree still uncommitted on `codex/milestone-3-remote`; all local milestone branches and `origin/main` point to `2518abd`. The GitHub repository is public.
 - Re-run checks: `npm test` 34 passed; `npm run lint` passed; `build`, `build:mock` and `build:remote` passed (final `dist/` is local mode; 502.6 kB chunk warning); `test:baseline` reproduced the original defects; 89 PostgreSQL backend tests passed; Django `check`, `makemigrations --check --dry-run`, `export_api_contract --check` and `pip check` passed. Browser flows were not re-run.
 - Docker Desktop was started for the backend tests; the development database container was stopped afterwards with its volume retained.
-- **Audit recommendation, pending owner decision:** checkpoint commit and CI, then integrate the full character/familiar UI with the projection contract plus minimal admin/GM screens, then thin staging, legacy transfer, launch, and milestone 4 after launch. Milestone 4 has not started.
+- The working tree was committed locally as `3b60075` on `codex/milestone-3-remote`, at the owner's request. Nothing was pushed.
+- The owner asked for the audit's proposal to become the roadmap. [implementation-plan.md](implementation-plan.md) now orders the work as releases R0–R7, aiming at the earliest working version on Contabo at `magistrischolae.fyi`. **Next: R0** (push, CI, UI smoke tests, freezing Vercel deploys). No release has started, and R0 still needs owner decision 1 (publishing `docs/`).
 
 ## Updating this handoff
 

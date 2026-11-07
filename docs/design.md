@@ -1,6 +1,6 @@
 # Magistri Scholae: accounts, shared storage, and frontend development
 
-**Status:** Design baseline with confirmed backend and privacy decisions. Django with PostgreSQL is selected. Personal notes use application-level privacy; the VPS administrator is trusted. Milestones 1–2 are implemented locally; see [project-state.md](project-state.md) for actual evidence and remaining work. Infrastructure discovery and deployment remain outstanding.
+**Status:** Design baseline with confirmed backend and privacy decisions. Django with PostgreSQL is selected. Personal notes use application-level privacy; the VPS administrator is trusted. Milestones 1–3 are implemented locally; see [project-state.md](project-state.md) for actual evidence and [implementation-plan.md](implementation-plan.md) for the remaining release order. Infrastructure discovery and deployment remain outstanding.
 
 **Date:** 18 October 2026  
 **Canonical repository:** [SerjTargarien/Magistri-Scholae-web](https://github.com/SerjTargarien/Magistri-Scholae-web), used by Codex and Google AI Studio after the owner's reported consolidation of newer AI Studio work.  
@@ -96,7 +96,7 @@ The stated VPS is a reasonable starting point for this stack and a small group, 
 
 ## 5. Current application and specific changes
 
-The local revision identified above uses the following. The complete accepted design remains a target architecture; the storage interface, mocks, and backend have not yet been implemented.
+The local revision identified above uses the following. The complete accepted design remains a target architecture. The storage interface, mocks and backend have since been implemented in milestones 1–3; the table records the original observations.
 
 | Source | Observed behavior | Planned change |
 |---|---|---|
@@ -400,7 +400,7 @@ Instructions guide agents; tests and code review enforce the boundary. Additive 
 |---|---|
 | Hosting discovery | The public site is served through Vercel and builds from this repository. Registrar, DNS records, Vercel project settings and the Contabo VPS inventory are recorded in `docs/infrastructure.local.md`, a git-ignored file kept only on the owner's machine. |
 | Earlier repository comparison (historical) | Before consolidation, 25 common files matched the old AI Studio snapshot and the web repository additionally had `.env.example` and `package-lock.json`. This comparison is superseded and must not guide file restoration. |
-| Current local inspection after consolidation | HEAD `2518abd50809c3f59fab3dbb4e412ac6cc50a911` includes familiars, bonds, an archetype registry, and newer visuals. A root lockfile and `.env.example` are not present in this inspected checkout. Both tools now work from the canonical web repository. |
+| Current local inspection after consolidation | HEAD `2518abd50809c3f59fab3dbb4e412ac6cc50a911` includes familiars, bonds, an archetype registry, and newer visuals. A root lockfile and `.env.example` were not present in that checkout; both were added in milestone 1. Both tools now work from the canonical web repository. |
 
 Record the exact current production deployment commit before assuming the connected repository's latest branch is what users receive. Existing site content can remain on Vercel during development. The proposed all-VPS deployment below is a future topology, not a description of the current setup. A split Vercel frontend/Contabo backend would require an explicit routing/session design before adopting it.
 
@@ -459,6 +459,8 @@ Rollback restores compatible application images; schema rollback is not assumed 
 | 4. Library and sharing | Private library, independent copies, grants, defaults, selective update preview/apply. | Per-field sync baselines and source/target revision checks work; no surprise disclosure or note copying. |
 | 5. Transfer and offline | Real legacy importer, portable exports, account-scoped offline snapshots and cache cleanup. | Verified imports and duplicate handling; offline contains only viewer-authorized data; account switching isolates data. |
 | 6. Staging and launch | Deployment scripts, backups, restore exercise, operating instructions, fresh cutover. | Staging sign-off, database/media restoration, retained originals, production smoke checks. |
+
+These phases define the evidence each area needs. Since 7 November 2026, [implementation-plan.md](implementation-plan.md) owns the order of delivery: releases R0–R7, aiming at an early Contabo launch.
 
 Phases can produce useful staging checkpoints. Do not launch an intermediate build that exposes complete sheets while promising field privacy or GM-hidden personal notes. Those promises require their full server enforcement before real users enter such data.
 

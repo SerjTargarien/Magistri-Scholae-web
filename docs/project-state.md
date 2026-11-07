@@ -310,6 +310,30 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - Fictional accounts (`test_gm`, `test_player`) and one fictional character were kept on staging on purpose, for the owner to explore; their passwords are only on the server.
 - **R2 is complete.** Next: R3, the real UI on accounts, starting with R3a (stable list IDs). Each step is explained before it is carried out.
 
+## Session paused — 7 November 2026 (evening)
+
+**Where everything stands:**
+
+- **Repository:** `main` at `bb0b1c0`; no open pull requests; CI (frontend, backend, deploy-config) is green. Commits are in the owner's name with no attribution trailers (rule in `AGENTS.md` and the owner's global instructions).
+- **Live site:** `https://magistrischolae.fyi` serves the local-storage app from the Contabo VPS (release `0c8b943`); `www` redirects to it. DNS is at Porkbun. The owner confirmed their existing records survived the move.
+- **Staging:** `https://staging.magistrischolae.fyi` serves the account version (release `c33a563`) with its own Django backend and PostgreSQL database (`main` code `3576268`+). It holds the owner's administrator account and fictional `test_gm`/`test_player` accounts with one fictional character.
+- **Automation on the server:** an encrypted backup to Backblaze B2 nightly at 03:30 server time, and housekeeping at 04:17.
+- **Security:** SSH is key-only (owner's PC and phone, plus the agent's `deploy` key); the VNC console is the fallback.
+- **Server specifics** (addresses, keys' locations, container names, procedures): the git-ignored `docs/infrastructure.local.md` on the owner's PC.
+
+**Open items, in order:**
+
+1. **Confirm the R3 approach** at the start of the next session (owner direction recorded at the top of R3 in [implementation-plan.md](implementation-plan.md)), then explain and start the first R3 step.
+2. **From about 9 November:** check that public resolvers report Porkbun's nameservers, then guide the owner through removing `magistrischolae.fyi` (and `www`/`staging`) from the Vercel project (step 8 of the cutover). Optionally delete the project afterwards.
+3. **Optional housekeeping, not urgent:**
+   - Delete merged local and remote branches (`codex/milestone-*`, `r1/*`, `r2/*`, `docs/*`).
+   - Delete the local-only branch `backup/pre-trim-2026-11-07`, which holds pre-trim history with VPS details and must never be pushed.
+   - Delete the WSL test clone `~/magistri-r1-test`.
+   - Delete the PC's `.claude/launch.json` (git-ignored).
+4. **Later, as planned:** firewall and `deploy` sudo narrowing (deferred by the owner), offline viewing after launch, and the privacy editor.
+
+**How to resume:** read this section, the top of R3 in the roadmap, and `docs/infrastructure.local.md`. Server access is described in that local file. Work one step at a time; explain each step before carrying it out, and pause before anything with visible effects or a connection reset.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

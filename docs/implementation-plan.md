@@ -157,6 +157,16 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 
 ## R3 — Real UI on accounts (L; critical path)
 
+**Owner direction, 7 November 2026: do it right, no translation layer between the screens and the server.** This supersedes the R3a/R3b wording below where they conflict. The agent's proposal, to be confirmed at the start of the next session before work begins:
+
+1. **One data model, defined by the server.** The TypeScript types for characters and familiars are generated from the backend field registry (as `fieldRegistry.generated.ts` already is) and replace the hand-written model in `src/types.ts`. A new field is declared once, in the backend registry.
+2. **The screens use that model directly.** Every list item has a stable ID, and edits work by ID, not by position. This covers the character screen, the creation form, the familiar screens and the list. About 250 references and 25 index-based edits in `CharacterDetail`, `CharacterForm` and `FamiliarDetail` change. `CharacterDetail` (3,800 lines) is split into per-tab files in the same work.
+3. **Saving sends only the changed items** (paths), with no conversion between the screens and the server.
+4. **Images** are shown through one helper that handles both browser-stored images (local mode) and server assets.
+5. **The old format is read only at the edges:** local mode's existing IndexedDB records and old backup files (the R5 importer) go through one legacy reader. **Stored browser data is not rewritten** (no Dexie schema bump); local mode becomes legacy after launch.
+6. **Rejected:** a translation layer (option 2), and rewriting the server to store position-based lists, which would lose per-item updates and per-item privacy.
+7. Each step is its own pull request, keeps the current app working under the browser tests (extended as screens change), and is explained before it starts.
+
 **Entry:** the R0 smoke tests run in CI.
 
 **Goal:** the existing screens run in local, mock and remote mode through one sheet interface. Each step below is a separate pull request, and local mode behaves the same after each.

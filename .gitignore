@@ -6,6 +6,8 @@ test-results/
 playwright-report/
 blob-report/
 .claude/launch.json
+# Local-only notes, e.g. docs/infrastructure.local.md (VPS and DNS details)
+*.local.md
 backend/.venv/
 backend/.tmp/
 backend/private-media/

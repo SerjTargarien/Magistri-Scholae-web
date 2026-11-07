@@ -53,4 +53,5 @@
 - Check remotes, branch, and working-tree status before edits. Use a development branch/worktree for implementation; do not reset or stash someone else's work.
 - Code changes do not themselves authorize production deployments, changes to DNS/Vercel, pushes to a live branch, destructive migrations, or force-pushes. Perform those only when the user requests the relevant action.
 - Do not expose credentials, personal-note bodies, or full secret-bearing environment/configuration dumps in logs or documentation.
+- VPS, registrar, DNS and hosting-account specifics (IP addresses, resources, existing containers, access methods) belong only in the git-ignored `docs/infrastructure.local.md`. Read it locally when needed; never copy its contents into tracked files, commit messages or pull requests. Refer to it by path instead.
 - Use the standard filename `AGENTS.md`. Keep Markdown changes localized. LF/CRLF checkout notices are not evidence of corruption; do not renormalize the whole repository or alter global Git settings for a docs task.

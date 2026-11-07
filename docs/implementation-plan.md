@@ -260,7 +260,7 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 
 | # | Decision | Needed by | Recommendation |
 |---|---|---|---|
-| 1 | Publish `docs/` (hosting and VPS details, no secrets) in the public repository? | R0 | Trim the VPS details, then publish; agents need these docs. |
+| 1 | Publish `docs/` in the public repository? | R0 | **Decided 7 November 2026:** publish; VPS, registrar and DNS specifics live only in the git-ignored `docs/infrastructure.local.md`. |
 | 2 | Offline viewing before or after launch? | R6 | Right after launch (R7.1), given no current users. |
 | 3 | Whose data needs carrying over? | R5 | Confirm. If only yours, use option A. |
 | 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | Back them up, and keep any auto-updater away from this project's containers. |

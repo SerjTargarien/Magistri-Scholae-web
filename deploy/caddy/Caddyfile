@@ -15,6 +15,11 @@
 		-Server
 	}
 
+	# www is only a signpost: send it to the main address, keeping the path.
+	# Active only once www.magistrischolae.fyi is listed in SITE_ADDRESS.
+	@www host www.magistrischolae.fyi
+	redir @www https://magistrischolae.fyi{uri} permanent
+
 	# Hashed build assets never change. A missing one is a plain 404, never
 	# the app shell, so a stale browser cannot cache HTML as JavaScript.
 	handle /assets/* {

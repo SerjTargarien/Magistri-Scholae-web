@@ -83,21 +83,32 @@ docker compose -f deploy/compose.yaml up -d
    E2E_LOCAL_URL=https://staging.magistrischolae.fyi npx playwright test --project=local-desktop
    ```
 
-## 5. Apex cutover
+## 5. Cutover, then leaving Vercel
 
-1. The day before, lower the TTL of the apex (and `www`, if used) records in Vercel DNS.
-2. Confirm your own backup of the live site exists.
-3. Point the apex `A` record (and `www`) at the server. Vercel may require removing the domain from the Vercel project first. Keep the Vercel project itself as the rollback copy.
-4. When `dig +short magistrischolae.fyi` returns the server's IP, set `SITE_ADDRESS=magistrischolae.fyi, www.magistrischolae.fyi, staging.magistrischolae.fyi` in `deploy/.env` (drop `www` if unused) and apply it:
+The goal is a site that depends only on the registrar (Porkbun) and the VPS. It happens in two phases, so no visitor reaches the server before it has a certificate. Browsers that visited before enforce HTTPS for the domain and refuse certificate errors.
+
+### Phase 1: point the website at the VPS (DNS still hosted by Vercel)
+
+1. Confirm your own backup of the live site exists.
+2. Check that the apex record's TTL is short (60 s). If it isn't, lower it a day ahead.
+3. In Vercel DNS, change the apex `A` record to the server's IP and add a `www` `A` record with the same IP. An explicit record overrides Vercel's `*` catch-all for that name only.
+4. When both Vercel nameservers (`dig +short magistrischolae.fyi @ns1.vercel-dns.com`, and the same for `www`) return the server's IP, immediately set `SITE_ADDRESS=magistrischolae.fyi, www.magistrischolae.fyi, staging.magistrischolae.fyi` in `deploy/.env` and apply it:
 
    ```bash
    docker compose -f deploy/compose.yaml up -d
    ```
 
-   Adding the apex only after DNS points here avoids failed certificate attempts and rate limits. Expect a short window of certificate errors while DNS propagates.
-5. Verify `https://magistrischolae.fyi/version.txt`, run the browser tests against it, and open the site in your usual browser: your existing records must still be there.
+   Let's Encrypt asks the authoritative nameservers, so certificates succeed as soon as those answer. Adding the names before that would cause failed attempts and rate limits. Caddy redirects `www` to the apex (`deploy/caddy/Caddyfile`).
+5. Verify `https://magistrischolae.fyi/version.txt`, the `www` redirect, the browser tests against the apex, and your usual browser: your existing records must still be there.
 
-The domain must always be served over HTTPS; browsers may already enforce HTTPS for it.
+### Phase 2: move DNS to the registrar
+
+1. In Porkbun's DNS panel, delete Porkbun's default parking or forwarding records for the domain, then create the same records as the live zone: apex `A`, `www` `A` and `staging` `A` to the server, plus CAA entries permitting at least `letsencrypt.org`. Do not recreate Vercel's `*` catch-all.
+2. Ask Porkbun's nameservers directly and confirm every name returns the server's IP.
+3. Change the domain's nameservers at Porkbun from Vercel's to Porkbun's. Both providers now give identical answers, so visitors notice nothing while the change spreads (allow up to 48 hours).
+4. When the `.fyi` registry and public resolvers report Porkbun's nameservers, remove the domain from the Vercel project; delete the project when you no longer need it as a reference.
+
+The domain must always be served over HTTPS.
 
 ## Releasing and rolling back
 
@@ -119,7 +130,7 @@ docker compose -f deploy/compose.yaml exec web caddy reload --config /etc/caddy/
 
 Logs: `docker compose -f deploy/compose.yaml logs -f web`. The last five releases are kept (`KEEP_RELEASES`).
 
-**DNS rollback:** point the apex record back to Vercel and wait out the TTL. Players' browser data is untouched in either direction because the origin does not change.
+**DNS rollback:** during phase 1, point the apex record back to Vercel's address and delete the `www` record, then wait out the TTL; this only works while the Vercel project still has the domain. After phase 2 the old Vercel deployment is no longer a rollback target; use `--activate` releases instead. Players' browser data is untouched in either direction because the origin does not change.
 
 ## Local test (no network exposure)
 

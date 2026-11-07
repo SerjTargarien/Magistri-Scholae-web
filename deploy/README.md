@@ -166,7 +166,15 @@ docker compose -f deploy/compose.yaml run --rm api-staging python manage.py migr
 docker compose -f deploy/compose.yaml up -d api-staging
 ```
 
-Staging backups to Backblaze B2 are set up in release R2.4.
+## 7. Backups to Backblaze B2 (release R2.4)
+
+- **What runs:** `deploy/backup.sh --target staging` dumps the database (`pg_dump`, custom format) and tars the media volume. It encrypts the bundle with GnuPG (AES-256), checks that the result decrypts, uploads it with `deploy/b2_upload.py` (B2 native API, Python standard library only), and keeps the newest 7 archives in `/opt/magistri/backups/<target>/` (readable by `deploy` only).
+- **Secrets:** `deploy/.env.backup` (server-only, git-ignored, mode 600) holds `BACKUP_PASSPHRASE`, generated on the server, plus `B2_BUCKET`, `B2_KEY_ID` and `B2_APP_KEY`, entered by the owner. The owner keeps a **paper copy of the passphrase**; without it, backups cannot be opened if the server is lost. The passphrase reaches GnuPG through a file descriptor, never the command line.
+- **Retention:** the bucket's lifecycle rule hides files 30 days after upload and deletes them 30 days after hiding. The server's key can write, delete and change lifecycle rules (Backblaze's web "Write Only" key includes those). The owner accepted this: an intruder on the server could destroy the backup history. A stricter key (`writeFiles` and `listBuckets` only) would need the B2 API and a master key.
+- **Schedule:** the `deploy` crontab runs it nightly at 03:30 server time and logs to `~/backup-staging.log`.
+- **Restore drill:** `deploy/restore-check.sh --target staging [archive]` decrypts an archive (default: the newest local one), restores it into a throwaway PostgreSQL on an isolated network, and compares every table's row count and the media file count with the live environment. It then removes everything temporary.
+- **Restoring for real** (not yet needed): decrypt with `gpg --decrypt` using the passphrase, then `pg_restore` the `database.dump` into the target database and untar `media.tar` into the media volume, with the backend stopped. Write the exact steps the first time it is needed.
+- **If the server is lost:** download the archive from the Backblaze web console. Decrypt it on any computer with GnuPG (Gpg4win on Windows) and the paper passphrase: `gpg --decrypt archive.tar.gpg > archive.tar`.
 
 ## Releasing and rolling back
 

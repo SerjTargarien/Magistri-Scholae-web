@@ -9,6 +9,7 @@
 # (last KEEP_LOCAL archives) for quick restores. Nothing is printed from the
 # secrets file. Retention in B2 is the bucket's lifecycle rule, not this script.
 set -euo pipefail
+umask 077   # archives and the backup folder are readable by the deploy user only
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${MAGISTRI_APP_DIR:-$(cd "$DEPLOY_DIR/.." && pwd)}"   # override to test a script copy against the live app

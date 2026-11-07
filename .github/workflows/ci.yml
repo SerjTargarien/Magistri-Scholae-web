@@ -58,6 +58,10 @@ jobs:
           docker run --rm magistri-api:ci python -c "import django, gunicorn, psycopg, PIL; print('django', django.get_version(), 'gunicorn', gunicorn.__version__)"
       - name: Compose file is valid (with the staging profile)
         run: SITE_ADDRESS=:80 docker compose -f deploy/compose.yaml --profile staging-backend config --quiet
+      - name: Deploy scripts parse
+        run: |
+          for script in deploy/*.sh; do bash -n "$script"; done
+          python3 -m py_compile deploy/b2_upload.py
       - name: Caddyfile is valid
         run: |
           docker run --rm -v "$PWD/deploy/caddy:/etc/caddy:ro" -e SITE_ADDRESS=:80 -e STAGING_ADDRESS=http://staging.invalid \

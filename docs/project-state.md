@@ -281,7 +281,26 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - A CI job builds the image and validates the compose file and Caddyfile.
   - Runbook section 6 covers the R2.3 server steps.
   - **Tested on the VPS in throwaway containers on a private network:** image built (38 s, 305 MB, non-root); migrations applied to a fresh PostgreSQL 18.6; `check --deploy` showed only the intentional HSTS-preload warning; through a peer on the trusted network, HTTPS gave 200 with a Secure cookie, plain HTTP gave a 301 to HTTPS, and an unknown Host gave 400; the maintenance dry run worked; compose and Caddyfile were valid. Live containers were untouched, and no test containers, networks, images or folders remained. The `postgres:18.6` image stays on the server for R2.3.
-- **Next:** R2.3, start the staging backend on the server (runbook section 6), step by step.
+- **R2.2 merged** (PR #7).
+- **R2.3 done (server):**
+  - Staging secrets were generated on the server and never displayed.
+  - The staging account build (release from `c33a563`) is live.
+  - Backend and database: PostgreSQL 18.6 on an internal-only network, with no published ports; migrations applied; `check --deploy` shows only the HSTS-preload warning.
+  - Caddy was switched to two sites: about 2 s of downtime, certificates reused, the public site, `www` and the owner's other apps unchanged.
+  - Gunicorn 26's unused control socket logged a permission error and was disabled (PR #8).
+  - The owner created the staging administrator interactively and logged in from their browser.
+  - A failed login was counted under the owner's real IP, not Caddy's.
+  - Nightly `maintenance` is scheduled.
+  - Gotcha for scripts: `docker compose run` without `-T </dev/null` swallows the rest of an SSH heredoc.
+  - Details are in `docs/infrastructure.local.md`.
+- **R2.4 (branch `r2/backups`):**
+  - Decisions: backups use a GnuPG passphrase kept on the server, with a paper copy kept by the owner (option B; the owner uses no password manager).
+  - Backblaze account in EU Central; private bucket with Backblaze encryption and a 30+30-day lifecycle (verified through the API).
+  - The web console's "Write Only" key turned out to allow deleting files and changing lifecycle rules. The owner chose to keep it rather than create a stricter key through the API.
+  - Scripts: `backup.sh`, `b2_upload.py` and `restore-check.sh`.
+  - **Tested on the VPS from the branch:** the first real backup was encrypted, verified and uploaded with a matching SHA-1. The restore drill matched all 22 tables row for row with live staging. No leftovers.
+  - Limitation: media was tested with zero files; repeat once staging has an image (R2.5).
+- **Next:** merge R2.4, schedule nightly backups, then R2.5 (exit checks).
 
 ## Updating this handoff
 

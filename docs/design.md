@@ -5,7 +5,7 @@
 **Date:** 18 October 2026  
 **Canonical repository:** [SerjTargarien/Magistri-Scholae-web](https://github.com/SerjTargarien/Magistri-Scholae-web), used by Codex and Google AI Studio after the owner's reported consolidation of newer AI Studio work.  
 **Latest inspected local revision:** [`2518abd50809c3f59fab3dbb4e412ac6cc50a911`](https://github.com/SerjTargarien/Magistri-Scholae-web/commit/2518abd50809c3f59fab3dbb4e412ac6cc50a911) (`feat: redesign mobile character profile banner`). This is source HEAD, not a verified production deployment.  
-**Existing deployment:** [magistrischolae.fyi](https://magistrischolae.fyi/) is currently served through Vercel, which builds from [SerjTargarien/Magistri-Scholae-web](https://github.com/SerjTargarien/Magistri-Scholae-web). The exact production deployment commit remains unverified. Contabo is the planned host for the new deployment; it is not the current website origin. Hosting discovery details are kept outside Git (see section 15).
+**Current deployment (since 7 November 2026):** [magistrischolae.fyi](https://magistrischolae.fyi/) is served from the Contabo VPS by Caddy, built from [SerjTargarien/Magistri-Scholae-web](https://github.com/SerjTargarien/Magistri-Scholae-web) `main` (release R1, local-storage app). DNS is hosted at the registrar, Porkbun. Vercel, the previous host, no longer serves the site. Hosting specifics are kept outside Git (see section 15).
 
 ## 1. Executive proposal
 
@@ -34,7 +34,7 @@ Use Django and PostgreSQL for the backend, as selected by the owner. The expande
 | GM access exception | Player personal notes can be hidden from the GM and easily moved into the GM-visible journal. |
 | Offline behavior | Offline viewing, online editing. Automatically cache own/assigned sheets; GM explicitly downloads additional sheets. Clear downloaded account data on logout. |
 | Editing workflow | Continue frontend development through agentic tools such as Google AI Studio. |
-| Hosting | Existing Contabo VPS (resources recorded in the local infrastructure notes); planned full-stack target using Docker Compose, subject to resource/infrastructure verification. The current public website is served through Vercel. |
+| Hosting | Existing Contabo VPS (resources recorded in the local infrastructure notes), full-stack target using Docker Compose. Since 7 November 2026 it serves the public website, with DNS at Porkbun; the owner chose no Vercel dependency. |
 | Working source | The owner has consolidated newer AI Studio work into `Magistri-Scholae-web`; agents and AI Studio use this repository. No continuing two-repository synchronization is planned. |
 | Backend | Django + PostgreSQL, selected after reviewing the backend comparison. |
 | Personal-note trust boundary | App-level privacy is sufficient. Notes are hidden from the GM's normal application account; the VPS administrator is trusted. No client-side encryption or separate encryption-key recovery is required. |
@@ -398,7 +398,7 @@ Instructions guide agents; tests and code review enforce the boundary. Additive 
 
 | Evidence | Finding |
 |---|---|
-| Hosting discovery | The public site is served through Vercel and builds from this repository. Registrar, DNS records, Vercel project settings and the Contabo VPS inventory are recorded in `docs/infrastructure.local.md`, a git-ignored file kept only on the owner's machine. |
+| Hosting discovery | Before 7 November 2026 the public site was served through Vercel; it is now served from the Contabo VPS, with DNS at Porkbun (see project-state). Registrar, DNS records, Vercel project settings and the Contabo VPS inventory are recorded in `docs/infrastructure.local.md`, a git-ignored file kept only on the owner's machine. |
 | Earlier repository comparison (historical) | Before consolidation, 25 common files matched the old AI Studio snapshot and the web repository additionally had `.env.example` and `package-lock.json`. This comparison is superseded and must not guide file restoration. |
 | Current local inspection after consolidation | HEAD `2518abd50809c3f59fab3dbb4e412ac6cc50a911` includes familiars, bonds, an archetype registry, and newer visuals. A root lockfile and `.env.example` were not present in that checkout; both were added in milestone 1. Both tools now work from the canonical web repository. |
 
@@ -512,7 +512,7 @@ Keep checks proportionate: retain `npm run lint` and `npm run build`; add backen
 
 ### Still to establish during implementation and deployment preparation
 
-1. **Remaining infrastructure discovery:** Identify the exact Vercel production commit; finish the Contabo OS, Docker/Compose, resource, volume, and service inventory; define the future domain cutover. Current Vercel frontend hosting, Vercel DNS, and the connected GitHub repository are established in section 15.
+1. **Infrastructure discovery:** completed during R1 (7 November 2026). The Contabo inventory is recorded locally, and the domain cutover is done, with DNS at Porkbun. The old Vercel production commit was never pinned down and is no longer needed, because browser data stayed on the same origin.
 2. **Backup destination:** Choose an off-VPS location and verify the proposed recovery targets.
 3. **Technical packaging:** Select supported pinned release versions, the Django API toolkit and application server, and the production/staging configuration. These are implementation decisions within the selected architecture.
 

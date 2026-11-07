@@ -107,7 +107,7 @@ Focus/visibility return revalidates visible sheets/lists. Logout and account cha
 
 1. Start with the latest intended branch of `SerjTargarien/Magistri-Scholae-web`. Verify remotes and working-tree changes.
 2. Keep one canonical repository. The user's consolidation is complete for workflow purposes; do not re-force-push or maintain a second mirror.
-3. Use a development branch/worktree for implementation. Vercel may build repository updates; its exact production branch still needs confirmation before remote changes.
+3. Use a development branch/worktree for implementation. Vercel is no longer connected; the site is deployed only through `deploy/release.sh` on the server ([deploy/README.md](../deploy/README.md)).
 4. In AI Studio, import/sync this same repository and select mock mode explicitly. Preserve the previous app as reference if its conversation history matters.
 5. Avoid simultaneous Codex and AI Studio edits to the same files/branch. Save/sync one set of work and refresh the other tool before continuing.
 6. If AI Studio cannot target the intended development branch, export its changes and apply/review them in the development checkout. Do not assume every app has identical Git integration controls.

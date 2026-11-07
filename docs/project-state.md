@@ -50,14 +50,14 @@
 - Personal notes hidden from the GM application account; VPS operator trusted; no client-side encryption.
 - Private GM library with independent copies and optional manual one-way field-selected updates.
 - Final system: offline viewing, online editing, account-aware snapshots cleared on logout.
-- Target full-stack Contabo deployment, separate database/media volumes, and off-VPS backups; old Vercel site stays separate until a deliberate cutover.
+- Target full-stack Contabo deployment, separate database/media volumes, and off-VPS backups. The static site moved from Vercel to Contabo on 7 November 2026 (R1); DNS is at Porkbun.
 
 See [design.md](design.md) for detail and proposed defaults that were not separately confirmed.
 
 ## Hosting facts and remaining discovery
 
-- Registrar, DNS, Vercel project and Contabo VPS details are recorded in the git-ignored `docs/infrastructure.local.md` on the owner's machine, not in Git. In short: the public site is served through Vercel from this repository, and the VPS inventory is incomplete.
-- Still needed before launch: repeatable SSH/deployment access, OS/Compose/resource inventory, production commit/branch, proxy/TLS/cutover plan, real backup examples, an off-VPS destination, and a successful restore exercise.
+- Registrar, DNS, Vercel project and Contabo VPS details are recorded in the git-ignored `docs/infrastructure.local.md` on the owner's machine, not in Git. In short: since 7 November 2026 the public site is served from the Contabo VPS (release R1) and DNS is hosted at Porkbun, the registrar; Vercel no longer serves anything.
+- Still needed before the account launch: real backup examples, an off-VPS backup destination and a successful restore exercise (R2), and the deferred server security step. SSH access, the server inventory and the proxy/TLS cutover were completed in R1.
 
 None of those infrastructure details blocks a local storage-interface refactor.
 
@@ -69,7 +69,7 @@ None of those infrastructure details blocks a local storage-interface refactor.
 | 1. Local/mock storage boundary for characters and familiars | Implemented and verified locally; see checkpoint below. |
 | 2. Django/PostgreSQL API, accounts and privacy foundation | Implemented and verified locally; see checkpoint below. |
 | 3. Remote editing, private media and note promotion | Implemented and verified locally; see checkpoint below. |
-| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 complete (merged as PR #1). R1 repository work done and tested locally; server steps await SSH access. See [implementation-plan.md](implementation-plan.md) and the checkpoints below. |
+| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 complete (PR #1). **R1 complete on 7 November 2026** (PRs #2 and #3): `magistrischolae.fyi` served from Contabo, DNS at Porkbun; only removing the domain from the Vercel project remains (after 48 hours). Next: R2 and R3 (parallel tracks). See [implementation-plan.md](implementation-plan.md) and the checkpoints below. |
 
 Documentation preparation validation: all eight Markdown files passed relative-file link checks, balanced-code-fence checks, and scans for replacement/zero-width characters. Installed copies matched staged SHA-256 hashes. Git status showed only the README edit plus new `AGENTS.md` and `docs/`; `git diff --check` passed for the tracked README change. Git emitted an informational LF-to-CRLF notice. No Git configuration was changed.
 
@@ -240,7 +240,13 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - **Checks run (WSL Ubuntu 24.04 with Docker 29.9.1, loopback-only ports):** release builds took about 18 s; header and routing checks passed after fixing two defects found by them (missing assets returned the app shell with an immutable cache header; deep links lacked `no-cache`); rollback switched the live release without a restart and refused an invalid release name; a Caddyfile replaced as `git pull` would replace it reloaded cleanly after moving to a directory mount (a single-file mount broke); `E2E_LOCAL_URL=http://127.0.0.1:8088` local-desktop project 5 passed, including offline reload; against the dev server 4 passed, 1 skipped; `tsc --noEmit` passed. Not yet exercised: real HTTPS certificates, the VPS itself, DNS changes.
 - An early test published ports on all interfaces and Windows Firewall prompted for Docker; the owner blocked it. Local tests now bind to 127.0.0.1. No security settings were changed.
 - **Server and staging (7 November 2026):** agent SSH access set up (decision 7: dedicated key and `deploy` user). Read-only inventory done. With the owner's approval: swap file added, pending updates installed, the server rebooted, the two existing services set to restart automatically, and the broken auto-updater removed (decision 4). The owner deferred SSH password and firewall hardening to a later security step. The owner added the `staging` DNS record in Vercel DNS; the domain's registrar delegates DNS to Vercel. The app was cloned to the server from `r1/contabo-hosting`; the first release was built there and Caddy started. **`https://staging.magistrischolae.fyi` is live**: Let's Encrypt certificate on the first attempt, HTTPS redirect, cache and 404 rules and `version.txt` verified from outside, and `E2E_LOCAL_URL=https://staging.magistrischolae.fyi` local-desktop browser tests 5/5 passed, including offline reload. The live site on Vercel is unchanged. Server specifics are only in `docs/infrastructure.local.md`.
-- **Next for R1:** owner's backup of the live site, merge PR #2 and switch the server checkout to `main`, then the apex cutover ([deploy/README.md](../deploy/README.md) section 5) when the owner chooses.
+## R1 cutover — 7 November 2026
+
+- **Before:** the owner exported a full backup from the live Vercel site. PR #2 was merged (fast-forward), and the server checkout was switched to `main`. The server clone's stale local `main` was checked out first, which removed `deploy/` and detached the running Caddy container's config mount; it was fast-forwarded and the container restarted with approval (about 2 s of staging downtime, certificate reused). The runbook now warns against this. A release built from `main` was activated without downtime, and the staging browser tests passed 5/5.
+- **Owner decision:** no Vercel dependency at all; keep only Porkbun (registrar and DNS) and Contabo. PR #3 added a permanent `www` → main-domain redirect in Caddy and the two-phase runbook (tested in a throwaway loopback Caddy on the VPS).
+- **Phase 1 (DNS still at Vercel):** the owner added a `www` record and changed the main-domain record to the VPS. For each, a watcher waited until both Vercel nameservers returned exactly the VPS, then added the name to Caddy's address list. Let's Encrypt certificates were issued about 8 s later in both cases, with no mixed answers from Vercel's managed records. Verified: HTTPS, the HTTP and `www` redirects, deep links, `version.txt` from `main`, and local-desktop browser tests 5/5 against `https://magistrischolae.fyi`, including offline reload. **The owner confirmed all their existing records appear in their usual browser.** Their home router cached old DNS answers well beyond the 60 s TTL for several minutes (harmless: both paths worked).
+- **Phase 2 (DNS to Porkbun):** DNSSEC was off. The owner recreated the main-domain, `www` and `staging` records and a Let's Encrypt-only CAA record in Porkbun DNS, then switched the nameservers with Porkbun's "update my domain" button. The `.fyi` registry delegated to Porkbun about 9 minutes later; the site answered from the VPS through every resolver checked. Porkbun's form needs CAA as one line, `0 issue "letsencrypt.org"`; a first entry was saved but not published until re-entered in that format.
+- **Remaining:** after 48 hours, remove the domain from the Vercel project (and optionally the project). Deferred to a later security step at the owner's request: SSH password logins, the firewall and the `deploy` user's passwordless sudo. Next releases: R2 (backend on staging) and R3 (real UI on accounts).
 
 ## Updating this handoff
 

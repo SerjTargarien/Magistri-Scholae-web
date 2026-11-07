@@ -26,7 +26,7 @@
 - Author-only personal notes are separate and hidden from the GM application account. The VPS administrator is trusted; client-side encryption is outside scope. Moving a note into a GM-visible journal is an explicit author action.
 - Independent GM library copies with manual source-to-copy preview and field selection. No automatic two-way sync.
 - Final account-backed product supports offline viewing and online editing. Preserve the current local app during milestone 1; do not confuse its local editing behavior with that final requirement.
-- Proposed hosting is the full stack on Contabo with off-VPS backups; the existing public site is currently served through Vercel. Deployment remains separate work.
+- Hosting is the full stack on Contabo with off-VPS backups. Since 7 November 2026 the public site is served from the Contabo VPS (release R1) and DNS is hosted at the registrar, Porkbun; the owner wants no Vercel dependency. Releases go through `deploy/release.sh` (see `deploy/README.md`); backend deployment (R2 onward) remains separate work.
 
 ## Persistence and privacy rules
 

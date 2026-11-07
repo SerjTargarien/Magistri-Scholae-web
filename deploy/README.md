@@ -103,10 +103,13 @@ The goal is a site that depends only on the registrar (Porkbun) and the VPS. It 
 
 ### Phase 2: move DNS to the registrar
 
-1. In Porkbun's DNS panel, delete Porkbun's default parking or forwarding records for the domain, then create the same records as the live zone: apex `A`, `www` `A` and `staging` `A` to the server, plus CAA entries permitting at least `letsencrypt.org`. Do not recreate Vercel's `*` catch-all.
-2. Ask Porkbun's nameservers directly and confirm every name returns the server's IP.
-3. Change the domain's nameservers at Porkbun from Vercel's to Porkbun's. Both providers now give identical answers, so visitors notice nothing while the change spreads (allow up to 48 hours).
-4. When the `.fyi` registry and public resolvers report Porkbun's nameservers, remove the domain from the Vercel project; delete the project when you no longer need it as a reference.
+1. Check that DNSSEC is off (no `DS` record at the `.fyi` registry). Otherwise remove it before changing nameservers.
+2. In Porkbun's DNS panel, dismiss the "use our nameservers" prompt with **No, thank you** (its **Yes** button is step 4). Fix or delete any leftover records, then create the same records as the live zone: apex `A`, `www` `A` and `staging` `A` to the server, plus CAA. Porkbun's minimum TTL is 600 s. Its CAA form has a single Value box that must read `0 issue "letsencrypt.org"` (flag, tag and quoted value on one line); other formats may be saved but not published. Do not recreate Vercel's `*` catch-all.
+3. Porkbun's nameservers refuse queries for a domain until it uses them, so records cannot be checked in advance. Recheck them in the panel instead.
+4. Switch the nameservers to Porkbun's (the **Yes, please update my domain** button, or the nameserver setting). Immediately ask all four Porkbun nameservers directly for every record. Resolvers keep asking Vercel for up to an hour, which leaves time to fix a mistake or switch back. Both providers give identical answers, so visitors notice nothing while the change spreads (allow up to 48 hours).
+5. When the `.fyi` registry and public resolvers report Porkbun's nameservers, and 48 hours have passed, remove the domain from the Vercel project; delete the project when you no longer need it as a reference.
+
+**Status:** both phases completed on 7 November 2026; only step 5 remains.
 
 The domain must always be served over HTTPS.
 
@@ -130,7 +133,7 @@ docker compose -f deploy/compose.yaml exec web caddy reload --config /etc/caddy/
 
 Logs: `docker compose -f deploy/compose.yaml logs -f web`. The last five releases are kept (`KEEP_RELEASES`).
 
-**DNS rollback:** during phase 1, point the apex record back to Vercel's address and delete the `www` record, then wait out the TTL; this only works while the Vercel project still has the domain. After phase 2 the old Vercel deployment is no longer a rollback target; use `--activate` releases instead. Players' browser data is untouched in either direction because the origin does not change.
+**Rollback now that both phases are done:** use `deploy/release.sh --activate <id>` to return to an earlier release. The old Vercel deployment is no longer a rollback target. Until step 5, switching the nameservers back to Vercel's would restore Vercel's zone, which also points at this server. Players' browser data is untouched in either direction because the origin does not change.
 
 ## Local test (no network exposure)
 

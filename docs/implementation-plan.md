@@ -26,8 +26,8 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 
 | Release | Goal | Size | Depends on |
 |---|---|---|---|
-| R0 Safety net | Work pushed, CI and UI smoke tests running, Vercel frozen as rollback | S | Owner decision 1 |
-| R1 Same app, new home | Current app served from Contabo at `magistrischolae.fyi` | S–M | R0, SSH access |
+| R0 Safety net (**done**) | Work pushed, CI and UI smoke tests running, Vercel frozen as rollback | S | Owner decision 1 |
+| R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
 | R2 Backend on staging | Django + PostgreSQL behind HTTPS on staging, backed up and restorable | M | R1 |
 | R3 Real UI on accounts | Existing screens run in local, mock and remote mode | L | R0 |
 | R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3c |
@@ -78,6 +78,8 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 **Rollback:** nothing user-visible changes.
 
 ## R1 — Same app, new home (S–M)
+
+**Status: done on 7 November 2026.** The site is served from Contabo with DNS at Porkbun, and Vercel no longer serves anything. DNS also moved off Vercel, so the optional R7.5 DNS move is already done. Only removing the domain from the Vercel project remains, after 48 hours. Details are in [project-state.md](project-state.md).
 
 **Goal:** `magistrischolae.fyi` is served from Contabo, with the same app and features. Browser data is reachable only by code served from the same origin, and the origin stays `https://magistrischolae.fyi`. So every player's existing records stay readable, and the account release can later read them in place (see R5).
 
@@ -254,7 +256,7 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
    - Reduce list query counts (M2).
    - Reclaim orphaned media.
    - Trim the docs.
-   - Optionally move DNS to the registrar, and retire the Vercel project once it is no longer needed.
+   - Retire the Vercel project once it is no longer needed (DNS already moved to the registrar in R1).
 
 ## Owner decisions
 
@@ -263,10 +265,11 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 | 1 | Publish `docs/` in the public repository? | R0 | **Decided 7 November 2026:** publish; VPS, registrar and DNS specifics live only in the git-ignored `docs/infrastructure.local.md`. |
 | 2 | Offline viewing before or after launch? | R6 | Right after launch (R7.1), given no current users. |
 | 3 | Whose data needs carrying over? | R5 | Confirm. If only yours, use option A. |
-| 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | Back them up, and keep any auto-updater away from this project's containers. |
+| 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | **Decided 7 November 2026:** keep the two existing services running with automatic restart; the broken auto-updater was removed. |
 | 5 | Off-VPS backup destination | R2 | Any provider with encryption at rest, plus restic. |
 | 6 | AI Studio limited to presentation work until R3d? | R3 | Yes. |
-| 7 | Agent SSH access to the VPS, or owner-run scripts? | R1 | A dedicated deploy user with key access. |
+| 7 | Agent SSH access to the VPS, or owner-run scripts? | R1 | **Decided 7 November 2026:** a dedicated `deploy` user with the agent's own key. Server hardening (SSH passwords, firewall, sudo scope) is deferred to a separate security step. |
+| 8 | Hosting providers after R1? | R1 | **Decided 7 November 2026:** only Porkbun (registrar and DNS) and Contabo; no Vercel dependency. |
 
 ## Former milestones
 

@@ -101,6 +101,8 @@ The domain must always be served over HTTPS; browsers may already enforce HTTPS 
 
 ## Releasing and rolling back
 
+**Keep the server checkout on `main` and update it only with `git pull --ff-only`.** Never check out a branch or commit that lacks the `deploy/` folder while Caddy runs: Git deletes `deploy/caddy/`, and the running container stays attached to the deleted folder, so `caddy reload` fails until the container is restarted (`docker compose -f deploy/compose.yaml restart web`, about two seconds of downtime, certificate reused). Check the server's local `main` with `git status -sb` before switching: a clone keeps its own `main` at the commit it was cloned from.
+
 ```bash
 cd /opt/magistri/app
 git pull --ff-only                    # updates deploy files; builds always use the fetched ref

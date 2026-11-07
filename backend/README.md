@@ -69,6 +69,13 @@ backend/.venv/Scripts/python.exe backend/manage.py export_api_contract
 
 It writes `src/contracts/fieldRegistry.generated.ts`; no accounts or entity values enter that file. Tests compare generated source and verify registry coverage against existing frontend entity fields/archetypes. `src/contracts/api-v1.ts` defines projection/mutation types consumed by the separate `src/remote/` adapter; they are not complete local records.
 
+## Running behind Caddy and housekeeping (release R2)
+
+- **Reverse proxy.** Set `DJANGO_TRUSTED_PROXIES` to the address or network of the proxy (Caddy's Docker network) on the server. Only requests arriving from there may set `X-Forwarded-Proto` (HTTPS detection, needed for the HTTPS redirect and CSRF origin checks) and `X-Forwarded-For`, whose rightmost untrusted entry becomes the client address used by rate limits. All other requests have forwarded headers removed (`domain.middleware.TrustedProxyMiddleware`). Empty means nothing is trusted, the safe default for local work.
+- **Fingerprint key.** `DJANGO_HMAC_KEY` keys invitation and reset-code hashes, rate-limit keys, revision tokens and retry receipts. Without `DEBUG` it is required, at least 50 characters and different from `DJANGO_SECRET_KEY`. Changing it invalidates outstanding invitations and reset codes and makes open editors reload; changing `DJANGO_SECRET_KEY` signs everyone out and voids pending previews.
+- **Logging.** Server errors (`django.request`, level ERROR, with tracebacks) and security warnings (`django.security`) go to stdout, i.e. the container log, even with `DEBUG` off. Request bodies are never logged.
+- **Housekeeping.** `manage.py maintenance` removes expired sessions, invitations and reset codes expired or used more than 30 days ago, rate counters older than a day and retry receipts older than 30 days. It reports detached and stray media files without deleting them. `--dry-run` only counts. Schedule it daily on the server.
+
 ## Security and scope
 
 - All entity access first requires campaign membership plus GM status, assignment or an explicit read-only share. Site administration alone does not grant campaign sheet or personal-note reads. A GM role in one campaign does not carry to another.

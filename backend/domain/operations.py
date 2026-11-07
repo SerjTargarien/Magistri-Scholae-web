@@ -20,7 +20,7 @@ def execute(actor, scope, body, outcome_kind, apply, target_id=None):
         return apply(body)
     require(isinstance(operation_id, str), "invalid_operation_id")
     operation_id = uuid.UUID(operation_id)
-    fingerprint = hmac.new(settings.SECRET_KEY.encode(), json.dumps(
+    fingerprint = hmac.new(settings.HMAC_KEY.encode(), json.dumps(
         [scope, body], sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode(), hashlib.sha256).hexdigest()
     current_actor = User.objects.select_for_update().get(pk=actor.pk)
     require(current_actor.is_active and current_actor.auth_epoch == actor.auth_epoch, "authentication_required", 401)

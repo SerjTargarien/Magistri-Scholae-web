@@ -84,7 +84,8 @@ def edit_personal(actor, note_id, body, delete=False):
 
 @transaction.atomic
 def gm_note(actor, sheet_id, kind, body=None):
-    sheet = sheet_for(actor, sheet_id, kind, lock=True)
+    # Only an edit locks the campaign and sheet rows; reading does not.
+    sheet = sheet_for(actor, sheet_id, kind, lock=body is not None)
     member(actor, sheet.campaign, gm=True)
     note = GMNote.objects.filter(sheet=sheet).first()
     if body is not None:

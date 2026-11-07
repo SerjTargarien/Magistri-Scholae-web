@@ -1,3 +1,4 @@
+import ipaddress
 import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
@@ -11,9 +12,21 @@ if not SECRET_KEY:
     raise ImproperlyConfigured("Set DJANGO_SECRET_KEY in backend/.env or the environment")
 if not DEBUG and (len(SECRET_KEY) < 50 or SECRET_KEY.startswith("development-only")):
     raise ImproperlyConfigured("Non-development settings require a generated secret key of at least 50 characters")
+# Keyed fingerprints (invitation/reset-code hashes, rate-limit keys, revision
+# tokens, retry receipts) use their own key, so SECRET_KEY (sessions, signed
+# previews) can be rotated without invalidating them, and vice versa.
+HMAC_KEY = os.getenv("DJANGO_HMAC_KEY", "") or (SECRET_KEY if DEBUG else "")
+if not DEBUG and (len(HMAC_KEY) < 50 or HMAC_KEY == SECRET_KEY):
+    raise ImproperlyConfigured("Non-development settings require DJANGO_HMAC_KEY: at least 50 characters, different from DJANGO_SECRET_KEY")
+# Reverse proxies (Caddy) allowed to set X-Forwarded-Proto/For, as IPs or
+# CIDR networks. Empty means none: forwarded headers are then discarded.
+TRUSTED_PROXIES = [ipaddress.ip_network(value.strip(), strict=False)
+                   for value in os.getenv("DJANGO_TRUSTED_PROXIES", "").split(",") if value.strip()]
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 INSTALLED_APPS = ["django.contrib.auth", "django.contrib.contenttypes", "django.contrib.sessions", "domain"]
 MIDDLEWARE = [
+    # First: decides scheme and client address before anything relies on them.
+    "domain.middleware.TrustedProxyMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "domain.middleware.PrivateResponsesMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -64,4 +77,21 @@ PRIVATE_MEDIA_ROOT = BASE_DIR / "private-media"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://127.0.0.1:3002,http://localhost:3002").split(",") if DEBUG else []
 APPEND_SLASH = False
-# No CORS wildcard, proxy-header trust, public media route or admin data browser.
+# No CORS wildcard, public media route or admin data browser. Proxy headers
+# are trusted only from TRUSTED_PROXIES (domain.middleware.TrustedProxyMiddleware).
+
+# Errors must be visible with DEBUG off: Django's default console handler only
+# runs in DEBUG. Messages and tracebacks go to stdout (the container log);
+# request bodies are never logged.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "django.security": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "domain": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}

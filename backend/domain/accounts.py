@@ -14,7 +14,7 @@ from .permissions import is_gm
 
 
 def digest(value):
-    return hmac.new(settings.SECRET_KEY.encode(), value.encode(), hashlib.sha256).hexdigest()
+    return hmac.new(settings.HMAC_KEY.encode(), value.encode(), hashlib.sha256).hexdigest()
 
 
 def throttle(scope, identity, limit=10, seconds=900):

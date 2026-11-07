@@ -1,5 +1,6 @@
 import os
 os.environ.setdefault("DJANGO_SECRET_KEY", "isolated-tests-only-never-use-this-key-for-deployment")
+os.environ.setdefault("DJANGO_HMAC_KEY", "isolated-tests-only-separate-hmac-key-never-for-deployment")
 from .settings import *  # noqa: F403
 
 DEBUG = False

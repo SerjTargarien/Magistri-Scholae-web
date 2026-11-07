@@ -82,11 +82,11 @@ def upload(actor, sheet_id, kind, body):
         raise
 
 
-@transaction.atomic
 def download(actor, asset_id):
-    asset = MediaAsset.objects.filter(pk=asset_id).first()
+    # Read-only: no row locks, so loading portraits never waits on saves.
+    asset = MediaAsset.objects.filter(pk=asset_id).select_related("sheet").first()
     require(asset is not None, "not_found", 404)
-    sheet = sheet_for(actor, asset.sheet_id, asset.sheet.kind, lock=True)
+    sheet = sheet_for(actor, asset.sheet_id, asset.sheet.kind)
     require(can_read(actor, sheet, asset.field_path) and value_at(sheet.data, asset.field_path) == str(asset.pk), "not_found", 404)
     storage = FileSystemStorage(location=settings.PRIVATE_MEDIA_ROOT)
     try:

@@ -263,6 +263,17 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - The owner is administrator and a player at one table, not a GM; one GM; 7–12 players; GM screens must be visual and simple.
 - **Next:** R2, backend on staging, step by step.
 
+## R2 progress
+
+- **R2.1 (code, branch `r2/backend-proxy-fixes`):**
+  - H1/H2: `TrustedProxyMiddleware` trusts `X-Forwarded-Proto/For` only from `DJANGO_TRUSTED_PROXIES` and strips them otherwise; HTTPS detection, CSRF origin checks and rate limits then use the real scheme and visitor address.
+  - H3: `LOGGING` sends server errors and security warnings to stdout with `DEBUG` off.
+  - M4: a separate `DJANGO_HMAC_KEY` for keyed fingerprints, required and distinct from the secret key without `DEBUG`.
+  - M1: image and GM-note reads take no row locks.
+  - M5: a `maintenance` command removes expired bookkeeping and only reports media.
+  - Locally: compile, `check` (test and development settings), contract check, startup refusal without a valid HMAC key, and `check --deploy` (only the intentional HSTS-preload warning plus one caused by the deliberately simple test key). The 103 backend tests (14 new) run in CI on PostgreSQL.
+- **Next:** R2.2, packaging (Dockerfile, gunicorn, staging Compose services).
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

@@ -94,7 +94,7 @@ def can_write(actor, sheet, path, *, gm=None):
 
 def revision_for(actor, sheet):
     source = f"{sheet.pk}:{sheet.revision}:{sheet.campaign.policy_revision}:{actor.pk}:{actor.auth_epoch}"
-    return hmac.new(settings.SECRET_KEY.encode(), source.encode(), hashlib.sha256).hexdigest()
+    return hmac.new(settings.HMAC_KEY.encode(), source.encode(), hashlib.sha256).hexdigest()
 
 
 def check_revision(actor, sheet, expected):

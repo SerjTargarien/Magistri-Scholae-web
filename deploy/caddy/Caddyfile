@@ -1,11 +1,13 @@
-# Release R1: serves the static frontend build. R2 adds /api to Django.
-# SITE_ADDRESS is set in deploy/.env, e.g.
-#   staging only:  staging.magistrischolae.fyi
-#   after cutover: magistrischolae.fyi, www.magistrischolae.fyi, staging.magistrischolae.fyi
-# A local test uses ":80" (plain HTTP, no certificate).
+# Two sites, set in deploy/.env:
+#   SITE_ADDRESS     the public site: the local-storage app (release R1),
+#                    e.g. magistrischolae.fyi, www.magistrischolae.fyi
+#   STAGING_ADDRESS  the account version with its own backend (release R2),
+#                    e.g. staging.magistrischolae.fyi. Unset, it falls back to a
+#                    placeholder that never resolves and needs no certificate.
+# A local test uses SITE_ADDRESS=":80" (plain HTTP, no certificate).
 
-{$SITE_ADDRESS} {
-	root * /srv/releases/current
+# Shared behaviour for both sites.
+(static_app) {
 	encode zstd gzip
 
 	header {
@@ -14,11 +16,6 @@
 		X-Frame-Options SAMEORIGIN
 		-Server
 	}
-
-	# www is only a signpost: send it to the main address, keeping the path.
-	# Active only once www.magistrischolae.fyi is listed in SITE_ADDRESS.
-	@www host www.magistrischolae.fyi
-	redir @www https://magistrischolae.fyi{uri} permanent
 
 	# Hashed build assets never change. A missing one is a plain 404, never
 	# the app shell, so a stale browser cannot cache HTML as JavaScript.
@@ -35,4 +32,28 @@
 		try_files {path} /index.html
 		file_server
 	}
+}
+
+{$SITE_ADDRESS} {
+	root * /srv/releases/current
+
+	# www is only a signpost: send it to the main address, keeping the path.
+	# Active only once www.magistrischolae.fyi is listed in SITE_ADDRESS.
+	@www host www.magistrischolae.fyi
+	redir @www https://magistrischolae.fyi{uri} permanent
+
+	import static_app
+}
+
+{$STAGING_ADDRESS:http://staging.invalid} {
+	root * /srv/releases-staging/current
+
+	# The account API. Caddy sets X-Forwarded-For/Proto itself (ignoring any
+	# sent by the visitor) and keeps the Host header; Django trusts them only
+	# from this network (DJANGO_TRUSTED_PROXIES).
+	handle /api/* {
+		reverse_proxy api-staging:8000
+	}
+
+	import static_app
 }

@@ -17,7 +17,9 @@ __pycache__/
 .DS_Store
 *.log
 deploy/releases/
+deploy/releases-staging/
 .env*
 !.env.example
+!.env.staging.example
 !.env.mock
 !.env.remote

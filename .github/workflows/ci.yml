@@ -45,6 +45,24 @@ jobs:
             test-results/
           retention-days: 7
 
+  deploy-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the backend image
+        run: docker build -t magistri-api:ci backend
+      - name: Image runs as non-root with the pinned versions
+        run: |
+          test "$(docker run --rm magistri-api:ci id -u)" = "10001"
+          docker run --rm magistri-api:ci python -c "import django, gunicorn, psycopg, PIL; print('django', django.get_version(), 'gunicorn', gunicorn.__version__)"
+      - name: Compose file is valid (with the staging profile)
+        run: SITE_ADDRESS=:80 docker compose -f deploy/compose.yaml --profile staging-backend config --quiet
+      - name: Caddyfile is valid
+        run: |
+          docker run --rm -v "$PWD/deploy/caddy:/etc/caddy:ro" -e SITE_ADDRESS=:80 -e STAGING_ADDRESS=http://staging.invalid \
+            caddy:2.10.2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 20

@@ -72,7 +72,7 @@ SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = False
-PRIVATE_MEDIA_ROOT = BASE_DIR / "private-media"
+PRIVATE_MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", "")) if os.getenv("DJANGO_MEDIA_ROOT") else BASE_DIR / "private-media"
 # Only the bounded base64 image endpoint may exceed the ordinary JSON limit.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://127.0.0.1:3002,http://localhost:3002").split(",") if DEBUG else []

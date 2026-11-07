@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
 # Builds and activates a frontend release on the server. See deploy/README.md.
 #
-#   deploy/release.sh <git-ref>        build <git-ref> (a tag, branch or commit) and activate it
-#   deploy/release.sh --activate <id>  switch back to an existing release (rollback)
-#   deploy/release.sh --list           list releases, marking the active one
+#   deploy/release.sh [--target T] <git-ref>        build <git-ref> (tag, branch or commit) and activate it
+#   deploy/release.sh [--target T] --activate <id>  switch back to an existing release (rollback)
+#   deploy/release.sh [--target T] --list           list releases, marking the active one
 #
-# Releases live in deploy/releases/<id>/ and deploy/releases/current is a
-# relative symlink to the active one; Caddy follows it on every request, so
-# activation is atomic and needs no restart. Builds run in a pinned Node
-# container, so the server needs only Git and Docker.
+#   --target production  (default) the public site: local-storage build, deploy/releases/
+#   --target staging     the account version: remote build, deploy/releases-staging/
+#
+# Each target's current release is deploy/<dir>/current, a relative symlink
+# that Caddy follows on every request, so activation is atomic and needs no
+# restart. Builds run in a pinned Node container: the server needs only Git
+# and Docker.
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$DEPLOY_DIR/.." && pwd)"
-RELEASES="$DEPLOY_DIR/releases"
+TARGET=production
+if [[ "${1:-}" == "--target" ]]; then TARGET="${2:?target required}"; shift 2; fi
+case "$TARGET" in
+  production) RELEASES="$DEPLOY_DIR/releases"; BUILD_SCRIPT=build ;;          # VITE_STORAGE_MODE unset: local storage
+  staging)    RELEASES="$DEPLOY_DIR/releases-staging"; BUILD_SCRIPT=build:remote ;;  # .env.remote: account version
+  *) echo "Unknown target '$TARGET' (use production or staging)" >&2; exit 1 ;;
+esac
 KEEP="${KEEP_RELEASES:-5}"
 mkdir -p "$RELEASES"
+[[ -w "$RELEASES" ]] || { echo "$RELEASES is not writable by $(id -un); fix with: sudo chown $(id -un): $RELEASES" >&2; exit 1; }
 
 active() { readlink "$RELEASES/current" 2>/dev/null || true; }
 
@@ -54,16 +64,15 @@ build() {
   trap 'rm -rf "$WORK"' EXIT
   local work="$WORK"
 
-  echo "Building $ref ($sha) as release $id"
+  echo "Building $ref ($sha) for $TARGET as release $id"
   git -C "$REPO_DIR" archive "$sha" | tar -x -C "$work"
   local node_image="node:$(tr -d '[:space:]' < "$work/.node-version")-alpine"
-  # Default mode: VITE_STORAGE_MODE unset means local browser storage (R1).
   docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e CI=true \
     -v "$work:/app" -w /app "$node_image" \
-    sh -c "npm ci --no-audit --no-fund && npm run build"
+    sh -c "npm ci --no-audit --no-fund && npm run $BUILD_SCRIPT"
   [[ -f "$work/dist/index.html" ]] || { echo "Build produced no dist/index.html" >&2; exit 1; }
 
-  printf '%s\n%s\nbuilt %s\n' "$sha" "$ref" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$work/dist/version.txt"
+  printf '%s\n%s\nbuilt %s\ntarget %s\n' "$sha" "$ref" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TARGET" > "$work/dist/version.txt"
   cp -a "$work/dist" "$RELEASES/$id.partial"
   mv "$RELEASES/$id.partial" "$RELEASES/$id"
   activate "$id"
@@ -73,6 +82,6 @@ build() {
 case "${1:-}" in
   --activate) activate "${2:?release id required}" ;;
   --list) list ;;
-  ""|-h|--help) sed -n '2,7p' "$0" ;;
+  ""|-h|--help) sed -n '2,10p' "$0" ;;
   *) build "$1" ;;
 esac

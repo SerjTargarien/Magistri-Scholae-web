@@ -69,7 +69,7 @@ None of those infrastructure details blocks a local storage-interface refactor.
 | 1. Local/mock storage boundary for characters and familiars | Implemented and verified locally; see checkpoint below. |
 | 2. Django/PostgreSQL API, accounts and privacy foundation | Implemented and verified locally; see checkpoint below. |
 | 3. Remote editing, private media and note promotion | Implemented and verified locally; see checkpoint below. |
-| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 in progress (local work done; push/merge and owner actions pending). See [implementation-plan.md](implementation-plan.md) and the R0 checkpoint below. |
+| Releases R0–R7 (roadmap adopted 7 November 2026; replaces milestones 4–6) | R0 complete (merged as PR #1). R1 repository work done and tested locally; server steps await SSH access. See [implementation-plan.md](implementation-plan.md) and the checkpoints below. |
 
 Documentation preparation validation: all eight Markdown files passed relative-file link checks, balanced-code-fence checks, and scans for replacement/zero-width characters. Installed copies matched staged SHA-256 hashes. Git status showed only the README edit plus new `AGENTS.md` and `docs/`; `git diff --check` passed for the tracked README change. Git emitted an informational LF-to-CRLF notice. No Git configuration was changed.
 
@@ -232,6 +232,14 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - **Decision 1 made:** `docs/` is published without VPS specifics. Registrar, DNS, Vercel project and VPS details moved to the git-ignored `docs/infrastructure.local.md` on the owner's machine. The three unpushed commits were rewritten so no commit contains them; the pre-rewrite state is kept locally on branch `backup/pre-trim-2026-11-07`, which must never be pushed.
 - **Still open for R0:** push and draft pull request, freezing Vercel auto-deploys, your own live-site backup, requiring CI on `main`, then merge.
 - Commit rule added to `AGENTS.md` at the owner's request: commits in the owner's name with no attribution trailers.
+
+## R0 completion and R1 checkpoint — 7 November 2026
+
+- **R0 complete.** PR #1 passed CI (frontend and backend jobs) and was merged by fast-forwarding `main` to `e84892f`, keeping every commit as authored. The owner removed the GitHub connection from the Vercel project, so pushes to `main` no longer deploy; the live site stays as it was. The owner's own live-site backup is still recommended before R1's cutover.
+- **R1 repository work (branch `r1/contabo-hosting`):** `deploy/compose.yaml` (Caddy 2.10.2, opts out of auto-updaters, optional `BIND_ADDRESS`), `deploy/caddy/Caddyfile` (HTTPS, compression, security headers, `no-cache` for the shell and service worker, one-year immutable cache for hashed assets, 404 for missing assets, single-page-app fallback), `deploy/release.sh` (builds a Git ref with `git archive` in `node:<.node-version>-alpine`, writes `version.txt`, switches a relative `current` symlink atomically, keeps five releases, `--list` and `--activate` for rollback) and the runbook [deploy/README.md](../deploy/README.md). `.gitattributes` keeps `*.sh` LF. `E2E_LOCAL_URL` points the local-mode browser tests at a deployed build; a new offline-reload test runs only then.
+- **Checks run (WSL Ubuntu 24.04 with Docker 29.9.1, loopback-only ports):** release builds took about 18 s; header and routing checks passed after fixing two defects found by them (missing assets returned the app shell with an immutable cache header; deep links lacked `no-cache`); rollback switched the live release without a restart and refused an invalid release name; a Caddyfile replaced as `git pull` would replace it reloaded cleanly after moving to a directory mount (a single-file mount broke); `E2E_LOCAL_URL=http://127.0.0.1:8088` local-desktop project 5 passed, including offline reload; against the dev server 4 passed, 1 skipped; `tsc --noEmit` passed. Not yet exercised: real HTTPS certificates, the VPS itself, DNS changes.
+- An early test published ports on all interfaces and Windows Firewall prompted for Docker; the owner blocked it. Local tests now bind to 127.0.0.1. No security settings were changed.
+- **Next for R1 (owner actions):** repeatable SSH access (decision 7) and the read-only inventory in [deploy/README.md](../deploy/README.md) section 1, recorded in `docs/infrastructure.local.md`; then staging DNS, then the apex cutover.
 
 ## Updating this handoff
 

@@ -85,7 +85,7 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 
 1. **Inventory (read-only).** Use the commands in [design.md](design.md) section 15. Record the OS, Docker version, ports, disk and memory. Note any existing containers; an auto-updating container manager must never manage the database container (decision 4; details in `docs/infrastructure.local.md`).
 2. **Hardening.** Create a non-root deploy user with key-only SSH. Allow only ports 22, 80 and 443 through the firewall, and enable automatic security updates. Only Caddy publishes ports; Docker otherwise bypasses the firewall.
-3. **`deploy/` folder.** A Compose file with Caddy serving the local-mode build, and a release script that builds a Git tag on the VPS. Caddy settings:
+3. **`deploy/` folder** (implemented; runbook in [deploy/README.md](../deploy/README.md)). A Compose file with Caddy serving the local-mode build, and a release script that builds a Git tag on the VPS. Caddy settings:
    - Single-page-app fallback to `index.html`.
    - `index.html` and `sw.js` served `no-cache`.
    - `/assets/*` cached as immutable.

@@ -91,12 +91,15 @@ class ProxyTrustTests(APICase):
     @override_settings(TRUSTED_PROXIES=PROXY_NET)
     def test_csrf_origin_check_accepts_https_only_through_the_proxy(self):
         headers = {"HTTP_ORIGIN": "https://testserver"}
-        via_proxy = Client(enforce_csrf_checks=True, REMOTE_ADDR=PROXY, HTTP_X_FORWARDED_PROTO="https", HTTP_X_FORWARDED_FOR=VISITOR)
+        # Browsers always send Host and Caddy forwards it unchanged. Without it,
+        # Django derives the host from SERVER_PORT ("testserver:80" under HTTPS).
+        via_proxy = Client(enforce_csrf_checks=True, HTTP_HOST="testserver", REMOTE_ADDR=PROXY,
+                           HTTP_X_FORWARDED_PROTO="https", HTTP_X_FORWARDED_FOR=VISITOR)
         token = via_proxy.get("/api/v1/auth/csrf").json()["csrfToken"]
         response = via_proxy.post("/api/v1/auth/login", data={"username": "alice", "password": PASSWORD},
                                   content_type="application/json", HTTP_X_CSRFTOKEN=token, **headers)
         self.assertEqual(response.status_code, 200, response.content)
-        direct = Client(enforce_csrf_checks=True, REMOTE_ADDR=VISITOR, HTTP_X_FORWARDED_PROTO="https")
+        direct = Client(enforce_csrf_checks=True, HTTP_HOST="testserver", REMOTE_ADDR=VISITOR, HTTP_X_FORWARDED_PROTO="https")
         token = direct.get("/api/v1/auth/csrf").json()["csrfToken"]
         response = direct.post("/api/v1/auth/login", data={"username": "alice", "password": PASSWORD},
                                content_type="application/json", HTTP_X_CSRFTOKEN=token, **headers)

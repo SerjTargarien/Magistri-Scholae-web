@@ -11,6 +11,7 @@ This directory carries the migration decisions between Codex chats and AI Studio
 5. Paste [chat-starter.md](chat-starter.md) into a new agent chat to start a release.
 6. Read [audit-2026-11-07.md](audit-2026-11-07.md) for the review behind the current roadmap.
 7. Use [field-rules.md](field-rules.md) for the rule of every stored character and familiar field (lengths, ranges, choices, list sizes) and the skill catalogue.
+8. Design a change in [product-design.md](product-design.md) before building it: screens, roles, rules and the recorded design notes.
 
 The repository-wide agent instructions are in [../AGENTS.md](../AGENTS.md).
 
@@ -21,6 +22,7 @@ The repository-wide agent instructions are in [../AGENTS.md](../AGENTS.md).
 | `design.md` | Requirements, architecture, permission model, and final product behavior. |
 | `implementation-plan.md` | Release roadmap (R0–R7): order, exit criteria, owner actions, rollback. |
 | `field-rules.md` | Rules for every stored field and the skill catalogue, decided by the owner. |
+| `product-design.md` | Screens, roles and rules, where changes are designed first; recorded design notes. |
 | `project-state.md` | Current observed implementation, gaps, and handoff/checkpoint records. |
 | `development.md` | How to run and verify the current app; current versus future preview/deployment modes. |
 | `storage-contract.md` | Implemented local/mock repositories, bonds, backups, reset and future projection boundary. |

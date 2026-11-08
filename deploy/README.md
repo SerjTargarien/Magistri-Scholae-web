@@ -207,6 +207,16 @@ docker compose -f deploy/compose.yaml exec web caddy reload --config /etc/caddy/
 
 To remove a site, delete its folder, then validate and reload.
 
+## 9. Public site on the staging backend (8 November 2026, temporary)
+
+Owner decision: testers use one address. The public site (`SITE_ADDRESS`) serves the account app (`release.sh --target production` builds `build:remote`) and its Caddy block sends `/api/*` to `api-staging`, so the public site and the staging site share the staging backend and database. One-time server steps:
+
+1. Add the public addresses to `DJANGO_ALLOWED_HOSTS` in `deploy/.env.staging` (comma-separated, after `staging.magistrischolae.fyi`) and recreate `api-staging` (`docker compose -f deploy/compose.yaml up -d api-staging`).
+2. `git pull`, then reload Caddy: `docker compose -f deploy/compose.yaml exec -T web caddy reload --config /etc/caddy/Caddyfile`.
+3. `deploy/release.sh --target production main`. Roll back with `--activate` (the previous release is the old local-storage app).
+
+The nightly staging backup now protects the testers' data. When the production backend exists (R6), restore the latest staging backup into it, point this block's `/api/*` at it, and remove the staging hosts from it.
+
 ## Releasing and rolling back
 
 **Keep the server checkout on `main` and update it only with `git pull --ff-only`.** Never check out a branch or commit that lacks the `deploy/` folder while Caddy runs: Git deletes `deploy/caddy/`, and the running container stays attached to the deleted folder, so `caddy reload` fails until the container is restarted (`docker compose -f deploy/compose.yaml restart web`, about two seconds of downtime, certificate reused). Check the server's local `main` with `git status -sb` before switching: a clone keeps its own `main` at the commit it was cloned from.

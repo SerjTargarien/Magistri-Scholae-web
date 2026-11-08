@@ -5,7 +5,7 @@
 #   deploy/release.sh [--target T] --activate <id>  switch back to an existing release (rollback)
 #   deploy/release.sh [--target T] --list           list releases, marking the active one
 #
-#   --target production  (default) the public site: local-storage build, deploy/releases/
+#   --target production  (default) the public site: account build, deploy/releases/
 #   --target staging     the account version: remote build, deploy/releases-staging/
 #
 # Each target's current release is deploy/<dir>/current, a relative symlink
@@ -19,7 +19,7 @@ REPO_DIR="$(cd "$DEPLOY_DIR/.." && pwd)"
 TARGET=production
 if [[ "${1:-}" == "--target" ]]; then TARGET="${2:?target required}"; shift 2; fi
 case "$TARGET" in
-  production) RELEASES="$DEPLOY_DIR/releases"; BUILD_SCRIPT=build ;;          # VITE_STORAGE_MODE unset: local storage
+  production) RELEASES="$DEPLOY_DIR/releases"; BUILD_SCRIPT=build:remote ;;   # the account app (since 8 November 2026)
   staging)    RELEASES="$DEPLOY_DIR/releases-staging"; BUILD_SCRIPT=build:remote ;;  # .env.remote: account version
   *) echo "Unknown target '$TARGET' (use production or staging)" >&2; exit 1 ;;
 esac

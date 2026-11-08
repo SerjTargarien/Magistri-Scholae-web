@@ -507,6 +507,14 @@ Merged and released to staging (release `20261108-165610-23673df`). Staging test
 - Fixed: a refused sign-in (401) also showed «No se pudieron cargar los datos», as if a session had expired; sign-in requests now say a 401 is expected. The demo server answers a wrong sign-in with 401 like the server (it answered 400, which hid the bug) and refuses invitation and reset codes, since it has none.
 - Checked: type check, 49 unit tests, both builds, 37 browser tests (the sign-out test now signs back in through the new screen, with a wrong attempt first); looked at both styles and a phone width in the demo.
 
+Merged and released to staging (release `20261108-171229-f62bdeb`).
+
+## Public site on the staging backend — 8 November 2026
+
+Owner decision: testers must have one address. Instead of building the production backend now, the public site (magistrischolae.fyi, www redirects there) serves the account app and sends `/api` to the staging backend; later the production backend gets a copy of the staging data and the public site points to it (deploy/README.md section 9). The staging campaign «Magistri Scholae, la Promoción del Caos» and its invitation codes are the testers'.
+- While this holds, the staging database holds real data: backend changes on staging need a backup and the owner's go-ahead; frontend trials on staging.magistrischolae.fyi do not affect testers; staging data is never wiped (AGENTS.md).
+- Code: Caddyfile (public `/api/*` → `api-staging`), `release.sh` (production builds the account app). Server: public hosts added to `DJANGO_ALLOWED_HOSTS`, Caddy reloaded, production release.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

@@ -29,6 +29,7 @@
 - The account-backed app launches with online editing. Right after launch, a new offline mode built on the server's data model adds offline viewing (R7.1) and offline editing that syncs on reconnect (R7.2). It uses its own account-scoped database and is unrelated to the retired local mode (owner decision, 8 November 2026; design.md sections 10 and 12).
 - The screens use the server's data model directly, with no translation layer: generated types, stable item IDs, edits by ID, and saves of changed paths only.
 - Hosting is the full stack on Contabo with off-VPS backups. Since 7 November 2026 the public site is served from the Contabo VPS (release R1) and DNS is hosted at the registrar, Porkbun; the owner wants no Vercel dependency. Releases go through `deploy/release.sh` (see `deploy/README.md`); backend deployment (R2 onward) remains separate work.
+- **Testers use the public site on the staging backend (owner decision, 8 November 2026).** magistrischolae.fyi serves the account app and sends `/api` to `api-staging`, so the staging database holds the testers' real data until the production backend (R6) gets a copy and the public site points to it. Meanwhile any backend change on staging (rebuild, migration, data script) reaches testers: back up first and do it only with the owner's go-ahead. Frontend trials on staging.magistrischolae.fyi are separate releases and do not affect them. Never wipe or reset staging data.
 
 ## Persistence and privacy rules
 

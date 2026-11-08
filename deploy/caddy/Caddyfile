@@ -1,6 +1,7 @@
 # Two sites, set in deploy/.env:
-#   SITE_ADDRESS     the public site: the local-storage app (release R1),
-#                    e.g. magistrischolae.fyi, www.magistrischolae.fyi
+#   SITE_ADDRESS     the public site: the account app (since 8 November 2026;
+#                    the local-storage app before), e.g.
+#                    magistrischolae.fyi, www.magistrischolae.fyi
 #   STAGING_ADDRESS  the account version with its own backend (release R2),
 #                    e.g. staging.magistrischolae.fyi. Unset, it falls back to a
 #                    placeholder that never resolves and needs no certificate.
@@ -41,6 +42,14 @@
 	# Active only once www.magistrischolae.fyi is listed in SITE_ADDRESS.
 	@www host www.magistrischolae.fyi
 	redir @www https://magistrischolae.fyi{uri} permanent
+
+	# Temporary (owner decision, 8 November 2026): the public site uses the
+	# staging backend, so testers have one address. When the production
+	# backend exists (R6), its data is copied from staging and this points to
+	# it. The staging site shares this backend meanwhile.
+	handle /api/* {
+		reverse_proxy api-staging:8000
+	}
 
 	import static_app
 }

@@ -426,7 +426,9 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 
 **Split 1 (this pull request):** `CharacterDetail.tsx` (3,838 lines) split mechanically, text moved verbatim: `src/components/sheet/useCharacterSheet.tsx` holds the props, state and handlers (149 names) and returns them; `ProfileTab`, `SessionTab`, `SkillsTab`, `SpellsTab`, `NotesTab` and `GalleryTab` hold each tab's markup; `CharacterDetail.tsx` keeps the header, the tab switch and the dialogs (964 lines). Locally: type check, `npm test` (48), build, and the mock and local browser tests (24 passed). The screenshot check in CI confirms nothing visible changed.
 
-**Next:** split the creation form and the familiar sheet the same way, then the switch.
+**Split 2:** the same method for `CharacterForm.tsx` (1,926 lines → 357, plus `form/useCharacterForm.tsx` and five tab files) and `FamiliarDetail.tsx` (1,093 → 419, plus `familiar/useFamiliarDetail.tsx` and three tab files). Locally: type check, 48 unit tests, build, 24 mock and local browser tests; CI's screenshot check confirms nothing visible changed.
+
+**Next:** the switch (one pull request), explained before it starts.
 
 ## Updating this handoff
 

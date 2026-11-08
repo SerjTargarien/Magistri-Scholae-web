@@ -90,7 +90,7 @@ const professor: CharacterSheet = {
   ...luna, characterType: "adult_wizard", nombre: "Profesor Silvio Niebla", edad: 52, casa: "", curso: "", puestoClase: "",
   concepto: "Archivero de la academia que sabe demasiado", avatarImage: "", galleryImages: [{ id: "gallery-1", value: GALLERY_B }],
   adultWizardProfile: { role: "Archivero mayor", institution: "Academia Magistri Scholae", isTeacher: true,
-    teachingSubjects: text("subject", ["Historia de la magia", "Cábala"]), formerHouse: "URANIA", magicalFocus: "Runas y archivos",
+    teachingSubjects: text("subject", ["Historia del mundo mágico", "Cábala"]), formerHouse: "URANIA", magicalFocus: "Runas y archivos",
     reputation: "Respetado y temido" },
   habilidades: skills(LUNA_SKILLS).filter(s => s.catalogo !== "magia-intuitiva"),
 };

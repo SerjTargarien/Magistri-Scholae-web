@@ -66,11 +66,12 @@ jobs:
       # Exact comparison. Text anti-aliasing occasionally jitters on one picture
       # (about 2 of 80 tests per run, never the same one twice), so a failed test
       # is retried twice; a real change fails all three attempts.
-      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=2
+      # TEMPORARY (not for merge): make every new picture for the owner's review.
+      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=0 --update-snapshots=all
         env:
           CI: "true"
           E2E_VISUAL: "1"
-      - if: failure()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: visual-differences

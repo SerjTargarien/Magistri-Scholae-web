@@ -298,7 +298,6 @@ export interface TranslationDict {
   adultWizardIsTeacher: string;
   adultWizardTeachingSubjects: string;
   adultWizardFormerHouse: string;
-  adultWizardMagicalFocus: string;
   adultWizardReputation: string;
   characterTypeAdultWizardShort: string;
   characterTypeSelectTitle: string;
@@ -306,7 +305,6 @@ export interface TranslationDict {
   adultWizardRolePlaceholder: string;
   adultWizardInstitutionPlaceholder: string;
   adultWizardFormerHousePlaceholder: string;
-  adultWizardMagicalFocusPlaceholder: string;
   adultWizardReputationPlaceholder: string;
   adultWizardTeachingSubjectsPlaceholder: string;
   commaSeparatedHint: string;
@@ -441,7 +439,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     linaje: "Linaje Familiar",
     puntosDestino: "Puntos de Destino",
     economia: "Economía",
-    varitaSintonia: "Varita",
+    varitaSintonia: "Varita / Foco mágico",
     noConceptDefined: "Sin arquetipo ni concepto definido",
     labelVaritaEmpty: "Sin varita vinculada.",
 
@@ -687,7 +685,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardIsTeacher: "Profesor de la Academia",
     adultWizardTeachingSubjects: "Asignaturas que imparte",
     adultWizardFormerHouse: "Antigua casa",
-    adultWizardMagicalFocus: "Foco mágico / Varita",
     adultWizardReputation: "Reputación / Estatus",
     characterTypeAdultWizardShort: "Adulto",
     characterTypeSelectTitle: "Elegir Sendero Mágico",
@@ -695,7 +692,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardRolePlaceholder: "Ej: Investigador de Runas, Auror",
     adultWizardInstitutionPlaceholder: "Ej: Ministerio de Magia",
     adultWizardFormerHousePlaceholder: "Ej: Irati, Urania",
-    adultWizardMagicalFocusPlaceholder: "Ej: Báculo de Sauco",
     adultWizardReputationPlaceholder: "Ej: Conocido en el gremio de pociones",
     adultWizardTeachingSubjectsPlaceholder: "Ej: Runas Antiguas, Defensa contra las Artes Oscuras",
     commaSeparatedHint: "Separadas por comas",
@@ -828,7 +824,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     linaje: "Heritage / Bloodline",
     puntosDestino: "Destiny Points",
     economia: "Monetary Funds",
-    varitaSintonia: "Wand Tunement (Sintonía)",
+    varitaSintonia: "Wand / Magical Focus",
     noConceptDefined: "No archetype or concept defined",
     labelVaritaEmpty: "No linked wand.",
 
@@ -1074,7 +1070,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardIsTeacher: "Academy Teacher",
     adultWizardTeachingSubjects: "Teaching Subjects",
     adultWizardFormerHouse: "Former House",
-    adultWizardMagicalFocus: "Magical Focus / Wand",
     adultWizardReputation: "Reputation / Status",
     characterTypeAdultWizardShort: "Adult",
     characterTypeSelectTitle: "Choose Magical Path",
@@ -1082,7 +1077,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardRolePlaceholder: "E.g. Rune Researcher, Auror",
     adultWizardInstitutionPlaceholder: "E.g. Ministry of Magic",
     adultWizardFormerHousePlaceholder: "E.g. Irati, Urania",
-    adultWizardMagicalFocusPlaceholder: "E.g. Elder Staff",
     adultWizardReputationPlaceholder: "E.g. Well-known in the Potions Guild",
     adultWizardTeachingSubjectsPlaceholder: "E.g. Ancient Runes, Defense against the Dark Arts",
     commaSeparatedHint: "Separated by commas",

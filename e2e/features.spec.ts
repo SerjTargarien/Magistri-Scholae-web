@@ -124,6 +124,7 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
     fill: async () => {
       await page.locator("#input-aw-role").fill("Potions master");
       await page.locator("#input-aw-institution").fill("Academy");
+      await page.locator("#input-varita-sintonia").fill("Elder staff");
       await page.locator("#checkbox-aw-is-teacher").check();
     },
   });
@@ -134,10 +135,13 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   await expect(characterCard(page, "Luna de Bruma")).toHaveCount(0);
   await openCharacter(page, "Smoke Professor");
   await expect(page.locator("#character-detail-screen")).toContainText("Potions master");
-  expect(await storedSheet(page, "Smoke Professor")).toMatchObject({
-    characterType: "adult_wizard",
+  await expect(page.locator("#character-detail-screen")).toContainText("Elder staff"); // one «Varita / Foco mágico» field
+  const stored = await storedSheet(page, "Smoke Professor");
+  expect(stored).toMatchObject({
+    characterType: "adult_wizard", varitaSintonia: "Elder staff",
     adultWizardProfile: expect.objectContaining({ role: "Potions master", institution: "Academy", isTeacher: true }),
   });
+  expect(stored!.adultWizardProfile).not.toHaveProperty("magicalFocus");
 });
 
 test("familiar: create standalone and edit in the editor; only the GM can archive it", async ({ page }) => {

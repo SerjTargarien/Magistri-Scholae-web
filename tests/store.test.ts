@@ -21,7 +21,7 @@ class FakeServer {
   failures: (Error | undefined)[] = [];
   hold?: Promise<void>;
   projection(): ApiSheetProjection {
-    return { kind: "viewer-projection", id: "sheet", entityType: "character", campaignId: "campaign", schemaVersion: 3, revision: `r${this.revision}`,
+    return { kind: "viewer-projection", id: "sheet", entityType: "character", campaignId: "campaign", schemaVersion: 4, revision: `r${this.revision}`,
       fields: structuredClone(this.fields) as any,
       capabilities: { readablePaths: Object.keys(this.fields), writablePaths: [...this.writable], collectionPaths: ["notasList", "aspectosPersonales"],
         removablePaths: ["notasList/n1"], bondWritable: false, isGM: false } };

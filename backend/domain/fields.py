@@ -14,7 +14,7 @@ from copy import deepcopy
 from .catalogue import check_skills
 from .errors import APIError, require
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 MAX_SHEET_BYTES = 5 * 1024 * 1024  # stored text per sheet; images are separate files
 B = {"type": "boolean"}
 MEDIA = {"type": "media"}
@@ -59,9 +59,11 @@ CHARACTER = {
     "characterType": choice("student", "adult_wizard"),
     "concepto": text(200), "jugador": text(80), "edad": whole(0, 999),
     "curso": text(20), "puestoClase": text(80), "casa": choice(*HOUSES),
+    # One «Varita / Foco mágico» for every character; the adult profile's
+    # magicalFocus merged into it in schema version 4 (migration 0006).
     "linaje": text(200), "economia": text(200), "varitaSintonia": text(200),
     "adultWizardProfile": obj({
-        **{key: text(120) for key in ("role", "institution", "magicalFocus", "reputation")},
+        **{key: text(120) for key in ("role", "institution", "reputation")},
         "formerHouse": text(80), "isTeacher": B, "teachingSubjects": values(30, 120),
     }),
     "aspectosPersonales": values(30, 300), "complicaciones": values(30, 300),

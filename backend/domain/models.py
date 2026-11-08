@@ -82,7 +82,7 @@ class Sheet(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, related_name="created_sheets")
     assigned_player = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="assigned_sheets")
     data = models.JSONField(default=dict)
-    schema_version = models.PositiveIntegerField(default=3)  # fields.SCHEMA_VERSION
+    schema_version = models.PositiveIntegerField(default=4)  # fields.SCHEMA_VERSION
     revision = models.PositiveIntegerField(default=1)
     gm_default = models.CharField(max_length=8, default="inherit")
     gm_overrides = models.JSONField(default=dict)

@@ -86,7 +86,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const addEntry = (list: string, entry: Record<string, unknown>) => store.edit(`${list}/${newItemId()}`, entry);
   const removeEntry = (list: string, id: string) => store.edit(`${list}/${id}`, null);
 
-  const updateProfileField = (field: "role" | "institution" | "formerHouse" | "magicalFocus" | "reputation" | "isTeacher", value: string | boolean) => {
+  const updateProfileField = (field: "role" | "institution" | "formerHouse" | "reputation" | "isTeacher", value: string | boolean) => {
     edit(`adultWizardProfile/${field}`, value);
   };
 

@@ -31,14 +31,14 @@ The cards show: portrait, house crest, archetype, `curso` (badge, not clipped), 
 | `edad` | Free text ("11 años"). | **Whole number 0–999 (owner decision, visible):** years, shown as "11 años" / "11 years". Needed for the Magia intuitiva rule below. |
 | `curso` (students) | Free text ("1º"). | **Text 20** |
 | `puestoClase` (students) | Free. | **Text 80** |
-| `linaje`, `economia`, `varitaSintonia` | Free. **Changing (owner decision, 8 November 2026):** `varitaSintonia` becomes the one «Varita / Foco mágico» field for students and adult wizards, replacing `magicalFocus`. | **Text 200** each |
+| `linaje`, `economia`, `varitaSintonia` | Free. `varitaSintonia` is the one «Varita / Foco mágico» field for students and adult wizards (owner decision, 8 November 2026; schema version 4). | **Text 200** each |
 | `avatarImage`, `avatarFit` | Cropper 3:4, JPEG ≤900 px, 0.75; a web address works only if the site allows it. | Uploaded image (4 MB, 16 MP); cover/contain. Web address: downloaded in the browser and uploaded, or a clear message to save and upload the file (R3.4). |
 
 **Adult wizard profile** (`adultWizardProfile`):
 
 | Field | Today | Rule |
 |---|---|---|
-| `role`, `institution`, `magicalFocus`, `reputation` | Free. `magicalFocus` merges into `varitaSintonia` (see above); differing values are both kept. | **Text 120** each |
+| `role`, `institution`, `reputation` | Free. (`magicalFocus` was removed in schema version 4: migration 0006 merged it into `varitaSintonia`, keeping both texts when they differ, or moving the focus to a custom field «Foco mágico» when both do not fit in 200 characters.) | **Text 120** each |
 | `formerHouse` | Free text; the house filter matches it by substring. | **Text 80** |
 | `isTeacher` | Checkbox. | Yes/no |
 | `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** |

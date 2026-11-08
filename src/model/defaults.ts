@@ -66,7 +66,7 @@ export function newCharacterSheet(type: CharacterType = "student", catalogue: Sk
     consecuenciasFisicas: [], consecuenciasMentales: [], consecuenciasSociales: [],
     conjuros: [], pociones: [], clubesList: [], equipoList: [], notasList: [], camposPersonalizados: [],
     avatarFit: "cover", galleryImages: [],
-    ...(student ? {} : { adultWizardProfile: { role: "", institution: "", formerHouse: "", magicalFocus: "", reputation: "", isTeacher: false, teachingSubjects: [] } }),
+    ...(student ? {} : { adultWizardProfile: { role: "", institution: "", formerHouse: "", reputation: "", isTeacher: false, teachingSubjects: [] } }),
   };
   return { ...base, habilidades: startingSkills(catalogue, base, preset ?? readSkillPreset()) };
 }

@@ -39,7 +39,6 @@ const EMPTY_PROFILE: AdultWizardProfile = {
   isTeacher: false,
   teachingSubjects: [],
   formerHouse: "",
-  magicalFocus: "",
   reputation: "",
 };
 

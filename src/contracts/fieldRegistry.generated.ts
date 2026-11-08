@@ -71,10 +71,6 @@ export const API_SCHEMA = {
             "type": "string",
             "maxLength": 120
           },
-          "magicalFocus": {
-            "type": "string",
-            "maxLength": 120
-          },
           "reputation": {
             "type": "string",
             "maxLength": 120

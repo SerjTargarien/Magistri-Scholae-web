@@ -461,7 +461,15 @@ Released to staging (`20261108-143610-176b36f`).
 
 Owner decisions: the R3.1 screenshot tests are retired, and with the transition nearly complete the look rule is relaxed: **no aesthetic changes without a reason; any step that has a reason for a visible change may make it.** No before-and-after pictures or separate approval are needed. Removed: the CI job `visual`, `e2e/visual.spec.ts`, the 336 reference pictures (they remain in Git history) and the visual projects in `playwright.config.ts`. AGENTS.md, design.md, implementation-plan.md (decision 12) and development.md ("Checking the look") say so. The feature and demo browser tests are unchanged.
 
-**Next:** update staging (backup, migration 0005), then the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
+Merged and released to staging (backup first; migration 0005 applied; release `20261108-153827-dc3b2be`): Empatía is last in Sociales in the staging campaign, with sheet values kept.
+
+## One wand field — 8 November 2026
+
+- Server: `adultWizardProfile.magicalFocus` removed; `varitaSintonia` («Varita / Foco mágico», text 200) is the one field for every character. Schema version 4. Migration `0006_one_wand_field` merges each stored focus: empty focus, or a focus the wand already contains, changes nothing; an empty wand takes the focus; otherwise the wand becomes "wand · focus", or, beyond 200 characters, the focus goes to a custom field «Foco mágico». Whatever receives the focus gets at least the focus's restrictions (GM audience on the focus or the whole adult profile, from the sheet or the inherited campaign rule, and player restrictions); it is never opened up. Rules on the removed path are dropped. Not reversible: restore the pre-migration backup instead.
+- App: the creation form has the one field in the basic data (the adult profile loses its focus box; reputation sits beside the former house). On the sheet the wand moved into the profile grid without the star-line separator: for adults it takes the focus's place beside the former house; for students it is a full-width last row. The demo professor has one wand.
+- Tests: migration tests (merging, restrictions only ever tightened); the adult feature test checks the wand is stored and no focus remains. Checked: type check, unit tests, both builds, 31 browser tests, catalogue and migration tests, makemigrations --check, export_api_contract --check; looked at both cards in the demo, reading and edit mode.
+
+**Next:** merge and update staging (backup, migration 0006), then the GM-only skill actions (design first), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

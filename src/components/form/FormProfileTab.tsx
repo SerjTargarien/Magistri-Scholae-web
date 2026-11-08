@@ -343,23 +343,8 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                           />
                         </div>
 
-                        {/* Foco Mágico */}
+                        {/* Reputación: beside the former house since the focus joined the wand above. */}
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                            {t.adultWizardMagicalFocus}
-                          </label>
-                          <input
-                            id="input-aw-magical-focus"
-                            type="text"
-                            placeholder={t.adultWizardMagicalFocusPlaceholder}
-                            value={profile.magicalFocus}
-                            onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
-                            className="w-full text-xs font-sans"
-                          />
-                        </div>
-
-                        {/* Reputación */}
-                        <div className="flex flex-col gap-1.5 sm:col-span-2">
                           <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
                             {t.adultWizardReputation}
                           </label>

@@ -123,7 +123,7 @@ export class MockServer {
     };
     if (writer) editable({ type: "object", fields: API_SCHEMA.entities[sheet.kind] as Record<string, Rule> }, fields, "");
     return {
-      kind: "viewer-projection", id: sheet.id, entityType: sheet.kind, campaignId: CAMPAIGN.id, schemaVersion: 3,
+      kind: "viewer-projection", id: sheet.id, entityType: sheet.kind, campaignId: CAMPAIGN.id, schemaVersion: 4,
       revision: `r${sheet.revision}-${user.role}`, fields: fields as any,
       capabilities: { readablePaths, writablePaths, collectionPaths, removablePaths, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),

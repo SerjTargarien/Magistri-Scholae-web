@@ -133,6 +133,23 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </div>
                   )}
 
+                  {characterType !== "adult_wizard" && (
+                    <>
+                      {shown("varitaSintonia") && (
+                      <div className="flex flex-col gap-1 col-span-2">
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
+                        <input
+                          type="text"
+                          value={character.varitaSintonia || ""}
+                          disabled={!writable("varitaSintonia")}
+                          onChange={(e) => edit("varitaSintonia", e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                        />
+                      </div>
+                      )}
+                    </>
+                  )}
+
                   {characterType === "adult_wizard" && (
                     <>
                       {shown("adultWizardProfile/role") && (
@@ -174,14 +191,15 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       </div>
                       )}
 
-                      {shown("adultWizardProfile/magicalFocus") && (
+                      {/* One «Varita / Foco mágico» for every character: for adults it sits next to the former house. */}
+                      {shown("varitaSintonia") && (
                       <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardMagicalFocus}</label>
+                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
                         <input
                           type="text"
-                          value={profile.magicalFocus || ""}
-                          disabled={!writable("adultWizardProfile/magicalFocus")}
-                          onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
+                          value={character.varitaSintonia || ""}
+                          disabled={!writable("varitaSintonia")}
+                          onChange={(e) => edit("varitaSintonia", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
@@ -283,6 +301,17 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </div>
                   )}
 
+                  {characterType !== "adult_wizard" && (
+                    <>
+                      {shown("varitaSintonia") && (
+                      <div className="col-span-2">
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.varitaSintonia}</div>
+                        <div className="text-neutral-200 mt-0.5">{character.varitaSintonia || t.labelVaritaEmpty}</div>
+                      </div>
+                      )}
+                    </>
+                  )}
+
                   {characterType === "adult_wizard" && (
                     <>
                       {shown("adultWizardProfile/role") && (
@@ -306,10 +335,10 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       </div>
                       )}
 
-                      {shown("adultWizardProfile/magicalFocus") && (
+                      {shown("varitaSintonia") && (
                       <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardMagicalFocus}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.magicalFocus || "—"}</div>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.varitaSintonia}</div>
+                        <div className="text-neutral-200 mt-0.5">{character.varitaSintonia || t.labelVaritaEmpty}</div>
                       </div>
                       )}
 
@@ -338,39 +367,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                 </div>
               )}
 
-              {/* Varita */}
-              {shown("varitaSintonia") && (
-              <div className={isAcademy ? "pt-2" : "border-t border-violet-500/10 pt-3"}>
-                {isAcademy && <CompassStarDivider className="mb-3" />}
-                {isQuickEditing ? (
-                  <div className="grid grid-cols-1 gap-3 text-xs font-mono">
-                    {shown("varitaSintonia") && (
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
-                      <input
-                        type="text"
-                        value={character.varitaSintonia || ""}
-                        disabled={!writable("varitaSintonia")}
-                        onChange={(e) => edit("varitaSintonia", e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                      />
-                    </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3 text-xs font-mono">
-                    <div>
-                      <div className="text-[9px] text-neutral-500 uppercase tracking-wider">
-                        {t.varitaSintonia}
-                      </div>
-                      <div className="text-neutral-200 mt-0.5">
-                        {character.varitaSintonia || t.labelVaritaEmpty}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              )}
             </div>
 
             {/* House Affiliation & Heraldry Panel (Row 1 Right on Desktop; Position 2 on Mobile) */}

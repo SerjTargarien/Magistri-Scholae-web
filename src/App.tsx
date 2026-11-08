@@ -31,7 +31,7 @@ const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
 // Demo builds only; the condition is replaced at build time.
 const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
 const CAMPAIGN_KEY = "magistri_campaign";
-const LIST_LIMIT = 200;
+const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.py pagination)
 
 type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS";
 type Campaign = { id: string; name: string };
@@ -111,8 +111,15 @@ export default function App() {
 
   const loadLists = useCallback(async () => {
     if (!campaignId) return;
-    const list = (kind: EntityKind) =>
-      client.request<{ items: ApiSheetProjection[] }>(`${kind === "character" ? "characters" : "familiars"}?campaignId=${campaignId}&limit=${LIST_LIMIT}`);
+    // The server returns at most LIST_PAGE sheets per request; read every page.
+    const list = async (kind: EntityKind) => {
+      const items: ApiSheetProjection[] = [];
+      for (let offset = 0; ; offset += LIST_PAGE) {
+        const page = await client.request<{ items: ApiSheetProjection[] }>(`${kind === "character" ? "characters" : "familiars"}?campaignId=${campaignId}&limit=${LIST_PAGE}&offset=${offset}`);
+        items.push(...page.items);
+        if (page.items.length < LIST_PAGE) return { items };
+      }
+    };
     try {
       const [chars, fams] = await Promise.all([list("character"), list("familiar")]);
       // Archived sheets leave the list (the GM restores them from R4's screens).

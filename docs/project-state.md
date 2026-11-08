@@ -438,7 +438,17 @@ The real screens now run on the account side (owner decisions: no "technical vie
 - Tests: the feature checklist moved onto the demo (`e2e/features.spec.ts`, 11 tests at desktop and phone widths); store behaviour in the real screens (`e2e/demo.spec.ts`, 7). Screenshots run on the demo as the GM; the owner approved every difference (see development.md, "Screenshot tests"), and 283 of 336 references were replaced from a CI run.
 - Checked: type check, 48 unit tests, three builds, features (22) and demo (7) browser tests locally and in CI, backend suite, and a manual walk-through of the demo (lists, every sheet tab, edits, creation of a character and a familiar, settings).
 
-**Next:** release to staging (the owner's go-ahead), then phase 3: the decided visible changes, one pull request each.
+Released to staging the same day (frontend release `20261108-140937-8c004a3`; backend rebuilt, no migrations).
+
+## Staging fix: sheet lists — 8 November 2026
+
+The owner's staging test as a player found that lists never loaded ("No se pudieron cargar los datos"), so new sheets seemed unsaved and a familiar created from the character sheet never appeared in its bond picker. Cause: the app asked for 200 sheets per list, while the server allows at most 100 per request (`backend/domain/views.py` `pagination`); the demo server did not enforce that limit. Saves themselves worked (checked on staging inside a rolled-back transaction).
+- The app now reads lists in pages of 100; the demo server applies the server's paging rule, so a request the server would refuse also fails in tests.
+- New feature test: as the player, create a familiar from the character sheet, bond it there, reload. It fails with the old limit and passes now.
+- Checked: type check, unit tests, both builds, features (24) and demo (7) browser tests.
+- Still open: which player actions should be GM-only (the owner is listing them).
+
+**Next:** release this fix to staging (the owner's go-ahead), then phase 3: the decided visible changes, one pull request each.
 
 ## Updating this handoff
 

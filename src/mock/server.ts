@@ -27,6 +27,12 @@ export type Failure = "network" | "server" | "lostReply";
 
 class Reply { constructor(public status: number, public body: unknown) {} }
 const fail = (status: number, code: string, details: object = {}) => new Reply(status, { error: { code, ...details } });
+/** The server's paging rule (views.pagination): limit 1-100, default 50; offset 0-100000. */
+function pageOf(query: URLSearchParams): { limit: number; offset: number } | null {
+  const limit = Number(query.get("limit") ?? "50"), offset = Number(query.get("offset") ?? "0");
+  return Number.isInteger(limit) && Number.isInteger(offset) && limit >= 1 && limit <= 100 && offset >= 0 && offset <= 100000 ? { limit, offset } : null;
+}
+
 const plural = (kind: EntityKind) => (kind === "character" ? "characters" : "familiars");
 const hidden = (path: string, list: readonly string[]) => list.some(h => path === h || path.startsWith(h + "/"));
 
@@ -159,7 +165,7 @@ export class MockServer {
     if (path === "auth/logout" && method === "POST") { this.state.viewer = null; this.save(); return new Reply(200, {}); }
     if (!user) return fail(401, "authentication_required");
     if (path === "auth/me") return new Reply(200, this.userView(user));
-    if (path === "campaigns" && method === "GET") return new Reply(200, { items: [CAMPAIGN] });
+    if (path === "campaigns" && method === "GET") return pageOf(query) ? new Reply(200, { items: [CAMPAIGN] }) : fail(400, "invalid_request");
     if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return new Reply(200, { catalogue: DEFAULT_SKILL_CATALOGUE, revision: 1 });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, body, user);
 
@@ -170,8 +176,11 @@ export class MockServer {
     if (!id) {
       if (method === "POST") return this.receipt(body, () => this.create(kind, body, user));
       if (query.get("campaignId") !== CAMPAIGN.id) return fail(404, "not_found");
+      const page = pageOf(query);
+      if (!page) return fail(400, "invalid_request");
       // Newest first, like the server (sheets are stored in creation order).
-      return new Reply(200, { items: this.state.sheets.filter(s => s.kind === kind && this.access(s, user)).reverse().map(s => this.projection(s, user)) });
+      const items = this.state.sheets.filter(s => s.kind === kind && this.access(s, user)).reverse();
+      return new Reply(200, { items: items.slice(page.offset, page.offset + page.limit).map(s => this.projection(s, user)) });
     }
     const sheet = this.state.sheets.find(s => s.id === id && s.kind === kind);
     if (!sheet || !this.access(sheet, user)) return fail(404, "not_found");

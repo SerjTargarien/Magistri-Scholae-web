@@ -352,7 +352,9 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 
 **Finding:** the service worker already caches only the app's own files and never `/api` or `/media` (since milestone 3). It needs only a new cache name at launch.
 
-**Next:** go through the updated plan with the owner, merge the documentation pull request, then explain R3.1 before starting it.
+**Plan merged** (PR #11). **Other websites on the VPS** (PR #12, owner-approved): Caddy now mounts `/opt/sites` read-only and imports each site's own Caddyfile, so another agent can add a site without editing this repository (runbook section 8). Applied on the server with about 2 seconds of downtime; certificates kept; both Magistri sites checked afterwards. Details are in `docs/infrastructure.local.md`.
+
+**Next:** explain R3.1 (look baseline) before starting it.
 
 ## Updating this handoff
 

@@ -515,6 +515,14 @@ Owner decision: testers must have one address. Instead of building the productio
 - While this holds, the staging database holds real data: backend changes on staging need a backup and the owner's go-ahead; frontend trials on staging.magistrischolae.fyi do not affect testers; staging data is never wiped (AGENTS.md).
 - Code: Caddyfile (public `/api/*` → `api-staging`), `release.sh` (production builds the account app). Server: public hosts added to `DJANGO_ALLOWED_HOSTS`, Caddy reloaded, production release.
 
+Switched the same day (owner's go-ahead): staging backed up, public hosts added to `DJANGO_ALLOWED_HOSTS` (copy of the old file kept on the server), Caddy reloaded, production release `20261108-171942-47caff9` (rollback: `--activate 20261107-122823-0c8b943`, the old local-storage app). Checked: `/api` answers on the public address, www redirects, a CSRF-checked save through the public address works (rolled back), and the sign-in screen shows.
+
+## Invitation links — 8 November 2026
+
+- Owner request: invitations he can send as text messages. `https://magistrischolae.fyi/#invitacion=CODE` opens «Aceptar invitación» with the code filled in; `#recuperacion=CODE` does the same for «Restablecer contraseña». The code is in the fragment, which browsers never send to the server, and the app removes it from the address bar; a link followed while the sign-in screen is open also works.
+- The owner's git-ignored codes file now lists a link per code (written locally without displaying the codes).
+- Checked: type check, unit tests (new: reading links), browser tests (new: a link in the same tab and in a new tab, invitation and reset).
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

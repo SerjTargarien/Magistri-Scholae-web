@@ -384,6 +384,24 @@ test("settings: account card with sign-out; signing out shows the sign-in screen
   await expect(page.locator("#character-list-container")).toBeVisible();
 });
 
+test("an invitation link opens «Aceptar invitación» with the code filled in, and leaves the address bar", async ({ page }) => {
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-settings-logout").click();
+  await expect(page.locator("#sign-in-card")).toBeVisible();
+  await page.goto("/#invitacion=AbC_12-x");
+  await expect(page.locator("#btn-sign-in-mode-register")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#input-sign-in-code")).toHaveValue("AbC_12-x");
+  expect(await page.evaluate(() => location.hash)).toBe("");
+  await page.goto("/#recuperacion=zZ9");
+  await expect(page.locator("#btn-sign-in-mode-reset")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#input-sign-in-code")).toHaveValue("zZ9");
+  // Opened fresh in a new tab, as from a text message.
+  const fresh = await page.context().newPage();
+  await fresh.goto("/#invitacion=Fresh-1");
+  await expect(fresh.locator("#input-sign-in-code")).toHaveValue("Fresh-1");
+  expect(await fresh.evaluate(() => location.hash)).toBe("");
+});
+
 test("profile banner shows the bonded familiar for the current width, without horizontal scrolling", async ({ page }, testInfo) => {
   const noHorizontalScroll = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(await noHorizontalScroll()).toBe(true);

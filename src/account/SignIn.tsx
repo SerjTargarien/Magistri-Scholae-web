@@ -2,7 +2,7 @@
 // choice for accounts in several campaigns. Drawn inside the app's own frame
 // (background, crest and title) in the academy or classic style (R3.5 brings
 // these screens forward; owner request, 8 November 2026).
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyRound, LogIn, LogOut, Ticket } from "lucide-react";
 import type { ApiUser } from "../contracts/api-v1";
 import { TRANSLATIONS, type Language } from "../localization";
@@ -12,6 +12,24 @@ import type { VisualStyle } from "../types";
 import { FiligreeCorner } from "../components/AcademyOrnaments";
 
 type Mode = "login" | "register" | "reset";
+
+/**
+ * Invitation and reset links: https://magistrischolae.fyi/#invitacion=CODE or
+ * #recuperacion=CODE open the right tab with the code filled in. The code is in
+ * the fragment, which browsers never send to the server, and is removed from the
+ * address bar once read.
+ */
+export function readCodeLink(hash: string): { mode: Mode; code: string } | undefined {
+  const match = /^#(invitacion|recuperacion)=([A-Za-z0-9_-]{1,200})$/.exec(hash);
+  if (!match) return undefined;
+  return { mode: match[1] === "invitacion" ? "register" : "reset", code: match[2] };
+}
+
+function takeCodeLink(): { mode: Mode; code: string } | undefined {
+  const link = readCodeLink(globalThis.location?.hash ?? "");
+  if (link) history.replaceState(null, "", location.pathname + location.search);
+  return link;
+}
 
 /** Plain-language messages for the server's account errors. */
 const ERRORS: Record<Language, Record<string, string>> = {
@@ -79,13 +97,23 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
   client: RemoteClient; lang: Language; visualStyle: VisualStyle; onSignedIn: (user: ApiUser) => void;
 }) {
   const t = remoteText[lang];
-  const [mode, setMode] = useState<Mode>("login");
+  const [link] = useState(takeCodeLink);
+  const [mode, setMode] = useState<Mode>(link?.mode ?? "login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(link?.code ?? "");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // A link followed while this screen is open only changes the fragment.
+  useEffect(() => {
+    const follow = () => {
+      const next = takeCodeLink();
+      if (next) { setMode(next.mode); setToken(next.code); setMessage(""); setError(""); setPassword(""); }
+    };
+    addEventListener("hashchange", follow);
+    return () => removeEventListener("hashchange", follow);
+  }, []);
 
   const submit = async () => {
     if (localStorage.getItem("magistri_logout_pending")) { location.reload(); return; }

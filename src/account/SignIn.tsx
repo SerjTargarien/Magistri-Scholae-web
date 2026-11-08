@@ -42,6 +42,7 @@ const ERRORS: Record<Language, Record<string, string>> = {
     invalid_password: "La contraseña es demasiado débil o se parece a tu usuario. Usa al menos 12 caracteres variados.",
     invalid_account_state: "Esta cuenta está desactivada. Habla con la administración.",
     network_error: "No hay conexión con el servidor. Comprueba tu conexión y vuelve a intentarlo.",
+    password_mismatch: "Las dos contraseñas no coinciden. Escríbelas de nuevo.",
   },
   en: {
     invalid_credentials: "Wrong username or password.",
@@ -52,12 +53,15 @@ const ERRORS: Record<Language, Record<string, string>> = {
     invalid_password: "The password is too weak or too close to your username. Use at least 12 varied characters.",
     invalid_account_state: "This account is disabled. Contact the administrator.",
     network_error: "The server cannot be reached. Check your connection and try again.",
+    password_mismatch: "The two passwords do not match. Type them again.",
   },
 };
 
 const MODES: { mode: Mode; icon: typeof LogIn }[] = [
   { mode: "login", icon: LogIn }, { mode: "register", icon: Ticket }, { mode: "reset", icon: KeyRound },
 ];
+
+const REPEAT_LABEL: Record<Language, string> = { es: "Repite la contraseña", en: "Repeat the password" };
 
 const inputClass = "w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 focus:outline-none";
 const labelClass = "flex flex-col gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold";
@@ -101,6 +105,7 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
   const [mode, setMode] = useState<Mode>(link?.mode ?? "login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [repeat, setRepeat] = useState("");
   const [token, setToken] = useState(link?.code ?? "");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -109,7 +114,7 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
   useEffect(() => {
     const follow = () => {
       const next = takeCodeLink();
-      if (next) { setMode(next.mode); setToken(next.code); setMessage(""); setError(""); setPassword(""); }
+      if (next) { setMode(next.mode); setToken(next.code); setMessage(""); setError(""); setPassword(""); setRepeat(""); }
     };
     addEventListener("hashchange", follow);
     return () => removeEventListener("hashchange", follow);
@@ -117,13 +122,15 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
 
   const submit = async () => {
     if (localStorage.getItem("magistri_logout_pending")) { location.reload(); return; }
+    // A new password is typed twice (owner decision, 8 November 2026).
+    if (mode !== "login" && password !== repeat) { setError("password_mismatch"); setPassword(""); setRepeat(""); return; }
     const body = mode === "login" ? { username, password } : mode === "register" ? { invitationToken: token, username, password } : { code: token, newPassword: password };
     const path = mode === "reset" ? "password-reset" : mode;
     setBusy(true); setError(""); setMessage("");
     try {
       // A refused sign-in is a 401 too: it is not an expired session (quiet401).
       const result = await client.request<{ user: ApiUser }>(`auth/${path}`, "POST", body, true);
-      setPassword(""); setToken("");
+      setPassword(""); setRepeat(""); setToken("");
       if (mode === "login") onSignedIn(result.user);
       else { setMessage(mode === "register" ? t.registered : t.resetDone); setMode("login"); }
     } catch (e) {
@@ -146,7 +153,7 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
               role="tab"
               aria-selected={mode === m}
               disabled={busy}
-              onClick={() => { setMode(m); setMessage(""); setError(""); setPassword(""); setToken(""); }}
+              onClick={() => { setMode(m); setMessage(""); setError(""); setPassword(""); setRepeat(""); setToken(""); }}
               className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg border text-[10px] font-mono font-bold uppercase tracking-wider leading-tight transition-colors cursor-pointer ${
                 mode === m ? "bg-violet-950/70 border-amber-500/50 text-amber-300" : "bg-neutral-950/40 border-neutral-800 text-neutral-400 hover:text-neutral-200 hover:border-neutral-700"
               }`}
@@ -173,6 +180,12 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
               <input id="input-sign-in-password" required minLength={mode === "login" ? undefined : 12} type="password"
                 autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={e => setPassword(e.target.value)} className={inputClass} />
             </label>
+            {mode !== "login" && (
+              <label className={labelClass}>{REPEAT_LABEL[lang]}
+                <input id="input-sign-in-password-repeat" required minLength={12} type="password" autoComplete="new-password"
+                  value={repeat} onChange={e => setRepeat(e.target.value)} className={inputClass} />
+              </label>
+            )}
 
             {errorText && <p role="alert" className="text-xs text-rose-300 bg-rose-950/30 border border-rose-500/20 rounded-lg px-3 py-2">{errorText}</p>}
             {message && <p role="status" className="text-xs text-emerald-300 bg-emerald-950/30 border border-emerald-500/20 rounded-lg px-3 py-2">{message}</p>}

@@ -523,6 +523,13 @@ Switched the same day (owner's go-ahead): staging backed up, public hosts added 
 - The owner's git-ignored codes file now lists a link per code (written locally without displaying the codes).
 - Checked: type check, unit tests (new: reading links), browser tests (new: a link in the same tab and in a new tab, invitation and reset).
 
+Released to the public site and staging (release `20261108-172928-c7ce656`); a link checked on the public site.
+
+## Password typed twice — 8 November 2026
+
+- Owner: accepting an invitation and resetting a password ask for the new password twice («Repite la contraseña»); a mismatch is caught before anything is sent, and both boxes are cleared. Signing in still asks once.
+- Owner: the GM will forget his password. Recovery already works by link (`#recuperacion=CODE`) with an administrator-issued reset code (15 minutes); until the admin screens (R4) create them, the agent issues one on the server into a git-ignored file, like the invitations. R4 now lists reset and invitation links and the validity question.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

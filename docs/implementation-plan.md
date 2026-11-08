@@ -258,7 +258,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Create the campaign.
   - Issue the GM invitation and player invitations (the token is shown once, with a copy button).
   - List users.
-  - Issue reset codes.
+  - Issue reset codes, shown as a link to send by text message (`https://magistrischolae.fyi/#recuperacion=CODE`, already understood by the sign-in screen) as well as the bare code; invitations likewise (`#invitacion=CODE`). Owner (8 November 2026): the GM will forget his password, so recovery by link must be easy. Decide the validity: reset codes last 15 minutes today, which may be too short for a text message.
   - Enable and disable accounts.
   - Manage members and roles.
 - **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.

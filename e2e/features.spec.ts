@@ -402,6 +402,27 @@ test("an invitation link opens «Aceptar invitación» with the code filled in, 
   expect(await fresh.evaluate(() => location.hash)).toBe("");
 });
 
+test("a new password is typed twice when accepting an invitation or resetting", async ({ page }) => {
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-settings-logout").click();
+  await page.goto("/#invitacion=AbC_12-x");
+  await page.locator("#input-sign-in-username").fill("nueva_jugadora");
+  await page.locator("#input-sign-in-password").fill("una-contraseña-larga-1");
+  await page.locator("#input-sign-in-password-repeat").fill("una-contraseña-larga-2");
+  await page.locator("#btn-sign-in-submit").click();
+  await expect(page.getByRole("alert")).toContainText("no coinciden");
+  await expect(page.locator("#input-sign-in-password")).toHaveValue("");
+  await expect(page.locator("#input-sign-in-password-repeat")).toHaveValue("");
+  await page.locator("#input-sign-in-password").fill("una-contraseña-larga-1");
+  await page.locator("#input-sign-in-password-repeat").fill("una-contraseña-larga-1");
+  await page.locator("#btn-sign-in-submit").click();
+  await expect(page.getByRole("alert")).toContainText("código de invitación no es válido"); // reached the server
+  await page.locator("#btn-sign-in-mode-reset").click();
+  await expect(page.locator("#input-sign-in-password-repeat")).toBeVisible();
+  await page.locator("#btn-sign-in-mode-login").click();
+  await expect(page.locator("#input-sign-in-password-repeat")).toHaveCount(0); // signing in needs it once
+});
+
 test("profile banner shows the bonded familiar for the current width, without horizontal scrolling", async ({ page }, testInfo) => {
   const noHorizontalScroll = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(await noHorizontalScroll()).toBe(true);

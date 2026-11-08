@@ -412,7 +412,15 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 - The stopgap account screens use the store, show refused edits with their rule, and offer "keep mine / keep theirs" for same-field conflicts.
 - Tests: `tests/store.test.ts` (15) replaces the old queue tests; `tests/remote.test.ts` keeps the client tests plus error details. Locally: lint, `npm test` (48 passed), builds.
 
-**Next:** the in-browser mock server (second R3.3 pull request).
+## R3.3 mock server — 8 November 2026 (second pull request)
+
+- `src/mock/`: an in-browser mock of the API (`server.ts`) with the demo world (`fixtures.ts`: the screenshot fixture's characters in the server's model, three demo viewers, a GM-only field, player-restricted fields, a share), a PNG encoder for the demo images (`png.ts`, same pixels as the screenshot fixture) and the test panel (`panel.tsx`).
+- The account app's API calls go through a replaceable transport (`apiTransport`), and images through `src/remote/assets.ts`; demo builds swap both. `checkSkills` (catalogue rules) was added to `src/model/catalogue.ts`.
+- Fixed: the stopgap screens locked every field while offline, so the agreed offline editing was not reachable; now only a running action or an unknown outcome locks them. The contract type's schema version is 3.
+- Tests: `e2e/demo.spec.ts` (7, project `demo-desktop`). Locally: lint, `npm test` (48), the demo tests (7 passed), and a check that `build:remote` contains no mock code.
+- **R3.3 is complete.**
+
+**Next:** R3.4, the screens on the store, explained before it starts.
 
 ## Updating this handoff
 

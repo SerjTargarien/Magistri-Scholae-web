@@ -23,6 +23,7 @@ deploy/releases-staging/
 !.env.staging.example
 !.env.mock
 !.env.remote
+!.env.demo
 
 # Screenshot references are made only on Linux in CI; local runs write their own.
 e2e/visual.spec.ts-snapshots/*-win32.*

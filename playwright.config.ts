@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // fresh browser context, so mock and local databases start from scratch and
 // never touch a real browser profile.
 const MOCK_URL = "http://127.0.0.1:4310";
+// The account app against the in-browser mock server (R3.3).
+const DEMO_URL = "http://127.0.0.1:4312";
 // E2E_LOCAL_URL points the local-mode tests at a deployed build instead of a
 // dev server, e.g. a Caddy test on http://127.0.0.1:8088 or staging.
 const LOCAL_URL = process.env.E2E_LOCAL_URL ?? "http://127.0.0.1:4311";
@@ -31,6 +33,7 @@ export default defineConfig({
   projects: [
     { name: "mock-desktop", testMatch: /mock\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: MOCK_URL } },
     { name: "mock-mobile", testMatch: /mock\.spec\.ts/, use: { ...devices["Pixel 7"], baseURL: MOCK_URL } },
+    { name: "demo-desktop", testMatch: /demo\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: DEMO_URL } },
     { name: "local-desktop", testMatch: /local\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: LOCAL_URL } },
     ...(VISUAL ? [
       { name: "visual-desktop", testMatch: /visual\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, ...visualUse } },
@@ -42,6 +45,7 @@ export default defineConfig({
   expect: { timeout: 10_000, toHaveScreenshot: { type: "webp" } },
   webServer: [
     { command: "npx vite --mode mock --port 4310 --strictPort --host 127.0.0.1", url: MOCK_URL, reuseExistingServer: !CI, timeout: 120_000 },
+    { command: "npx vite --mode demo --port 4312 --strictPort --host 127.0.0.1", url: DEMO_URL, reuseExistingServer: !CI, timeout: 120_000 },
     // No --mode: VITE_STORAGE_MODE is unset, so the app uses local storage.
     ...(process.env.E2E_LOCAL_URL ? [] : [
       { command: "npx vite --port 4311 --strictPort --host 127.0.0.1", url: LOCAL_URL, reuseExistingServer: !CI, timeout: 120_000 },

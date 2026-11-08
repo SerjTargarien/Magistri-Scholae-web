@@ -17,6 +17,9 @@ if ('serviceWorker' in navigator) {
 
 async function mount() {
   const mode = import.meta.env.VITE_STORAGE_MODE;
+  // Demo builds only: the account app talks to the in-browser mock server.
+  // The condition is replaced at build time, so other builds contain no mock code.
+  if (import.meta.env.VITE_MOCK_SERVER === "true") (await import('./mock/server')).installMockServer();
   const { default: App } = mode === 'remote' ? await import('./remote/RemoteApp') : await import('./App');
   createRoot(document.getElementById('root')!).render(
   <StrictMode>

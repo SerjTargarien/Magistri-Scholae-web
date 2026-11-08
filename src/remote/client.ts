@@ -7,6 +7,11 @@ export class ApiFailure extends Error {
   constructor(public status: number, public code: string, public details?: FailureDetails) { super(code); }
 }
 
+let transport: typeof fetch = (input, init) => fetch(input, init);
+/** The function every API call goes through; demo builds replace it with the in-browser mock server. */
+export const apiTransport: typeof fetch = (input, init) => transport(input, init);
+export function setApiTransport(replacement: typeof fetch) { transport = replacement; }
+
 export class RemoteClient {
   private csrf = "";
   private controllers = new Set<AbortController>();

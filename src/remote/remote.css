@@ -24,3 +24,9 @@
 .remote-image { max-width:100%; max-height:320px; object-fit:contain; border-radius:.5rem; }
 .remote-crop { border:1px solid #98784d; padding:1rem; margin:1rem 0; }
 .remote-crop-area { position:relative; height:320px; }
+
+/* Demo builds only (R3.3). */
+.demo-banner { position:sticky; top:0; z-index:20; margin:0 0 1rem; padding:.4rem .8rem; background:#7c2d12; color:#fff7ed; font:600 .85rem system-ui,sans-serif; text-align:center; }
+.demo-panel { position:fixed; right:.75rem; bottom:.75rem; z-index:30; max-width:22rem; display:grid; gap:.35rem; padding:.6rem .75rem; border:1px solid #f59e0b; border-radius:.6rem; background:#1c1208ee; color:#fde68a; font:.78rem system-ui,sans-serif; }
+.demo-panel button { margin:.1rem; font:inherit; }
+.demo-panel button[aria-pressed="true"] { outline:2px solid #f59e0b; }

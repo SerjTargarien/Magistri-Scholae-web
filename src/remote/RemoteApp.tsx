@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ApiSheetProjection, ApiUser, EntityKind, PersonalNoteView } from "../contracts/api-v1";
 import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
 import { ARCHETYPES_REGISTRY } from "../models/characterRegistry";
 import { TRANSLATIONS, type Language } from "../localization";
-import { ApiFailure, RemoteClient, entityPath } from "./client";
+import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./client";
 import { SheetStore } from "../store/sheetStore";
 import { RemoteFields, type Spec } from "./RemoteFields";
 import { remoteText } from "./text";
 import "./remote.css";
+
+// Demo builds only (VITE_MOCK_SERVER): the test panel for the in-browser mock server.
+// The condition is replaced at build time, so other builds never load it.
+const DemoPanel = import.meta.env.VITE_MOCK_SERVER === "true" ? lazy(() => import("../mock/panel")) : undefined;
 
 type Campaign = { id: string; name: string; policyRevision: number };
 type Run = <T>(job: () => Promise<T>, done?: (result: T) => void) => void;
@@ -41,7 +45,7 @@ export default function RemoteApp() {
     setUser(undefined); setSheets([]); setSelected(undefined); setCampaigns([]); setCampaign(""); setNotesOpen(false);
     setUncertain(false); action.current = null; setBusy(false);
   }
-  const client = useMemo(() => new RemoteClient(fetch, () => { clearSession(); setError("sessionExpired"); }), []);
+  const client = useMemo(() => new RemoteClient(apiTransport, () => { clearSession(); setError("sessionExpired"); }), []);
   useEffect(() => {
     let active = true;
     const bc = new BroadcastChannel("magistri-session"); channel.current = bc;
@@ -111,7 +115,8 @@ export default function RemoteApp() {
     catch (e) { if (e instanceof ApiFailure && e.status === 401) localStorage.removeItem("magistri_logout_pending"); else setError("network_error"); }
   };
   const locked = busy || uncertain || !online;
-  return <div className={`remote-app ${style}`}><main><header><h1>Magistri Scholae</h1><span>{t.remote}</span>
+  return <div className={`remote-app ${style}`}>{DemoPanel && <><p id="demo-banner" className="demo-banner" role="note">{t.demoBanner}</p>
+    <Suspense fallback={null}><DemoPanel lang={lang} /></Suspense></>}<main><header><h1>Magistri Scholae</h1><span>{t.remote}</span>
     <select aria-label="Language" value={lang} onChange={e => { const value = e.target.value as Language; setLang(value); localStorage.setItem("magistri_scholae_lang", value); }}><option value="es">Español</option><option value="en">English</option></select>
     <select aria-label={base.settings} value={style} onChange={e => { setStyle(e.target.value); localStorage.setItem("magistri_scholae_style", e.target.value); }}><option value="academy">Academy</option><option value="classic">Classic</option></select>
     {user && <><span>{user.displayName || user.username}</span><button onClick={() => void logout()}>{t.logout}</button></>}
@@ -122,7 +127,7 @@ export default function RemoteApp() {
         <button disabled={locked} onClick={() => { if (!activeQueue.current?.busy) { if (activeQueue.current) setSelected(activeQueue.current.sheet); setNotesOpen(value => !value); } else setError("unsavedLeave"); }}>{t.personal}</button>
       </div>{!campaigns.length && <p>{t.noCampaign}</p>}
       {notesOpen ? <Notes key={user.id} client={client} lang={lang} run={run} locked={locked} sheet={selected} onPromoted={result => { setSelected(result); activeQueue.current?.accept(result); setNotesOpen(false); }} /> : selected ?
-        <SheetEditor key={selected.id} sheet={selected} client={client} lang={lang} locked={locked} online={online} run={run} back={() => { leave(); }} navigate={setSelected} register={q => { activeQueue.current = q; }} /> : campaign ? <>
+        <SheetEditor key={selected.id} sheet={selected} client={client} lang={lang} locked={locked} editLocked={busy || uncertain} online={online} run={run} back={() => { leave(); }} navigate={setSelected} register={q => { activeQueue.current = q; }} /> : campaign ? <>
           <nav className="remote-toolbar"><button disabled={locked} onClick={() => setKind("character")}>{t.characters}</button><button disabled={locked} onClick={() => setKind("familiar")}>{t.familiars}</button></nav>
           <CreateSheet client={client} campaign={campaign} kind={kind} lang={lang} run={run} locked={locked} created={setSelected} />
           <div className="remote-cards">{sheets.map(sheet => <button key={sheet.id} className="remote-card" disabled={locked} onClick={() => run(() => client.request<ApiSheetProjection>(entityPath(sheet)), setSelected)}>
@@ -156,7 +161,7 @@ function CreateSheet({ client, campaign, kind, lang, run, locked, created }: { c
   </form>;
 }
 
-function SheetEditor({ sheet, client, lang, locked, online, run, back, navigate, register }: { sheet: ApiSheetProjection; client: RemoteClient; lang: Language; locked: boolean; online: boolean; run: Run; back: () => void; navigate: (s: ApiSheetProjection) => void; register: (q: SheetStore) => void }) {
+function SheetEditor({ sheet, client, lang, locked, editLocked, online, run, back, navigate, register }: { sheet: ApiSheetProjection; client: RemoteClient; lang: Language; locked: boolean; editLocked: boolean; online: boolean; run: Run; back: () => void; navigate: (s: ApiSheetProjection) => void; register: (q: SheetStore) => void }) {
   const [, update] = useState(0);
   const [queue] = useState(() => new SheetStore(sheet, { patch: body => client.request(entityPath(sheet), "PATCH", body), read: () => client.request(entityPath(sheet)) }, () => update(v => v + 1)));
   const [tab, setTab] = useState("perfil"); const [targets, setTargets] = useState<ApiSheetProjection[]>([]); const [target, setTarget] = useState("");
@@ -179,10 +184,10 @@ function SheetEditor({ sheet, client, lang, locked, online, run, back, navigate,
       {queue.problems.length > 0 && <span role="alert"> · {t.notAccepted}: {queue.problems.map(p => `${p.path} (${p.rule}${p.limit === undefined ? "" : ` ${JSON.stringify(p.limit)}`})`).join(", ")}</span>}
       {queue.dropped.length > 0 && <span> · {t.dropped}: {queue.dropped.join(", ")}</span>}</div>
     {queue.conflicts.length > 0 && <section className="remote-section"><p>{t.reconcile}</p>{queue.conflicts.map(c => <div key={c.path}><strong>{c.path}</strong><pre>{t.mine}: {JSON.stringify(c.mine)}{"\n"}{t.current}: {JSON.stringify(c.theirs)}</pre>
-      <button disabled={locked} onClick={() => queue.resolve(c.path, "mine")}>{t.keepMine}</button><button disabled={locked} onClick={() => queue.resolve(c.path, "theirs")}>{t.keepTheirs}</button></div>)}</section>}
+      <button disabled={editLocked} onClick={() => queue.resolve(c.path, "mine")}>{t.keepMine}</button><button disabled={editLocked} onClick={() => queue.resolve(c.path, "theirs")}>{t.keepTheirs}</button></div>)}</section>}
     {queue.state === "error" && <section className="remote-section"><button disabled={!online || locked} onClick={() => void queue.flush()}>{t.retry}</button></section>}
     <nav className="remote-toolbar">{tabs.map(section => <button key={section} onClick={() => setTab(section)}>{base[section]}</button>)}</nav>
-    <RemoteFields queue={queue} registry={registry} lang={lang} locked={blocked} upload={(path, imageBase64) => run(client.mutation<ApiSheetProjection>(`${entityPath(current)}/assets`, { expectedRevision: current.revision, path, imageBase64 }), result => queue.accept(result))} />
+    <RemoteFields queue={queue} registry={registry} lang={lang} locked={editLocked || !queue.canEdit} upload={(path, imageBase64) => run(client.mutation<ApiSheetProjection>(`${entityPath(current)}/assets`, { expectedRevision: current.revision, path, imageBase64 }), result => queue.accept(result))} />
     {tab === "notas" && current.capabilities.isGM && <GMNotes client={client} sheet={current} lang={lang} run={run} locked={blocked || queue.busy} />}
     <section className="remote-section"><h2>{t.bond}</h2>{current.bondId ? <button disabled={blocked || queue.busy} onClick={() => run(() => client.request<ApiSheetProjection>(`${current.entityType === "character" ? "familiars" : "characters"}/${current.bondId}`), navigate)}>{t.viewBond}</button> : <p>{t.noBond}</p>}{current.capabilities.bondWritable && <>
       <button disabled={blocked || queue.busy} onClick={() => run(() => client.request<{ items: ApiSheetProjection[] }>(`${current.entityType === "character" ? "familiars" : "characters"}?campaignId=${current.campaignId}&limit=100`), result => setTargets(result.items))}>{t.choose}</button>

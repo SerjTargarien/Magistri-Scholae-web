@@ -72,3 +72,38 @@ export function skillsByCategory(skills: readonly SkillEntry[], catalogue: Skill
     return { category, skills: [...linked, ...own] };
   });
 }
+
+/**
+ * The server's catalogue rules for a character's skills (backend/domain/catalogue.py):
+ * links and categories exist, knowledge only in esoteric categories, no skill
+ * twice. `only` limits the checks to the entries a save touched.
+ */
+export function checkSkills(skills: readonly SkillEntry[] | undefined, catalogue: SkillCatalogue, only?: ReadonlySet<string>):
+  { code: string; path: string; rule: string } | undefined {
+  const categories = new Map(catalogue.categorias.map(c => [c.id, c]));
+  const linked = new Map(catalogue.habilidades.map(s => [s.id, s]));
+  const catalogueNames = new Set(catalogue.habilidades.flatMap(s => Object.values(s.nombre)).filter(Boolean).map(n => n!.trim().toLocaleLowerCase()));
+  const links = new Map<string, number>(), names = new Map<string, number>();
+  for (const entry of skills ?? []) {
+    if (entry.catalogo) links.set(entry.catalogo, (links.get(entry.catalogo) ?? 0) + 1);
+    else if (entry.nombre) names.set(entry.nombre.trim().toLocaleLowerCase(), (names.get(entry.nombre.trim().toLocaleLowerCase()) ?? 0) + 1);
+  }
+  for (const entry of skills ?? []) {
+    if (only && !only.has(entry.id)) continue;
+    const path = `habilidades/${entry.id}`;
+    let category: SkillCategory | undefined;
+    if (entry.catalogo) {
+      const skill = linked.get(entry.catalogo);
+      if (!skill) return { code: "unknown_skill", path: `${path}/catalogo`, rule: "catalogue" };
+      if (links.get(entry.catalogo)! > 1) return { code: "duplicate_skill", path, rule: "unique" };
+      category = categories.get(skill.categoria);
+    } else {
+      category = categories.get(entry.categoria ?? "");
+      if (!category) return { code: "unknown_category", path: `${path}/categoria`, rule: "catalogue" };
+      const name = (entry.nombre ?? "").trim().toLocaleLowerCase();
+      if (names.get(name)! > 1 || catalogueNames.has(name)) return { code: "duplicate_skill", path: `${path}/nombre`, rule: "unique" };
+    }
+    if (entry.conocimiento && !category?.esoterica) return { code: "knowledge_not_allowed", path: `${path}/conocimiento`, rule: "esotericOnly" };
+  }
+  return undefined;
+}

@@ -4,6 +4,7 @@ import { getCroppedImg } from "../utils/imageCompressor";
 import { TRANSLATIONS, type Language } from "../localization";
 import { remoteText } from "./text";
 import { pathValue } from "../store/paths";
+import { assetUrl } from "./assets";
 import type { SheetStore } from "../store/sheetStore";
 
 export type Spec = { type: string; choices?: readonly string[]; fields?: Record<string, Spec>; maxLength?: number; required?: boolean; integer?: boolean; minimum?: number; maximum?: number; maxItems?: number };
@@ -72,7 +73,7 @@ function ImageField({ path, value, title, lang, disabled, upload, remove }: {
   const [area, setArea] = useState<{ x: number; y: number; width: number; height: number }>();
   const [error, setError] = useState("");
   return <div className="remote-field"><span>{title}</span>
-    {typeof value === "string" && value && <img className="remote-image" src={`/api/v1/assets/${encodeURIComponent(value)}`} alt={title} />}
+    {typeof value === "string" && value && <img className="remote-image" src={assetUrl(value)} alt={title} />}
     {!disabled && <><label>{t.upload}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => {
       const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
       if (file.size > 4 * 1024 * 1024) { setError(t.imageTooLarge); return; }

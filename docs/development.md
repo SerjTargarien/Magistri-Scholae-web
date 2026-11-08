@@ -50,6 +50,14 @@ The old hand-written types in `src/types.ts` stay until each screen moves (R3.4)
 
 `src/store/sheetStore.ts` is the one path through which screens read and save a sheet (R3.3). It checks each edit against the viewer's permissions and the field rules before queueing it (a refused edit returns its problems), sends only changed paths with the revision and an operation ID, retries a save of unknown outcome with the same ID, merges automatically when someone else changed other fields, lists same-field collisions in `conflicts` for the viewer to settle (`resolve`), holds a change the server refused while the rest keep saving, and keeps edits during a connection drop. Unsent changes live in memory; a `PendingSlot` (device storage) comes with R7.2. The stopgap account screens use it; the old screens move to it in R3.4.
 
+### The demo: account app with a mock server
+
+`npm run dev:demo` (port 3003) and `npm run build:demo` run the account app against an in-browser mock server (`src/mock/`, R3.3) instead of Django. It answers the same API: each viewer's projection with hidden fields absent, capabilities, revisions, the field rules and the skill catalogue, operation receipts, images, bonds and GM notes (note promotion is not simulated). Demo data is the screenshot fixture's fictional characters in the server's model, kept in this browser's storage; "Restablecer datos" restores it.
+
+- A DEMO banner is always shown. The test panel switches the viewer (GM, assigned player, shared reader) and simulates a connection drop, slow replies, a lost save, a server error, a lost reply, and someone else changing the name or concept of the open sheet.
+- It is a development simulation, never authorization. The mock code exists only in demo builds: `main.tsx` and `RemoteApp.tsx` load it behind `VITE_MOCK_SERVER`, which Vite replaces at build time, so `build:remote` contains none of it.
+- `e2e/demo.spec.ts` runs the account app against it in CI (project `demo-desktop`).
+
 ### Screenshot tests
 
 Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, using the fixed fictional records in `e2e/visual-fixture.ts`. The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.

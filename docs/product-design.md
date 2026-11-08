@@ -14,6 +14,19 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 Recorded decisions and ideas that are not designed in detail or built yet.
 
+### The GM's tools: characters, institutions and skills (owner, 8 November 2026)
+
+For now the GM needs three things, each **per campaign (universe)**, and not much more:
+
+- **Characters:** the GM's view of every character in the campaign, and the GM's own (non-player) characters.
+- **Institutions:** a campaign list of institutions (academies, ministries, guilds…). Today «Institución» is free text on the adult wizard profile, and a house or organization motto is planned for after 1.0. To decide:
+  - what an institution holds (name, description, motto, crest?);
+  - whether characters pick their institution from the list, as players pick skills;
+  - how institutions relate to the houses.
+- **Skills:** the campaign's skill list. Started in C2 («Habilidades de la campaña»: rename, «Inicial», add); moving skills between categories, reordering and new categories are R4.
+
+Everything else in the GM screens of the plan (members, tables, assignment, archive and restore, GM notes) waits unless the owner brings it forward.
+
 ### Non-magical characters (owner, 8 November 2026)
 
 - A non-magical character uses **the same sheet** as a magical one, with a switch saying whether the character has magical abilities.

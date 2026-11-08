@@ -10,7 +10,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ApiSheetProjection, ApiUser, EntityKind } from "./contracts/api-v1";
 import { Language, TRANSLATIONS } from "./localization";
-import { DEFAULT_SKILL_CATALOGUE, type SkillCatalogue } from "./model/catalogue";
+import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
 import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/client";
 import { SheetStore } from "./store/sheetStore";
@@ -24,6 +24,7 @@ import { CharacterTypeSelect } from "./components/CharacterTypeSelect";
 import { FamiliarEditor } from "./components/FamiliarEditor";
 import { FamiliarDetail } from "./components/FamiliarDetail";
 import { SettingsScreen } from "./components/SettingsScreen";
+import { CAMPAIGN_SKILLS_TEXT, CampaignSkills } from "./account/CampaignSkills";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 
@@ -33,7 +34,7 @@ const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
 const CAMPAIGN_KEY = "magistri_campaign";
 const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.py pagination)
 
-type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS";
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
@@ -47,6 +48,7 @@ export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignId, setCampaignId] = useState<string>("");
   const [catalogue, setCatalogue] = useState<SkillCatalogue>(DEFAULT_SKILL_CATALOGUE);
+  const [catalogueRevision, setCatalogueRevision] = useState(1);
   const [characters, setCharacters] = useState<ApiSheetProjection[]>([]);
   const [familiars, setFamiliars] = useState<ApiSheetProjection[]>([]);
   const [loading, setLoading] = useState(false);
@@ -136,7 +138,8 @@ export default function App() {
     localStorage.setItem(CAMPAIGN_KEY, campaignId);
     setLoading(true);
     Promise.all([
-      client.request<{ catalogue: SkillCatalogue }>(`campaigns/${campaignId}/skill-catalogue`).then(r => setCatalogue(r.catalogue)),
+      client.request<{ catalogue: SkillCatalogue; revision: number }>(`campaigns/${campaignId}/skill-catalogue`)
+        .then(r => { setCatalogue(r.catalogue); setCatalogueRevision(r.revision); }),
       loadLists(),
     ]).catch(() => showToast("error", t.storageLoadError)).finally(() => setLoading(false));
   }, [campaignId, client, loadLists]);
@@ -216,6 +219,36 @@ export default function App() {
       showToast("error", t.imageUploadError);
       throw e;
     }
+  };
+
+  // The campaign's skill list (C2): the GM saves it whole; a stale revision reloads it.
+  const isCampaignGM = campaigns.find(c => c.id === campaignId)?.role === "gm";
+  const saveCatalogue = async (next: SkillCatalogue): Promise<boolean> => {
+    const text = CAMPAIGN_SKILLS_TEXT[lang];
+    const path = `campaigns/${campaignId}/skill-catalogue`;
+    try {
+      const saved = await client.request<{ catalogue: SkillCatalogue; revision: number }>(path, "POST", { expectedRevision: catalogueRevision, catalogue: next });
+      setCatalogue(saved.catalogue); setCatalogueRevision(saved.revision);
+      // Own skills matching a new name became links on the server.
+      for (const store of stores.current.values()) void store.refresh();
+      void loadLists();
+      return true;
+    } catch (e) {
+      if (e instanceof ApiFailure && e.status === 409) {
+        const fresh = await client.request<{ catalogue: SkillCatalogue; revision: number }>(path).catch(() => undefined);
+        if (fresh) { setCatalogue(fresh.catalogue); setCatalogueRevision(fresh.revision); }
+        showToast("error", text.conflict);
+      } else showToast("error", text.failed);
+      return false;
+    }
+  };
+  // Typed on one character's sheet or form: the skill joins the list but is not
+  // «inicial» (others pick it with +); the GM can tick it on the list screen.
+  const addCatalogueSkill = async (categoryId: string, name: string): Promise<string> => {
+    const id = newSkillId(name, catalogue);
+    if (!await saveCatalogue({ ...catalogue, habilidades: [...catalogue.habilidades, { id, nombre: { es: name }, categoria: categoryId, inicial: false }] }))
+      throw new Error("skill list not saved");
+    return id;
   };
 
   const bond = async (store: SheetStore, targetId: string | null) => {
@@ -329,6 +362,7 @@ export default function App() {
               onArchive={isGM(characterStore) ? () => void archive(characterStore) : undefined}
               onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
               onBondFamiliar={familiarId => bond(characterStore, familiarId)}
+              onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
             />
@@ -390,7 +424,8 @@ export default function App() {
             <CharacterForm
               lang={lang}
               newCharacterType={newCharacterType}
-              isGM={campaigns.find(c => c.id === campaignId)?.role === "gm"}
+              isGM={isCampaignGM}
+              onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               catalogue={catalogue}
               onSave={handleSaveForm}
               onCreateFamiliar={async (fields, image) => {
@@ -415,7 +450,21 @@ export default function App() {
                 campaigns,
                 onChangeCampaign: id => { for (const store of stores.current.values()) store.dispose(); stores.current.clear(); setCampaignId(id); setScreen("LIST"); },
                 onLogout: () => void logout(),
+                onOpenCampaignSkills: isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined,
               }}
+            />
+          )}
+
+          {screen === "CAMPAIGN_SKILLS" && isCampaignGM && (
+            <CampaignSkills
+              lang={lang}
+              catalogue={catalogue}
+              onSave={async next => {
+                const ok = await saveCatalogue(next);
+                if (ok) showToast("success", CAMPAIGN_SKILLS_TEXT[lang].saved);
+                return ok;
+              }}
+              onBack={() => setScreen("SETTINGS")}
             />
           )}
         </main>

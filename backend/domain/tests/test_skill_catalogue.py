@@ -2,9 +2,9 @@
 import importlib
 from copy import deepcopy
 from django.test import Client, SimpleTestCase
-from domain.catalogue import DEFAULT_CATALOGUE, default_catalogue, validate_catalogue
+from domain.catalogue import DEFAULT_CATALOGUE, default_catalogue, link_own_skills, validate_catalogue
 from domain.errors import APIError
-from domain.models import Campaign
+from domain.models import Campaign, Sheet
 from .base import APICase
 
 conversion = importlib.import_module("domain.migrations.0004_skill_catalogue")
@@ -190,3 +190,64 @@ class EmpatiaMigrationTests(SimpleTestCase):
         self.assertFalse(empatia.move(catalogue, "mentales", "sociales"))
         self.assertEqual(catalogue, before)
         self.assertFalse(empatia.move({"habilidades": None}, "mentales", "sociales"))
+
+
+class CatalogueWriteTests(APICase):
+    """C2 (owner decision, 8 November 2026): the GM writes the campaign's list."""
+
+    def setUp(self):
+        self.gm_client = self.client_for(self.gm)
+        self.path = f"campaigns/{self.campaign.pk}/skill-catalogue"
+
+    def save(self, catalogue, client=None, revision=None, status=200):
+        client = client or self.gm_client
+        current = self.read(client, self.path)
+        return self.send(client, self.path, {"expectedRevision": current["revision"] if revision is None else revision,
+                                             "catalogue": catalogue}, status=status)
+
+    def with_skill(self, **skill):
+        catalogue = default_catalogue()
+        catalogue["habilidades"].append({"id": "cetreria", "nombre": {"es": "Cetrería", "en": "Falconry"}, "categoria": "fisicas", **skill})
+        return catalogue
+
+    def test_only_the_gm_writes_and_the_revision_rises(self):
+        self.assertEqual(self.save(self.with_skill(), client=self.client_for(self.alice), status=403)["error"]["code"], "forbidden")
+        before = self.read(self.gm_client, self.path)["revision"]
+        result = self.save(self.with_skill(inicial=False))
+        self.assertEqual(result["revision"], before + 1)
+        self.assertEqual(result["catalogue"]["habilidades"][-1]["inicial"], False)
+        self.assertEqual(self.read(self.client_for(self.alice), self.path)["catalogue"], result["catalogue"])
+        self.assertEqual(self.save(self.with_skill(), revision=before, status=409)["error"]["code"], "revision_conflict")
+
+    def test_nothing_is_removed_and_names_stay_unique(self):
+        catalogue = default_catalogue()
+        catalogue["habilidades"] = catalogue["habilidades"][1:]
+        self.assertEqual(self.save(catalogue, status=400)["error"]["code"], "catalogue_entry_removed")
+        catalogue = self.with_skill()
+        catalogue["habilidades"][-1]["nombre"] = {"es": "empatía"}
+        self.assertEqual(self.save(catalogue, status=400)["error"]["code"], "duplicate_skill")
+        catalogue = default_catalogue()
+        catalogue["habilidades"][0]["archivada"] = True
+        self.save(catalogue)
+
+    def test_matching_own_skills_become_links_with_their_values(self):
+        sheet = Sheet.objects.get(pk=self.sheet.pk)
+        sheet.data["habilidades"] = sheet.data["habilidades"] + [{"id": "own", "nombre": "cetrería", "categoria": "mentales", "valor": 3}]
+        sheet.save()
+        self.save(self.with_skill())
+        sheet.refresh_from_db()
+        self.assertIn({"id": "own", "catalogo": "cetreria", "valor": 3}, sheet.data["habilidades"])
+        self.assertGreater(sheet.revision, self.sheet.revision)
+
+
+class LinkOwnSkillsTests(SimpleTestCase):
+    def test_conversion_keeps_values_and_merges_with_an_existing_link(self):
+        catalogue = default_catalogue()
+        data = {"habilidades": [{"id": "a", "catalogo": "duelo", "valor": 1}, {"id": "b", "nombre": "DUELO", "categoria": "fisicas", "valor": 4},
+                                {"id": "c", "nombre": "Cábala", "categoria": "mentales", "valor": 2, "conocimiento": "medio"},
+                                {"id": "d", "nombre": "Cetrería", "categoria": "fisicas", "valor": 1}]}
+        result = link_own_skills(data, catalogue)["habilidades"]
+        self.assertEqual(result, [{"id": "a", "catalogo": "duelo", "valor": 4},
+                                  {"id": "c", "catalogo": "cabala", "valor": 2, "conocimiento": "medio"},
+                                  {"id": "d", "nombre": "Cetrería", "categoria": "fisicas", "valor": 1}])
+        self.assertIsNone(link_own_skills({"habilidades": [{"id": "d", "nombre": "Cetrería", "categoria": "fisicas", "valor": 1}]}, catalogue))

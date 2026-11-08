@@ -8,15 +8,15 @@ import { DEFAULT_SKILL_CATALOGUE, skillApplies, type SkillCatalogue } from "./ca
 import { newItemId, type CharacterSheet, type CharacterType, type FamiliarSheet, type SkillEntry } from "./sheet";
 
 /**
- * The skills a new character starts with: every applicable catalogue skill at 0.
- * The old per-device preset ("magistri_skill_preset") is gone: only the GM decides
- * which skills new characters start with (owner decision, 8 November 2026; the
- * campaign-level setting arrives with the GM's catalogue screen).
+ * The skills a new character starts with: every applicable catalogue skill the
+ * GM marked «inicial» (all, unless the GM turned some off), at 0. Only the GM
+ * decides this, for the whole campaign (owner decision, 8 November 2026); the
+ * old per-device preset is gone.
  */
 export function startingSkills(catalogue: SkillCatalogue, character: Pick<CharacterSheet, "characterType" | "edad">): SkillEntry[] {
   const categories = new Set(catalogue.categorias.filter(c => !c.archivada).map(c => c.id));
   return catalogue.habilidades
-    .filter(s => !s.archivada && categories.has(s.categoria) && skillApplies(s, character))
+    .filter(s => !s.archivada && s.inicial !== false && categories.has(s.categoria) && skillApplies(s, character))
     .map(s => ({ id: newItemId(), catalogo: s.id, valor: 0 }));
 }
 

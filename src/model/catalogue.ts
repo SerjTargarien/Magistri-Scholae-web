@@ -20,6 +20,8 @@ export interface CatalogueSkill {
   /** Hidden for characters older than this, and for adult wizards (Magia intuitiva: 14). */
   readonly edadMaxima?: number;
   readonly archivada?: boolean;
+  /** false: left off new characters (the GM's «inicial» setting; absent means on). */
+  readonly inicial?: boolean;
 }
 export interface SkillCatalogue {
   readonly categorias: readonly SkillCategory[];
@@ -90,6 +92,56 @@ export function missingSkills(skills: readonly SkillEntry[], catalogue: SkillCat
  */
 export function ownSkillsKey(skills: readonly SkillEntry[] | undefined): string {
   return JSON.stringify((skills ?? []).filter(e => !e.catalogo).map(e => [e.id, e.nombre, e.categoria]).sort());
+}
+
+/** A stable id for a new catalogue skill: its name without accents or symbols, unique in the catalogue. */
+export function newSkillId(name: string, catalogue: SkillCatalogue): string {
+  const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 56) || "habilidad";
+  const taken = new Set(catalogue.habilidades.map(s => s.id));
+  let id = base;
+  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+  return id;
+}
+
+/** The first catalogue skill whose Spanish or English name repeats another's (the server refuses it), or undefined. */
+export function nameClash(catalogue: SkillCatalogue): CatalogueSkill | undefined {
+  const owner = new Map<string, string>();
+  for (const skill of catalogue.habilidades)
+    for (const name of new Set(Object.values(skill.nombre).filter(Boolean).map(n => n!.trim().toLocaleLowerCase()).filter(Boolean))) {
+      if (owner.has(name) && owner.get(name) !== skill.id) return skill;
+      owner.set(name, skill.id);
+    }
+  return undefined;
+}
+
+/**
+ * The server's catalogue.link_own_skills: own skills whose name now matches a
+ * catalogue skill become links, keeping the value (and knowledge in an esoteric
+ * category); if the skill is already linked, the higher value stays. Undefined
+ * when nothing changes.
+ */
+export function linkOwnSkills(skills: readonly SkillEntry[] | undefined, catalogue: SkillCatalogue): SkillEntry[] | undefined {
+  if (!skills) return undefined;
+  const byName = new Map<string, CatalogueSkill>();
+  for (const s of catalogue.habilidades) for (const n of Object.values(s.nombre)) if (n?.trim()) byName.set(n.trim().toLocaleLowerCase(), s);
+  const esoteric = new Set(catalogue.categorias.filter(c => c.esoterica).map(c => c.id));
+  const entries: SkillEntry[] = skills.map(e => ({ ...e }));
+  const linked = new Map(entries.filter(e => e.catalogo).map(e => [e.catalogo!, e]));
+  const result: SkillEntry[] = [];
+  let changed = false;
+  for (const entry of entries) {
+    const target = !entry.catalogo && entry.nombre ? byName.get(entry.nombre.trim().toLocaleLowerCase()) : undefined;
+    if (!target) { result.push(entry); continue; }
+    changed = true;
+    const kept = linked.get(target.id);
+    if (kept) { (kept as { valor?: number }).valor = Math.max(kept.valor ?? 0, entry.valor ?? 0); continue; }
+    const link: SkillEntry = { id: entry.id, catalogo: target.id, valor: entry.valor ?? 0,
+      ...(entry.conocimiento && esoteric.has(target.categoria) ? { conocimiento: entry.conocimiento } : {}) };
+    linked.set(target.id, link);
+    result.push(link);
+  }
+  return changed ? result : undefined;
 }
 
 /**

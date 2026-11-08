@@ -124,7 +124,7 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   expect(stored!.notasList).toEqual([expect.objectContaining({ titulo: "Suspicions", contenido: "The alchemy teacher hides something." })]);
 });
 
-test("only the GM types new skills; the player keeps their value but cannot remove them", async ({ page }) => {
+test("a skill the GM types joins the campaign's list; players then pick it", async ({ page }) => {
   await createCharacter(page, "Skilled Student");
   await viewAs(page, "gm");
   await openCharacter(page, "Skilled Student");
@@ -140,13 +140,47 @@ test("only the GM types new skills; the player keeps their value but cannot remo
   await openCharacter(page, "Skilled Student");
   await setEditMode(page, true);
   await openTab(page, "habilidades");
-  await expect(page.locator("#skill-row-Escalada button[title]")).toHaveCount(0); // no remove button
-  await expect(page.locator("#skill-row-Sigilo button[title]")).toHaveCount(1);
   await page.locator("#btn-skill-Escalada-plus").click();
   await setEditMode(page, false);
   await reloadApp(page);
   const stored = await storedSheet(page, "Skilled Student");
-  expect(stored!.habilidades).toContainEqual(expect.objectContaining({ nombre: "Escalada", categoria: "fisicas", valor: 1 }));
+  expect(stored!.habilidades).toContainEqual(expect.objectContaining({ catalogo: "escalada", valor: 1 }));
+
+  // Not «inicial»: a new character does not start with it, but can pick it.
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#btn-form-tab-habilidades").click();
+  await page.locator("#btn-open-skill-list-fisicas").click();
+  await expect(page.locator("#btn-pick-skill-escalada")).toBeVisible();
+});
+
+test("the GM's campaign skill list: starting skills, names and new skills", async ({ page }) => {
+  await viewAs(page, "gm");
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-settings-campaign-skills").click();
+  await expect(page.locator("#campaign-skills-screen")).toBeVisible();
+  await page.locator("#chk-initial-sigilo").uncheck();
+  await page.locator("#input-skill-es-duelo").fill("Duelo mágico");
+  await page.locator("#input-new-catalogue-skill-fisicas").fill("Cetrería");
+  await page.locator("#btn-add-catalogue-skill-fisicas").click();
+  await page.locator("#input-skill-es-cetreria").fill("Empatía"); // a name already in use
+  await expect(page.locator("#btn-campaign-skills-save")).toBeDisabled();
+  await page.locator("#input-skill-es-cetreria").fill("Cetrería");
+  await page.locator("#btn-campaign-skills-save").click();
+  await expect(page.locator("#campaign-skills-bar")).toHaveCount(0);
+
+  await viewAs(page, "player");
+  await createCharacter(page, "Fresh Student");
+  const stored = await storedSheet(page, "Fresh Student");
+  const linked = stored!.habilidades.map((s: { catalogo?: string }) => s.catalogo);
+  expect(linked).not.toContain("sigilo");
+  expect(linked).toContain("cetreria"); // new skills start on unless the GM unticks them
+  await setEditMode(page, true);
+  await openTab(page, "habilidades");
+  await expect(page.locator('[id="skill-row-Duelo mágico"]')).toBeVisible(); // linked skills show the list's name
+  await page.locator("#btn-open-skill-list-fisicas").click();
+  await page.locator("#btn-pick-skill-sigilo").click();
+  await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
 });
 
 test("adult wizard: profile fields and archetype tabs persist", async ({ page }) => {

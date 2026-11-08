@@ -2,7 +2,7 @@ from copy import copy, deepcopy
 from django.core import signing
 from django.db import transaction
 from .errors import APIError, keys, require, text
-from .catalogue import own_skills
+from .catalogue import link_own_skills, own_skills, validate_catalogue
 from .fields import REGISTRY, descriptor, leaf_paths, obj, replace_path, validate_sheet
 from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, User
 from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, is_gm,
@@ -51,6 +51,32 @@ def create_sheet(actor, kind, body):
     sheet.save()
     AuditEvent.objects.create(actor=actor, action=f"{kind}.created", target_id=str(sheet.pk))
     return projection(actor, sheet)
+
+
+@transaction.atomic
+def save_catalogue(actor, campaign_id, body):
+    """The GM writes the campaign's skill list (C2). Nothing is ever deleted
+    (entries are archived); own skills on the campaign's sheets that now match
+    a catalogue name become links, keeping their values."""
+    keys(body, ["expectedRevision", "catalogue"], ["expectedRevision", "catalogue"])
+    campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
+    require(body["expectedRevision"] == campaign.catalogue_revision, "revision_conflict", 409)
+    catalogue = body["catalogue"]
+    validate_catalogue(catalogue)
+    old = campaign.skill_catalogue
+    for section in ("categorias", "habilidades"):
+        require({e["id"] for e in old[section]} <= {e["id"] for e in catalogue[section]}, "catalogue_entry_removed")
+    campaign.skill_catalogue = deepcopy(catalogue)
+    campaign.catalogue_revision += 1
+    campaign.save(update_fields=["skill_catalogue", "catalogue_revision"])
+    for sheet in Sheet.objects.select_for_update().filter(campaign=campaign, kind="character"):
+        data = link_own_skills(sheet.data, catalogue)
+        if data is not None:
+            sheet.data = data
+            sheet.revision += 1
+            sheet.save(update_fields=["data", "revision"])
+    AuditEvent.objects.create(actor=actor, action="campaign.skill_catalogue_saved", target_id=str(campaign.pk))
+    return {"catalogue": campaign.skill_catalogue, "revision": campaign.catalogue_revision}
 
 
 @transaction.atomic

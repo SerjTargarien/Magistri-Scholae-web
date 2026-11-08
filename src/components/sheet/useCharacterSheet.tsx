@@ -55,6 +55,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     onBondFamiliar,
     onOpenCreateFamiliar,
     onUploadImage,
+    onAddCatalogueSkill,
     visualStyle = "academy",
   } = sheetProps;
   const character = store.fields as CharacterSheet;
@@ -305,9 +306,16 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
       return;
     }
 
+    setSkillErrorCat(null);
+    // The GM's typed skill joins the campaign's list (C2) and this sheet links it.
+    if (onAddCatalogueSkill) {
+      void onAddCatalogueSkill(categoryId, name).then(id => {
+        if (!addEntry("habilidades", { catalogo: id, valor: 0 }).length) setNewSkillNames(prev => ({ ...prev, [categoryId]: "" }));
+      }, () => {});
+      return;
+    }
     if (addEntry("habilidades", { nombre: name, categoria: categoryId, valor: 0 }).length) return;
     setNewSkillNames(prev => ({ ...prev, [categoryId]: "" }));
-    setSkillErrorCat(null);
   };
 
   const handleRemoveSkill = (skillId: string) => removeEntry("habilidades", skillId);

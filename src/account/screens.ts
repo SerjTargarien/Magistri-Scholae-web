@@ -34,6 +34,8 @@ export interface CharacterDetailProps {
   onSelectFamiliar?: (familiarId: string) => void;
   /** Bonds this character to a familiar, or unbonds it (null). */
   onBondFamiliar?: (familiarId: string | null) => Promise<void>;
+  /** GM only: adds a typed skill to the campaign's list; resolves with its catalogue id. */
+  onAddCatalogueSkill?: (categoryId: string, name: string) => Promise<string>;
   onOpenCreateFamiliar?: () => void;
   onUploadImage: UploadImage;
 }
@@ -44,6 +46,8 @@ export interface CharacterFormProps {
   catalogue: SkillCatalogue;
   /** The viewer is the campaign's GM: only the GM types new skills (players pick from the catalogue). */
   isGM?: boolean;
+  /** GM only: adds a typed skill to the campaign's list; resolves with its catalogue id. */
+  onAddCatalogueSkill?: (categoryId: string, name: string) => Promise<string>;
   /**
    * Creates the character. `avatar` is the cropped portrait (data URL), uploaded
    * after creation; `familiarId` is a familiar created from the form, bonded after.
@@ -112,6 +116,8 @@ export interface AccountInfo {
   campaigns: { id: string; name: string }[];
   onChangeCampaign: (campaignId: string) => void;
   onLogout: () => void;
+  /** The campaign's GM only: opens «Habilidades de la campaña». */
+  onOpenCampaignSkills?: () => void;
 }
 
 export interface SettingsScreenProps {

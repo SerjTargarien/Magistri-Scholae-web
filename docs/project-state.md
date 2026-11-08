@@ -478,7 +478,16 @@ Design approved by the owner (see implementation-plan.md, R3.4): C1 now, C2 next
 - App: «+ Añadir de la lista» in each skill category (form and sheet) lists the catalogue skills the character lacks (Magia intuitiva only up to 14); picking one adds it at 0. Only the GM sees the typed box. The per-device skill preset («Guardar Plantilla de Habilidades» / «Fijar por Defecto», `magistri_skill_preset`) is removed; new characters start with every applicable catalogue skill until C2's «inicial» setting. The demo server mirrors the rules.
 - Tests: backend tests for the rule, the projection and the campaign role (run in CI; no local PostgreSQL); unit tests for the + list and the own-skill comparison; feature tests for a player removing and picking a skill, and for a GM-typed skill the player cannot remove.
 
-**Next:** C2 (the GM's campaign skill list and «inicial»), then the remaining phase 3 changes.
+Merged and released to staging (release `20261108-161231-2e10532`; checked as test_player with rolled-back saves).
+
+## GM-only skills, second part (C2) — 8 November 2026
+
+The campaign's skill list is the universe's (decision 9: one campaign, two tables), so both tables share it.
+- Server: `POST campaigns/{id}/skill-catalogue` (GM only; `expectedRevision`): the whole list, validated, with unique Spanish/English names across skills, `inicial: false` to leave a skill off new characters (absent means on, so existing campaigns are unchanged and need no migration), and nothing removed (`catalogue_entry_removed`). It raises the revision and is audited. Own skills on the campaign's character sheets whose name now matches a list skill become links, keeping the value (the higher one if the sheet already links it).
+- App: «Habilidades de la campaña» (Settings, GM only): rename (Spanish, optional English), tick «Inicial», add skills; one save, or discard; a stale revision reloads the list with a message. New characters start with the «inicial» skills. A skill the GM types on a sheet or in the form joins the list without «inicial» and is linked there. The demo server keeps an editable list.
+- Tests: backend tests for the endpoint (GM only, revision, nothing removed, unique names, own skills becoming links) and the linking; unit tests for «inicial», ids, name clashes and linking; feature tests for the list screen and for a GM-typed skill that players then pick. Looked at the screen in the demo at desktop and phone widths.
+
+**Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff
 

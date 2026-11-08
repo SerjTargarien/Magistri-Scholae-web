@@ -7,7 +7,7 @@
 // in demo builds (VITE_MOCK_SERVER) and always shows the DEMO banner.
 import type { ApiSheetProjection, EntityKind } from "../contracts/api-v1";
 import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
-import { checkSkills, DEFAULT_SKILL_CATALOGUE, ownSkillsKey } from "../model/catalogue";
+import { checkSkills, DEFAULT_SKILL_CATALOGUE, linkOwnSkills, nameClash, ownSkillsKey, type SkillCatalogue } from "../model/catalogue";
 import { checkSheet, type Rule } from "../model/rules";
 import { setApiTransport } from "../remote/client";
 import { setAssetResolver } from "../remote/assets";
@@ -22,7 +22,11 @@ const CODES: Record<string, string> = {
 };
 
 interface PersonalNote { id: string; author: string; sheetId: string | null; label: string; title: string; content: string; revision: number }
-interface State { viewer: DemoRole | null; sheets: DemoSheet[]; notes: PersonalNote[]; uploads: Record<string, string> }
+interface State {
+  viewer: DemoRole | null; sheets: DemoSheet[]; notes: PersonalNote[]; uploads: Record<string, string>;
+  /** The campaign's skill list, which the demo GM can change (C2). */
+  catalogue: SkillCatalogue; catalogueRevision: number;
+}
 export type Failure = "network" | "server" | "lostReply";
 
 class Reply { constructor(public status: number, public body: unknown) {} }
@@ -49,9 +53,15 @@ export class MockServer {
     this.state = this.load() ?? this.fresh();
   }
 
-  private fresh(): State { return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {} }; }
+  private fresh(): State {
+    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1 };
+  }
   private load(): State | undefined {
-    try { return JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null") ?? undefined; } catch { return undefined; }
+    try {
+      const state = JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null");
+      // Demo data saved before the GM could change the list has none.
+      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, ...state } : undefined;
+    } catch { return undefined; }
   }
   private save() { try { this.storage?.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch { /* storage full: keep in memory */ } }
 
@@ -174,7 +184,8 @@ export class MockServer {
     if (path === "auth/me") return new Reply(200, this.userView(user));
     if (path === "campaigns" && method === "GET")
       return pageOf(query) ? new Reply(200, { items: [{ ...CAMPAIGN, role: user.role === "gm" ? "gm" : "player" }] }) : fail(400, "invalid_request");
-    if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return new Reply(200, { catalogue: DEFAULT_SKILL_CATALOGUE, revision: 1 });
+    if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return method === "POST" ? this.saveCatalogue(body, user)
+      : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, body, user);
 
     const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|gm-notes))?$/);
@@ -220,10 +231,33 @@ export class MockServer {
     const problem = checkSheet(kind, fields)[0];
     if (problem) return fail(400, CODES[problem.rule] ?? "invalid_field_value", problem);
     if (kind === "character") {
-      const skills = checkSkills((fields as any).habilidades, DEFAULT_SKILL_CATALOGUE, touched);
+      const skills = checkSkills((fields as any).habilidades, this.state.catalogue, touched);
       if (skills) return fail(400, skills.code, { path: skills.path, rule: skills.rule });
     }
     return undefined;
+  }
+
+  /** Like services.save_catalogue: GM only, current revision, nothing removed, unique names; matching own skills become links. */
+  private saveCatalogue(body: any, user: DemoUser): Reply {
+    if (user.role !== "gm") return fail(403, "forbidden");
+    if (body?.expectedRevision !== this.state.catalogueRevision) return fail(409, "revision_conflict");
+    const next = body.catalogue as SkillCatalogue;
+    if (!next || !Array.isArray(next.categorias) || !Array.isArray(next.habilidades)) return fail(400, "invalid_catalogue");
+    for (const section of ["categorias", "habilidades"] as const) {
+      const ids = new Set(next[section].map(e => e.id));
+      if (this.state.catalogue[section].some(e => !ids.has(e.id))) return fail(400, "catalogue_entry_removed");
+    }
+    if (next.habilidades.some(s => !s.nombre?.es?.trim() || !next.categorias.some(c => c.id === s.categoria))) return fail(400, "invalid_catalogue");
+    const clash = nameClash(next);
+    if (clash) return fail(400, "duplicate_skill", { path: `habilidades/${clash.id}/nombre`, rule: "unique" });
+    this.state.catalogue = structuredClone(next);
+    this.state.catalogueRevision++;
+    for (const sheet of this.state.sheets) {
+      if (sheet.kind !== "character") continue;
+      const linked = linkOwnSkills((sheet.fields as any).habilidades, next);
+      if (linked) { sheet.fields = { ...sheet.fields, habilidades: linked } as any; sheet.revision++; }
+    }
+    return new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
   }
 
   private create(kind: EntityKind, body: any, user: DemoUser): Reply {

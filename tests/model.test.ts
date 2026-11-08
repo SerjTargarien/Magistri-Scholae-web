@@ -1,7 +1,7 @@
 // The account data model (R3.2): defaults, rules and the skill catalogue.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DEFAULT_SKILL_CATALOGUE, isEsoteric, missingSkills, ownSkillsKey, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
+import { DEFAULT_SKILL_CATALOGUE, isEsoteric, linkOwnSkills, missingSkills, nameClash, newSkillId, ownSkillsKey, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
 import { newCharacterSheet, newFamiliarSheet, startingSkills } from "../src/model/defaults";
 import { checkSheet, nearLimit, ruleAt, usage } from "../src/model/rules";
 import type { SkillEntry } from "../src/model/sheet";
@@ -51,6 +51,32 @@ test("the + list offers the category's catalogue skills the character lacks; own
   assert.notEqual(ownSkillsKey(own), ownSkillsKey([{ ...own[0], nombre: "Halconería" }]));
   assert.notEqual(ownSkillsKey(own), ownSkillsKey([own[1]]));
   assert.equal(ownSkillsKey(undefined), "[]");
+});
+
+test("the GM's list: «inicial», new ids, unique names and own skills becoming links", () => {
+  const catalogue: SkillCatalogue = {
+    ...DEFAULT_SKILL_CATALOGUE,
+    habilidades: DEFAULT_SKILL_CATALOGUE.habilidades.map(s => (s.id === "sigilo" ? { ...s, inicial: false } : s)),
+  };
+  const linked = startingSkills(catalogue, { characterType: "student", edad: 11 }).map(s => s.catalogo);
+  assert.equal(linked.length, 47);
+  assert.ok(!linked.includes("sigilo"));
+  assert.equal(newSkillId("Cetrería del Norte!", catalogue), "cetreria-del-norte");
+  assert.equal(newSkillId("Sigilo", catalogue), "sigilo-2");
+  assert.equal(newSkillId("¡¡!!", catalogue), "habilidad");
+  assert.equal(nameClash(catalogue), undefined);
+  const clash = { ...catalogue, habilidades: [...catalogue.habilidades, { id: "x", nombre: { es: "EMPATÍA" }, categoria: "fisicas" }] };
+  assert.equal(nameClash(clash)?.id, "x");
+  const result = linkOwnSkills([
+    { id: "a", catalogo: "duelo", valor: 1 }, { id: "b", nombre: "duelo", categoria: "fisicas", valor: 4 },
+    { id: "c", nombre: "Cábala", categoria: "mentales", valor: 2, conocimiento: "medio" }, { id: "d", nombre: "Cetrería", categoria: "fisicas", valor: 1 },
+  ], catalogue);
+  assert.deepEqual(result, [
+    { id: "a", catalogo: "duelo", valor: 4 },
+    { id: "c", catalogo: "cabala", valor: 2, conocimiento: "medio" },
+    { id: "d", nombre: "Cetrería", categoria: "fisicas", valor: 1 },
+  ]);
+  assert.equal(linkOwnSkills([{ id: "d", nombre: "Cetrería", categoria: "fisicas", valor: 1 }], catalogue), undefined);
 });
 
 test("skills are grouped in catalogue order, own skills last, and Magia intuitiva disappears above 14", () => {

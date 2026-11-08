@@ -84,7 +84,10 @@ def _name(value, path):
 
 
 def validate_catalogue(catalogue):
-    """For the GM editor (R4) and the default; positions are list order."""
+    """The GM's writes (C2) and the default; positions are list order.
+
+    A campaign is the GM's universe (decision 9): both tables share its list.
+    `inicial: false` leaves a skill off new characters (absent means on)."""
     require(isinstance(catalogue, dict) and set(catalogue) == {"categorias", "habilidades"}, "invalid_catalogue")
     categories, skills = catalogue["categorias"], catalogue["habilidades"]
     require(isinstance(categories, list) and len(categories) <= MAX_CATEGORIES, "invalid_catalogue")
@@ -96,16 +99,50 @@ def validate_catalogue(catalogue):
         seen.add(entry["id"])
         _name(entry.get("nombre"), f"categorias/{entry['id']}/nombre")
         require(type(entry.get("esoterica", False)) is bool and type(entry.get("archivada", False)) is bool, "invalid_catalogue")
-    category_ids, seen = set(seen), set()
+    category_ids, seen, names = set(seen), set(), {}
     for entry in skills:
-        require(isinstance(entry, dict) and not (entry.keys() - {"id", "nombre", "categoria", "edadMaxima", "archivada"}), "invalid_catalogue")
+        require(isinstance(entry, dict) and not (entry.keys() - {"id", "nombre", "categoria", "edadMaxima", "archivada", "inicial"}), "invalid_catalogue")
         require(isinstance(entry.get("id"), str) and ITEM_ID.fullmatch(entry["id"]) and entry["id"] not in seen, "invalid_catalogue")
         seen.add(entry["id"])
         _name(entry.get("nombre"), f"habilidades/{entry['id']}/nombre")
         require(entry.get("categoria") in category_ids, "invalid_catalogue")
         age = entry.get("edadMaxima")
         require(age is None or (type(age) is int and 0 <= age <= 999), "invalid_catalogue")
-        require(type(entry.get("archivada", False)) is bool, "invalid_catalogue")
+        require(type(entry.get("archivada", False)) is bool and type(entry.get("inicial", True)) is bool, "invalid_catalogue")
+        for name in {n.strip().casefold() for n in entry["nombre"].values() if n and n.strip()}:
+            if names.setdefault(name, entry["id"]) != entry["id"]:
+                raise _invalid("duplicate_skill", f"habilidades/{entry['id']}/nombre", "unique")
+
+
+def link_own_skills(sheet_data, catalogue):
+    """Turns own skills whose name now matches a catalogue skill into links,
+    keeping the value (and knowledge in an esoteric category). If the sheet
+    already links that skill, the higher value is kept and the own entry goes.
+    Returns the new data, or None when nothing changed."""
+    skills = (sheet_data or {}).get("habilidades")
+    if not isinstance(skills, list):
+        return None
+    skills = [dict(e) if isinstance(e, dict) else e for e in skills]  # never change the caller's data
+    by_name = {n.strip().casefold(): s for s in catalogue["habilidades"] for n in s["nombre"].values() if n and n.strip()}
+    esoteric = {c["id"] for c in catalogue["categorias"] if c.get("esoterica")}
+    linked = {e.get("catalogo"): e for e in skills if isinstance(e, dict) and e.get("catalogo")}
+    result, changed = [], False
+    for entry in skills:
+        target = by_name.get(entry.get("nombre", "").strip().casefold()) if isinstance(entry, dict) and not entry.get("catalogo") else None
+        if target is None:
+            result.append(entry)
+            continue
+        changed = True
+        if target["id"] in linked:
+            kept = linked[target["id"]]
+            kept["valor"] = max(kept.get("valor", 0), entry.get("valor", 0))
+            continue
+        link = {"id": entry["id"], "catalogo": target["id"], "valor": entry.get("valor", 0)}
+        if entry.get("conocimiento") and target["categoria"] in esoteric:
+            link["conocimiento"] = entry["conocimiento"]
+        linked[target["id"]] = link
+        result.append(link)
+    return {**sheet_data, "habilidades": result} if changed else None
 
 
 def own_skills(data):

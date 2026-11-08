@@ -12,7 +12,7 @@ import { TRANSLATIONS, getLocalizedHouseLore, translateHouseMotto } from "../../
 import { getCroppedImg } from "../../utils/imageCompressor";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import type { CharacterFormProps } from "../../account/screens";
-import type { AdultWizardProfile, CharacterSheet, House, TextEntry } from "../../model/sheet";
+import type { AdultWizardProfile, CharacterSheet, House, SkillEntry, TextEntry } from "../../model/sheet";
 import { newItemId } from "../../model/sheet";
 import { newCharacterSheet } from "../../model/defaults";
 import type { SkillCategory } from "../../model/catalogue";
@@ -43,7 +43,7 @@ const EMPTY_PROFILE: AdultWizardProfile = {
 };
 
 export function useCharacterForm(screenProps: CharacterFormProps) {
-  const { lang, newCharacterType, catalogue, isGM = false, onSave, onCreateFamiliar, onCancel } = screenProps;
+  const { lang, newCharacterType, catalogue, isGM = false, onAddCatalogueSkill, onSave, onCreateFamiliar, onCancel } = screenProps;
   const t = TRANSLATIONS[lang];
 
   // Forms Navigation State
@@ -266,11 +266,16 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
       setSkillError(t.errSkillExists.replace("{name}", name));
       return;
     }
-    setCharacterState(prev => ({
-      ...prev,
-      habilidades: [...(prev.habilidades ?? []), { id: newItemId(), nombre: name, categoria: category.id, valor: 0 }],
-    }));
-    setInlineSkillNames(prev => ({ ...prev, [category.id]: "" }));
+    // The GM's typed skill joins the campaign's list (C2) and the new character links it.
+    const add = (entry: SkillEntry) => {
+      setCharacterState(prev => ({ ...prev, habilidades: [...(prev.habilidades ?? []), entry] }));
+      setInlineSkillNames(prev => ({ ...prev, [category.id]: "" }));
+    };
+    if (onAddCatalogueSkill) {
+      void onAddCatalogueSkill(category.id, name).then(id => add({ id: newItemId(), catalogo: id, valor: 0 }), () => {});
+      return;
+    }
+    add({ id: newItemId(), nombre: name, categoria: category.id, valor: 0 });
   };
 
   const handleRemoveSkill = (skillId: string) => {

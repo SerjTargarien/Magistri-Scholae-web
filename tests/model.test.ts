@@ -1,7 +1,7 @@
 // The account data model (R3.2): defaults, rules and the skill catalogue.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DEFAULT_SKILL_CATALOGUE, isEsoteric, linkOwnSkills, missingSkills, nameClash, newSkillId, ownSkillsKey, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
+import { catalogueName, DEFAULT_SKILL_CATALOGUE, isEsoteric, linkOwnSkills, missingSkills, nameClash, newSkillId, ownSkillsKey, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
 import { newCharacterSheet, newFamiliarSheet, startingSkills } from "../src/model/defaults";
 import { checkSheet, nearLimit, ruleAt, usage } from "../src/model/rules";
 import type { SkillEntry } from "../src/model/sheet";
@@ -77,6 +77,11 @@ test("the GM's list: «inicial», new ids, unique names and own skills becoming 
     { id: "d", nombre: "Cetrería", categoria: "fisicas", valor: 1 },
   ]);
   assert.equal(linkOwnSkills([{ id: "d", nombre: "Cetrería", categoria: "fisicas", valor: 1 }], catalogue), undefined);
+  // A name in one language shows in both interfaces.
+  assert.equal(catalogueName({ es: "Cetrería" }, "en"), "Cetrería");
+  assert.equal(catalogueName({ en: "Falconry" }, "es"), "Falconry");
+  assert.equal(catalogueName({ es: "Sigilo", en: "Stealth" }, "en"), "Stealth");
+  assert.equal(catalogueName({ es: "", en: "" }, "es"), "");
 });
 
 test("skills are grouped in catalogue order, own skills last, and Magia intuitiva disappears above 14", () => {

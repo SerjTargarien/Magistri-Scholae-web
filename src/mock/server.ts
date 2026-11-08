@@ -247,7 +247,8 @@ export class MockServer {
       const ids = new Set(next[section].map(e => e.id));
       if (this.state.catalogue[section].some(e => !ids.has(e.id))) return fail(400, "catalogue_entry_removed");
     }
-    if (next.habilidades.some(s => !s.nombre?.es?.trim() || !next.categorias.some(c => c.id === s.categoria))) return fail(400, "invalid_catalogue");
+    if (next.habilidades.some(s => !(s.nombre?.es?.trim() || s.nombre?.en?.trim()) || !next.categorias.some(c => c.id === s.categoria)))
+      return fail(400, "invalid_catalogue");
     const clash = nameClash(next);
     if (clash) return fail(400, "duplicate_skill", { path: `habilidades/${clash.id}/nombre`, rule: "unique" });
     this.state.catalogue = structuredClone(next);

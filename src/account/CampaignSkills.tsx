@@ -1,16 +1,16 @@
 // «Habilidades de la campaña» (C2, owner decision of 8 November 2026): the GM's
 // screen for the campaign's skill list. A campaign is the GM's universe, so both
-// tables share it (decision 9). The GM renames skills (Spanish and optional
-// English), marks which ones new characters start with («Inicial») and adds
-// skills; the changes are saved together. Nothing is deleted here; moving skills
+// tables share it (decision 9). The GM renames skills, marks which ones new
+// characters start with («Inicial») and adds skills, always in the language of
+// their interface (never asked for the other one); the changes are saved together. Nothing is deleted here; moving skills
 // between categories, reordering, archiving and new categories stay in R4.
 import { useEffect, useState } from "react";
 import { ArrowLeft, ListChecks, Plus, Save, Undo2 } from "lucide-react";
 import { TRANSLATIONS, type Language } from "../localization";
-import { catalogueName, nameClash, newSkillId, type CatalogueSkill, type SkillCatalogue } from "../model/catalogue";
+import { catalogueName, nameClash, newSkillId, type SkillCatalogue } from "../model/catalogue";
 
 export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
-  title: string; intro: string; initial: string; initialHint: string; english: string; newSkill: string; add: string;
+  title: string; intro: string; initial: string; initialHint: string; newSkill: string; add: string;
   save: string; discard: string; unsaved: string; duplicate: string; blank: string; ageLimit: string;
   saved: string; conflict: string; failed: string; open: string; openHint: string;
 }> = {
@@ -19,14 +19,13 @@ export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
     intro: "La lista de habilidades de este universo, compartida por todas sus mesas. Las marcadas como «Inicial» aparecen en los personajes nuevos; los jugadores añaden las demás con «+ Añadir de la lista». Solo tú puedes cambiar esta lista.",
     initial: "Inicial",
     initialHint: "Los personajes nuevos empiezan con esta habilidad",
-    english: "Nombre en inglés (opcional)",
     newSkill: "Nueva habilidad en esta categoría…",
     add: "Añadir",
     save: "Guardar cambios",
     discard: "Descartar",
     unsaved: "Hay cambios sin guardar.",
     duplicate: "Hay dos habilidades con el mismo nombre: «{name}».",
-    blank: "Cada habilidad necesita un nombre en español.",
+    blank: "Cada habilidad necesita un nombre.",
     ageLimit: "hasta {age} años",
     saved: "Lista de habilidades guardada.",
     conflict: "Otra persona cambió la lista de habilidades; se ha vuelto a cargar. Repite el cambio.",
@@ -39,14 +38,13 @@ export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
     intro: "This universe's skill list, shared by all its tables. Skills marked «Starting» appear on new characters; players add the rest with «+ Add from the list». Only you can change this list.",
     initial: "Starting",
     initialHint: "New characters start with this skill",
-    english: "English name (optional)",
     newSkill: "New skill in this category…",
     add: "Add",
     save: "Save changes",
     discard: "Discard",
     unsaved: "There are unsaved changes.",
     duplicate: "Two skills share the name «{name}».",
-    blank: "Every skill needs a Spanish name.",
+    blank: "Every skill needs a name.",
     ageLimit: "up to age {age}",
     saved: "Skill list saved.",
     conflict: "Someone else changed the skill list; it has been reloaded. Please repeat your change.",
@@ -78,15 +76,17 @@ export function CampaignSkills({ lang, catalogue, onSave, onBack }: CampaignSkil
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(catalogue);
   const clash = nameClash(draft);
-  const blank = draft.habilidades.some(skill => !skill.nombre.es.trim());
-  const problem = blank ? s.blank : clash ? s.duplicate.replace("{name}", clash.nombre.es) : "";
+  const blank = draft.habilidades.some(skill => !catalogueName(skill.nombre, lang).trim());
+  const problem = blank ? s.blank : clash ? s.duplicate.replace("{name}", catalogueName(clash.nombre, lang)) : "";
 
-  const update = (id: string, change: (skill: CatalogueSkill) => CatalogueSkill) =>
-    setDraft(d => ({ ...d, habilidades: d.habilidades.map(skill => (skill.id === id ? change(skill) : skill)) }));
+  const rename = (id: string, name: string) =>
+    setDraft(d => ({ ...d, habilidades: d.habilidades.map(skill => (skill.id === id ? { ...skill, nombre: { ...skill.nombre, [lang]: name } } : skill)) }));
+  const setInitial = (id: string, inicial: boolean) =>
+    setDraft(d => ({ ...d, habilidades: d.habilidades.map(skill => (skill.id === id ? { ...skill, inicial } : skill)) }));
   const add = (categoryId: string) => {
     const name = newNames[categoryId]?.trim();
     if (!name) return;
-    setDraft(d => ({ ...d, habilidades: [...d.habilidades, { id: newSkillId(name, d), nombre: { es: name }, categoria: categoryId }] }));
+    setDraft(d => ({ ...d, habilidades: [...d.habilidades, { id: newSkillId(name, d), nombre: { [lang]: name }, categoria: categoryId }] }));
     setNewNames(prev => ({ ...prev, [categoryId]: "" }));
   };
   const save = async () => {
@@ -123,39 +123,31 @@ export function CampaignSkills({ lang, catalogue, onSave, onBack }: CampaignSkil
             <div className="space-y-2">
               {draft.habilidades.filter(skill => skill.categoria === category.id && !skill.archivada).map(skill => (
                 <div key={skill.id} id={`catalogue-skill-${skill.id}`}
-                  className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_1fr] gap-2 items-center bg-neutral-950/30 border border-neutral-900 rounded-lg px-3 py-2">
+                  className="grid grid-cols-[auto_1fr] gap-3 items-center bg-neutral-950/30 border border-neutral-900 rounded-lg px-3 py-2">
                   <label className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-300 cursor-pointer select-none" title={s.initialHint}>
                     <input
                       id={`chk-initial-${skill.id}`}
                       type="checkbox"
                       checked={skill.inicial !== false}
-                      onChange={e => update(skill.id, sk => ({ ...sk, inicial: e.target.checked }))}
+                      onChange={e => setInitial(skill.id, e.target.checked)}
                       className="rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
                     />
                     {s.initial}
                   </label>
                   <div className="flex items-center gap-2 min-w-0">
                     <input
-                      id={`input-skill-es-${skill.id}`}
+                      id={`input-skill-name-${skill.id}`}
                       type="text"
                       maxLength={60}
-                      value={skill.nombre.es}
-                      onChange={e => update(skill.id, sk => ({ ...sk, nombre: { ...sk.nombre, es: e.target.value } }))}
+                      value={skill.nombre[lang] ?? ""}
+                      placeholder={catalogueName(skill.nombre, lang)}
+                      onChange={e => rename(skill.id, e.target.value)}
                       className={inputClass}
                     />
                     {skill.edadMaxima !== undefined && (
                       <span className="text-[9px] text-neutral-500 font-mono whitespace-nowrap">{s.ageLimit.replace("{age}", String(skill.edadMaxima))}</span>
                     )}
                   </div>
-                  <input
-                    id={`input-skill-en-${skill.id}`}
-                    type="text"
-                    maxLength={60}
-                    placeholder={s.english}
-                    value={skill.nombre.en ?? ""}
-                    onChange={e => update(skill.id, sk => ({ ...sk, nombre: { ...sk.nombre, en: e.target.value } }))}
-                    className={`${inputClass} col-span-2 sm:col-span-1`}
-                  />
                 </div>
               ))}
             </div>

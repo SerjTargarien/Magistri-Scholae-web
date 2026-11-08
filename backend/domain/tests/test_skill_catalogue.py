@@ -230,6 +230,14 @@ class CatalogueWriteTests(APICase):
         catalogue["habilidades"][0]["archivada"] = True
         self.save(catalogue)
 
+    def test_a_name_in_either_language_is_enough(self):
+        """The GM types in their interface's language (owner decision, 8 November 2026)."""
+        catalogue = self.with_skill()
+        catalogue["habilidades"][-1]["nombre"] = {"en": "Falconry"}
+        self.save(catalogue)
+        catalogue["habilidades"][-1]["nombre"] = {"es": " ", "en": ""}
+        self.assertEqual(self.save(catalogue, status=400)["error"]["rule"], "required")
+
     def test_matching_own_skills_become_links_with_their_values(self):
         sheet = Sheet.objects.get(pk=self.sheet.pk)
         sheet.data["habilidades"] = sheet.data["habilidades"] + [{"id": "own", "nombre": "cetrería", "categoria": "mentales", "valor": 3}]

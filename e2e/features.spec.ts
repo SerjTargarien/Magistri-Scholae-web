@@ -160,12 +160,12 @@ test("the GM's campaign skill list: starting skills, names and new skills", asyn
   await page.locator("#btn-settings-campaign-skills").click();
   await expect(page.locator("#campaign-skills-screen")).toBeVisible();
   await page.locator("#chk-initial-sigilo").uncheck();
-  await page.locator("#input-skill-es-duelo").fill("Duelo mágico");
+  await page.locator("#input-skill-name-duelo").fill("Duelo mágico");
   await page.locator("#input-new-catalogue-skill-fisicas").fill("Cetrería");
   await page.locator("#btn-add-catalogue-skill-fisicas").click();
-  await page.locator("#input-skill-es-cetreria").fill("Empatía"); // a name already in use
+  await page.locator("#input-skill-name-cetreria").fill("Empatía"); // a name already in use
   await expect(page.locator("#btn-campaign-skills-save")).toBeDisabled();
-  await page.locator("#input-skill-es-cetreria").fill("Cetrería");
+  await page.locator("#input-skill-name-cetreria").fill("Cetrería");
   await page.locator("#btn-campaign-skills-save").click();
   await expect(page.locator("#campaign-skills-bar")).toHaveCount(0);
 

@@ -6,7 +6,8 @@ import type { CharacterSheet, SkillEntry } from "./sheet";
 
 export type Language = "es" | "en";
 
-export interface CatalogueName { readonly es: string; readonly en?: string }
+/** A name in Spanish, English or both: the GM types in their interface's language. */
+export interface CatalogueName { readonly es?: string; readonly en?: string }
 export interface SkillCategory {
   readonly id: string;
   readonly nombre: CatalogueName;
@@ -31,8 +32,11 @@ export interface SkillCatalogue {
 /** The catalogue every new campaign starts with, from the server's contract. */
 export const DEFAULT_SKILL_CATALOGUE: SkillCatalogue = API_SCHEMA.defaultSkillCatalogue;
 
-export const catalogueName = (name: CatalogueName, lang: Language): string =>
-  (lang === "en" && name.en) || name.es;
+/** The name in this language, or in the other one when that is all it has. */
+export function catalogueName(name: CatalogueName, lang: Language): string {
+  const own = name[lang]?.trim() ? name[lang] : undefined;
+  return own ?? (name.es?.trim() ? name.es : name.en?.trim() ? name.en : "") ?? "";
+}
 
 export function skillCategoryId(entry: SkillEntry, catalogue: SkillCatalogue): string | undefined {
   if (entry.catalogo) return catalogue.habilidades.find(s => s.id === entry.catalogo)?.categoria;

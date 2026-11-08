@@ -74,13 +74,15 @@ def _invalid(code, path, rule):
 
 
 def _name(value, path):
+    """A name in Spanish, English or both: the GM types in the language of their
+    interface (owner decision, 8 November 2026), so either one is enough."""
     require(isinstance(value, dict) and not (value.keys() - {"es", "en"}), "invalid_catalogue")
-    es = value.get("es")
-    if not (isinstance(es, str) and es.strip() and len(es) <= NAME_LENGTH):
-        raise _invalid("invalid_catalogue", f"{path}/es", "required")
-    en = value.get("en", "")
-    if not (isinstance(en, str) and len(en) <= NAME_LENGTH):
-        raise _invalid("invalid_catalogue", f"{path}/en", "maxLength")
+    for lang in ("es", "en"):
+        text = value.get(lang, "")
+        if not (isinstance(text, str) and len(text) <= NAME_LENGTH):
+            raise _invalid("invalid_catalogue", f"{path}/{lang}", "maxLength")
+    if not any(value.get(lang, "").strip() for lang in ("es", "en")):
+        raise _invalid("invalid_catalogue", path, "required")
 
 
 def validate_catalogue(catalogue):

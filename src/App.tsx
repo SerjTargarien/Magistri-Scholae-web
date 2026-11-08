@@ -246,7 +246,7 @@ export default function App() {
   // «inicial» (others pick it with +); the GM can tick it on the list screen.
   const addCatalogueSkill = async (categoryId: string, name: string): Promise<string> => {
     const id = newSkillId(name, catalogue);
-    if (!await saveCatalogue({ ...catalogue, habilidades: [...catalogue.habilidades, { id, nombre: { es: name }, categoria: categoryId, inicial: false }] }))
+    if (!await saveCatalogue({ ...catalogue, habilidades: [...catalogue.habilidades, { id, nombre: { [lang]: name }, categoria: categoryId, inicial: false }] }))
       throw new Error("skill list not saved");
     return id;
   };

@@ -394,7 +394,9 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 - Decision for R4: when the GM adds a default skill, the editor offers to add it to existing characters (sheets store only the skills they have).
 - Locally: compile, `check`, `makemigrations --check`, contract check, `npm test` (34), lint, account build. New tests: `test_skill_catalogue.py`.
 
-**Next:** with the owner's go-ahead, update staging (backup first, then both migrations); then the app's types and defaults (third R3.2 pull request).
+**Staging updated (owner-approved), 8 November 2026:** a fresh encrypted backup first, then the server at `748ddaf`, both migrations applied, the backend restarted (a few seconds) and a new staging app release. The single stored sheet is on schema 3 and passes every rule; the campaign has the default catalogue. An end-to-end check as the fictional `test_player` stored a linked esoteric skill with a knowledge level and a consequence with a severity, saw invalid entries refused with their rule, and removed its test entries. The live site was not touched. Details are in `docs/infrastructure.local.md`.
+
+**Next:** the app's types and defaults (third R3.2 pull request).
 
 ## Updating this handoff
 

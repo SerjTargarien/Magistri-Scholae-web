@@ -1,0 +1,74 @@
+// The campaign's skill catalogue (R3.2; backend/domain/catalogue.py). A
+// linked skill takes its name, category and position from the catalogue; a
+// skill the player invents has its own name and a catalogue category.
+import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
+import type { CharacterSheet, SkillEntry } from "./sheet";
+
+export type Language = "es" | "en";
+
+export interface CatalogueName { readonly es: string; readonly en?: string }
+export interface SkillCategory {
+  readonly id: string;
+  readonly nombre: CatalogueName;
+  readonly esoterica?: boolean;
+  readonly archivada?: boolean;
+}
+export interface CatalogueSkill {
+  readonly id: string;
+  readonly nombre: CatalogueName;
+  readonly categoria: string;
+  /** Hidden for characters older than this, and for adult wizards (Magia intuitiva: 14). */
+  readonly edadMaxima?: number;
+  readonly archivada?: boolean;
+}
+export interface SkillCatalogue {
+  readonly categorias: readonly SkillCategory[];
+  readonly habilidades: readonly CatalogueSkill[];
+}
+
+/** The catalogue every new campaign starts with, from the server's contract. */
+export const DEFAULT_SKILL_CATALOGUE: SkillCatalogue = API_SCHEMA.defaultSkillCatalogue;
+
+export const catalogueName = (name: CatalogueName, lang: Language): string =>
+  (lang === "en" && name.en) || name.es;
+
+export function skillCategoryId(entry: SkillEntry, catalogue: SkillCatalogue): string | undefined {
+  if (entry.catalogo) return catalogue.habilidades.find(s => s.id === entry.catalogo)?.categoria;
+  return entry.categoria;
+}
+
+export function skillName(entry: SkillEntry, catalogue: SkillCatalogue, lang: Language): string {
+  if (!entry.catalogo) return entry.nombre ?? "";
+  const skill = catalogue.habilidades.find(s => s.id === entry.catalogo);
+  return skill ? catalogueName(skill.nombre, lang) : "";
+}
+
+export function isEsoteric(entry: SkillEntry, catalogue: SkillCatalogue): boolean {
+  const category = skillCategoryId(entry, catalogue);
+  return !!catalogue.categorias.find(c => c.id === category)?.esoterica;
+}
+
+/** Whether a skill applies to this character (Magia intuitiva disappears above 14). */
+export function skillApplies(skill: CatalogueSkill, character: Pick<CharacterSheet, "characterType" | "edad">): boolean {
+  if (skill.edadMaxima === undefined) return true;
+  if (character.characterType === "adult_wizard") return false;
+  return character.edad === undefined || character.edad <= skill.edadMaxima;
+}
+
+/**
+ * The character's skills grouped by catalogue category, in catalogue order:
+ * linked skills in catalogue position, then the player's own skills in the
+ * order they were added. Skills that do not apply to the character are left
+ * out (their stored value is kept).
+ */
+export function skillsByCategory(skills: readonly SkillEntry[], catalogue: SkillCatalogue,
+  character: Pick<CharacterSheet, "characterType" | "edad">): { category: SkillCategory; skills: SkillEntry[] }[] {
+  const position = new Map(catalogue.habilidades.map((s, i) => [s.id, i]));
+  const byId = new Map(catalogue.habilidades.map(s => [s.id, s]));
+  return catalogue.categorias.filter(c => !c.archivada).map(category => {
+    const linked = skills.filter(e => e.catalogo && byId.get(e.catalogo)?.categoria === category.id && skillApplies(byId.get(e.catalogo)!, character))
+      .sort((a, b) => position.get(a.catalogo!)! - position.get(b.catalogo!)!);
+    const own = skills.filter(e => !e.catalogo && e.categoria === category.id);
+    return { category, skills: [...linked, ...own] };
+  });
+}

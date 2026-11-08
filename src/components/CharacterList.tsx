@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from "react";
-import { Character, Familiar, HOUSES, BackupData, getCharacterType, VisualStyle } from "../types";
+import { Character, Familiar, BackupData, getCharacterType, VisualStyle } from "../types";
+import { HOUSES } from "../data/gameData";
 import { storage } from "../storage";
 import { referencesCharacter } from "../storage/backup";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";

@@ -35,6 +35,17 @@ The original template README asked for `GEMINI_API_KEY`; the prepared README now
 
 Use both English and Spanish. Exercise academy and classic styles, desktop and mobile layouts, student and adult-wizard forms, familiar detail/editor flows, image cropping, journals, and character/familiar links. Reuse `src/models/characterRegistry.ts` rather than introducing a competing archetype definition.
 
+### The account data model
+
+`src/model/` is the app's model of a character and a familiar as the server stores them (R3.2), derived from the server's field list (`src/contracts/fieldRegistry.generated.ts`, written by `backend/manage.py export_api_contract`):
+
+- `sheet.ts`: the named types (`CharacterSheet`, `SkillEntry`, `ConsequenceEntry`…) and `newItemId()`.
+- `rules.ts`: each field's rule (`ruleAt`), how full a text or list is (`usage`, `nearLimit` at 90%), and `checkSheet`, which reports what the server would refuse.
+- `catalogue.ts`: the campaign skill catalogue: names, categories, order, and whether a skill applies to a character (Magia intuitiva up to 14).
+- `defaults.ts`: blank new sheets and the per-device skill preset (`magistri_skill_preset`).
+
+The old hand-written types in `src/types.ts` stay until each screen moves (R3.4); game data (houses, character types, the old default skills) is in `src/data/gameData.ts`.
+
 ### Screenshot tests
 
 Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, using the fixed fictional records in `e2e/visual-fixture.ts`. The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.

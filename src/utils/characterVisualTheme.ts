@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Character, HOUSES, HOUSE_ICONS, CHARACTER_TYPES, getCharacterType } from "../types";
+import { Character, getCharacterType } from "../types";
+import { HOUSES, HOUSE_ICONS, CHARACTER_TYPES } from "../data/gameData";
 
 export interface CharacterVisualTheme {
   key: string;

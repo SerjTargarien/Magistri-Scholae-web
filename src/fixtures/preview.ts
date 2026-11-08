@@ -1,5 +1,5 @@
 import { createDefaultCharacter } from "../utils/characterFactory";
-import { DEFAULT_SKILLS } from "../types";
+import { DEFAULT_SKILLS } from "../data/gameData";
 import type { Character, Familiar } from "../types";
 import type { ViewerProjection } from "../storage/contracts";
 

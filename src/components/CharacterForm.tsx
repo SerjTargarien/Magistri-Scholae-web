@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Character, HOUSES, Skill, CustomField, HOUSE_ICONS, CharacterType } from "../types";
+import { Character, Skill, CustomField, CharacterType } from "../types";
+import { HOUSES, HOUSE_ICONS } from "../data/gameData";
 import {
   Language,
   TRANSLATIONS,

@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Character, CharacterType, DEFAULT_SKILLS, Skill } from "../types";
+import { Character, CharacterType, Skill } from "../types";
+import { DEFAULT_SKILLS } from "../data/gameData";
 
 export const getInitialDefaultSkills = (): Skill[] => {
   try {

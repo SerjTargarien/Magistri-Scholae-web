@@ -5,7 +5,7 @@
 // screenshots must stay identical through that change.
 import { deflateSync, crc32 } from "node:zlib";
 import type { Page } from "@playwright/test";
-import { DEFAULT_SKILLS } from "../src/types";
+import { DEFAULT_SKILLS } from "../src/data/gameData";
 
 const CREATED = Date.UTC(2026, 8, 14, 9, 30); // 14 Sep 2026, fixed
 const day = 24 * 60 * 60 * 1000;

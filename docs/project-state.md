@@ -396,7 +396,15 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 
 **Staging updated (owner-approved), 8 November 2026:** a fresh encrypted backup first, then the server at `748ddaf`, both migrations applied, the backend restarted (a few seconds) and a new staging app release. The single stored sheet is on schema 3 and passes every rule; the campaign has the default catalogue. An end-to-end check as the fictional `test_player` stored a linked esoteric skill with a knowledge level and a consequence with a severity, saw invalid entries refused with their rule, and removed its test entries. The live site was not touched. Details are in `docs/infrastructure.local.md`.
 
-**Next:** the app's types and defaults (third R3.2 pull request).
+## R3.2 app model — 8 November 2026 (third pull request)
+
+- `src/model/`: named types derived from the server's field list; the rules lookup (`ruleAt`, `usage`, `nearLimit`, `checkSheet`); the skill catalogue helpers (names in both languages, catalogue order with the player's own skills last, Magia intuitiva hidden above 14 and for adult wizards); blank new sheets matching the old defaults minus the removed fields, with every applicable catalogue skill at 0 (48 for students, 47 for adults).
+- Skill preset: one per-device preset in the new shape (`magistri_skill_preset`). The sheet's and the form's buttons move to it in R3.4; the old app's two preset keys are not read (test data only).
+- Game data moved from `src/types.ts` to `src/data/gameData.ts` (imports updated; no visible change, guarded by the screenshot check). The old record types stay until R3.6.
+- Tests: `tests/model.test.ts`. Locally: lint, `npm test` (42 passed), all three builds.
+- **R3.2 is complete.**
+
+**Next:** R3.3, the sheet store and the in-browser mock server, explained before it starts.
 
 ## Updating this handoff
 

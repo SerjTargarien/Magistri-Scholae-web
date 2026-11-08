@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, HOUSES, Spell, Potion, Skill, Club, InventoryItem, HOUSE_ICONS, getCharacterType, VisualStyle } from "../types";
+import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../types";
+import { HOUSES, HOUSE_ICONS } from "../data/gameData";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 import {
   Language,

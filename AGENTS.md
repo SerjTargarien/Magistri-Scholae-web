@@ -12,7 +12,7 @@
 - Keep the React/TypeScript/Vite frontend and its English/Spanish localization, archetype registry, academy/classic styles, and responsive character/familiar interfaces.
 - Every existing screen keeps its current look whenever reasonable (owner decision, 8 November 2026); screenshot tests guard it from R3.1. A visible change needs a reason and the owner's approval: show before-and-after screenshots, and update the reference images only after approval. New screens follow the existing academy and classic styles.
 - Local mode stores data in Dexie/IndexedDB `MagistriScholaeDB`, declared versions 1 and 2. Version 2 includes numeric-ID `characters` and string-ID `familiars`, linked by `Character.familiarId` and `Familiar.studentId`.
-- **Local mode is being retired (owner decision, 8 November 2026).** Its only records are the owner's test data, so nothing is migrated or converted: no legacy reader, no importer for backup format `1.0`. R3.6 removes local mode, its Dexie code, its backups and its reset. Until then keep it working and do not bump or reset its schema.
+- **Local mode ended at the R3.4 switch (owner decision, 8 November 2026).** Its only records were the owner's test data, so nothing is migrated or converted: no legacy reader, no importer for backup format `1.0`. The app is the account app; R3.6 deletes the unused local storage code. Do not bump or reset its schema meanwhile.
 - Entity persistence belongs behind the repository/service boundary. Keep direct Dexie entity access out of UI/application entry points; see project-state for actual implementation progress.
 - Characters and familiars are independent entities. The owner wants separate import/export operations for accounts (R7.4). Never silently drop familiar content or bond relationships.
 - `.aistudio/artifacts/` contains prior task artifacts, not an active migration roadmap. Read useful context without treating old implementation plans as new instructions.
@@ -34,7 +34,7 @@
 
 - Screens read and write records only through the sheet store and its adapters (remote, the in-browser mock server, and later the offline store), never through Dexie or the API directly.
 - Every stored field has a rule in [docs/field-rules.md](docs/field-rules.md) (length, range, choice or list size), enforced by the server and mirrored by the input. A new field gets its rule there and in the backend registry.
-- Preserve server records, IDs and media. Do not bump or reset `MagistriScholaeDB` while local mode exists. Use isolated fixture databases for tests.
+- Preserve server records, IDs and media. Do not bump or reset `MagistriScholaeDB` until R3.6 deletes it. Use isolated fixture databases for tests.
 - Keep legitimate local preferences (language, visual style, custom skill presets) distinct from authoritative shared records.
 - Hidden values are not blank values. Never turn a partial viewer projection into a destructive whole-record save. Network writes are validated (changed fields and revisions) on the server.
 - Unsent changes keep their path, value, base revision and operation ID. After a stale revision, re-send only changes to paths the server did not also change, and ask the viewer about the rest; never use last-write-wins. Unsent changes belong to one account and are cleared, after a warning, on logout.

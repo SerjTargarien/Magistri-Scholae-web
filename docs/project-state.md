@@ -428,7 +428,17 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 
 **Split 2:** the same method for `CharacterForm.tsx` (1,926 lines → 357, plus `form/useCharacterForm.tsx` and five tab files) and `FamiliarDetail.tsx` (1,093 → 419, plus `familiar/useFamiliarDetail.tsx` and three tab files). Locally: type check, 48 unit tests, build, 24 mock and local browser tests; CI's screenshot check confirms nothing visible changed.
 
-**Next:** the switch (one pull request), explained before it starts.
+## R3.4 switch — 8 November 2026
+
+The real screens now run on the account side (owner decisions: no "technical view" for the stopgap notes screens; personal notes, GM notes and note promotion return in R3.5):
+- `src/App.tsx` is the account app: session restore, sign-in (`src/account/SignIn.tsx`, stopgap look until R3.5), campaign (automatic when only one), lists newest first (archived sheets hidden), one sheet store per sheet kept while signed in, uploads, bonds, archive, creation. `src/account/screens.ts` defines what each screen receives; `src/account/SaveStatus.tsx` shows offline/conflict/refused states.
+- The character sheet, creation form, familiar sheet and editor, list and settings use the server's model directly: single-path edits by entry id (the 48 whole-record saves and 20 position-based edits are gone), images through the upload endpoint, the skill catalogue, permission gating (hidden fields not rendered, read-only viewers without editing controls). No one deletes: the GM archives. Export, import and reset are hidden until R7.4; settings gained an account card.
+- Server: lists are ordered newest first (`created_at`), as players saw them in the old app.
+- Retired: the old browser-only mode (code stays until R3.6), the stopgap account screens (`RemoteApp`, `RemoteFields`), `.env.mock`/`build:mock`, and the local-mode browser tests.
+- Tests: the feature checklist moved onto the demo (`e2e/features.spec.ts`, 11 tests at desktop and phone widths); store behaviour in the real screens (`e2e/demo.spec.ts`, 7). Screenshots run on the demo as the GM; the owner approved every difference (see development.md, "Screenshot tests"), and 283 of 336 references were replaced from a CI run.
+- Checked: type check, 48 unit tests, three builds, features (22) and demo (7) browser tests locally and in CI, backend suite, and a manual walk-through of the demo (lists, every sheet tab, edits, creation of a character and a familiar, settings).
+
+**Next:** release to staging (the owner's go-ahead), then phase 3: the decided visible changes, one pull request each.
 
 ## Updating this handoff
 

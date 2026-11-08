@@ -2,7 +2,7 @@
 
 ## Current application
 
-The repository root is the React/Vite frontend. Milestone 1 provides local and isolated mock storage. Milestone 2 adds the Django/PostgreSQL API under `backend/`; milestone 3 connects explicit remote mode, login, projected editing, protected media and personal-note promotion. See [storage-contract.md](storage-contract.md), [backend setup](../backend/README.md), [API contract](api-v1.md), [project-state.md](project-state.md) and [implementation-plan.md](implementation-plan.md).
+The repository root is the React/Vite frontend: since the R3.4 switch, the account app, whose real screens run on the Django/PostgreSQL API under `backend/` through the sheet store (or, in demo builds, on an in-browser mock server). The old browser-only mode ended at the switch; its storage code (`src/storage/`, `MagistriScholaeDB`) remains until R3.6 deletes it. See [storage-contract.md](storage-contract.md), [backend setup](../backend/README.md), [API contract](api-v1.md), [project-state.md](project-state.md) and [implementation-plan.md](implementation-plan.md).
 
 Use npm with the checked-in `package-lock.json`. This implementation was verified with Node **26.8.1** (pinned in `.node-version`) and npm **11.19.0** (`packageManager`). The package declares Node >=22.12.0 for dependency compatibility; other versions have not been exercised here.
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-The dev scripts bind Vite to `0.0.0.0` on port `3000`; their exposure depends on the development environment. For loopback-only development, append `-- --host 127.0.0.1`. No backend or credentials are required for either mode.
+The dev scripts bind Vite to `0.0.0.0` on port `3000`; their exposure depends on the development environment. For loopback-only development, append `-- --host 127.0.0.1`. `npm run dev` needs a backend at `/api`; `npm run dev:demo` needs none (see below).
 
 Current verification commands:
 
@@ -19,13 +19,13 @@ Current verification commands:
 npm run lint
 npm test
 npm run build
-npm run build:mock
+npm run build:demo
 npm run test:baseline
 ```
 
-`npm run test:e2e` runs the Playwright browser smoke tests in `e2e/` (feature checklist from [implementation-plan.md](implementation-plan.md)): mock mode at desktop and mobile widths, plus local-mode backups and reset. It starts its own Vite servers on loopback ports 4310 (mock) and 4311 (local); every test uses a fresh browser context, never a real profile. First-time setup: `npx playwright install chromium`. Set `E2E_LOCAL_URL` (for example `http://127.0.0.1:8088` or the staging URL) to run the local-mode tests against a deployed build instead of a dev server; this also enables the offline-reload test. Server deployment is described in [deploy/README.md](../deploy/README.md). GitHub Actions (`.github/workflows/ci.yml`) runs these, the checks below and the backend suite on every pull request.
+`npm run test:e2e` runs the Playwright browser tests in `e2e/` against the demo build (the account app with the in-browser mock server, see below): the feature checklist from [implementation-plan.md](implementation-plan.md) at desktop and phone widths (`features.spec.ts`), and the sheet store's behaviour in the real screens (`demo.spec.ts`: roles and hidden fields, refused edits, merging, offline edits, conflicts, retries). It starts its own Vite server on loopback port 4312; every test uses a fresh browser context, never a real profile. First-time setup: `npx playwright install chromium`. Server deployment is described in [deploy/README.md](../deploy/README.md). GitHub Actions (`.github/workflows/ci.yml`) runs these, the checks below, the screenshot tests and the backend suite on every pull request.
 
-`lint` means `tsc --noEmit`, not ESLint. `npm test` uses Node's test runner through `tsx` and `fake-indexeddb` for isolated databases and boundary checks. `test:baseline` reproduces the pre-refactor handler defects from the original Git commit; it requires that commit to remain available locally. A production build outputs `dist/`. `npm run preview` serves the most recent build. `build:mock` writes a demo build to the same `dist/`; run `npm run build` again to return it to local mode.
+`lint` means `tsc --noEmit`, not ESLint. `npm test` uses Node's test runner through `tsx` and `fake-indexeddb` for isolated databases and boundary checks. `test:baseline` reproduces the pre-refactor handler defects from the original Git commit; it requires that commit to remain available locally. A production build outputs `dist/` (the account app; `build:remote` is the same build, used by `deploy/release.sh --target staging`). `npm run preview` serves the most recent build. `build:demo` writes the demo build to the same `dist/`.
 
 The existing `clean` script uses Unix `rm` and removes `dist` and `server.js`; it is not needed for the first refactor and is not a portable Windows setup prerequisite.
 
@@ -60,7 +60,7 @@ The old hand-written types in `src/types.ts` stay until each screen moves (R3.4)
 
 ### Screenshot tests
 
-Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, using the fixed fictional records in `e2e/visual-fixture.ts`. The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.
+Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, on the demo build as the demo GM (who sees every sheet), with the fixed fictional records in `src/mock/fixtures.ts`. The R3.4 switch replaced 283 references after the owner approved the differences (export and import removed, delete became archive, the new skill categories, the form's motto box removed, age as a number, settings' new cards, the familiar gallery's web-address input hidden). The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.
 
 - **Where it runs:** only in the CI job `visual`, inside the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble`, where fonts and rendering are identical between runs (a second run matched all 336 pictures exactly). Windows and macOS draw text slightly differently, so their pictures never match Linux references. Running `E2E_VISUAL=1 npx playwright test --project=visual-desktop --project=visual-mobile` locally is useful only to check navigation; it writes `-win32`/`-darwin` pictures, which Git ignores.
 - **Jitter and retries:** even in the container, anti-aliasing along text (most visibly the glowing name headings) occasionally differs by a few to a few hundred pixels on one picture, invisibly to the eye: about 2 of 80 tests per run, never the same one twice. Chromium flags for deterministic text drawing did not remove it (measured 3 runs, 8 November 2026). The comparison therefore stays exact, and the job retries a failed test twice; a real change fails every attempt. Playwright reports a passed retry as "flaky".
@@ -71,31 +71,19 @@ Every existing screen must keep its look unless the owner approves a change ([im
 
 Keep the existing `DISABLE_HMR` handling in `vite.config.ts` unless a task specifically requires changing it. Do not restructure the frontend root merely to add a backend folder.
 
-## Local and mock modes
+## Running the app (since the R3.4 switch)
 
-`VITE_STORAGE_MODE=local|mock|remote` selects the application boundary. An unset/empty flag defaults to local. Unsupported values fail without falling back. `.env.mock` selects the isolated demo; `.env.remote` selects account storage. Explicit process environment variables take precedence over env files. The local/mock factory deliberately rejects remote: the entry point selects the separate projection-aware remote adapter instead.
+The app is the account app: it signs in, picks the campaign (automatically when there is only one), lists the campaign's sheets newest first, and opens each sheet through a sheet store (`src/App.tsx`). The old browser-only mode (`MagistriScholaeDB`) ended at the R3.4 switch (owner decision, 8 November 2026); its code is removed in R3.6.
 
 ```bash
-# Existing browser data, default
-npm run dev
+# Against a local Django backend (see "Backend development"); /api is proxied to 127.0.0.1:8000
+npm run dev:remote          # http://127.0.0.1:3002/
 
-# Fictional, persistent isolated preview for AI Studio
-npm run dev:mock
-
-# Both simultaneously, loopback only
-npm run dev -- --host 127.0.0.1
-npm run dev:mock -- --host 127.0.0.1 --port 3001
+# Against the in-browser mock server: no backend, fictional data, DEMO banner and test panel
+npm run dev:demo            # http://127.0.0.1:3003/
 ```
 
-The two simultaneous commands run in separate terminals. If configuring AI Studio's start command, use `npm run dev:mock`, or explicitly set its public `VITE_STORAGE_MODE` to `mock`. Mock fixtures seed only on first creation of `MagistriScholaeMockDB`. Mock reset clears that preview; reload does not reseed it. Browser IndexedDB is origin-specific: changing host/port changes which records you see. Both modes share ordinary local preferences when run at the same origin.
-
-| Mode | Purpose | Status |
-|---|---|---|
-| Local | Existing `MagistriScholaeDB` records and editing. | Implemented; default. |
-| Mock | Fictional complete sheets in `MagistriScholaeMockDB`, demo indicator and a separate sample projection contract. | Implemented; explicit opt-in. Full role/privacy UI is future work. |
-| Remote | Django API, projected online editing and private media; no local fallback or offline mutation queue. | Implemented in milestone 3. A new offline mode (viewing, then editing with sync) is planned for R7.1–R7.2. |
-
-Mock writes must never touch `MagistriScholaeDB`. Show a demo banner in mock mode. Do not turn a network error into an implicit mode switch. Browser-exposed `VITE_` values are public configuration, not a place for backend passwords or administrator tokens.
+Browser-exposed `VITE_` values are public configuration, never a place for backend passwords or administrator tokens. A failed request never falls back to other data. In demo builds, `localStorage.magistri_demo_panel = "off"` hides the test panel (the browser tests do this).
 
 ## Backend development
 
@@ -121,21 +109,13 @@ Tests use an isolated PostgreSQL test database, not the development database or 
 
 The owner clarified that character/familiar transfers should be separate. That transfer change is deferred until after the backend foundation; current local legacy combined backups remain supported. Familiars have independent account ownership/shares; bonds grant no access.
 
-## Remote mode — milestone 3
+## Account behaviour in the app
 
-Start PostgreSQL and Django using [backend setup](../backend/README.md), then:
-
-```bash
-npm run dev:remote
-# Builds the account UI; does not deploy it
-npm run build:remote
-```
-
-The frontend runs at `http://127.0.0.1:3002/`; its development `/api` proxy forwards to `127.0.0.1:8000`. No backend secrets or API credentials belong in frontend variables. The backend guide includes an explicit fictional PostgreSQL preview, separate from development data. Production requires a same-origin API reverse proxy; Vite preview alone does not supply one.
-
-Remote forms render only visible or explicitly writable registry paths. Complete local editors and partial remote forms use separate adapters. Empty controls for absent writable fields do not become writes until edited. Lists use stable item IDs. The online sheet queue debounces typing, serializes saves, retains exact uncertain operations for retry and shows saving/saved/error/offline/conflict states. A conflict fetches the current projection, removes newly forbidden draft paths and requires discard or explicit visible reapply. Unsent drafts exist only in memory and are lost on a full tab close; the app warns before leaving a dirty sheet. Reconnecting does not automatically transmit an offline draft. Personal/GM notes use explicit Save and independent revisions.
-
-Focus/visibility return revalidates visible sheets/lists. Logout and account changes clear in-memory data across tabs. A failed/offline logout stores only a revocation marker, and the next authenticated workflow must finish server logout first. There are no account offline snapshots yet. Local/mock persistence and confirmed legacy backups/reset remain available only in their own modes. Separate transfers remain milestone 5.
+- **Saving:** every change is a single-path edit through the sheet store (`src/store/sheetStore.ts`); see "The sheet store" above. Images go to the upload endpoint (`src/remote/assets.ts` shows them); a new gallery image first creates its entry, then uploads into it. Bonds use the bond endpoint.
+- **Status:** `src/account/SaveStatus.tsx` appears only when there is something to know: offline with changes waiting, a same-field conflict (keep mine or theirs), a refused change, or drafts discarded after losing access.
+- **Archive, no delete:** the GM archives (archived sheets leave the list); players see no delete. The GM's permanent delete of archived sheets and restoring arrive with R4.
+- **Not in the app yet:** sign-in, campaign choice and status keep a simple look until R3.5, which also brings back personal notes, GM notes and note promotion (the owner accepted losing them on staging until then). Export, import and reset return with account export/import (R7.4).
+- Focus and visibility return refresh the lists and open sheets. Logout disposes every sheet store; a failed or offline logout stores a revocation marker that the next start completes.
 
 ## Shared repository workflow
 

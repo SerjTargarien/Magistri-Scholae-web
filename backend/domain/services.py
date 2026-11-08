@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 from django.core import signing
 from django.db import transaction
 from .errors import APIError, keys, require, text
+from .catalogue import own_skills
 from .fields import REGISTRY, descriptor, leaf_paths, obj, replace_path, validate_sheet
 from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, User
 from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, is_gm,
@@ -41,6 +42,7 @@ def create_sheet(actor, kind, body):
     require(gm or "assignedPlayerId" not in body, "forbidden", 403)
     owner = assigned_member(campaign, body.get("assignedPlayerId")) if gm else actor
     validate_sheet(kind, body["fields"], campaign.skill_catalogue)
+    require(gm or not own_skills(body["fields"]), "gm_only_skill", 403)
     from .media import validate_references
     validate_references(None, body["fields"], kind)
     sheet = Sheet(campaign=campaign, creator=actor, assigned_player=owner, kind=kind, data=deepcopy(body["fields"]))
@@ -66,6 +68,7 @@ def patch_sheet(actor, sheet_id, kind, body):
             validate_sheet(kind, sheet.data)
         except APIError as error:
             raise APIError("stored_sheet_invalid", 409) from error
+    own_before = own_skills(sheet.data)
     paths = []
     for change in changes:
         keys(change, ["path", "value"], ["path", "value"])
@@ -81,6 +84,8 @@ def patch_sheet(actor, sheet_id, kind, body):
             candidates |= set(sheet.gm_overrides) | set(sheet.campaign.visibility_defaults.get(kind, {}))
             require(all(can_write(actor, sheet, p, gm=False) for p in candidates if p.startswith(path + "/")), "field_forbidden", 403)
         sheet.data = updated
+    # Players change the values of own skills, never which own skills exist.
+    require(gm or own_skills(sheet.data) == own_before, "gm_only_skill", 403)
     from .media import validate_references
     validate_references(sheet, sheet.data, kind)
     touch(sheet, f"{kind}.patched", actor)

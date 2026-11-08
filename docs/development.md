@@ -42,7 +42,7 @@ Use both English and Spanish. Exercise academy and classic styles, desktop and m
 - `sheet.ts`: the named types (`CharacterSheet`, `SkillEntry`, `ConsequenceEntry`…) and `newItemId()`.
 - `rules.ts`: each field's rule (`ruleAt`), how full a text or list is (`usage`, `nearLimit` at 90%), and `checkSheet`, which reports what the server would refuse.
 - `catalogue.ts`: the campaign skill catalogue: names, categories, order, and whether a skill applies to a character (Magia intuitiva up to 14).
-- `defaults.ts`: blank new sheets and the per-device skill preset (`magistri_skill_preset`).
+- `defaults.ts`: blank new sheets (every applicable catalogue skill at 0; the per-device skill preset was removed on 8 November 2026).
 
 The old hand-written types in `src/types.ts` stay until each screen moves (R3.4); game data (houses, character types, the old default skills) is in `src/data/gameData.ts`.
 

@@ -4,6 +4,7 @@ from copy import deepcopy
 from django.conf import settings
 from django.db.models import Q
 from .errors import APIError, require
+from .catalogue import own_skills
 from .fields import REGISTRY, descriptor, leaf_paths, obj
 from .models import Bond, Campaign, Membership, Share, Sheet
 
@@ -158,6 +159,11 @@ def projection(actor, sheet, include_bond=True):
         elif can_write(actor, sheet, path, gm=gm):
             writable.append(path)
     editable(obj(REGISTRY[sheet.kind]), fields, "")
+    if not gm and sheet.kind == "character":
+        # Only the GM names, moves or removes own skills (catalogue.own_skills).
+        own = {f"habilidades/{skill_id}" for skill_id in own_skills(fields)}
+        removable = [p for p in removable if p not in own]
+        writable = [p for p in writable if not (p.startswith("habilidades/") and p.rsplit("/", 1)[-1] in ("nombre", "categoria"))]
     result = {
         "kind": "viewer-projection", "id": str(sheet.pk), "entityType": sheet.kind,
         "campaignId": str(sheet.campaign_id), "schemaVersion": sheet.schema_version,

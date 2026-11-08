@@ -52,10 +52,12 @@ class CatalogueEndpointTests(APICase):
 class SkillEntryTests(APICase):
     def setUp(self):
         self.alice_client = self.client_for(self.alice)
+        self.gm_client = self.client_for(self.gm)
 
-    def patch(self, path, value, status=200):
-        current = self.read(self.alice_client, f"characters/{self.sheet.pk}")
-        return self.send(self.alice_client, f"characters/{self.sheet.pk}", {"expectedRevision": current["revision"],
+    def patch(self, path, value, status=200, client=None):
+        client = client or self.alice_client
+        current = self.read(client, f"characters/{self.sheet.pk}")
+        return self.send(client, f"characters/{self.sheet.pk}", {"expectedRevision": current["revision"],
                          "changes": [{"path": path, "value": value}]}, method="patch", status=status)
 
     def rejected(self, value):
@@ -64,9 +66,45 @@ class SkillEntryTests(APICase):
     def test_linked_and_own_skills(self):
         self.patch("habilidades/linked", {"catalogo": "cabala", "valor": 2, "conocimiento": "medio"})
         own = {"nombre": "Cetrería", "categoria": "fisicas", "valor": 1}
-        result = self.patch("habilidades/own", own)["fields"]["habilidades"]
+        result = self.patch("habilidades/own", own, client=self.gm_client)["fields"]["habilidades"]
         self.assertIn({"id": "own", **own}, result)
-        self.patch("habilidades/own-esoteric", {"nombre": "Runas antiguas", "categoria": "magia-esoterica", "valor": 0, "conocimiento": "basico"})
+        self.patch("habilidades/own-esoteric", {"nombre": "Runas antiguas", "categoria": "magia-esoterica", "valor": 0, "conocimiento": "basico"},
+                   client=self.gm_client)
+
+    def test_only_the_gm_creates_renames_moves_or_removes_own_skills(self):
+        """Owner decision, 8 November 2026: players pick catalogue skills and change values."""
+        own = {"nombre": "Cetrería", "categoria": "fisicas", "valor": 1}
+        self.assertEqual(self.patch("habilidades/own", own, status=403)["error"]["code"], "gm_only_skill")
+        self.patch("habilidades/own", own, client=self.gm_client)
+        for path, value in [("habilidades/own/nombre", "Halconería"), ("habilidades/own/categoria", "mentales"),
+                            ("habilidades/own", None), ("habilidades/own", {"nombre": "Otra", "categoria": "fisicas", "valor": 1})]:
+            with self.subTest(path=path, value=value):
+                self.assertEqual(self.patch(path, value, status=403)["error"]["code"], "gm_only_skill")
+        self.patch("habilidades/own/valor", 3)  # values stay the player's
+        self.patch("habilidades/picked", {"catalogo": "cabala", "valor": 0})  # the + list
+        self.patch("habilidades/picked", None)  # and removing it again
+        capabilities = self.read(self.alice_client, f"characters/{self.sheet.pk}")["capabilities"]
+        self.assertNotIn("habilidades/own", capabilities["removablePaths"])
+        self.assertIn("habilidades/skill-a", capabilities["removablePaths"])
+        self.assertNotIn("habilidades/own/nombre", capabilities["writablePaths"])
+        self.assertIn("habilidades/own/valor", capabilities["writablePaths"])
+        self.assertIn("habilidades", capabilities["collectionPaths"])
+        self.assertIn("habilidades/own", self.read(self.gm_client, f"characters/{self.sheet.pk}")["capabilities"]["removablePaths"])
+        self.patch("habilidades/own", None, client=self.gm_client)
+
+    def test_players_create_characters_without_own_skills(self):
+        body = {"campaignId": str(self.campaign.pk), "fields": {"nombre": "Nueva", "habilidades": [
+            {"id": "a", "catalogo": "atletismo", "valor": 2}, {"id": "b", "nombre": "Cetrería", "categoria": "fisicas", "valor": 1}]}}
+        self.assertEqual(self.send(self.alice_client, "characters", body, status=403)["error"]["code"], "gm_only_skill")
+        self.send(self.gm_client, "characters", body)
+        body["fields"]["habilidades"].pop()
+        self.send(self.alice_client, "characters", body)
+
+    def test_campaign_list_tells_the_viewer_their_role(self):
+        roles = {c["id"]: c["role"] for c in self.read(self.alice_client, "campaigns")["items"]}
+        self.assertEqual(roles[str(self.campaign.pk)], "player")
+        roles = {c["id"]: c["role"] for c in self.read(self.gm_client, "campaigns")["items"]}
+        self.assertEqual(roles[str(self.campaign.pk)], "gm")
 
     def test_entry_is_either_linked_or_own(self):
         for value in [{"valor": 1}, {"catalogo": "cabala", "nombre": "Cábala"}, {"nombre": "Sin categoría"}]:

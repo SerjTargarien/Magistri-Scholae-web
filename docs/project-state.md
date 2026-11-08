@@ -469,7 +469,16 @@ Merged and released to staging (backup first; migration 0005 applied; release `2
 - App: the creation form has the one field in the basic data (the adult profile loses its focus box; reputation sits beside the former house). On the sheet the wand moved into the profile grid without the star-line separator: for adults it takes the focus's place beside the former house; for students it is a full-width last row. The demo professor has one wand.
 - Tests: migration tests (merging, restrictions only ever tightened); the adult feature test checks the wand is stored and no focus remains. Checked: type check, unit tests, both builds, 31 browser tests, catalogue and migration tests, makemigrations --check, export_api_contract --check; looked at both cards in the demo, reading and edit mode.
 
-**Next:** merge and update staging (backup, migration 0006), then the GM-only skill actions (design first), then the remaining phase 3 changes.
+Merged and released to staging (backup first; migration 0006 applied; release `20261108-155040-4544518`): Anselmo's identical focus was dropped, nothing else changed.
+
+## GM-only skills, first part (C1) — 8 November 2026
+
+Design approved by the owner (see implementation-plan.md, R3.4): C1 now, C2 next.
+- Server: a player can no longer create, rename, move or remove own (non-catalogue) skills, on saves or on creation (`gm_only_skill`, 403; `catalogue.own_skills` compared before and after each save); values stay theirs. The projection stops offering those controls to players (own skills are not removable; skill names and categories are not writable). The campaign list now includes the viewer's own role.
+- App: «+ Añadir de la lista» in each skill category (form and sheet) lists the catalogue skills the character lacks (Magia intuitiva only up to 14); picking one adds it at 0. Only the GM sees the typed box. The per-device skill preset («Guardar Plantilla de Habilidades» / «Fijar por Defecto», `magistri_skill_preset`) is removed; new characters start with every applicable catalogue skill until C2's «inicial» setting. The demo server mirrors the rules.
+- Tests: backend tests for the rule, the projection and the campaign role (run in CI; no local PostgreSQL); unit tests for the + list and the own-skill comparison; feature tests for a player removing and picking a skill, and for a GM-typed skill the player cannot remove.
+
+**Next:** C2 (the GM's campaign skill list and «inicial»), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

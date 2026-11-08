@@ -1,18 +1,13 @@
 // The account data model (R3.2): defaults, rules and the skill catalogue.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DEFAULT_SKILL_CATALOGUE, isEsoteric, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
-import { newCharacterSheet, newFamiliarSheet, readSkillPreset, saveSkillPreset, SKILL_PRESET_KEY, startingSkills } from "../src/model/defaults";
+import { DEFAULT_SKILL_CATALOGUE, isEsoteric, missingSkills, ownSkillsKey, skillName, skillsByCategory, type SkillCatalogue } from "../src/model/catalogue";
+import { newCharacterSheet, newFamiliarSheet, startingSkills } from "../src/model/defaults";
 import { checkSheet, nearLimit, ruleAt, usage } from "../src/model/rules";
 import type { SkillEntry } from "../src/model/sheet";
 
-const memory = () => {
-  const store = new Map<string, string>();
-  return { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), store };
-};
-
 test("a new student matches the old defaults and passes every rule once named", () => {
-  const sheet = newCharacterSheet("student", DEFAULT_SKILL_CATALOGUE, undefined);
+  const sheet = newCharacterSheet("student", DEFAULT_SKILL_CATALOGUE);
   assert.equal(sheet.characterType, "student");
   assert.deepEqual([sheet.edad, sheet.casa, sheet.curso, sheet.puntosDestino, sheet.pxs], [11, "IRATI", "1º", 3, 0]);
   assert.deepEqual([sheet.estresFisicoMax, sheet.estresMentalMax, sheet.estresSocialMax], [3, 3, 3]);
@@ -28,7 +23,7 @@ test("a new student matches the old defaults and passes every rule once named", 
 });
 
 test("a new adult wizard has stress maximums of 5, a profile and no Magia intuitiva", () => {
-  const sheet = newCharacterSheet("adult_wizard", DEFAULT_SKILL_CATALOGUE, undefined);
+  const sheet = newCharacterSheet("adult_wizard", DEFAULT_SKILL_CATALOGUE);
   assert.deepEqual([sheet.estresFisicoMax, sheet.estresMentalMax, sheet.estresSocialMax], [5, 5, 5]);
   assert.equal(sheet.edad, undefined);
   assert.equal(sheet.casa, "");
@@ -44,25 +39,18 @@ test("a new familiar passes every rule once named", () => {
   assert.deepEqual(checkSheet("familiar", { ...sheet, nombre: "Ámbar" }), [{ path: "especie", rule: "required" }]);
 });
 
-test("the skill preset is kept per device in the new shape, and bad entries are dropped", () => {
-  const storage = memory();
-  const preset: SkillEntry[] = [
-    { id: "a", catalogo: "atletismo", valor: 2 },
-    { id: "b", nombre: "Cetrería", categoria: "fisicas", valor: 9 },
-    { id: "c", catalogo: "missing", valor: 1 },
-    { id: "d", nombre: "Sin categoría", valor: 1 },
-    { id: "e", catalogo: "atletismo", valor: 4 },
-  ];
-  saveSkillPreset(preset, storage);
-  assert.ok(!storage.store.get(SKILL_PRESET_KEY)!.includes('"id"'));
-  const read = readSkillPreset(storage);
-  const skills = startingSkills(DEFAULT_SKILL_CATALOGUE, { characterType: "student", edad: 11 }, read);
-  assert.deepEqual(skills.map(({ id: _id, ...rest }) => rest), [
-    { catalogo: "atletismo", valor: 2 },
-    { nombre: "Cetrería", categoria: "fisicas", valor: 5 },
-  ]);
-  assert.equal(readSkillPreset(memory()), undefined);
-  assert.equal(readSkillPreset({ getItem: () => "{broken" }), undefined);
+test("the + list offers the category's catalogue skills the character lacks; own skills compare by id, name and category", () => {
+  const student = { characterType: "student" as const, edad: 11 };
+  const skills = startingSkills(DEFAULT_SKILL_CATALOGUE, student).filter(s => s.catalogo !== "empatia" && s.catalogo !== "magia-intuitiva");
+  assert.deepEqual(missingSkills(skills, DEFAULT_SKILL_CATALOGUE, student, "sociales").map(s => s.id), ["empatia"]);
+  assert.deepEqual(missingSkills(skills, DEFAULT_SKILL_CATALOGUE, student, "conocimientos-magicos").map(s => s.id), ["magia-intuitiva"]);
+  assert.deepEqual(missingSkills(skills, DEFAULT_SKILL_CATALOGUE, { characterType: "student", edad: 15 }, "conocimientos-magicos"), []);
+  assert.deepEqual(missingSkills(skills, DEFAULT_SKILL_CATALOGUE, student, "fisicas"), []);
+  const own: SkillEntry[] = [{ id: "o", nombre: "Cetrería", categoria: "fisicas", valor: 1 }, { id: "l", catalogo: "duelo", valor: 2 }];
+  assert.equal(ownSkillsKey(own), ownSkillsKey([{ ...own[0], valor: 4 }]));  // values may change
+  assert.notEqual(ownSkillsKey(own), ownSkillsKey([{ ...own[0], nombre: "Halconería" }]));
+  assert.notEqual(ownSkillsKey(own), ownSkillsKey([own[1]]));
+  assert.equal(ownSkillsKey(undefined), "[]");
 });
 
 test("skills are grouped in catalogue order, own skills last, and Magia intuitiva disappears above 14", () => {
@@ -106,7 +94,7 @@ test("rules come from the server's field list", () => {
 });
 
 test("checkSheet reports what the server would refuse", () => {
-  const sheet = { ...newCharacterSheet("student", DEFAULT_SKILL_CATALOGUE, undefined), nombre: "Luna" };
+  const sheet = { ...newCharacterSheet("student", DEFAULT_SKILL_CATALOGUE), nombre: "Luna" };
   const problems = (data: Record<string, unknown>) => checkSheet("character", { ...sheet, ...data }).map(p => p.rule);
   assert.deepEqual(problems({ nombre: "x".repeat(81) }), ["maxLength"]);
   assert.deepEqual(problems({ estresFisico: 4 }), ["notAboveMaximum"]);

@@ -218,7 +218,9 @@ Each step below is its own pull request. It keeps the app working under the brow
   - **Decided after the owner's staging test** (8 November 2026):
     - Empatía moves to social skills; custom fields read like the other values (no boxes) (**done**);
     - one «Varita / Foco mágico» field for students and adult wizards (`magicalFocus` merges into `varitaSintonia`, keeping both values when they differ), without the star-line separator, so both profile cards stay balanced (**done**, schema version 4);
-    - only the GM creates new skills and saves default skills; players add skills from the campaign's list with a + button (the design is explained first).
+    - only the GM creates new skills and saves default skills; players add skills from the campaign's list with a + button. Design approved by the owner (8 November 2026), in two pull requests:
+      - **C1** (**done**): the server refuses own skills from players (create, rename, move, remove: `gm_only_skill`) and stops offering those controls; players get «+ Añadir de la lista» (catalogue skills they lack, applicable by age) in the form and on the sheet, and may remove catalogue skills; the GM keeps the typed box; the per-device preset is removed; the campaign list tells the viewer their role;
+      - **C2**: a GM-only catalogue write endpoint (validated, raises the revision, archive never delete) with an «inicial» flag per skill (all 48 on to begin with); new characters start from the flagged skills; a GM-only «Habilidades de la campaña» screen in settings (add, rename, tick «inicial»); a skill the GM types joins the campaign list. Moving between categories, reordering and new categories stay in R4.
   - **Later, its own design step:** clicking any portrait or gallery image that does nothing today opens a floating window with the image at full size (owner: important).
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles.

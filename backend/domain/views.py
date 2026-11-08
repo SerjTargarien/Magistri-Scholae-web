@@ -161,7 +161,9 @@ def campaigns(request, body):
     query_keys(request, ["limit", "offset"])
     limit, offset = pagination(request)
     query = Campaign.objects.all() if request.user.is_superuser else Campaign.objects.filter(membership__user=request.user)
-    return {"items": [{"id": str(c.pk), "name": c.name, "policyRevision": c.policy_revision}
+    # The viewer's own role ("gm", "player", or None for an administrator who is not a member).
+    roles = dict(Membership.objects.filter(user=request.user).values_list("campaign_id", "role"))
+    return {"items": [{"id": str(c.pk), "name": c.name, "policyRevision": c.policy_revision, "role": roles.get(c.pk)}
                        for c in query.order_by("id")[offset:offset + limit]]}
 
 

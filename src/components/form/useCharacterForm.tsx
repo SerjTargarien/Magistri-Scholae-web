@@ -14,7 +14,7 @@ import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import type { CharacterFormProps } from "../../account/screens";
 import type { AdultWizardProfile, CharacterSheet, House, TextEntry } from "../../model/sheet";
 import { newItemId } from "../../model/sheet";
-import { newCharacterSheet, saveSkillPreset } from "../../model/defaults";
+import { newCharacterSheet } from "../../model/defaults";
 import type { SkillCategory } from "../../model/catalogue";
 import { ApiFailure } from "../../remote/client";
 
@@ -43,7 +43,7 @@ const EMPTY_PROFILE: AdultWizardProfile = {
 };
 
 export function useCharacterForm(screenProps: CharacterFormProps) {
-  const { lang, newCharacterType, catalogue, onSave, onCreateFamiliar, onCancel } = screenProps;
+  const { lang, newCharacterType, catalogue, isGM = false, onSave, onCreateFamiliar, onCancel } = screenProps;
   const t = TRANSLATIONS[lang];
 
   // Forms Navigation State
@@ -96,7 +96,6 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
 
   // Local state for adding a skill and saving defaults (keyed by category id)
   const [inlineSkillNames, setInlineSkillNames] = useState<Record<string, string>>({});
-  const [skillsSavedFeedback, setSkillsSavedFeedback] = useState(false);
 
   // Equipment / Inventory inputs
   const [newItemName, setNewItemName] = useState("");
@@ -278,17 +277,9 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     setCharacterState(prev => ({ ...prev, habilidades: (prev.habilidades ?? []).filter(s => s.id !== skillId) }));
   };
 
-  const handleSaveDefaultSkills = () => {
-    try {
-      // As before, the preset records which skills, each starting at 0.
-      saveSkillPreset((characterState.habilidades ?? []).map(sk => ({ ...sk, valor: 0 })));
-    } catch (err) {
-      console.error("Saving the skill preset failed:", err);
-      return;
-    }
-    setSkillsSavedFeedback(true);
-    setTimeout(() => setSkillsSavedFeedback(false), 3000);
-  };
+  // The + list: a catalogue skill the character does not have yet, at 0.
+  const handlePickSkill = (catalogo: string) =>
+    setCharacterState(prev => ({ ...prev, habilidades: [...(prev.habilidades ?? []), { id: newItemId(), catalogo, valor: 0 }] }));
 
   // Creating the character
   const saving = useRef(false);
@@ -396,7 +387,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     createdFamiliar,
     inlineSkillNames,
     setInlineSkillNames,
-    skillsSavedFeedback,
+    isGM,
     newItemName,
     setNewItemName,
     newItemQty,
@@ -438,7 +429,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     setSkillError,
     handleAddInlineSkill,
     handleRemoveSkill,
-    handleSaveDefaultSkills,
+    handlePickSkill,
     handleSave,
     handleCreateFamiliar,
     handleCancelClick,

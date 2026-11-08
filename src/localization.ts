@@ -176,10 +176,7 @@ export interface TranslationDict {
   placeholderNewSkillCategory: string;
   placeholderNewSkillName: string;
   labelCreationRange: string;
-  btnSaveSkillPreset: string;
-  btnSetDefaultPreset: string;
-  savedPreset: string;
-  descSaveSkillPreset: string;
+  addSkillFromList: string;
   errSkillExists: string;
   noSkillsInCategory: string;
 
@@ -560,10 +557,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderNewSkillCategory: "Nueva habilidad en esta categoría...",
     placeholderNewSkillName: "Nueva habilidad...",
     labelCreationRange: "Rango de creación: 0 a 5",
-    btnSaveSkillPreset: "Guardar Plantilla de Habilidades",
-    btnSetDefaultPreset: "Fijar por Defecto",
-    savedPreset: "¡Registrado!",
-    descSaveSkillPreset: "Establece la lista de habilidades actual como el borrador predeterminado para futuras matrículas.",
+    addSkillFromList: "Añadir de la lista",
     errSkillExists: 'La habilidad "{name}" ya existe',
     noSkillsInCategory: "No hay habilidades registradas en esta categoría.",
 
@@ -945,10 +939,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderNewSkillCategory: "Add skill here...",
     placeholderNewSkillName: "New skill name...",
     labelCreationRange: "Creation range: 0 to 5",
-    btnSaveSkillPreset: "Save Skill Preset Template",
-    btnSetDefaultPreset: "Set as Default Preset",
-    savedPreset: "Saved preset!",
-    descSaveSkillPreset: "Saves the current skill list layout as the standard template for all future created characters.",
+    addSkillFromList: "Add from the list",
     errSkillExists: 'Skill "{name}" already exists',
     noSkillsInCategory: "No skills registered in this category.",
 

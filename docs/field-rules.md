@@ -93,7 +93,7 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 
 | Field | Today | Rule |
 |---|---|---|
-| `habilidades[].nombre` | Players add their own skills, duplicates rejected. **Changing (owner decision, 8 November 2026):** only the GM creates new skills and saves the default skills for new characters; players add skills from the campaign's list with a + button. | **Required, text 60**; no duplicate names within a character |
+| `habilidades[].nombre` | **Owner decision, 8 November 2026:** only the GM creates, renames, moves or removes own (non-catalogue) skills; players pick catalogue skills with «+ Añadir de la lista», remove catalogue skills (and pick them again), and change any value. The server refuses anything else with `gm_only_skill` (403), on saves and on creation. Which skills new characters start with becomes the GM's campaign setting («inicial», next step); the per-device preset is gone. Duplicates rejected. | **Required, text 60**; no duplicate names within a character |
 | `habilidades[].valor` | 0–5. | **Whole number 0–5** |
 | `habilidades[].categoria` | One of five fixed texts; others are invisible. | **A category of the campaign's catalogue** (by ID); default skills also keep a link to their catalogue entry |
 | `habilidades[].conocimiento` | — (new) | **Choice** none / basic / medium / advanced; only for skills in a category marked esoteric |

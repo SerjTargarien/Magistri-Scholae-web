@@ -35,7 +35,7 @@
 - Screens read and write records only through the sheet store and its adapters (remote, the in-browser mock server, and later the offline store), never through Dexie or the API directly.
 - Every stored field has a rule in [docs/field-rules.md](docs/field-rules.md) (length, range, choice or list size), enforced by the server and mirrored by the input. A new field gets its rule there and in the backend registry.
 - Preserve server records, IDs and media. Do not bump or reset `MagistriScholaeDB` until R3.6 deletes it. Use isolated fixture databases for tests.
-- Keep legitimate local preferences (language, visual style, custom skill presets) distinct from authoritative shared records.
+- Keep legitimate local preferences (language, visual style) distinct from authoritative shared records. Which skills new characters start with is the GM's campaign setting, not a local preference (the per-device skill preset was removed on 8 November 2026).
 - Hidden values are not blank values. Never turn a partial viewer projection into a destructive whole-record save. Network writes are validated (changed fields and revisions) on the server.
 - Unsent changes keep their path, value, base revision and operation ID. After a stale revision, re-send only changes to paths the server did not also change, and ask the viewer about the rest; never use last-write-wins. Unsent changes belong to one account and are cleared, after a warning, on logout.
 - A mock is a development simulation, not authorization. Never send full hidden records to a production player and rely on CSS or client filtering.

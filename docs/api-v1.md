@@ -24,7 +24,7 @@ An actor-scoped operation ID binds to the method, route and exact body, includin
 | `auth/password-reset` | POST `{code, newPassword}` → `{}`; invalidates all old sessions. |
 | `auth/password-change` | POST `{currentPassword, newPassword}` → `{}`; signs out all old sessions, including this one. |
 | `admin/users/{userId}/state` | POST `{active: boolean}` → `{}`. Site administrator only; disable/re-enable invalidates old sessions. |
-| `campaigns` | GET → `{items: [...]}`; current memberships, or operational summaries for site administrator. POST `{name}` creates a campaign, administrator only. Creation does not grant the operator a GM role. Issue a GM invitation or add an existing account explicitly. |
+| `campaigns` | GET → `{items: [{id, name, policyRevision, role}]}`; current memberships, or operational summaries for site administrator. `role` is the viewer's own role in that campaign (`"gm"`, `"player"`, or `null` for an administrator who is not a member). POST `{name}` creates a campaign, administrator only. Creation does not grant the operator a GM role. Issue a GM invitation or add an existing account explicitly. |
 | `campaigns/{id}/members` | GET lists `{userId, username, role}` to that campaign's GM. POST `{userId, role: "player", "gm", or null}` adds/changes/removes an existing account. GM-role changes require administrator; last GM cannot be removed. New accounts still need invitations. |
 | `campaigns/{id}/visibility/preview` | POST `{expectedRevision: number, defaults}` → current/proposed defaults, signed preview token and expected revision. GM only. |
 | `campaigns/{id}/visibility` | POST `{expectedRevision, previewToken}` → `{policyRevision}`. GM only. |

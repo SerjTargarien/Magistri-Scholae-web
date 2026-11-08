@@ -108,6 +108,17 @@ def validate_catalogue(catalogue):
         require(type(entry.get("archivada", False)) is bool, "invalid_catalogue")
 
 
+def own_skills(data):
+    """A sheet's own (not catalogue) skills as {id: (name, category)}.
+
+    Only the GM creates, renames, moves or removes them (owner decision,
+    8 November 2026); players pick catalogue skills and change values.
+    """
+    skills = (data or {}).get("habilidades") if isinstance(data, dict) else None
+    return {entry["id"]: (entry.get("nombre"), entry.get("categoria")) for entry in skills or []
+            if isinstance(entry, dict) and "catalogo" not in entry and "id" in entry}
+
+
 def check_skills(skills, catalogue, only=None):
     """Catalogue rules for a character's skills: links and categories exist,
     knowledge only in esoteric categories, no skill twice. `only` limits the

@@ -74,6 +74,25 @@ export function skillsByCategory(skills: readonly SkillEntry[], catalogue: Skill
 }
 
 /**
+ * The catalogue skills of a category this character could add with the + list:
+ * not archived, applicable (Magia intuitiva only up to 14) and not yet on the sheet.
+ */
+export function missingSkills(skills: readonly SkillEntry[], catalogue: SkillCatalogue,
+  character: Pick<CharacterSheet, "characterType" | "edad">, categoryId: string): CatalogueSkill[] {
+  const linked = new Set(skills.map(e => e.catalogo).filter(Boolean));
+  return catalogue.habilidades.filter(s => s.categoria === categoryId && !s.archivada && !linked.has(s.id) && skillApplies(s, character));
+}
+
+/**
+ * A sheet's own (not catalogue) skills, as a comparable key. Only the GM creates,
+ * renames, moves or removes them (owner decision, 8 November 2026; the server's
+ * catalogue.own_skills); players change their values.
+ */
+export function ownSkillsKey(skills: readonly SkillEntry[] | undefined): string {
+  return JSON.stringify((skills ?? []).filter(e => !e.catalogo).map(e => [e.id, e.nombre, e.categoria]).sort());
+}
+
+/**
  * The server's catalogue rules for a character's skills (backend/domain/catalogue.py):
  * links and categories exist, knowledge only in esoteric categories, no skill
  * twice. `only` limits the checks to the entries a save touched.

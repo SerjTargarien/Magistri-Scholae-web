@@ -5,8 +5,9 @@
 
 // The creation form's "habilidades" tab, moved verbatim out of CharacterForm.tsx (R3.4).
 import React from "react";
-import { Save, Plus, Trash2, BookOpen } from "lucide-react";
-import { catalogueName, skillName, skillsByCategory, type SkillCategory } from "../../model/catalogue";
+import { Plus, Trash2, BookOpen } from "lucide-react";
+import { catalogueName, missingSkills, skillName, skillsByCategory, type SkillCategory } from "../../model/catalogue";
+import { SkillPicker } from "../SkillPicker";
 
 import type { FormContext } from "./useCharacterForm";
 
@@ -22,10 +23,11 @@ const categoryHeading = (category: SkillCategory, lang: "es" | "en") =>
 
 export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
   const {
-    lang, catalogue, t, characterState, characterType, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback,
-    adjustSkillValue, skillError, setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills,
+    lang, catalogue, t, characterState, characterType, inlineSkillNames, setInlineSkillNames, isGM,
+    adjustSkillValue, skillError, setSkillError, handleAddInlineSkill, handleRemoveSkill, handlePickSkill,
     houseIconColor,
   } = ctx;
+  const character = { characterType, edad: characterState.edad };
   const groups = skillsByCategory(characterState.habilidades ?? [], catalogue, { characterType, edad: characterState.edad });
   return (
             <div className="space-y-6 animate-fade-in" id="form-tabpanel-habilidades">
@@ -43,6 +45,7 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
 
               {/* Grouped sections vertically */}
               {groups.map(({ category, skills: skillsInCategory }) => {
+                const missing = missingSkills(characterState.habilidades ?? [], catalogue, character, category.id);
                 return (
                   <div key={category.id} className="space-y-3 bg-neutral-950/30 p-4 border border-violet-500/5 rounded-xl">
                     <h4 className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-extrabold border-b border-neutral-800 pb-1">
@@ -108,8 +111,10 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                       </p>
                     )}
 
-                    {/* Inline instant adding input */}
-                    <div className="mt-4 pt-3 border-t border-neutral-900/40 flex flex-col sm:flex-row sm:items-center gap-2 max-w-md">
+                    {/* Adding: the + list for everyone; typing a new skill is the GM's (owner decision, 8 November 2026) */}
+                    {(isGM || missing.length > 0) && (
+                    <div className="mt-4 pt-3 border-t border-neutral-900/40 flex flex-col gap-2 max-w-md">
+                      {isGM && (
                       <div className="flex-1 flex gap-2">
                         <input
                           type="text"
@@ -136,7 +141,10 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                      )}
+                      <SkillPicker categoryId={category.id} lang={lang} label={t.addSkillFromList} missing={missing} onPick={handlePickSkill} />
                     </div>
+                    )}
                   </div>
                 );
               })}
@@ -147,34 +155,6 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                   ⚠️ {skillError}
                 </div>
               )}
-
-              {/* Plantilla Predeterminada / Defaults panel at bottom */}
-              <div className="p-4 bg-neutral-950/40 border border-violet-500/10 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-inner mt-6">
-                <div className="space-y-1">
-                  <h4 className="text-xs font-magic text-amber-400 uppercase tracking-widest">
-                    {"🔧 " + t.btnSaveSkillPreset}
-                  </h4>
-                  <p className="text-[10.5px]/relaxed text-neutral-400 font-sans">
-                    {t.descSaveSkillPreset}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleSaveDefaultSkills}
-                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    {t.btnSetDefaultPreset}
-                  </button>
-                  {skillsSavedFeedback && (
-                    <span className="text-[10px] text-emerald-400 font-mono animate-pulse">
-                      {"✓ " + t.savedPreset}
-                    </span>
-                  )}
-                </div>
-              </div>
-
             </div>
   );
 }

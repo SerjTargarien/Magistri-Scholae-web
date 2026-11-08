@@ -34,7 +34,8 @@ const CAMPAIGN_KEY = "magistri_campaign";
 const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.py pagination)
 
 type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS";
-type Campaign = { id: string; name: string };
+/** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
+type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
 /** Reads the data URL's base64 part, as the asset endpoint expects. */
 const base64Of = (dataUrl: string) => dataUrl.slice(dataUrl.indexOf(",") + 1);
@@ -389,6 +390,7 @@ export default function App() {
             <CharacterForm
               lang={lang}
               newCharacterType={newCharacterType}
+              isGM={campaigns.find(c => c.id === campaignId)?.role === "gm"}
               catalogue={catalogue}
               onSave={handleSaveForm}
               onCreateFamiliar={async (fields, image) => {

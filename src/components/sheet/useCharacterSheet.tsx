@@ -13,7 +13,6 @@ import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
 import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
 import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry } from "../../model/sheet";
-import { saveSkillPreset } from "../../model/defaults";
 import type { CharacterDetailProps } from "../../account/screens";
 
 type TextList = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
@@ -167,7 +166,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   // Skills dynamic customization states, keyed by catalogue category ID
   const [newSkillNames, setNewSkillNames] = useState<Record<string, string>>({});
   const [skillErrorCat, setSkillErrorCat] = useState<string | null>(null);
-  const [presetSavedSuccess, setPresetSavedSuccess] = useState(false);
 
   // Confirmation states to avoid window.confirm (blocked/unreliable in sandboxed iframes)
   const [isDeleteStudentOpen, setIsDeleteStudentOpen] = useState(false);
@@ -314,15 +312,10 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
   const handleRemoveSkill = (skillId: string) => removeEntry("habilidades", skillId);
 
-  const handleSaveDefaultSkillPreset = () => {
-    try {
-      saveSkillPreset(character.habilidades ?? []);
-      setPresetSavedSuccess(true);
-      setTimeout(() => setPresetSavedSuccess(false), 3000);
-    } catch (e) {
-      console.error("Failed to save skill preset:", e);
-    }
-  };
+  // The + list: a catalogue skill the character does not have yet, at 0.
+  const handlePickSkill = (catalogo: string) => addEntry("habilidades", { catalogo, valor: 0 });
+  // Only the GM types new skills (owner decision, 8 November 2026); the server enforces it.
+  const isGM = capabilities.isGM;
 
   // 3. Spells (Hechizos) Actions
   const addSpell = () => {
@@ -595,7 +588,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setZoom,
     newSkillNames,
     skillErrorCat,
-    presetSavedSuccess,
+    isGM,
     isDeleteStudentOpen,
     setIsDeleteStudentOpen,
     deleteStudentUnderstood,
@@ -635,7 +628,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     handleNewSkillNameChange,
     handleAddSkill,
     handleRemoveSkill,
-    handleSaveDefaultSkillPreset,
+    handlePickSkill,
     addSpell,
     removeSpell,
     confirmRemoveSpell,

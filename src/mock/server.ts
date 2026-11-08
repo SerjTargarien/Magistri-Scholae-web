@@ -7,7 +7,7 @@
 // in demo builds (VITE_MOCK_SERVER) and always shows the DEMO banner.
 import type { ApiSheetProjection, EntityKind } from "../contracts/api-v1";
 import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
-import { checkSkills, DEFAULT_SKILL_CATALOGUE } from "../model/catalogue";
+import { checkSkills, DEFAULT_SKILL_CATALOGUE, ownSkillsKey } from "../model/catalogue";
 import { checkSheet, type Rule } from "../model/rules";
 import { setApiTransport } from "../remote/client";
 import { setAssetResolver } from "../remote/assets";
@@ -122,10 +122,17 @@ export class MockServer {
       } else writablePaths.push(path);
     };
     if (writer) editable({ type: "object", fields: API_SCHEMA.entities[sheet.kind] as Record<string, Rule> }, fields, "");
+    let removable = removablePaths, writable = writablePaths;
+    if (access !== "gm" && sheet.kind === "character") {
+      // Like the server: only the GM names, moves or removes own skills.
+      const own = new Set(((fields as any).habilidades ?? []).filter((e: any) => !e.catalogo).map((e: any) => `habilidades/${e.id}`));
+      removable = removablePaths.filter(p => !own.has(p));
+      writable = writablePaths.filter(p => !(p.startsWith("habilidades/") && /\/(nombre|categoria)$/.test(p)));
+    }
     return {
       kind: "viewer-projection", id: sheet.id, entityType: sheet.kind, campaignId: CAMPAIGN.id, schemaVersion: 4,
       revision: `r${sheet.revision}-${user.role}`, fields: fields as any,
-      capabilities: { readablePaths, writablePaths, collectionPaths, removablePaths, bondWritable: writer, isGM: access === "gm" },
+      capabilities: { readablePaths, writablePaths: writable, collectionPaths, removablePaths: removable, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),
       ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId, archived: sheet.archived } : {}),
     };
@@ -165,7 +172,8 @@ export class MockServer {
     if (path === "auth/logout" && method === "POST") { this.state.viewer = null; this.save(); return new Reply(200, {}); }
     if (!user) return fail(401, "authentication_required");
     if (path === "auth/me") return new Reply(200, this.userView(user));
-    if (path === "campaigns" && method === "GET") return pageOf(query) ? new Reply(200, { items: [CAMPAIGN] }) : fail(400, "invalid_request");
+    if (path === "campaigns" && method === "GET")
+      return pageOf(query) ? new Reply(200, { items: [{ ...CAMPAIGN, role: user.role === "gm" ? "gm" : "player" }] }) : fail(400, "invalid_request");
     if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return new Reply(200, { catalogue: DEFAULT_SKILL_CATALOGUE, revision: 1 });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, body, user);
 
@@ -222,6 +230,7 @@ export class MockServer {
     if (body.campaignId !== CAMPAIGN.id || !body.fields || typeof body.fields !== "object") return fail(400, "invalid_request");
     const refused = this.problems(kind, body.fields);
     if (refused) return refused;
+    if (user.role !== "gm" && ownSkillsKey((body.fields as any).habilidades) !== "[]") return fail(403, "gm_only_skill");
     const sheet: DemoSheet = { id: `demo-${crypto.randomUUID()}`, kind, fields: structuredClone(body.fields), assignedPlayerId: user.id,
       archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [], gmNote: { content: "", revision: 0 } };
     this.state.sheets.push(sheet);
@@ -248,6 +257,8 @@ export class MockServer {
     }
     const refused = this.problems(sheet.kind, fields, touched);
     if (refused) return refused;
+    if (this.access(sheet, user) !== "gm" && ownSkillsKey(fields.habilidades) !== ownSkillsKey((sheet.fields as any).habilidades))
+      return fail(403, "gm_only_skill");
     sheet.fields = fields;
     sheet.revision++;
     return new Reply(200, this.projection(sheet, user));

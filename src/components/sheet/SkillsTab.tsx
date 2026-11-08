@@ -5,38 +5,21 @@
 
 // The sheet's "habilidades" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
 import React from "react";
-import { catalogueName, skillName, skillsByCategory } from "../../model/catalogue";
-import { Plus, X, Save } from "lucide-react";
+import { catalogueName, missingSkills, skillName, skillsByCategory } from "../../model/catalogue";
+import { Plus, X } from "lucide-react";
+import { SkillPicker } from "../SkillPicker";
 
 import type { SheetContext } from "./useCharacterSheet";
 
 export function SkillsTab({ ctx }: { ctx: SheetContext }) {
   const {
     lang, catalogue, character, t, writable, canAdd, canRemove, isQuickEditing, newSkillNames, skillErrorCat,
-    presetSavedSuccess, changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill,
-    handleSaveDefaultSkillPreset,
+    isGM, changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handlePickSkill,
   } = ctx;
   // The campaign catalogue's categories, in order; skills that do not apply (Magia intuitiva above 14) are left out.
   const groups = skillsByCategory(character.habilidades ?? [], catalogue, character);
   return (
           <div className="space-y-6 animate-fade-in" id="detail-tab-habilidades">
-            {/* Save Default Skill Preset Banner in Quick Edit */}
-            {isQuickEditing && (
-              <div className="bg-violet-950/40 border border-violet-500/20 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
-                <span className="text-xs text-neutral-300 font-mono">
-                  {t.descSaveSkillPreset}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleSaveDefaultSkillPreset}
-                  className="px-4 py-2 bg-violet-900 hover:bg-violet-800 border border-violet-500/40 text-violet-100 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0"
-                >
-                  <Save className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{presetSavedSuccess ? t.savedPreset : t.btnSaveSkillPreset}</span>
-                </button>
-              </div>
-            )}
-
             {/* Split Skills by structural headings */}
             {groups.map(({ category, skills: matchedSkills }) => {
               const catKey = category.id;
@@ -49,9 +32,10 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                     </h3>
                   </div>
 
-                  {/* Inline insertion form */}
+                  {/* Adding: the + list for everyone; typing a new skill is the GM's (owner decision, 8 November 2026) */}
                   {isQuickEditing && canAdd("habilidades") && (
-                    <div className="mb-4 space-y-1.5">
+                    <div className="mb-4 space-y-2">
+                      {isGM && (<>
                       <div className="bg-neutral-950/40 p-3 rounded-xl border border-violet-500/10 flex gap-2 items-center" id={`add-skill-form-${catKey}`}>
                         <input
                           id={`input-new-skill-name-${catKey}`}
@@ -82,6 +66,9 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                           {t.errSkillExists.replace("{name}", newSkillNames[catKey] || "")}
                         </p>
                       )}
+                      </>)}
+                      <SkillPicker categoryId={catKey} lang={lang} label={t.addSkillFromList}
+                        missing={missingSkills(character.habilidades ?? [], catalogue, character, catKey)} onPick={handlePickSkill} />
                     </div>
                   )}
 

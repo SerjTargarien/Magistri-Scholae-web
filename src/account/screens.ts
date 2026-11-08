@@ -42,6 +42,8 @@ export interface CharacterFormProps {
   lang: Language;
   newCharacterType: CharacterType;
   catalogue: SkillCatalogue;
+  /** The viewer is the campaign's GM: only the GM types new skills (players pick from the catalogue). */
+  isGM?: boolean;
   /**
    * Creates the character. `avatar` is the cropped portrait (data URL), uploaded
    * after creation; `familiarId` is a familiar created from the form, bonded after.

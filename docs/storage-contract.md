@@ -33,7 +33,7 @@ Canonical numeric-string familiar backlinks such as `"41"` can resolve character
 
 `estimate` wraps `navigator.storage.estimate()`: its figures cover the browser origin, including other storage at that origin, **not this database alone**. Missing/failed support keeps the prior fallback strings. UI confirmation remains required for reset and replace import; there is no shared-server wipe endpoint.
 
-Language, visual style and custom skill defaults remain local preferences in `localStorage`, outside entity repositories and backups. Mock records use built-in skills rather than copying saved presets; preferences themselves can still be changed locally in either mode.
+Language and visual style remain local preferences in `localStorage` (custom skill defaults were too, until 8 November 2026, when starting skills became the GM's campaign setting), outside entity repositories and backups. Mock records use built-in skills rather than copying saved presets; preferences themselves can still be changed locally in either mode.
 
 ## Backup compatibility and integrity
 

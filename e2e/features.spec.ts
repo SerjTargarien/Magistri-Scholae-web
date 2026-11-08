@@ -3,7 +3,7 @@
 // Runs at desktop and phone widths as the demo's assigned player; GM steps
 // switch viewer. Results are read back from the mock server's stored copy.
 import {
-  characterCard, createCharacter, createFamiliar, expect, familiarCard, isMobile, openApp, openCharacter,
+  characterCard, createCharacter, createFamiliar, expect, familiarCard, flushWrites, isMobile, openApp, openCharacter,
   openFamiliar, openTab, pngFile, reloadApp, setEditMode, storedSheet, test, viewAs, visibleOf,
 } from "./helpers";
 
@@ -85,8 +85,13 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await setEditMode(page, true);
   await openTab(page, "habilidades");
   await page.locator("#btn-skill-Atletismo-plus").click();
-  await page.locator("#input-new-skill-name-fisicas").fill("Escalada");
-  await page.locator("#btn-add-skill-fisicas").click();
+  // Players pick from the campaign's list; only the GM types new skills.
+  await expect(page.locator("#input-new-skill-name-fisicas")).toHaveCount(0);
+  await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0); // every physical skill is already there
+  await page.locator("#skill-row-Sigilo button").first().click(); // remove it
+  await page.locator("#btn-open-skill-list-fisicas").click();
+  await page.locator("#btn-pick-skill-sigilo").click(); // and pick it again
+  await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
   await openTab(page, "hechizos");
   await page.locator("#input-spell-name").fill("Revelio");
   await page.locator("#btn-add-spell").click();
@@ -110,12 +115,38 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await expect(page.locator("#detail-tab-notas")).toContainText("Suspicions");
   const stored = await storedSheet(page, "Studious Student");
   expect(stored!.habilidades.find((s: { catalogo?: string }) => s.catalogo === "atletismo").valor).toBe(1);
-  expect(stored!.habilidades).toContainEqual(expect.objectContaining({ nombre: "Escalada", categoria: "fisicas" }));
+  expect(stored!.habilidades.filter((s: { catalogo?: string }) => s.catalogo === "sigilo")).toEqual([expect.objectContaining({ valor: 0 })]);
+  expect(stored!.habilidades.filter((s: { catalogo?: string }) => !s.catalogo)).toEqual([]);
   expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio" })]);
   expect(stored!.pociones).toEqual([expect.objectContaining({ nombre: "Draught of Calm" })]);
   expect(stored!.clubesList).toEqual([expect.objectContaining({ nombre: "Duelling Club" })]);
   expect(stored!.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron" })]);
   expect(stored!.notasList).toEqual([expect.objectContaining({ titulo: "Suspicions", contenido: "The alchemy teacher hides something." })]);
+});
+
+test("only the GM types new skills; the player keeps their value but cannot remove them", async ({ page }) => {
+  await createCharacter(page, "Skilled Student");
+  await viewAs(page, "gm");
+  await openCharacter(page, "Skilled Student");
+  await setEditMode(page, true);
+  await openTab(page, "habilidades");
+  await page.locator("#input-new-skill-name-fisicas").fill("Escalada");
+  await page.locator("#btn-add-skill-fisicas").click();
+  await expect(page.locator("#skill-row-Escalada")).toBeVisible();
+  await setEditMode(page, false);
+  await flushWrites(page);
+
+  await viewAs(page, "player");
+  await openCharacter(page, "Skilled Student");
+  await setEditMode(page, true);
+  await openTab(page, "habilidades");
+  await expect(page.locator("#skill-row-Escalada button[title]")).toHaveCount(0); // no remove button
+  await expect(page.locator("#skill-row-Sigilo button[title]")).toHaveCount(1);
+  await page.locator("#btn-skill-Escalada-plus").click();
+  await setEditMode(page, false);
+  await reloadApp(page);
+  const stored = await storedSheet(page, "Skilled Student");
+  expect(stored!.habilidades).toContainEqual(expect.objectContaining({ nombre: "Escalada", categoria: "fisicas", valor: 1 }));
 });
 
 test("adult wizard: profile fields and archetype tabs persist", async ({ page }) => {

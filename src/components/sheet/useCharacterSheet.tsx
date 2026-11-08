@@ -12,7 +12,7 @@ import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
 import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry } from "../../model/sheet";
+import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry, type EsotericKnowledge } from "../../model/sheet";
 import type { CharacterDetailProps } from "../../account/screens";
 
 type TextList = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
@@ -319,6 +319,16 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const handleRemoveSkill = (skillId: string) => removeEntry("habilidades", skillId);
+
+  // The knowledge level of an esoteric skill. Clearing it rewrites the entry without
+  // the field (the server has no "empty" level); the current value is kept.
+  const setSkillKnowledge = (skillId: string, level: EsotericKnowledge | undefined) => {
+    const entry = (character.habilidades ?? []).find(s => s.id === skillId);
+    if (!entry) return;
+    if (level) { edit(`habilidades/${skillId}/conocimiento`, level); return; }
+    const { id: _id, conocimiento: _level, ...rest } = entry;
+    edit(`habilidades/${skillId}`, rest);
+  };
 
   // The + list: a catalogue skill the character does not have yet, at 0.
   const handlePickSkill = (catalogo: string) => addEntry("habilidades", { catalogo, valor: 0 });
@@ -637,6 +647,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     handleAddSkill,
     handleRemoveSkill,
     handlePickSkill,
+    setSkillKnowledge,
     addSpell,
     removeSpell,
     confirmRemoveSpell,

@@ -8,13 +8,14 @@ import React from "react";
 import { catalogueName, missingSkills, skillName, skillsByCategory } from "../../model/catalogue";
 import { Plus, X } from "lucide-react";
 import { SkillPicker } from "../SkillPicker";
+import { KnowledgeLevel } from "../KnowledgeLevel";
 
 import type { SheetContext } from "./useCharacterSheet";
 
 export function SkillsTab({ ctx }: { ctx: SheetContext }) {
   const {
     lang, catalogue, character, t, writable, canAdd, canRemove, isQuickEditing, newSkillNames, skillErrorCat,
-    isGM, changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handlePickSkill,
+    isGM, changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handlePickSkill, setSkillKnowledge,
   } = ctx;
   // The campaign catalogue's categories, in order; skills that do not apply (Magia intuitiva above 14) are left out.
   const groups = skillsByCategory(character.habilidades ?? [], catalogue, character);
@@ -100,6 +101,12 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                               )}
                               <div className="truncate flex-1">
                                 <span className="text-xs font-semibold text-neutral-200 block truncate" title={displaySkillName}>{displaySkillName}</span>
+                                {category.esoterica && (
+                                  <div className="mt-1">
+                                    <KnowledgeLevel skillId={sk.id} value={sk.conocimiento} lang={lang} onChange={level => setSkillKnowledge(sk.id, level)}
+                                      editable={isQuickEditing && writable(`habilidades/${sk.id}/conocimiento`)} />
+                                  </div>
+                                )}
                                 <div className="flex gap-1 mt-1">
                                   {/* Small glowing pips indicating score weights */}
                                   {Array.from({ length: 5 }).map((_, i) => (

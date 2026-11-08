@@ -183,6 +183,43 @@ test("the GM's campaign skill list: starting skills, names and new skills", asyn
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
 });
 
+test("esoteric skills keep a knowledge level, set in the form and on the sheet", async ({ page }) => {
+  await createCharacter(page, "Esoteric Student", {
+    fill: async () => {
+      await page.locator("#btn-form-tab-habilidades").click();
+      await page.locator('[id^="select-knowledge-"]').first().selectOption("basico"); // the form always shows the selector
+    },
+  });
+  let stored = await storedSheet(page, "Esoteric Student");
+  expect(stored!.habilidades.filter((s: { conocimiento?: string }) => s.conocimiento)).toEqual([expect.objectContaining({ conocimiento: "basico" })]);
+  const cabala = stored!.habilidades.find((s: { catalogo?: string }) => s.catalogo === "cabala");
+
+  await setEditMode(page, true);
+  await openTab(page, "habilidades");
+  await page.locator(`#btn-skill-Cábala-plus`).click();
+  await page.locator(`#select-knowledge-${cabala.id}`).selectOption("medio");
+  await setEditMode(page, false);
+  await reloadApp(page);
+  await openCharacter(page, "Esoteric Student");
+  await openTab(page, "habilidades");
+  await expect(page.locator(`#tag-knowledge-${cabala.id}`)).toContainText("Medio");
+  await expect(page.locator('[id^="select-knowledge-"]')).toHaveCount(0); // only in edit mode
+  stored = await storedSheet(page, "Esoteric Student");
+  expect(stored!.habilidades.find((s: { id: string }) => s.id === cabala.id)).toMatchObject({ catalogo: "cabala", valor: 1, conocimiento: "medio" });
+
+  await setEditMode(page, true);
+  await page.locator(`#select-knowledge-${cabala.id}`).selectOption("");
+  await setEditMode(page, false);
+  await reloadApp(page);
+  stored = await storedSheet(page, "Esoteric Student");
+  expect(stored!.habilidades.find((s: { id: string }) => s.id === cabala.id)).toEqual({ id: cabala.id, catalogo: "cabala", valor: 1 });
+  // Only esoteric skills have a level.
+  await openCharacter(page, "Esoteric Student");
+  await setEditMode(page, true);
+  await openTab(page, "habilidades");
+  await expect(page.locator('#skill-block-fisicas [id^="select-knowledge-"]')).toHaveCount(0);
+});
+
 test("adult wizard: profile fields and archetype tabs persist", async ({ page }) => {
   await createCharacter(page, "Smoke Professor", {
     type: "adult-wizard",

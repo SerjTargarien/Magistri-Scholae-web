@@ -12,7 +12,7 @@ import { TRANSLATIONS, getLocalizedHouseLore, translateHouseMotto } from "../../
 import { getCroppedImg } from "../../utils/imageCompressor";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import type { CharacterFormProps } from "../../account/screens";
-import type { AdultWizardProfile, CharacterSheet, House, SkillEntry, TextEntry } from "../../model/sheet";
+import type { AdultWizardProfile, CharacterSheet, EsotericKnowledge, House, SkillEntry, TextEntry } from "../../model/sheet";
 import { newItemId } from "../../model/sheet";
 import { newCharacterSheet } from "../../model/defaults";
 import type { SkillCategory } from "../../model/catalogue";
@@ -243,6 +243,17 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
   };
 
   // Skills interactive increment/decrement handlers (0-5)
+  // The knowledge level of an esoteric skill (none removes the field).
+  const setSkillKnowledge = (skillId: string, level: EsotericKnowledge | undefined) =>
+    setCharacterState(prev => ({
+      ...prev,
+      habilidades: (prev.habilidades ?? []).map(sk => {
+        if (sk.id !== skillId) return sk;
+        const { conocimiento: _level, ...rest } = sk;
+        return level ? { ...rest, conocimiento: level } : rest;
+      }),
+    }));
+
   const adjustSkillValue = (skillId: string, amount: number) => {
     setCharacterState(prev => ({
       ...prev,
@@ -435,6 +446,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     handleAddInlineSkill,
     handleRemoveSkill,
     handlePickSkill,
+    setSkillKnowledge,
     handleSave,
     handleCreateFamiliar,
     handleCancelClick,

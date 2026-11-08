@@ -211,9 +211,9 @@ Each step below is its own pull request. It keeps the app working under the brow
     - subjects taught: a list like aspects;
     - the form's motto box goes (the motto is the house's);
     - age as a number; Magia intuitiva hidden above 14 and for adult wizards;
-    - the new skill categories and the esoteric knowledge level;
+    - the new skill categories and the esoteric knowledge level (**done**: PR 3 of the remaining changes);
     - counters and clear warnings near every limit;
-    - images from a web address are downloaded and uploaded, never stored as links; familiar gallery images are compressed;
+    - images from a web address are downloaded and uploaded, never stored as links (the boxes are hidden until the server downloads them: `IMAGE_FROM_URL` in `src/components/imageFromUrl.ts`); familiar gallery images are compressed;
     - a blank name is never saved; generated journal titles are shown, not stored.
   - **Decided after the owner's staging test** (8 November 2026):
     - Empatía moves to social skills; custom fields read like the other values (no boxes) (**done**);

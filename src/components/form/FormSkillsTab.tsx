@@ -8,6 +8,7 @@ import React from "react";
 import { Plus, Trash2, BookOpen } from "lucide-react";
 import { catalogueName, missingSkills, skillName, skillsByCategory, type SkillCategory } from "../../model/catalogue";
 import { SkillPicker } from "../SkillPicker";
+import { KnowledgeLevel } from "../KnowledgeLevel";
 
 import type { FormContext } from "./useCharacterForm";
 
@@ -24,7 +25,7 @@ const categoryHeading = (category: SkillCategory, lang: "es" | "en") =>
 export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
   const {
     lang, catalogue, t, characterState, characterType, inlineSkillNames, setInlineSkillNames, isGM,
-    adjustSkillValue, skillError, setSkillError, handleAddInlineSkill, handleRemoveSkill, handlePickSkill,
+    adjustSkillValue, skillError, setSkillError, handleAddInlineSkill, handleRemoveSkill, handlePickSkill, setSkillKnowledge,
     houseIconColor,
   } = ctx;
   const character = { characterType, edad: characterState.edad };
@@ -59,8 +60,9 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                           return (
                             <div
                               key={sk.id}
-                              className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
+                              className="flex flex-col gap-1 bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                             >
+                              <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <button
                                   type="button"
@@ -101,6 +103,10 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                                   +
                                 </button>
                               </div>
+                              </div>
+                              {category.esoterica && (
+                                <KnowledgeLevel skillId={sk.id} value={sk.conocimiento} lang={lang} editable onChange={level => setSkillKnowledge(sk.id, level)} />
+                              )}
                             </div>
                           );
                         })}

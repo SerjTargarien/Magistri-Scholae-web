@@ -489,6 +489,15 @@ The campaign's skill list is the universe's (decision 9: one campaign, two table
 
 - Owner decision (same day): the first version is **Spanish only**. `LANGUAGE_CHOICE = false` in `src/App.tsx` hides the language card in Settings and ignores a saved English choice (kept, so it returns if the switch is turned on). English texts stay in the code; automatic translation of skill names may come later.
 
+Merged and released to staging (release `20261108-163813-9f44f37`; checked: the GM saves the list, a player is refused).
+
+## Esoteric knowledge; staging ready for testers — 8 November 2026
+
+The owner asked for a proper design document before further changes, and for staging to be ready for the GM and players to test now. Remaining phase 3 plan (four pull requests: session tab; lists, titles and limits; esoteric knowledge; images from a web address) was explained; only the esoteric knowledge part is done here.
+- Esoteric knowledge: skills in «Magia esotérica» get a level (Sin conocimiento / Básico (alteración) / Medio (destrucción) / Avanzado (creación)) in the creation form and on the sheet in edit mode, set by whoever edits the sheet (owner's earlier recommendation accepted); reading mode shows a tag. Clearing rewrites the entry without the field.
+- Images from a web address: the boxes in the creation form and the familiar editor are hidden (`IMAGE_FROM_URL = false`), because most sites block the browser from reading their images; they return when the server downloads images (remaining PR 4, its own security review).
+- Checked: type check, 49 unit tests, both builds, 37 browser tests (new: the knowledge level in the form and on the sheet, set, shown, cleared); looked at both modes in the demo.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

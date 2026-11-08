@@ -15,6 +15,7 @@ import { imageSrc } from "../remote/assets";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../utils/imageCompressor";
 import { FiligreeCorner } from "./AcademyOrnaments";
+import { IMAGE_FROM_URL } from "./imageFromUrl";
 import {
   Save,
   X,
@@ -394,6 +395,8 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     />
                   </div>
 
+                  {/* Hidden until the server downloads the image (most sites block the browser from doing it). */}
+                  {IMAGE_FROM_URL && (
                   <div className="border-t border-neutral-800/60 pt-2 space-y-1">
                     <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">
                       {t.pasteUrl}
@@ -417,6 +420,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                       </button>
                     </div>
                   </div>
+                  )}
 
                   <div className="border-t border-neutral-800/60 pt-2 space-y-1">
                     <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">

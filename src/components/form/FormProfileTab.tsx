@@ -9,6 +9,7 @@ import { Sparkles, Trash2, User, X } from "lucide-react";
 import { imageSrc } from "../../remote/assets";
 
 import type { FormContext } from "./useCharacterForm";
+import { IMAGE_FROM_URL } from "../imageFromUrl";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -72,6 +73,8 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       />
                     </div>
 
+                    {/* Hidden until the server downloads the image (most sites block the browser from doing it). */}
+                    {IMAGE_FROM_URL && (
                     <div className="border-t border-neutral-800/60 pt-2 space-y-1">
                       <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.pasteUrl}</span>
                       <div className="flex gap-1.5">
@@ -93,6 +96,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         </button>
                       </div>
                     </div>
+                    )}
 
                     {/* Portrait Fit Selector (cover vs contain) */}
                     <div className="border-t border-neutral-800/60 pt-2 space-y-1">

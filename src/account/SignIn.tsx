@@ -124,7 +124,9 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
     if (localStorage.getItem("magistri_logout_pending")) { location.reload(); return; }
     // A new password is typed twice (owner decision, 8 November 2026).
     if (mode !== "login" && password !== repeat) { setError("password_mismatch"); setPassword(""); setRepeat(""); return; }
-    const body = mode === "login" ? { username, password } : mode === "register" ? { invitationToken: token, username, password } : { code: token, newPassword: password };
+    // Phones add a space after a word; usernames never contain one.
+    const name = username.trim(), code = token.trim();
+    const body = mode === "login" ? { username: name, password } : mode === "register" ? { invitationToken: code, username: name, password } : { code, newPassword: password };
     const path = mode === "reset" ? "password-reset" : mode;
     setBusy(true); setError(""); setMessage("");
     try {
@@ -168,12 +170,14 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
           <fieldset disabled={busy} className="space-y-4">
             {mode !== "reset" && (
               <label className={labelClass}>{t.username}
-                <input id="input-sign-in-username" required autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} className={inputClass} />
+                <input id="input-sign-in-username" required autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  value={username} onChange={e => setUsername(e.target.value)} className={inputClass} />
               </label>
             )}
             {mode !== "login" && (
               <label className={labelClass}>{mode === "reset" ? t.code : t.invitation}
-                <input id="input-sign-in-code" required autoComplete="off" value={token} onChange={e => setToken(e.target.value)} className={inputClass} />
+                <input id="input-sign-in-code" required autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  value={token} onChange={e => setToken(e.target.value)} className={inputClass} />
               </label>
             )}
             <label className={labelClass}>{t.password}

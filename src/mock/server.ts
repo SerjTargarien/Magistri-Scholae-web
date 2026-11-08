@@ -173,7 +173,9 @@ export class MockServer {
   private route(method: string, path: string, query: URLSearchParams, body: any): Reply {
     if (path === "auth/csrf") return new Reply(200, { csrfToken: "demo-csrf" });
     if (path === "auth/login" && method === "POST") {
-      const user = Object.values(USERS).find(u => u.username === body.username);
+      // Like the server (models.normalized_username): letters, digits, _ and -, compared in lowercase.
+      const name = typeof body.username === "string" && /^[A-Za-z0-9_-]{3,30}$/.test(body.username) ? body.username.toLowerCase() : "";
+      const user = Object.values(USERS).find(u => u.username === name);
       if (!user) return fail(401, "invalid_credentials"); // like the server
       this.signInAs(user.role);
       return new Reply(200, { user: this.userView(user), csrfToken: "demo-csrf" });

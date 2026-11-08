@@ -378,7 +378,7 @@ test("settings: account card with sign-out; signing out shows the sign-in screen
   await expect(page.getByRole("alert")).toContainText("Usuario o contraseña incorrectos.");
   await page.waitForTimeout(500); // the expired-session message, when wrongly shown, comes a moment later
   await expect(page.getByText("No se pudieron cargar los datos")).toHaveCount(0); // not an expired session
-  await page.locator("#input-sign-in-username").fill("demo_player");
+  await page.locator("#input-sign-in-username").fill("Demo_Player "); // a phone's capital and trailing space
   await page.locator("#input-sign-in-password").fill("whatever");
   await page.locator("#btn-sign-in-submit").click();
   await expect(page.locator("#character-list-container")).toBeVisible();

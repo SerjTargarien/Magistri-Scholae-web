@@ -530,6 +530,12 @@ Released to the public site and staging (release `20261108-172928-c7ce656`); a l
 - Owner: accepting an invitation and resetting a password ask for the new password twice («Repite la contraseña»); a mismatch is caught before anything is sent, and both boxes are cleared. Signing in still asks once.
 - Owner: the GM will forget his password. Recovery already works by link (`#recuperacion=CODE`) with an administrator-issued reset code (15 minutes); until the admin screens (R4) create them, the agent issues one on the server into a git-ignored file, like the invitations. R4 now lists reset and invitation links and the validity question.
 
+Released to both sites (release `20261108-173809-a20cd0c`).
+
+## Usernames from phones — 8 November 2026
+
+The owner registered (`serj`, a player in the testers' campaign) but signing in said «Usuario o contraseña incorrectos». Usernames allow only letters, digits, `_` and `-` (compared in lowercase), and the server treats anything else as a wrong username, so a space a phone keyboard adds after the word blocks sign-in. The sign-in screen now trims the username and the code and turns off phone capitalisation and autocorrection in those boxes; the demo server compares usernames like the server, so the sign-out test (which signs back in as «Demo_Player ») would catch it.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

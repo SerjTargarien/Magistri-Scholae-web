@@ -118,7 +118,7 @@ Additional current-source responsibilities:
 - `Character.familiarId` and `Familiar.studentId` are linked references. Bond changes, cleanup, import remapping, and later campaign copies must keep them coherent.
 - The current backup type allows optional `familiars` even under `backupVersion: "1.0"`. Support older files without this collection and verify current round trips instead of assuming all export/import paths preserve bonds.
 - Preserve the new mobile profile banner, house crest components, and academy/classic styling. The first migration milestone is not a UI redesign.
-- **Owner decision, 8 November 2026:** the character sheet keeps its current, easy-to-read layout unless a change is justified and agreed. Other screens may be redesigned where that helps.
+- **Owner decision, 8 November 2026:** every existing screen keeps its current, easy-to-read look whenever reasonable. A change needs a reason and the owner's approval of before-and-after screenshots. New screens follow the existing academy and classic styles.
 
 ## 6. Roles and domain model
 

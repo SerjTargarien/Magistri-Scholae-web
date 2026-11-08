@@ -346,7 +346,7 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 **Owner decisions (recorded in the roadmap, design.md and AGENTS.md):**
 
 - **No old data to keep.** The only records in the old local format are the owner's test data. There is no converter and no migration: R5 is dropped, and R3.6 retires local mode. The live site stays on its current release until launch.
-- **The character sheet keeps its current look** unless a change is justified and agreed, enforced by screenshot tests (R3.1). Other screens may be redesigned. To confirm at R3.1: whether the familiar sheet and the list cards are also locked.
+- **Every existing screen keeps its current look** whenever reasonable, enforced by screenshot tests (R3.1). A change needs a reason and the owner's approval of before-and-after screenshots. New screens follow the existing styles.
 - **Offline right after launch:** a new offline mode built on the server's model. First offline viewing (R7.1), then offline editing that syncs on reconnect (R7.2): non-overlapping changes are re-sent automatically, and same-field changes ask the viewer. This reverses the earlier "no offline write queue" rule in design.md section 10. R3 builds one sheet store per sheet, so offline plugs in without changing the screens.
 - **New R3 steps:** R3.1 look baseline, R3.2 one data model (generated types), R3.3 sheet store and mock server, R3.4 screens on the store (`CharacterDetail` split per tab), R3.5 app shell, R3.6 retire the old app. The working order is R3 → R4 → R6 → R7.
 

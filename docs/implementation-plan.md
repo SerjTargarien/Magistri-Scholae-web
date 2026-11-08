@@ -30,7 +30,7 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
-| R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server; the sheet keeps its look; old local mode retired | L | R0 |
+| R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
 | R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3.5 |
 | R5 Data carry-over (**dropped 8 Nov 2026**) | Not needed: the old-format records are test data only | — | — |
 | R6 Accounts launch | Account-backed app live at `magistrischolae.fyi` | S | R2–R4 |
@@ -56,7 +56,7 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - The mobile profile banner.
 - Local mode only, until R3.6 retires it: backup export and import (full, selected, familiar-only) and the typed-phrase reset. Account export/import returns in R7.4.
 
-The character sheet must also match its R3.1 screenshots, apart from changes the owner agreed.
+The existing screens must also match their R3.1 screenshots, apart from changes the owner approved.
 
 ## R0 — Safety net (S)
 
@@ -163,20 +163,20 @@ The character sheet must also match its R3.1 screenshots, apart from changes the
 
 - **Do it right: no translation layer** between the screens and the server. The screens use the server's data model directly.
 - **No old data to keep.** The only records in the old local format are the owner's test data. So there is no converter, no data carry-over (R5 is dropped), and the old local mode is retired at the end of R3. The live site stays frozen on its current release until launch (R6).
-- **The character sheet keeps its current look** unless a change is justified and agreed with the owner. Screenshot tests enforce this. Other screens (list, settings, sign-in, campaign selection, the creation flow) may be redesigned where that helps.
+- **Every existing screen keeps its current look** whenever reasonable. A change needs a reason and the owner's approval: the agent shows before-and-after screenshots, and only after approval are the reference screenshots updated, in the same pull request. Screenshot tests enforce this. New screens (sign-in, campaign selection) follow the existing academy and classic styles.
 - **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens.
 - Rejected: a translation layer, rewriting the server to store position-based lists (which would lose per-item updates and per-item privacy), and keeping the old local mode alive alongside the new one.
 
-**Goal:** the existing screens run on the server's data model, against staging and an in-browser mock server, with the character sheet looking as it does today.
+**Goal:** the existing screens run on the server's data model, against staging and an in-browser mock server, with every existing screen looking as it does today.
 
 **Entry:** the R0 smoke tests run in CI.
 
 Each step below is its own pull request. It keeps the app working under the browser tests (extended as screens change) and is explained to the owner before it starts.
 
 - **R3.1 Look baseline.**
-  - Screenshot tests of the current character sheet: every tab, at desktop and phone widths, in the academy and classic styles, in English and Spanish, including the phone profile banner.
-  - Taken from today's app before any sheet code changes. CI (Linux) holds the reference images; a difference fails the check until it is reviewed.
-  - To confirm with the owner first: whether the familiar sheet and the cards on the character list are also locked.
+  - Screenshot tests of every existing screen: the character list and its cards, the type selection, the creation form, the character sheet (every tab, and the phone profile banner), the familiar sheet and editor, and settings. Each at desktop and phone widths, in the academy and classic styles, in English and Spanish.
+  - Taken from today's app before any screen code changes. CI (Linux) holds the reference images; a difference fails the check.
+  - A justified change follows the approval step above. Parts that R3.6 removes (local backups and the typed reset in settings) leave the baseline then, with the owner's approval.
 - **R3.2 One data model.**
   - `export_api_contract` also generates TypeScript types for characters and familiars from the backend field registry, alongside `fieldRegistry.generated.ts`. List items carry permanent IDs; images are asset references.
   - The generated types replace the sheet types in `src/types.ts`. Static game data (houses, default skills) moves to its own file. New-sheet defaults (`characterFactory`) produce the new model.
@@ -209,11 +209,11 @@ Each step below is its own pull request. It keeps the app working under the brow
 **Exit criteria:**
 
 - The feature checklist passes in mock mode for all three roles and in remote mode on staging.
-- The character sheet's screenshots are unchanged, apart from changes the owner agreed.
+- The existing screens match their screenshots, apart from changes the owner approved.
 - The smoke suite runs in CI against the mock and a real backend.
 - All existing tests pass.
 
-**Owner actions:** review each step; confirm which screens the look baseline locks (R3.1). AI Studio is paused until launch (decision 6).
+**Owner actions:** review each step, and approve or reject each proposed visible change. AI Studio is paused until launch (decision 6).
 
 **Rollback:** revert the step's pull request. The live site is unaffected until R6.
 
@@ -316,7 +316,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 | 9 | How to model the GM's two crossing-over campaigns? | R2 | **Decided 7 November 2026:** one universe campaign in the app, with two tables labelled per character (option A). Player characters cross over by sharing or reassignment within the same campaign. Players remain separated by default. Rejected: two campaigns with moving (B), or characters in two campaigns at once (C). |
 | 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
-| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** the character sheet keeps its current look unless a change is justified and agreed, enforced by screenshot tests (R3.1). Other screens may be redesigned. Still to confirm: whether the familiar sheet and the list cards are also locked. |
+| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** every existing screen keeps its current look whenever reasonable, enforced by screenshot tests (R3.1). A change needs a reason and the owner's approval of before-and-after screenshots. New screens follow the existing styles. |
 
 ## Former milestones
 

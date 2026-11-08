@@ -8,6 +8,11 @@ const MOCK_URL = "http://127.0.0.1:4310";
 // dev server, e.g. a Caddy test on http://127.0.0.1:8088 or staging.
 const LOCAL_URL = process.env.E2E_LOCAL_URL ?? "http://127.0.0.1:4311";
 const CI = !!process.env.CI;
+// Screenshot tests (release R3.1) run only in the pinned Playwright container
+// (CI job "visual"), where fonts and rendering never change between runs.
+const VISUAL = !!process.env.E2E_VISUAL;
+// Fixed browser locale and time zone, so dates render the same everywhere.
+const visualUse = { baseURL: MOCK_URL, locale: "es-ES", timezoneId: "Europe/Madrid" };
 
 export default defineConfig({
   testDir: "e2e",
@@ -16,7 +21,6 @@ export default defineConfig({
   retries: CI ? 1 : 0,
   workers: CI ? 2 : undefined,
   timeout: 60_000,
-  expect: { timeout: 10_000 },
   reporter: CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     serviceWorkers: "block",
@@ -28,7 +32,13 @@ export default defineConfig({
     { name: "mock-desktop", testMatch: /mock\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: MOCK_URL } },
     { name: "mock-mobile", testMatch: /mock\.spec\.ts/, use: { ...devices["Pixel 7"], baseURL: MOCK_URL } },
     { name: "local-desktop", testMatch: /local\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: LOCAL_URL } },
+    ...(VISUAL ? [
+      { name: "visual-desktop", testMatch: /visual\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, ...visualUse } },
+      // Phone layout at normal pixel density: the same layout, a seventh of the image size.
+      { name: "visual-mobile", testMatch: /visual\.spec\.ts/, use: { ...devices["Pixel 7"], deviceScaleFactor: 1, ...visualUse } },
+    ] : []),
   ],
+  expect: { timeout: 10_000 },
   webServer: [
     { command: "npx vite --mode mock --port 4310 --strictPort --host 127.0.0.1", url: MOCK_URL, reuseExistingServer: !CI, timeout: 120_000 },
     // No --mode: VITE_STORAGE_MODE is unset, so the app uses local storage.

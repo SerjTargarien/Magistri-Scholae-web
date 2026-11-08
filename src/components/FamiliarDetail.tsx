@@ -359,6 +359,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
       {/* Navigation Tabs (Modular tabs inherited from archetype registry) */}
       <div className="flex items-center gap-2 border-b border-neutral-800/80 mb-6 overflow-x-auto pb-1">
         <button
+          id="familiar-tab-perfil"
           type="button"
           onClick={() => setActiveTab("perfil")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border-b-2 ${
@@ -372,6 +373,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
         </button>
 
         <button
+          id="familiar-tab-notas"
           type="button"
           onClick={() => setActiveTab("notas")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border-b-2 ${
@@ -390,6 +392,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = ({
         </button>
 
         <button
+          id="familiar-tab-galeria"
           type="button"
           onClick={() => setActiveTab("galeria")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border-b-2 ${

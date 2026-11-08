@@ -11,11 +11,11 @@
 
 Keep the existing React, TypeScript, and Vite frontend. Introduce an application API that owns authentication, permissions, validation, database writes, protected images, and exports. Replace direct component access to IndexedDB with a documented repository interface. Supply a mock implementation for frontend development and a remote implementation for production.
 
-The resulting app supports internal accounts, player-controlled character sheets, campaign-wide GM access, a private GM character library, field-level disclosure, private player notes, and offline viewing. Google AI Studio remains a frontend development environment rather than the authority for production data or database structure.
+The resulting app supports internal accounts, player-controlled character sheets, campaign-wide GM access, a private GM character library, field-level disclosure, private player notes, and offline viewing and editing. Google AI Studio remains a frontend development environment rather than the authority for production data or database structure.
 
 The current source also includes separate familiar records, wizard–familiar bonds, an archetype registry, and academy/classic visual modes. Those existing features are part of the preservation baseline. The migration must cover both entities and their relationships, rather than reverting to the earlier characters-only planning snapshot. See [project-state.md](project-state.md) and [implementation-plan.md](implementation-plan.md) for current evidence and the first bounded task.
 
-Begin the architecture transition before adding many more storage-dependent features. Deploy in stages, proving permissions and import/export before moving real data. A fresh deployment is acceptable because the owner reports that nobody currently uses the hosted site; old data should still be preserved until explicitly retired.
+Begin the architecture transition before adding many more storage-dependent features. Deploy in stages, proving permissions and import/export before moving real data. A fresh deployment is acceptable because the owner reports that nobody currently uses the hosted site. On 8 November 2026 the owner confirmed that the only records in the old local format are their own test data: the old local mode is retired, and nothing is migrated (see [implementation-plan.md](implementation-plan.md), decisions 3 and 11).
 
 Use Django and PostgreSQL for the backend, as selected by the owner. The expanded permission model requires explicit application services for field projection, personal notes, selective synchronization, and safe writes. Section 4 records the selected architecture and its rationale.
 
@@ -32,7 +32,7 @@ Use Django and PostgreSQL for the backend, as selected by the owner. The expande
 | Optional synchronization | Per-copy, manual one-way updates from library to campaign, with a preview and field selection. |
 | Field privacy | The GM can hide fields even from an assigned player. Players can hide fields from other players. Defaults and per-character overrides are required. |
 | GM access exception | Player personal notes can be hidden from the GM and easily moved into the GM-visible journal. |
-| Offline behavior | Offline viewing, online editing. Automatically cache own/assigned sheets; GM explicitly downloads additional sheets. Clear downloaded account data on logout. |
+| Offline behavior | **Revised 8 November 2026:** online editing at launch, then, right after launch, a new offline mode built on the server's data model: offline viewing, followed by offline editing that syncs on reconnect (sections 10 and 12). Automatically cache own/assigned sheets; GM explicitly downloads additional sheets. Clear downloaded account data on logout. |
 | Editing workflow | Continue frontend development through agentic tools such as Google AI Studio. |
 | Hosting | Existing Contabo VPS (resources recorded in the local infrastructure notes), full-stack target using Docker Compose. Since 7 November 2026 it serves the public website, with DNS at Porkbun; the owner chose no Vercel dependency. |
 | Working source | The owner has consolidated newer AI Studio work into `Magistri-Scholae-web`; agents and AI Studio use this repository. No continuing two-repository synchronization is planned. |
@@ -49,15 +49,15 @@ Use Django and PostgreSQL for the backend, as selected by the owner. The expande
 - Server-enforced privacy for every registered sheet field, including image and collection fields.
 - GM-only notes and author-only player personal notes, stored separately from sheet content.
 - Private GM library, independent campaign copies, and manual selective updates.
-- Online autosave with conflict detection, portable exports, and legacy imports.
-- Read-only offline snapshots and account-aware cache removal.
+- Online autosave with conflict detection.
+- Right after launch: offline snapshots, offline edits that sync on reconnect, and account-aware cache removal.
+- After that: portable exports and imports for accounts. Old local-format backups are not imported.
 - Staging, production deployment, and tested off-VPS backups.
 
 ### Outside initial scope
 
 - Public registration, payments, marketplace features, or anonymous character links.
-- Two-way library synchronization or automatic conflict resolution.
-- Editing offline and merging changes later.
+- Two-way library synchronization, or resolving a conflict on the same field without asking the user.
 - Collaborative text editing with multiple cursors.
 - End-to-end encryption of personal notes or a separate client encryption-key recovery system; the owner selected application-level privacy.
 - A separate database per GM, group, or campaign.
@@ -84,7 +84,7 @@ The selected stack provides a conventional structure for explicit application se
 
 | Component | Responsibility |
 |---|---|
-| React + TypeScript + Vite | Existing user interface, mock previews, online editing, and offline viewing. |
+| React + TypeScript + Vite | Existing user interface, mock previews, online editing, and offline viewing and editing. |
 | Django application | Authentication, campaign authorization, field projection, notes, safe mutations, imports, exports, and library updates. |
 | PostgreSQL | Relational domain records, versioned sheet JSON, transactions, and concurrency data. |
 | Private media volume | Protected portraits and gallery files, accessed through authorized backend routes. |
@@ -100,7 +100,7 @@ The local revision identified above uses the following. The complete accepted de
 
 | Source | Observed behavior | Planned change |
 |---|---|---|
-| [src/db.ts](https://github.com/SerjTargarien/Magistri-Scholae-web/blob/2518abd50809c3f59fab3dbb4e412ac6cc50a911/src/db.ts) | Dexie database `MagistriScholaeDB`, declared versions 1 and 2; numeric-ID characters and string-ID familiars. | Preserve both table schemas and existing IDs during the local adapter refactor. Future remote IDs use explicit mapping, including bond references. |
+| [src/db.ts](https://github.com/SerjTargarien/Magistri-Scholae-web/blob/2518abd50809c3f59fab3dbb4e412ac6cc50a911/src/db.ts) | Dexie database `MagistriScholaeDB`, declared versions 1 and 2; numeric-ID characters and string-ID familiars. | Preserve both table schemas and existing IDs during the local adapter refactor. **Since 8 November 2026:** retired with local mode in R3, without migration; the offline mode uses its own account-scoped database. |
 | [src/App.tsx](https://github.com/SerjTargarien/Magistri-Scholae-web/blob/2518abd50809c3f59fab3dbb4e412ac6cc50a911/src/App.tsx) | Direct loading, saving, deleting, and bulk import; replace import clears the table. | Route operations through application hooks. Remove unrestricted replace semantics. |
 | [CharacterDetail.tsx](https://github.com/SerjTargarien/Magistri-Scholae-web/blob/2518abd50809c3f59fab3dbb4e412ac6cc50a911/src/components/CharacterDetail.tsx) | `saveStateToDB` saves the whole character. | Use local drafts, explicit patches, a serialized save queue, and server revisions. |
 | [CharacterForm.tsx](https://github.com/SerjTargarien/Magistri-Scholae-web/blob/2518abd50809c3f59fab3dbb4e412ac6cc50a911/src/components/CharacterForm.tsx) | Reconstructs form state from known fields; stores custom skill defaults locally. | Distinguish hidden from missing fields; preserve server fields; move account/campaign presets behind an interface when shared. |
@@ -118,6 +118,7 @@ Additional current-source responsibilities:
 - `Character.familiarId` and `Familiar.studentId` are linked references. Bond changes, cleanup, import remapping, and later campaign copies must keep them coherent.
 - The current backup type allows optional `familiars` even under `backupVersion: "1.0"`. Support older files without this collection and verify current round trips instead of assuming all export/import paths preserve bonds.
 - Preserve the new mobile profile banner, house crest components, and academy/classic styling. The first migration milestone is not a UI redesign.
+- **Owner decision, 8 November 2026:** the character sheet keeps its current, easy-to-read layout unless a change is justified and agreed. Other screens may be redesigned where that helps.
 
 ## 6. Roles and domain model
 
@@ -278,7 +279,17 @@ Retrying an operation ID with the same request must not duplicate a change; reus
 
 On conflict, preserve the local draft and show a permitted diff or reload/reapply choice. Never silently use last-write-wins for a whole sheet. Source timestamps from the server; imported original timestamps remain provenance.
 
-Show saving, saved, unsaved, offline/read-only, and conflict states. If connectivity disappears, disable further editing, retain any unsent online draft, and request reconciliation after reconnecting. Do not quietly create an offline write queue or carry a previous account's draft into another account.
+Show saving, saved, unsaved, offline, and conflict states. Never carry a previous account's draft into another account.
+
+**Revised 8 November 2026 (owner decision).** The earlier rule (disable editing when offline; no offline write queue) applies until offline editing ships (R7.2). After that:
+
+- All edits go through one sheet store per sheet. It holds the viewer's projection, the unsent changes by path, the revision they are based on, and an operation ID per change. At launch the unsent changes live in memory; R7.2 keeps them in account-scoped device storage, so they survive a closed browser or a restarted phone.
+- The offline state is shown, with the number of unsent changes. Editing stays enabled for the paths the offline scope allows.
+- On reconnect, the changes are sent in order. A stale revision is not resolved by last-write-wins. The client compares the base projection, the latest projection and its unsent changes:
+  - changes to paths the other edit did not touch are re-sent on top of the latest revision, with their original operation IDs;
+  - changes to a path that also changed on the server are shown to the viewer, who chooses which value to keep.
+- The server re-validates every change against current permissions. A rejected change is shown to the viewer and is never silently dropped or turned into a whole-record save.
+- Logging out with unsent changes warns first, then clears them with the account's device data.
 
 Separate note revisions from sheet revisions. Authorization/default-policy changes and asset changes must participate in appropriate version checks. Refresh visible data on return to the tab and revalidate after permission changes.
 
@@ -298,7 +309,9 @@ Example: the library NPC gains a spell while the campaign copy loses stress poin
 
 Exclude personal notes and campaign GM notes. Preserve target assignment, sharing grants, and campaign-specific values unless explicitly included by an authorized operation. Default to preserving target visibility; any wider audience needs a separate, explicit disclosure confirmation. Private source values must not leak through previews to players. Partial synchronization requires per-field baselines; one last-synced revision number is insufficient.
 
-## 12. Offline viewing and device data
+## 12. Offline viewing, offline editing, and device data
+
+This is the new offline mode, built on the server's data model, planned right after launch: viewing in R7.1, editing in R7.2 (section 10). It is unrelated to the retired local mode and uses its own database, not `MagistriScholaeDB`.
 
 Automatically refresh read-only snapshots for own/assigned sheets after online authorization. GMs explicitly download additional campaign or library sheets. Store only each viewer's projection and permitted assets, keyed by account, character, policy version, and snapshot time. Personal notes, when cached, live only in their author's cache namespace.
 
@@ -306,7 +319,9 @@ The service worker caches allowlisted static app assets, not authenticated API/m
 
 When online, check current access before rendering cached material; purge revoked sheets and replace snapshots after policy changes. Mark offline content clearly with its last-updated time. Offline access cannot discover permission revocation or remove previously downloaded information until reconnection. A browser copy is also not a guarantee against screenshots, exports, or deliberate extraction.
 
-Logout clears account-specific snapshots, assets, personal-note caches, and drafts in all app tabs. Offline logout clears locally immediately, marks the account logged out, and schedules server-session revocation before the next online authenticated workflow. An old cookie must not silently restore the logged-out offline view.
+Unsent offline changes are stored in the same account namespace as the snapshots and follow the rules in section 10. The offline scope (which actions work offline) is decided at the start of R7.2; administration, invitations, sharing and note promotion stay online-only.
+
+Logout clears account-specific snapshots, assets, personal-note caches, drafts, and unsent changes in all app tabs. Offline logout clears locally immediately, marks the account logged out, and schedules server-session revocation before the next online authenticated workflow. An old cookie must not silently restore the logged-out offline view.
 
 Treat cached data as information stored on that device. V1 assumes a trusted browser/device for offline access; protection from someone controlling the device would need a separate local-lock/encryption design. Do not store plaintext passwords or administrator tokens merely to enable offline viewing.
 
@@ -322,11 +337,13 @@ Copies receive independent asset associations and safe deletion behavior. Physic
 
 **Owner clarification, milestone 2:** Characters and familiars are independent entities and should have separate import/export operations. Implement the transfer change after the backend foundation is solid; retain milestone 1's legacy combined-backup compatibility meanwhile. Account-backed familiars have independent assigned players and read-only shares. A bond grants no access to either entity and transfers no ownership or personal notes.
 
-Produce versioned portable exports with actual permitted media, not expiring URLs. Import the current `backupVersion: "1.0"`; introduce a new format for remote IDs, schema versions, and media packaging. Document that older clients may not understand the new format.
+Produce versioned portable exports with actual permitted media, not expiring URLs. Introduce a new format for remote IDs, schema versions, and media packaging. The old local `backupVersion: "1.0"` is not imported into accounts (owner decision, 8 November 2026); it remains readable by local mode until R3 retires it.
 
 Player exports include only their currently authorized projection. GM campaign exports exclude author-only player notes. A personal-note export is a separate author action. Administrative disaster-recovery backups are separate from user exports and are not accessible through GM campaign tools.
 
 ### Migration of existing browser data
+
+**Not needed (owner decision, 8 November 2026):** the only records in the old local format are the owner's test data, so nothing is migrated. The plan below is kept for reference only.
 
 1. Recover and inventory the existing deployment without deleting it.
 2. Export from the old site in every browser with data worth keeping. Hosting files on a VPS does not imply its IndexedDB character data exists there.
@@ -457,7 +474,7 @@ Rollback restores compatible application images; schema rollback is not assumed 
 | 2. Accounts and domain API | Implement invitations, username auth, reset codes, campaign ownership, field projection, notes, and path-level writes. | Two players and a GM pass permission tests; ordinary GM cannot read personal notes; no raw-API bypass. |
 | 3. Editing and media | Save queue, revisions, operation IDs, protected image handling, journal promotion. | Rapid edits, retries, stale revisions, hidden fields, and asset access tested end to end. |
 | 4. Library and sharing | Private library, independent copies, grants, defaults, selective update preview/apply. | Per-field sync baselines and source/target revision checks work; no surprise disclosure or note copying. |
-| 5. Transfer and offline | Real legacy importer, portable exports, account-scoped offline snapshots and cache cleanup. | Verified imports and duplicate handling; offline contains only viewer-authorized data; account switching isolates data. |
+| 5. Transfer and offline | Portable account exports and imports, account-scoped offline snapshots, offline edits with sync, and cache cleanup. The legacy importer was dropped on 8 November 2026. | Verified imports and duplicate handling; offline contains only viewer-authorized data; offline edits merge or ask, never overwrite; account switching isolates data. |
 | 6. Staging and launch | Deployment scripts, backups, restore exercise, operating instructions, fresh cutover. | Staging sign-off, database/media restoration, retained originals, production smoke checks. |
 
 These phases define the evidence each area needs. Since 7 November 2026, [implementation-plan.md](implementation-plan.md) owns the order of delivery: releases R0–R7, aiming at an early Contabo launch.
@@ -492,10 +509,10 @@ Phases can produce useful staging checkpoints. Do not launch an intermediate bui
 ### Offline, transfer, and operations
 
 - Own/assigned snapshots refresh automatically; GM additional downloads are explicit.
-- Offline editing is unavailable; logout clears account-local data across tabs.
+- Logout clears account-local data, including unsent changes, across tabs, after warning about unsent changes.
 - Reconnection revalidates access before reusing snapshots.
-- Real old exports import with correct ownership mapping, images, and reported warnings.
-- Current character/familiar backups preserve both entities, images, and valid bond references through ID remapping; older backups without familiars remain readable.
+- An offline edit to a field nobody else changed is saved on reconnect; an offline edit to a field that also changed on the server asks the viewer; a change the server rejects is shown, not lost.
+- Account exports and imports preserve characters, familiars, images, and valid bond references through ID remapping.
 - Player and GM exports respect their different projections; portable images survive a round trip.
 - A frontend-only deployment retains all database and media data.
 - A backup can restore accounts, characters, policies, notes, and referenced media on a clean test deployment.

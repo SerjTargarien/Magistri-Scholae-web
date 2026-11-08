@@ -5,7 +5,7 @@ Adopted 7 November 2026, replacing the milestone 4–6 order. The goal is a work
 ## Execution rules
 
 - Work one release (or one release step) at a time. A request for a release authorizes routine edits and checks inside it, not the next release.
-- Each release or step lands as its own pull request with CI green. Keep local mode working throughout. Do not bump or rename `MagistriScholaeDB`.
+- Each release or step lands as its own pull request with CI green. Keep the app working after every step: local mode until R3.6 removes it, the mock and staging throughout. Do not bump or rename `MagistriScholaeDB` while it exists.
 - Deployments, DNS, Vercel settings and VPS changes happen only in the release that names them, and only when the owner asks for that action.
 - Never turn a partial projection into a whole-record remote save. A new stored field needs a registry entry, a fixture and a test, not only a new input.
 - Prefer splitting large files to growing them. Add a dependency only when a release needs it.
@@ -30,15 +30,15 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
-| R3 Real UI on accounts | Existing screens run in local, mock and remote mode | L | R0 |
-| R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3c |
-| R5 Data carry-over | Existing records reach the server without loss | S–M | R3a, R4 |
-| R6 Accounts launch | Account-backed app live at `magistrischolae.fyi` | S | R2–R5 |
-| R7 After launch | Offline viewing, privacy editor, transfers, GM library, cleanup | M–L | R6 |
+| R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server; the sheet keeps its look; old local mode retired | L | R0 |
+| R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3.5 |
+| R5 Data carry-over (**dropped 8 Nov 2026**) | Not needed: the old-format records are test data only | — | — |
+| R6 Accounts launch | Account-backed app live at `magistrischolae.fyi` | S | R2–R4 |
+| R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R6 |
 
-**Critical path:** R0 → R3 → R5 → R6. R1 and R2 form an infrastructure track that touches different files (`deploy/`, `backend/config/`). It can run in a parallel session while R3 is in progress. R4 overlaps the end of R3. **R1 is the quick win**: days after SSH access, with no feature change. **R3 is the long pole.**
+**Critical path:** R0 → R3 → R4 → R6, then R7.1–R7.2 (offline) immediately after launch. R4 can overlap the end of R3. **R3 is the long pole.**
 
-**Working order chosen by the owner (7 November 2026):** one release at a time, R2 → R3 → R4 → R5 → R6. Each step is explained before it is carried out. R0, R1 and S are done.
+**Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done.
 
 ## Feature checklist
 
@@ -54,7 +54,9 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - House crests and ornaments.
 - Academy and classic styles; English and Spanish.
 - The mobile profile banner.
-- Local mode only: backup export and import (full, selected, familiar-only) and the typed-phrase reset.
+- Local mode only, until R3.6 retires it: backup export and import (full, selected, familiar-only) and the typed-phrase reset. Account export/import returns in R7.4.
+
+The character sheet must also match its R3.1 screenshots, apart from changes the owner agreed.
 
 ## R0 — Safety net (S)
 
@@ -82,9 +84,9 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 
 ## R1 — Same app, new home (S–M)
 
-**Status: done on 7 November 2026.** The site is served from Contabo with DNS at Porkbun, and Vercel no longer serves anything. DNS also moved off Vercel, so the optional R7.5 DNS move is already done. Only removing the domain from the Vercel project remains, after 48 hours. Details are in [project-state.md](project-state.md).
+**Status: done on 7 November 2026.** The site is served from Contabo with DNS at Porkbun, and Vercel no longer serves anything. DNS also moved off Vercel, so the optional DNS move once planned for after launch is already done. Only removing the domain from the Vercel project remains, after 48 hours. Details are in [project-state.md](project-state.md).
 
-**Goal:** `magistrischolae.fyi` is served from Contabo, with the same app and features. Browser data is reachable only by code served from the same origin, and the origin stays `https://magistrischolae.fyi`. So every player's existing records stay readable, and the account release can later read them in place (see R5).
+**Goal:** `magistrischolae.fyi` is served from Contabo, with the same app and features. Browser data is reachable only by code served from the same origin, and the origin stays `https://magistrischolae.fyi`. So every player's existing records stay readable. (Reading them into accounts later turned out to be unnecessary; see R5.)
 
 **Work:**
 
@@ -157,48 +159,63 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 
 ## R3 — Real UI on accounts (L; critical path)
 
-**Owner direction, 7 November 2026: do it right, no translation layer between the screens and the server.** This supersedes the R3a/R3b wording below where they conflict. The agent's proposal, to be confirmed at the start of the next session before work begins:
+**Owner decisions, 7–8 November 2026:**
 
-1. **One data model, defined by the server.** The TypeScript types for characters and familiars are generated from the backend field registry (as `fieldRegistry.generated.ts` already is) and replace the hand-written model in `src/types.ts`. A new field is declared once, in the backend registry.
-2. **The screens use that model directly.** Every list item has a stable ID, and edits work by ID, not by position. This covers the character screen, the creation form, the familiar screens and the list. About 250 references and 25 index-based edits in `CharacterDetail`, `CharacterForm` and `FamiliarDetail` change. `CharacterDetail` (3,800 lines) is split into per-tab files in the same work.
-3. **Saving sends only the changed items** (paths), with no conversion between the screens and the server.
-4. **Images** are shown through one helper that handles both browser-stored images (local mode) and server assets.
-5. **The old format is read only at the edges:** local mode's existing IndexedDB records and old backup files (the R5 importer) go through one legacy reader. **Stored browser data is not rewritten** (no Dexie schema bump); local mode becomes legacy after launch.
-6. **Rejected:** a translation layer (option 2), and rewriting the server to store position-based lists, which would lose per-item updates and per-item privacy.
-7. Each step is its own pull request, keeps the current app working under the browser tests (extended as screens change), and is explained before it starts.
+- **Do it right: no translation layer** between the screens and the server. The screens use the server's data model directly.
+- **No old data to keep.** The only records in the old local format are the owner's test data. So there is no converter, no data carry-over (R5 is dropped), and the old local mode is retired at the end of R3. The live site stays frozen on its current release until launch (R6).
+- **The character sheet keeps its current look** unless a change is justified and agreed with the owner. Screenshot tests enforce this. Other screens (list, settings, sign-in, campaign selection, the creation flow) may be redesigned where that helps.
+- **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens.
+- Rejected: a translation layer, rewriting the server to store position-based lists (which would lose per-item updates and per-item privacy), and keeping the old local mode alive alongside the new one.
+
+**Goal:** the existing screens run on the server's data model, against staging and an in-browser mock server, with the character sheet looking as it does today.
 
 **Entry:** the R0 smoke tests run in CI.
 
-**Goal:** the existing screens run in local, mock and remote mode through one sheet interface. Each step below is a separate pull request, and local mode behaves the same after each.
+Each step below is its own pull request. It keeps the app working under the browser tests (extended as screens change) and is explained to the owner before it starts.
 
-- **R3a Stable list IDs.**
-  - UI state uses items with IDs for string lists, custom fields, skills and the gallery.
-  - The local adapter converts Dexie records to and from the registry v1 shape without loss. Unknown fields are kept, and round-trip tests run over the fixtures.
-  - Replace the nine index-based list edits in `CharacterDetail` with ID-based ones.
-  - The Dexie schema and stored data are unchanged. This step can ship to the R1 site on its own.
-- **R3b Sheet session.** The ~60 existing `saveStateToDB(clone)` call sites hand their edited draft to a session. The session diffs the draft against the last projection and sends only path patches. Guards, each with a unit test:
-  - Diff registered paths only; ignore `id`, `tempId`, `createdAt`, `updatedAt` and `familiarId`.
-  - Never send a removal or a blank for a path that was absent from the projection.
-  - Compare list items by ID.
-  - Send new image data URLs to the asset upload endpoint, and bond changes to the bond endpoint.
-  - Show server rejections as errors; never retry as a whole-record save.
-
-  The remote adapter is the existing `SaveQueue`. The local adapter keeps saving whole records, which is safe because local data has no hidden fields. Shared readers get a read-only sheet. Fields missing from the writable paths are disabled. Do not show the conflict screen when the refreshed projection is unchanged (M3).
-- **R3c App shell.** Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles. Text goes through `localization.ts`. No `window.confirm`.
-- **R3d Projected mock.** Fixtures in the server shape, with a visible role switcher (GM, assigned player, shared reader). It simulates hidden fields, conflicts, offline state and failed saves, and keeps the DEMO banner. AI Studio develops against this from then on.
-- **R3e Clean-up.** Remove the stopgap generic forms (or keep them behind a developer flag). Split `CharacterDetail` into per-tab files, which also fixes the bundle-size warning.
+- **R3.1 Look baseline.**
+  - Screenshot tests of the current character sheet: every tab, at desktop and phone widths, in the academy and classic styles, in English and Spanish, including the phone profile banner.
+  - Taken from today's app before any sheet code changes. CI (Linux) holds the reference images; a difference fails the check until it is reviewed.
+  - To confirm with the owner first: whether the familiar sheet and the cards on the character list are also locked.
+- **R3.2 One data model.**
+  - `export_api_contract` also generates TypeScript types for characters and familiars from the backend field registry, alongside `fieldRegistry.generated.ts`. List items carry permanent IDs; images are asset references.
+  - The generated types replace the sheet types in `src/types.ts`. Static game data (houses, default skills) moves to its own file. New-sheet defaults (`characterFactory`) produce the new model.
+  - A new stored field is declared once, in the backend registry, with a fixture and a test.
+- **R3.3 Sheet store and mock server.**
+  - One store per open sheet holds the server's copy (only what the viewer may see), the unsent changes by path, the revision they are based on, and the save state. Screens read and write only through it.
+  - It grows out of today's `SaveQueue`. Unsent changes live in the page's memory; R7.2 moves them to device storage without changing the screens.
+  - Two adapters: the existing remote client, and an in-browser mock server with the same projection, permission and error behaviour. The mock has a visible role switcher (GM, assigned player, shared reader) and the DEMO banner. It simulates hidden fields, conflicts, failed saves and connection drops.
+  - Guards, each with a unit test:
+    - Send registered paths only, never the sheet's own `id` or timestamps.
+    - Never send a removal or a blank for a path that was absent from the server's copy.
+    - Compare list items by ID.
+    - Send new images to the asset upload endpoint, and bond changes to the bond endpoint.
+    - Show server rejections as errors; never retry as a whole-record save.
+    - Do not show the conflict screen when the refreshed copy is unchanged (M3).
+- **R3.4 Screens on the store,** a few tabs per pull request.
+  - `CharacterDetail` is split into per-tab files as each tab moves; the screenshot tests confirm the look is unchanged. This also fixes the bundle-size warning.
+  - Edits work by item ID, not by position. The list, the creation form and the familiar screens move too.
+  - One image helper shows server assets and newly picked images.
+  - Shared readers get a read-only sheet; fields outside the writable paths are disabled.
+- **R3.5 App shell.**
+  - Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles.
+  - Lists show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
+  - Text goes through `localization.ts`. No `window.confirm`.
+- **R3.6 Retire the old app.**
+  - Remove local mode, the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
+  - Keep the service worker, which since milestone 3 caches only the app's own files and never `/api` or `/media`. Give its cache a new name so browsers that had the old app drop its cached files after launch.
+  - The smoke suite runs against the mock and against a real backend in CI.
 
 **Exit criteria:**
 
-- The feature checklist passes in local mode, in mock mode for all three roles, and in remote mode on staging.
-- The smoke suite also runs in remote mode against a CI backend.
+- The feature checklist passes in mock mode for all three roles and in remote mode on staging.
+- The character sheet's screenshots are unchanged, apart from changes the owner agreed.
+- The smoke suite runs in CI against the mock and a real backend.
 - All existing tests pass.
 
-Lists also show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
+**Owner actions:** review each step; confirm which screens the look baseline locks (R3.1). AI Studio is paused until launch (decision 6).
 
-**Owner actions:** none beyond reviewing each step. AI Studio is paused until launch (decision 6).
-
-**Rollback:** revert the step's pull request; the smoke tests guard local mode.
+**Rollback:** revert the step's pull request. The live site is unaffected until R6.
 
 ## R4 — Admin essentials (M)
 
@@ -227,28 +244,9 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 **Rollback:** revert.
 
-## R5 — Data carry-over (S–M)
+## R5 — Data carry-over (dropped)
 
-**Decided (decision 3): option A, only the owner's data.** The owner, logged in as a player, imports their backup file. The sheets are created as their own, at their table, through the existing endpoints with operation IDs. The import uploads images and links bonds. A dry-run summary comes first, and a rerun creates no duplicates.
-
-**Owner check before importing:** old journal entries normally become ordinary journal entries the GM can see. The import screen should let the owner mark selected entries to become **personal notes** (author-only) instead.
-
-Option B below is kept for reference only:
-
-- **Option A, only your data:** import a backup file in the account UI.
-- **Option B, players have data:** a migration screen in the remote build at the production origin.
-  - It reads the old `MagistriScholaeDB` read-only and shows a dry run: counts, images, bonds, journals, warnings and oversized images.
-  - It then creates the records through the existing endpoints with operation IDs, uploads images and links bonds.
-  - It keeps a local map from old to new IDs so a rerun creates no duplicates.
-  - It never changes or deletes the old database, and it can also export a backup file.
-
-Both options use the R3a converter. Old journal entries become ordinary journal entries the GM can see ([design.md](design.md) section 13).
-
-**Exit criteria:** copies of real backups import on staging with images, bonds and journals intact; a rerun creates no duplicates; the result checks out in a second browser.
-
-**Owner actions:** collect backup files from anyone with data, even with option B.
-
-**Rollback:** delete the imported staging sheets; the source data is untouched.
+**Dropped on 8 November 2026.** The owner confirmed that the only records in the old local format are their own test data, so nothing is carried over and no importer for the old backup format is built. A test character worth keeping is quicker to retype on staging. Separate character and familiar export/import for accounts remains planned (R7.4).
 
 ## R6 — Accounts launch (S)
 
@@ -258,8 +256,8 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 
 - Run the production stack on the VPS, with its database and media separate from staging.
 - Generate production secrets and bootstrap the administrator.
-- Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him). The owner imports their own data (R5).
-- Switch the apex frontend from the local build to the remote build (including the migrator under option B).
+- Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him).
+- Switch the apex frontend from the old local-mode app to the account app. Check in a browser that had the old app that its service worker hands over to the new one.
 - Run the first production backup and check it restores.
 - Tag the release.
 
@@ -272,41 +270,53 @@ Both options use the R3a converter. Old journal entries become ordinary journal 
 - Logs are visible.
 - `check --deploy` is clean.
 
-**Known regression:** the current app works offline. The account app allows online editing only, by product decision. Offline viewing is a confirmed requirement that arrives in R7.1, shortly after launch (decision 2).
+**Known regression:** the old app worked offline, but nobody relies on it. The account app edits online only at launch; the new offline mode follows immediately (R7.1 and R7.2, decision 2).
 
 **Owner actions:** invite the players and hand out their invitations.
 
-**Rollback:** redeploy the local build at the apex. Players' browser data is untouched because R5 only reads it; server data is kept for a retry.
+**Rollback:** reactivate the previous local-mode release at the apex (`release.sh --activate`). Server data is kept for a retry.
 
 ## R7 — After launch (in order)
 
-1. Read-only offline snapshots per account, cleared on logout ([design.md](design.md) section 12).
-2. The visibility editor (GM defaults and overrides, player restrictions) and read-only sharing.
-3. Separate character and familiar export/import for accounts (the owner's decision).
-4. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11).
-5. Clean-up:
+1. **Offline viewing (the new offline mode, part 1).**
+   - The app opens without internet: the service worker caches an allowlist of the app's own files, never account data.
+   - Sheets the viewer has opened are kept on the device in a new, account-scoped database (not `MagistriScholaeDB`), exactly as the server sent them, with their permitted images. GMs choose which extra campaign sheets to download.
+   - Offline screens say so and show when each sheet was last updated. When back online, access is rechecked before cached sheets are shown, and revoked sheets are removed.
+   - Logging out clears the account's device data in every tab ([design.md](design.md) section 12).
+2. **Offline editing (part 2).**
+   - The sheet store's unsent changes move to device storage, so they survive closing the browser or restarting the phone. Each change keeps its path, value, base revision and operation ID.
+   - On reconnect, changes are sent in order. If the sheet changed meanwhile, the app compares the base copy, the latest copy and the unsent changes: changes to different fields are re-sent on top of the latest version; changes to the same field ask the viewer which value to keep. No server change is needed for this.
+   - The server re-checks permissions. A rejected change is shown to the viewer, never silently dropped.
+   - Logging out with unsent changes warns first. Changes never carry over to another account.
+   - Scope is decided at the start of this step. Starting suggestion: sheet fields, journal entries and personal notes offline; administration, invitations, sharing, bonds, note promotion and new characters online only.
+3. The visibility editor (GM defaults and overrides, player restrictions) and read-only sharing.
+4. Separate character and familiar export/import for accounts (the owner's decision).
+5. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11).
+6. Clean-up:
    - Remove unused dependencies (L1).
    - Fix the skill-preset key (L3).
    - Reduce list query counts (M2).
    - Reclaim orphaned media.
    - Trim the docs.
    - Retire the Vercel project once it is no longer needed (DNS already moved to the registrar in R1).
-6. Watch item: Porkbun's DNS runs on Cloudflare's network, and some Spanish ISPs (including the owner's) block Cloudflare addresses during football matches. If the domain ever fails to resolve during a match while working on mobile data, move DNS to a non-Cloudflare provider.
+7. Watch item: Porkbun's DNS runs on Cloudflare's network, and some Spanish ISPs (including the owner's) block Cloudflare addresses during football matches. If the domain ever fails to resolve during a match while working on mobile data, move DNS to a non-Cloudflare provider.
 
 ## Owner decisions
 
 | # | Decision | Needed by | Recommendation |
 |---|---|---|---|
 | 1 | Publish `docs/` in the public repository? | R0 | **Decided 7 November 2026:** publish; VPS, registrar and DNS specifics live only in the git-ignored `docs/infrastructure.local.md`. |
-| 2 | Offline viewing before or after launch? | R6 | **Decided 7 November 2026:** shortly after launch (R7.1). |
-| 3 | Whose data needs carrying over? | R5 | **Decided 7 November 2026:** only the owner's (option A: import their backup file as a player). |
+| 2 | Offline viewing before or after launch? | R6 | **Revised 8 November 2026:** a new offline mode built on the server's data model, right after launch: offline viewing (R7.1), then offline editing that syncs on reconnect (R7.2). This reverses the earlier "no offline edits" rule in [design.md](design.md) section 10. |
+| 3 | Whose data needs carrying over? | R5 | **Superseded 8 November 2026:** none. The old-format records are the owner's test data only, so R5 is dropped. |
 | 4 | Fate of the existing containers on the VPS (listed in `docs/infrastructure.local.md`) | R1 | **Decided 7 November 2026:** keep the two existing services running with automatic restart; the broken auto-updater was removed. |
 | 5 | Off-VPS backup destination | R2 | **Decided 7 November 2026:** Backblaze B2 (free tier, EU region), age-encrypted, uploaded with a key that cannot delete. Cloudflare R2 was rejected because the owner's internet provider blocks Cloudflare during football matches. A phone copy via Syncthing-Fork remains an optional second copy. |
-| 6 | AI Studio limited to presentation work until R3d? | R3 | **Decided 7 November 2026:** AI Studio is paused until launch; all changes go through this workflow. |
+| 6 | AI Studio limited to presentation work until the mock server (R3.3)? | R3 | **Decided 7 November 2026:** AI Studio is paused until launch; all changes go through this workflow. |
 | 7 | Agent SSH access to the VPS, or owner-run scripts? | R1 | **Decided 7 November 2026:** a dedicated `deploy` user with the agent's own key. Server hardening (SSH passwords, firewall, sudo scope) is deferred to a separate security step. |
 | 8 | Hosting providers after R1? | R1 | **Decided 7 November 2026:** only Porkbun (registrar and DNS) and Contabo; no Vercel dependency. Backblaze B2 holds backups. |
 | 9 | How to model the GM's two crossing-over campaigns? | R2 | **Decided 7 November 2026:** one universe campaign in the app, with two tables labelled per character (option A). Player characters cross over by sharing or reassignment within the same campaign. Players remain separated by default. Rejected: two campaigns with moving (B), or characters in two campaigns at once (C). |
 | 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
+| 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
+| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** the character sheet keeps its current look unless a change is justified and agreed, enforced by screenshot tests (R3.1). Other screens may be redesigned. Still to confirm: whether the familiar sheet and the list cards are also locked. |
 
 ## Former milestones
 
@@ -314,6 +324,6 @@ Older documents refer to milestones 4–6. They map to releases as follows:
 
 | Former milestone | Now |
 |---|---|
-| 4 — GM library and selective sync | R7.4 |
-| 5 — Legacy transfer and offline viewing | R5 (legacy import), R7.1 (offline snapshots), R7.3 (separate transfers). Static-only service-worker caching already shipped in milestone 3. |
+| 4 — GM library and selective sync | R7.5 |
+| 5 — Legacy transfer and offline viewing | Legacy import dropped with R5 (8 November 2026); R7.1 (offline viewing), R7.2 (offline editing), R7.4 (separate transfers). Static-only service-worker caching already shipped in milestone 3. |
 | 6 — Staging, deployment and cutover | R1 (hosting and DNS), R2 (backend staging and backups), R6 (launch) |

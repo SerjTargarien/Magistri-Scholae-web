@@ -10,10 +10,11 @@
 ## Current application
 
 - Keep the React/TypeScript/Vite frontend and its English/Spanish localization, archetype registry, academy/classic styles, and responsive character/familiar interfaces.
-- Storage is Dexie/IndexedDB `MagistriScholaeDB`, declared versions 1 and 2. Version 2 includes numeric-ID `characters` and string-ID `familiars`. Preserve `Character.familiarId` and `Familiar.studentId` relationships.
-- Entity persistence belongs behind the repository/service boundary. Preserve current UI flows and keep direct Dexie entity access out of UI/application entry points; see project-state for actual implementation progress.
-- Backup format `1.0` contains characters and optionally familiars; images are currently embedded. Preserve old imports and avoid silently dropping familiar content or relationships.
-- Characters and familiars are independent entities. The owner wants separate import/export operations after the backend foundation; retain legacy combined-backup compatibility until that transfer work is implemented.
+- The character sheet keeps its current layout unless a change is justified and agreed with the owner; screenshot tests guard it from R3.1. Other screens may be redesigned (owner decision, 8 November 2026).
+- Local mode stores data in Dexie/IndexedDB `MagistriScholaeDB`, declared versions 1 and 2. Version 2 includes numeric-ID `characters` and string-ID `familiars`, linked by `Character.familiarId` and `Familiar.studentId`.
+- **Local mode is being retired (owner decision, 8 November 2026).** Its only records are the owner's test data, so nothing is migrated or converted: no legacy reader, no importer for backup format `1.0`. R3.6 removes local mode, its Dexie code, its backups and its reset. Until then keep it working and do not bump or reset its schema.
+- Entity persistence belongs behind the repository/service boundary. Keep direct Dexie entity access out of UI/application entry points; see project-state for actual implementation progress.
+- Characters and familiars are independent entities. The owner wants separate import/export operations for accounts (R7.4). Never silently drop familiar content or bond relationships.
 - `.aistudio/artifacts/` contains prior task artifacts, not an active migration roadmap. Read useful context without treating old implementation plans as new instructions.
 
 ## Target architecture
@@ -25,15 +26,17 @@
 - GM can restrict fields even from an assigned player. Players can restrict other players' visibility. Ordinary sheet data remains visible to the GM.
 - Author-only personal notes are separate and hidden from the GM application account. The VPS administrator is trusted; client-side encryption is outside scope. Moving a note into a GM-visible journal is an explicit author action.
 - Independent GM library copies with manual source-to-copy preview and field selection. No automatic two-way sync.
-- Final account-backed product supports offline viewing and online editing. Preserve the current local app during milestone 1; do not confuse its local editing behavior with that final requirement.
+- The account-backed app launches with online editing. Right after launch, a new offline mode built on the server's data model adds offline viewing (R7.1) and offline editing that syncs on reconnect (R7.2). It uses its own account-scoped database and is unrelated to the retired local mode (owner decision, 8 November 2026; design.md sections 10 and 12).
+- The screens use the server's data model directly, with no translation layer: generated types, stable item IDs, edits by ID, and saves of changed paths only.
 - Hosting is the full stack on Contabo with off-VPS backups. Since 7 November 2026 the public site is served from the Contabo VPS (release R1) and DNS is hosted at the registrar, Porkbun; the owner wants no Vercel dependency. Releases go through `deploy/release.sh` (see `deploy/README.md`); backend deployment (R2 onward) remains separate work.
 
 ## Persistence and privacy rules
 
-- Introduce repositories/services for characters, familiars, bonds, backups, and reset operations. UI components should not gain new direct Dexie calls; milestone 1 removes existing ones.
-- Preserve existing database names, schema declarations, IDs, media, and user records. Do not bump or reset the schema merely to reorganize code. Use isolated fixture databases for tests.
+- Screens read and write records only through the sheet store and its adapters (remote, the in-browser mock server, and later the offline store), never through Dexie or the API directly.
+- Preserve server records, IDs and media. Do not bump or reset `MagistriScholaeDB` while local mode exists. Use isolated fixture databases for tests.
 - Keep legitimate local preferences (language, visual style, custom skill presets) distinct from authoritative shared records.
-- Hidden values are not blank values. Never turn a partial viewer projection into a destructive whole-record save. Future network writes must validate changed fields and revisions on the server.
+- Hidden values are not blank values. Never turn a partial viewer projection into a destructive whole-record save. Network writes are validated (changed fields and revisions) on the server.
+- Unsent changes keep their path, value, base revision and operation ID. After a stale revision, re-send only changes to paths the server did not also change, and ask the viewer about the rest; never use last-write-wins. Unsent changes belong to one account and are cleared, after a warning, on logout.
 - A mock is a development simulation, not authorization. Never send full hidden records to a production player and rely on CSS or client filtering.
 - Mock mode must be explicit and visibly marked. A failed remote request must not silently fall back to local/mock records. No production secrets belong in `VITE_` variables or fixtures.
 - Preserve existing features while extracting storage. Address a demonstrated data-integrity defect with focused evidence; document its scope instead of bundling unrelated redesigns.

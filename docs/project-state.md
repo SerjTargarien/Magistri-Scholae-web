@@ -203,7 +203,7 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - Detached files and operation receipts are retained. A file/database commit failure can leave an unreferenced file, which has no authorized download route. Reclamation, quotas, receipt retention, production media serving/backups and restore verification require operational hardening before release.
 - Separate character/familiar transfers and account-aware offline snapshots remain milestone 5. No remote transfer/wipe or automatic local-record migration was introduced.
 
-**Next unfinished milestone (as of 18 October; superseded on 7 November):** milestone 4, GM library, independent copies, sharing and manual selective updates. The roadmap adopted on 7 November moves milestone 4 to R7.4; see [implementation-plan.md](implementation-plan.md).
+**Next unfinished milestone (as of 18 October; superseded on 7 November):** milestone 4, GM library, independent copies, sharing and manual selective updates. The roadmap adopted on 7 November moves milestone 4 to R7.5 (renumbered on 8 November); see [implementation-plan.md](implementation-plan.md).
 
 ## Session paused after milestone 3 — 18 October 2026
 
@@ -308,7 +308,7 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
   - **Restore drill** with one image: 22/22 tables and 1/1 media file matched.
   - **`check --deploy`** shows only the intentional HSTS-preload warning.
   - Fictional accounts (`test_gm`, `test_player`) and one fictional character were kept on staging on purpose, for the owner to explore; their passwords are only on the server.
-- **R2 is complete.** Next: R3, the real UI on accounts, starting with R3a (stable list IDs). Each step is explained before it is carried out.
+- **R2 is complete.** Next: R3, the real UI on accounts. Its steps were re-planned on 8 November (see below). Each step is explained before it is carried out.
 
 ## Session paused — 7 November 2026 (evening)
 
@@ -323,7 +323,7 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 
 **Open items, in order:**
 
-1. **Confirm the R3 approach** at the start of the next session (owner direction recorded at the top of R3 in [implementation-plan.md](implementation-plan.md)), then explain and start the first R3 step.
+1. ~~**Confirm the R3 approach**~~ — done on 8 November, with changes; see the next section.
 2. **From about 9 November:** check that public resolvers report Porkbun's nameservers, then guide the owner through removing `magistrischolae.fyi` (and `www`/`staging`) from the Vercel project (step 8 of the cutover). Optionally delete the project afterwards.
 3. **Optional housekeeping, not urgent:**
    - Delete merged local and remote branches (`codex/milestone-*`, `r1/*`, `r2/*`, `docs/*`).
@@ -333,6 +333,26 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 4. **Later, as planned:** firewall and `deploy` sudo narrowing (deferred by the owner), offline viewing after launch, and the privacy editor.
 
 **How to resume:** read this section, the top of R3 in the roadmap, and `docs/infrastructure.local.md`. Server access is described in that local file. Work one step at a time; explain each step before carrying it out, and pause before anything with visible effects or a connection reset.
+
+## Planning session — 8 November 2026
+
+**Checks at the start (all read-only):**
+
+- The live site still serves release `0c8b943`; `www` redirects to the apex. Staging serves release `c33a563`, and its API answers a signed-out request with 401.
+- On the server, all five containers are running; disk and memory have ample room.
+- The 03:30 backup was encrypted, verified and uploaded to Backblaze B2 (including the one staging image). The 04:17 maintenance run removed nothing.
+- Cloudflare's, Google's and Quad9's public resolvers already report only Porkbun's nameservers.
+
+**Owner decisions (recorded in the roadmap, design.md and AGENTS.md):**
+
+- **No old data to keep.** The only records in the old local format are the owner's test data. There is no converter and no migration: R5 is dropped, and R3.6 retires local mode. The live site stays on its current release until launch.
+- **The character sheet keeps its current look** unless a change is justified and agreed, enforced by screenshot tests (R3.1). Other screens may be redesigned. To confirm at R3.1: whether the familiar sheet and the list cards are also locked.
+- **Offline right after launch:** a new offline mode built on the server's model. First offline viewing (R7.1), then offline editing that syncs on reconnect (R7.2): non-overlapping changes are re-sent automatically, and same-field changes ask the viewer. This reverses the earlier "no offline write queue" rule in design.md section 10. R3 builds one sheet store per sheet, so offline plugs in without changing the screens.
+- **New R3 steps:** R3.1 look baseline, R3.2 one data model (generated types), R3.3 sheet store and mock server, R3.4 screens on the store (`CharacterDetail` split per tab), R3.5 app shell, R3.6 retire the old app. The working order is R3 → R4 → R6 → R7.
+
+**Finding:** the service worker already caches only the app's own files and never `/api` or `/media` (since milestone 3). It needs only a new cache name at launch.
+
+**Next:** go through the updated plan with the owner, merge the documentation pull request, then explain R3.1 before starting it.
 
 ## Updating this handoff
 

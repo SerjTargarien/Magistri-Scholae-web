@@ -1,6 +1,6 @@
 # Release chat prompt
 
-Use this to start one release from [implementation-plan.md](implementation-plan.md) in a new Codex or Claude chat opened on this repository. Replace `R?` with the release, or release step, you are authorizing, such as `R0` or `R3a`. The prompt authorizes that release only. The milestone 1 prompt that used to live here is in Git history.
+Use this to start one release from [implementation-plan.md](implementation-plan.md) in a new Codex or Claude chat opened on this repository. Replace `R?` with the release, or release step, you are authorizing, such as `R0` or `R3.1`. The prompt authorizes that release only. The milestone 1 prompt that used to live here is in Git history.
 
 ```text
 You are working in my local Magistri Scholae repository. Implement release R? from docs/implementation-plan.md, and only that release.

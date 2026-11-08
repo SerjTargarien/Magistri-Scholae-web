@@ -59,7 +59,7 @@ The two simultaneous commands run in separate terminals. If configuring AI Studi
 |---|---|---|
 | Local | Existing `MagistriScholaeDB` records and editing. | Implemented; default. |
 | Mock | Fictional complete sheets in `MagistriScholaeMockDB`, demo indicator and a separate sample projection contract. | Implemented; explicit opt-in. Full role/privacy UI is future work. |
-| Remote | Django API, projected online editing and private media; no local fallback or offline mutation queue. | Implemented in milestone 3. Offline snapshots remain milestone 5. |
+| Remote | Django API, projected online editing and private media; no local fallback or offline mutation queue. | Implemented in milestone 3. A new offline mode (viewing, then editing with sync) is planned for R7.1–R7.2. |
 
 Mock writes must never touch `MagistriScholaeDB`. Show a demo banner in mock mode. Do not turn a network error into an implicit mode switch. Browser-exposed `VITE_` values are public configuration, not a place for backend passwords or administrator tokens.
 

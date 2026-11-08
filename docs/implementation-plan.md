@@ -215,6 +215,11 @@ Each step below is its own pull request. It keeps the app working under the brow
     - counters and clear warnings near every limit;
     - images from a web address are downloaded and uploaded, never stored as links; familiar gallery images are compressed;
     - a blank name is never saved; generated journal titles are shown, not stored.
+  - **Decided after the owner's staging test** (8 November 2026), each with before-and-after pictures:
+    - Empatía moves to social skills; custom fields read like the other values (no boxes);
+    - one «Varita / Foco mágico» field for students and adult wizards (`magicalFocus` merges into `varitaSintonia`, keeping both values when they differ), without the star-line separator, so both profile cards stay balanced;
+    - only the GM creates new skills and saves default skills; players add skills from the campaign's list with a + button (the design is explained first).
+  - **Later, its own design step:** clicking any portrait or gallery image that does nothing today opens a floating window with the image at full size (owner: important).
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles.
   - Lists show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.

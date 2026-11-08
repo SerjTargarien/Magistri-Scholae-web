@@ -671,7 +671,17 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   <span>🔮</span> {t.customFields}
                 </h3>
                 {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
-                {customFields.length > 0 ? (
+                {customFields.length > 0 && !isQuickEditing ? (
+                  // Read like the other values (owner decision, 8 November 2026): label above, value below.
+                  <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                    {customFields.map((fd) => (
+                      <div key={fd.id}>
+                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{fd.nombre}</div>
+                        <div className="text-neutral-200 mt-0.5 break-words">{fd.valor || "—"}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : customFields.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {customFields.map((fd) => (
                       <div
@@ -682,42 +692,31 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                             : "p-3 bg-neutral-950/50 border border-neutral-800 rounded-lg text-xs flex items-center justify-between gap-2"
                         }
                       >
-                        {isQuickEditing ? (
-                          <>
-                            <input
-                              type="text"
-                              value={fd.nombre ?? ""}
-                              disabled={!writable(`camposPersonalizados/${fd.id}/nombre`)}
-                              onChange={(e) => handleUpdateCustomField(fd.id, "nombre", e.target.value)}
-                              placeholder={t.fieldName}
-                              className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
-                            />
-                            <input
-                              type="text"
-                              value={fd.valor ?? ""}
-                              disabled={!writable(`camposPersonalizados/${fd.id}/valor`)}
-                              onChange={(e) => handleUpdateCustomField(fd.id, "valor", e.target.value)}
-                              placeholder={t.fieldValue}
-                              className="flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
-                            />
-                            {canRemove("camposPersonalizados", fd.id) && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCustomField(fd.id)}
-                              className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                              title={t.deleteCustomField}
-                            >
-                              <X className="w-3.5 h-3.5 shrink-0" />
-                            </button>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <span className={`font-mono text-[11px] ${isAcademy ? "text-[#f3d88c]" : "text-amber-400"} font-bold uppercase tracking-wider`}>
-                              {fd.nombre}:
-                            </span>
-                            <span className="text-neutral-100 text-right font-sans">{fd.valor}</span>
-                          </>
+                        <input
+                          type="text"
+                          value={fd.nombre ?? ""}
+                          disabled={!writable(`camposPersonalizados/${fd.id}/nombre`)}
+                          onChange={(e) => handleUpdateCustomField(fd.id, "nombre", e.target.value)}
+                          placeholder={t.fieldName}
+                          className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                        />
+                        <input
+                          type="text"
+                          value={fd.valor ?? ""}
+                          disabled={!writable(`camposPersonalizados/${fd.id}/valor`)}
+                          onChange={(e) => handleUpdateCustomField(fd.id, "valor", e.target.value)}
+                          placeholder={t.fieldValue}
+                          className="flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                        />
+                        {canRemove("camposPersonalizados", fd.id) && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomField(fd.id)}
+                          className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                          title={t.deleteCustomField}
+                        >
+                          <X className="w-3.5 h-3.5 shrink-0" />
+                        </button>
                         )}
                       </div>
                     ))}

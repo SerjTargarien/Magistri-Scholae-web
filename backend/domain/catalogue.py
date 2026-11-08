@@ -31,9 +31,10 @@ _SKILLS = {
                 ("sigilo", "Sigilo", "Stealth"), ("prestidigitacion", "Prestidigitación", "Sleight of Hand"),
                 ("duelo", "Duelo", "Dueling"), ("supervivencia", "Supervivencia", "Survival")],
     "mentales": [("investigar", "Investigar", "Investigate"), ("percepcion", "Percepción", "Perception"),
-                 ("voluntad", "Voluntad", "Willpower"), ("empatia", "Empatía", "Empathy")],
+                 ("voluntad", "Voluntad", "Willpower")],
+    # Empatía moved from Mentales (owner decision, 8 November 2026; migration 0005).
     "sociales": [("contactos", "Contactos", "Contacts"), ("provocar", "Provocar", "Provoke"),
-                 ("carisma", "Carisma", "Charisma"), ("engano", "Engaño", "Deception")],
+                 ("carisma", "Carisma", "Charisma"), ("engano", "Engaño", "Deception"), ("empatia", "Empatía", "Empathy")],
     "conocimientos-magicos": [
         ("magia-intuitiva", "Magia intuitiva", "Intuitive Magic"), ("historia-de-la-magia", "Historia de la magia", "History of Magic"),
         ("herbologia", "Herbología", "Herbology"), ("seres-magicos", "Seres mágicos", "Magical Creatures"),

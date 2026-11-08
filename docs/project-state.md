@@ -448,7 +448,16 @@ The owner's staging test as a player found that lists never loaded ("No se pudie
 - Checked: type check, unit tests, both builds, features (24) and demo (7) browser tests.
 - Still open: which player actions should be GM-only (the owner is listing them).
 
-**Next:** release this fix to staging (the owner's go-ahead), then phase 3: the decided visible changes, one pull request each.
+Released to staging (`20261108-143610-176b36f`).
+
+## Owner's staging test and first follow-up — 8 November 2026
+
+- At the owner's request the four old staging test sheets (two characters, two familiars, one of them a duplicate made while lists failed) and their six images were deleted from the staging database; accounts, campaign and catalogue were kept.
+- The owner then created a student, an adult wizard and a familiar (from the student's sheet, then bonded) by hand from three test sheets. What staging stored matched the entries; no new defect was found.
+- Owner decisions from that test are recorded in field-rules.md and implementation-plan.md (R3.4): Empatía to social skills; custom fields without boxes; one «Varita / Foco mágico» field; GM-only skill creation and default skills, with a + button for players; a full-screen image viewer later, as its own design step.
+- This pull request: Empatía moves to the end of social skills in the default catalogue, and migration `0005_empatia_social` moves it in every campaign whose catalogue still has it under Mentales (reversible; it raises the catalogue revision). Sheets store a link, so no sheet changes. Custom fields on the sheet read like the other values in reading mode; edit mode is unchanged.
+
+**Next:** the owner approves the before-and-after pictures, then merge and update staging (migration 0005). After that: the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

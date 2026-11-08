@@ -8,6 +8,7 @@ from domain.models import Campaign
 from .base import APICase
 
 conversion = importlib.import_module("domain.migrations.0004_skill_catalogue")
+empatia = importlib.import_module("domain.migrations.0005_empatia_social")
 
 
 class DefaultCatalogueTests(SimpleTestCase):
@@ -19,10 +20,11 @@ class DefaultCatalogueTests(SimpleTestCase):
         skills = DEFAULT_CATALOGUE["habilidades"]
         self.assertEqual(len(skills), 48)
         counts = {c: sum(1 for s in skills if s["categoria"] == c) for c in categories}
-        self.assertEqual(list(counts.values()), [7, 4, 4, 12, 3, 18])
+        self.assertEqual(list(counts.values()), [7, 3, 5, 12, 3, 18])
         by_id = {s["id"]: s for s in skills}
         self.assertEqual(by_id["magia-intuitiva"]["edadMaxima"], 14)
         self.assertEqual(by_id["espiritismo"]["categoria"], "magia-esoterica")  # moved from Mentales
+        self.assertEqual([s["id"] for s in skills if s["categoria"] == "sociales"][-1], "empatia")  # moved from Mentales
         self.assertTrue(all(s["nombre"]["es"] and s["nombre"]["en"] for s in skills))
 
     def test_catalogue_validation(self):
@@ -123,3 +125,30 @@ class SkillConversionTests(SimpleTestCase):
             {"id": "s5", "nombre": "Cetrería", "categoria": "fisicas", "valor": 1},
             {"id": "s6", "nombre": "Alquimia", "categoria": "conocimientos-magicos", "valor": 2},
         ])
+
+
+class EmpatiaMigrationTests(SimpleTestCase):
+    def old_catalogue(self):
+        catalogue = default_catalogue()
+        skills = catalogue["habilidades"]
+        entry = next(s for s in skills if s["id"] == "empatia")
+        skills.remove(entry)
+        entry["categoria"] = "mentales"
+        skills.insert(next(i for i, s in enumerate(skills) if s["id"] == "voluntad") + 1, entry)
+        return catalogue
+
+    def test_moves_to_the_end_of_social_skills_and_back(self):
+        catalogue = self.old_catalogue()
+        self.assertTrue(empatia.move(catalogue, "mentales", "sociales"))
+        self.assertEqual(catalogue, DEFAULT_CATALOGUE)
+        self.assertFalse(empatia.move(catalogue, "mentales", "sociales"))  # already moved
+        self.assertTrue(empatia.move(catalogue, "sociales", "mentales"))
+        self.assertEqual(catalogue, self.old_catalogue())
+
+    def test_a_gm_choice_is_left_alone(self):
+        catalogue = self.old_catalogue()
+        next(s for s in catalogue["habilidades"] if s["id"] == "empatia")["categoria"] = "conocimientos-magicos"
+        before = deepcopy(catalogue)
+        self.assertFalse(empatia.move(catalogue, "mentales", "sociales"))
+        self.assertEqual(catalogue, before)
+        self.assertFalse(empatia.move({"habilidades": None}, "mentales", "sociales"))

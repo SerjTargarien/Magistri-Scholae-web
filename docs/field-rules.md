@@ -31,14 +31,14 @@ The cards show: portrait, house crest, archetype, `curso` (badge, not clipped), 
 | `edad` | Free text ("11 años"). | **Whole number 0–999 (owner decision, visible):** years, shown as "11 años" / "11 years". Needed for the Magia intuitiva rule below. |
 | `curso` (students) | Free text ("1º"). | **Text 20** |
 | `puestoClase` (students) | Free. | **Text 80** |
-| `linaje`, `economia`, `varitaSintonia` | Free. | **Text 200** each |
+| `linaje`, `economia`, `varitaSintonia` | Free. **Changing (owner decision, 8 November 2026):** `varitaSintonia` becomes the one «Varita / Foco mágico» field for students and adult wizards, replacing `magicalFocus`. | **Text 200** each |
 | `avatarImage`, `avatarFit` | Cropper 3:4, JPEG ≤900 px, 0.75; a web address works only if the site allows it. | Uploaded image (4 MB, 16 MP); cover/contain. Web address: downloaded in the browser and uploaded, or a clear message to save and upload the file (R3.4). |
 
 **Adult wizard profile** (`adultWizardProfile`):
 
 | Field | Today | Rule |
 |---|---|---|
-| `role`, `institution`, `magicalFocus`, `reputation` | Free. | **Text 120** each |
+| `role`, `institution`, `magicalFocus`, `reputation` | Free. `magicalFocus` merges into `varitaSintonia` (see above); differing values are both kept. | **Text 120** each |
 | `formerHouse` | Free text; the house filter matches it by substring. | **Text 80** |
 | `isTeacher` | Checkbox. | Yes/no |
 | `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** |
@@ -59,7 +59,7 @@ Organizations (with their own mottos) get a builder and editor after 1.0.
 |---|---|---|
 | `aspectosPersonales` | Add/remove. | **List ≤ 30**, each **required, text 300** |
 | `complicaciones` | Add/remove. | **List ≤ 30**, each **required, text 300** |
-| `camposPersonalizados` | Add name + value; the name can be blanked when edited. | **List ≤ 100**; name **required, text 60**; value **text 500** |
+| `camposPersonalizados` | Add name + value; the name can be blanked when edited. On the sheet they read like the other values, label above value, without boxes (owner decision, 8 November 2026). | **List ≤ 100**; name **required, text 60**; value **text 500** |
 
 ## Session (sheet tab Sesión; form tab Estrés for the maximums)
 
@@ -74,13 +74,13 @@ Organizations (with their own mottos) get a builder and editor after 1.0.
 
 ## Skills (form tab Habilidades; sheet tab Habilidades)
 
-**New categories (owner decision, visible).** "Asignaturas troncales" and "Asignaturas optativas" are replaced by three categories. Physical, mental and social skills stay as they are, except that Espiritismo moves to esoteric magic.
+**New categories (owner decision, visible).** "Asignaturas troncales" and "Asignaturas optativas" are replaced by three categories. Physical, mental and social skills stay as they are, except that Espiritismo moves to esoteric magic and Empatía moves to social skills (owner decision after the staging test, 8 November 2026; the GM can move it back with the catalogue editor in R4).
 
 | Category | Default skills |
 |---|---|
 | Físicas | Atletismo, Físico, Deportes, Sigilo, Prestidigitación, Duelo, Supervivencia |
-| Mentales | Investigar, Percepción, Voluntad, Empatía |
-| Sociales | Contactos, Provocar, Carisma, Engaño |
+| Mentales | Investigar, Percepción, Voluntad |
+| Sociales | Contactos, Provocar, Carisma, Engaño, Empatía |
 | Habilidades y conocimientos mágicos | Magia intuitiva (hidden automatically when the character is older than 14, and never shown for adult wizards; the stored value is kept, so correcting the age brings it back), Historia de la magia (was "Historia del mundo mágico"), Herbología, Seres mágicos, Astronomía, Conocimiento de varitas, Leyes y costumbres del mundo mágico, Cultura de casa; **classified by eye, confirmed by the owner:** Trivium, Quadrivium, Arte, Conocimiento muggle |
 | Magia elemental | Hermética, Transmutación, Pociones |
 | Magia esotérica | Magia druídica, Oráculos y adivinación (was "Oráculo"), Creación de objetos mágicos, Espiritismo, Simpática, Quimerismo, Oniromancia, Musología, Numerología, Sanación, Cábala, Climática, Entropía, Cronomancia, Espejismo, Oclumancia, Legeremancia, Nigromancia |
@@ -93,7 +93,7 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 
 | Field | Today | Rule |
 |---|---|---|
-| `habilidades[].nombre` | Players add their own skills (owner: keep), duplicates rejected. | **Required, text 60**; no duplicate names within a character |
+| `habilidades[].nombre` | Players add their own skills, duplicates rejected. **Changing (owner decision, 8 November 2026):** only the GM creates new skills and saves the default skills for new characters; players add skills from the campaign's list with a + button. | **Required, text 60**; no duplicate names within a character |
 | `habilidades[].valor` | 0–5. | **Whole number 0–5** |
 | `habilidades[].categoria` | One of five fixed texts; others are invisible. | **A category of the campaign's catalogue** (by ID); default skills also keep a link to their catalogue entry |
 | `habilidades[].conocimiento` | — (new) | **Choice** none / basic / medium / advanced; only for skills in a category marked esoteric |

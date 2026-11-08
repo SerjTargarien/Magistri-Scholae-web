@@ -595,14 +595,6 @@ export const API_SCHEMA = {
         "categoria": "mentales"
       },
       {
-        "id": "empatia",
-        "nombre": {
-          "es": "Empatía",
-          "en": "Empathy"
-        },
-        "categoria": "mentales"
-      },
-      {
         "id": "contactos",
         "nombre": {
           "es": "Contactos",
@@ -631,6 +623,14 @@ export const API_SCHEMA = {
         "nombre": {
           "es": "Engaño",
           "en": "Deception"
+        },
+        "categoria": "sociales"
+      },
+      {
+        "id": "empatia",
+        "nombre": {
+          "es": "Empatía",
+          "en": "Empathy"
         },
         "categoria": "sociales"
       },

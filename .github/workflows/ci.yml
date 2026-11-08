@@ -63,11 +63,12 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=0
+      # MEASUREMENT ONLY (not for merge): repeat every picture three times.
+      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=0 --repeat-each=3
         env:
           CI: "true"
           E2E_VISUAL: "1"
-      - if: failure()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: visual-differences

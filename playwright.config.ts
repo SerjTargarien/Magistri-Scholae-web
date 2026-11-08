@@ -12,7 +12,12 @@ const CI = !!process.env.CI;
 // (CI job "visual"), where fonts and rendering never change between runs.
 const VISUAL = !!process.env.E2E_VISUAL;
 // Fixed browser locale and time zone, so dates render the same everywhere.
-const visualUse = { baseURL: MOCK_URL, locale: "es-ES", timezoneId: "Europe/Madrid" };
+const visualUse = {
+  baseURL: MOCK_URL, locale: "es-ES", timezoneId: "Europe/Madrid",
+  // Draw text the same way on every run: one raster thread, no sub-pixel
+  // glyph positioning or hinting differences between runs.
+  launchOptions: { args: ["--num-raster-threads=1", "--disable-font-subpixel-positioning", "--font-render-hinting=none", "--disable-lcd-text", "--force-color-profile=srgb"] },
+};
 
 export default defineConfig({
   testDir: "e2e",

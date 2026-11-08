@@ -34,6 +34,9 @@ const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
 const CAMPAIGN_KEY = "magistri_campaign";
 const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.py pagination)
 
+/** Whether viewers may switch the interface language (false: Spanish only for the first version). */
+const LANGUAGE_CHOICE = false;
+
 type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
@@ -62,9 +65,12 @@ export default function App() {
   // Demo builds only: lets the browser tests wait until every change has been saved.
   if (DEMO) (window as unknown as { __magistriSaved?: () => boolean }).__magistriSaved = () => [...stores.current.values()].every(s => s.state === "saved");
 
+  // The first version is Spanish only (owner decision, 8 November 2026): the
+  // language card is hidden and a saved English choice is ignored (but kept, so
+  // it returns if LANGUAGE_CHOICE is turned back on).
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem("magistri_scholae_lang");
-    return saved === "es" || saved === "en" ? saved : "es";
+    return LANGUAGE_CHOICE && (saved === "es" || saved === "en") ? saved : "es";
   });
   const [visualStyle, setVisualStyle] = useState<VisualStyle>(() => {
     const saved = localStorage.getItem("magistri_scholae_style");
@@ -441,7 +447,7 @@ export default function App() {
               lang={lang}
               visualStyle={visualStyle}
               onStyleChange={handleStyleChange}
-              onLanguageChange={handleLanguageChange}
+              onLanguageChange={LANGUAGE_CHOICE ? handleLanguageChange : undefined}
               onBack={() => setScreen("LIST")}
               account={{
                 displayName: user.displayName || user.username,

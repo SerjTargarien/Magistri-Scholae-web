@@ -487,6 +487,8 @@ The campaign's skill list is the universe's (decision 9: one campaign, two table
 - App: «Habilidades de la campaña» (Settings, GM only): rename, tick «Inicial» and add skills, always in the GM's interface language (owner decision: never ask for the other language; a name in either passes; for now assume everyone uses Spanish); one save, or discard; a stale revision reloads the list with a message. New characters start with the «inicial» skills. A skill the GM types on a sheet or in the form joins the list without «inicial» and is linked there. The demo server keeps an editable list.
 - Tests: backend tests for the endpoint (GM only, revision, nothing removed, unique names, own skills becoming links) and the linking; unit tests for «inicial», ids, name clashes and linking; feature tests for the list screen and for a GM-typed skill that players then pick. Looked at the screen in the demo at desktop and phone widths.
 
+- Owner decision (same day): the first version is **Spanish only**. `LANGUAGE_CHOICE = false` in `src/App.tsx` hides the language card in Settings and ignores a saved English choice (kept, so it returns if the switch is turned on). English texts stay in the code; automatic translation of skill names may come later.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

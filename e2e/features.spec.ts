@@ -307,24 +307,25 @@ test("portrait upload with crop and a gallery image persist", async ({ page }) =
   expect(stored!.galleryImages).toEqual([{ id: expect.any(String), value: expect.stringMatching(asset) }]);
 });
 
-test("visual style and language switch and persist", async ({ page }, testInfo) => {
+test("visual style switches and persists; the interface is Spanish only", async ({ page }, testInfo) => {
   const root = page.locator("#academy-app-root");
   const addButton = page.locator("#btn-add-character-header");
   await expect(root).toHaveAttribute("data-style", "academy");
   await expect(addButton).toContainText("Nuevo Personaje");
   await testInfo.attach("list-academy", { body: await page.screenshot(), contentType: "image/png" });
   await page.locator("#btn-settings").click();
+  await expect(page.locator("#settings-card-lang")).toHaveCount(0); // owner decision: Spanish only for now
   await page.locator("#btn-style-classic").click();
   await expect(root).toHaveAttribute("data-style", "classic");
-  await page.locator("#settings-language-dropdown").selectOption("en");
   await page.locator("#btn-settings-back").click();
-  await expect(addButton).toContainText("Add Character");
 
+  // An English choice saved before the selector was hidden is ignored.
+  await page.evaluate(() => localStorage.setItem("magistri_scholae_lang", "en"));
   await reloadApp(page);
   await expect(root).toHaveAttribute("data-style", "classic");
-  await expect(addButton).toContainText("Add Character");
+  await expect(addButton).toContainText("Nuevo Personaje");
   await openCharacter(page, "Luna de Bruma");
-  await testInfo.attach("detail-classic-en", { body: await page.screenshot(), contentType: "image/png" });
+  await testInfo.attach("detail-classic", { body: await page.screenshot(), contentType: "image/png" });
 });
 
 test("settings: account card with sign-out; signing out shows the sign-in screen", async ({ page }) => {

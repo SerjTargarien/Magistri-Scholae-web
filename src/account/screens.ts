@@ -124,7 +124,8 @@ export interface SettingsScreenProps {
   lang: Language;
   visualStyle: VisualStyle;
   onStyleChange: (style: VisualStyle) => void;
-  onLanguageChange: (lang: Language) => void;
+  /** Absent while the interface is Spanish only (the language card is hidden). */
+  onLanguageChange?: (lang: Language) => void;
   onBack: () => void;
   account: AccountInfo;
 }

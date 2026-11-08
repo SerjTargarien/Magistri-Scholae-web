@@ -27,13 +27,13 @@ const SETTINGS_TEXT: Record<Language, {
   logout: string;
 }> = {
   es: {
-    storageNote: "Tus fichas se guardan en el servidor de la campaña. Este navegador solo guarda tus preferencias de idioma y estilo.",
+    storageNote: "Tus fichas se guardan en el servidor de la campaña. Este navegador solo guarda tus preferencias, como el estilo visual.",
     accountTitle: "Cuenta",
     campaignLabel: "Campaña",
     logout: "Cerrar sesión",
   },
   en: {
-    storageNote: "Your sheets are stored on the campaign's server. This browser only keeps your language and style preferences.",
+    storageNote: "Your sheets are stored on the campaign's server. This browser only keeps your preferences, such as the visual style.",
     accountTitle: "Account",
     campaignLabel: "Campaign",
     logout: "Sign out",
@@ -154,7 +154,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* Localization & Preferences Card */}
+        {/* Localization & Preferences Card: hidden while the interface is Spanish only */}
+        {onLanguageChange && (
         <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-lang">
           <div className="flex items-center gap-2 mb-4">
             <Languages className="w-5 h-5 text-amber-500" />
@@ -182,9 +183,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </select>
           </div>
         </div>
+        )}
 
         {/* Storage Details */}
-        <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-storage">
+        <div className={`glass-panel p-6 rounded-xl border border-violet-500/15 ${onLanguageChange ? "" : "md:col-span-2"}`} id="settings-card-storage">
           <div className="flex items-center gap-2 mb-4">
             <Database className="w-5 h-5 text-indigo-400" />
             <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">

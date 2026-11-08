@@ -177,6 +177,13 @@ def memberships(request, body, campaign_id):
                        for m in Membership.objects.filter(campaign=campaign).select_related("user").order_by("id")[offset:offset + limit]]}
 
 
+@endpoint(["GET"])
+def skill_catalogue(request, body, campaign_id):
+    # Every member needs it to draw sheets: names, categories and order of linked skills.
+    campaign = services.campaign_for(request.user, campaign_id)
+    return {"catalogue": campaign.skill_catalogue, "revision": campaign.catalogue_revision}
+
+
 @endpoint(["POST"])
 def campaign_visibility_preview(request, body, campaign_id):
     return services.campaign_policy(request.user, campaign_id, body)

@@ -385,7 +385,16 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 - Existing privacy tests moved from the removed `notas` field to `linaje`. New tests: `test_field_rules.py`.
 - Locally: compile, `check`, `makemigrations --check`, the contract check, `npm test` (34 passed), lint and the account build. The backend suite needs PostgreSQL and runs in CI.
 
-**Next:** the skill catalogue (second R3.2 pull request); staging gets both server changes together, with the owner's go-ahead.
+## R3.2 skill catalogue — 8 November 2026 (second pull request)
+
+- `backend/domain/catalogue.py`: the default catalogue (6 categories, 48 skills, Spanish and English names; Magia intuitiva has a maximum age of 14; only "Magia esotérica" is esoteric). Every campaign stores its own copy (`Campaign.skill_catalogue`, `catalogue_revision`); members read it at `GET /api/v1/campaigns/<id>/skill-catalogue`. The exported contract includes the default.
+- Registry version 3: a skill entry is either a link to the catalogue (`catalogo` + value) or the player's own skill (`nombre` + catalogue `categoria`), with an optional knowledge level (`basico`, `medio`, `avanzado`) only in esoteric categories; no skill twice (an own skill may not reuse a catalogue name in either language). Catalogue checks run on the entries a save touches, so a later GM change to the catalogue never blocks saving untouched skills.
+- Migration `0004_skill_catalogue` gives every campaign the default and converts stored skills: known names (also the old "Historia del mundo mágico" and "Oráculo") become links, others stay the player's own under the matching or fallback category; repeats keep their first entry. Not reversible: restore the pre-migration backup.
+- Stopgap screens: a new skill is created as the player's own ("—" under magical knowledge) so it is valid.
+- Decision for R4: when the GM adds a default skill, the editor offers to add it to existing characters (sheets store only the skills they have).
+- Locally: compile, `check`, `makemigrations --check`, contract check, `npm test` (34), lint, account build. New tests: `test_skill_catalogue.py`.
+
+**Next:** with the owner's go-ahead, update staging (backup first, then both migrations); then the app's types and defaults (third R3.2 pull request).
 
 ## Updating this handoff
 

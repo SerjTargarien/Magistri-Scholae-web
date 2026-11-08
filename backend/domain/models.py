@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
+from .catalogue import default_catalogue
 
 
 def normalized_username(value):
@@ -37,6 +38,9 @@ class Campaign(models.Model):
     name = models.CharField(max_length=120)
     visibility_defaults = models.JSONField(default=dict)
     policy_revision = models.PositiveIntegerField(default=1)
+    # Skill categories and default skills (domain/catalogue.py); the GM edits it in R4.
+    skill_catalogue = models.JSONField(default=default_catalogue)
+    catalogue_revision = models.PositiveIntegerField(default=1)
 
 
 class Membership(models.Model):
@@ -78,7 +82,7 @@ class Sheet(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, related_name="created_sheets")
     assigned_player = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="assigned_sheets")
     data = models.JSONField(default=dict)
-    schema_version = models.PositiveIntegerField(default=2)  # fields.SCHEMA_VERSION
+    schema_version = models.PositiveIntegerField(default=3)  # fields.SCHEMA_VERSION
     revision = models.PositiveIntegerField(default=1)
     gm_default = models.CharField(max_length=8, default="inherit")
     gm_overrides = models.JSONField(default=dict)

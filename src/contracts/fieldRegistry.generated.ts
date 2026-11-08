@@ -255,10 +255,17 @@ export const API_SCHEMA = {
       "habilidades": {
         "type": "items",
         "fields": {
+          "catalogo": {
+            "type": "string",
+            "maxLength": 64
+          },
           "nombre": {
             "type": "string",
-            "maxLength": 60,
-            "required": true
+            "maxLength": 60
+          },
+          "categoria": {
+            "type": "string",
+            "maxLength": 64
           },
           "valor": {
             "type": "number",
@@ -266,12 +273,17 @@ export const API_SCHEMA = {
             "minimum": 0,
             "maximum": 5
           },
-          "categoria": {
+          "conocimiento": {
             "type": "string",
-            "maxLength": 80
+            "choices": [
+              "basico",
+              "medio",
+              "avanzado"
+            ]
           }
         },
-        "maxItems": 200
+        "maxItems": 200,
+        "skillEntry": true
       },
       "conjuros": {
         "type": "items",
@@ -449,5 +461,444 @@ export const API_SCHEMA = {
   ],
   "collectionIdentity": "stable-id",
   "media": "private-field-bound-assets",
-  "transfers": "separate-entities-deferred"
+  "transfers": "separate-entities-deferred",
+  "defaultSkillCatalogue": {
+    "categorias": [
+      {
+        "id": "fisicas",
+        "nombre": {
+          "es": "Habilidades Físicas",
+          "en": "Physical Skills"
+        },
+        "esoterica": false
+      },
+      {
+        "id": "mentales",
+        "nombre": {
+          "es": "Habilidades Mentales",
+          "en": "Mental Skills"
+        },
+        "esoterica": false
+      },
+      {
+        "id": "sociales",
+        "nombre": {
+          "es": "Habilidades Sociales",
+          "en": "Social Skills"
+        },
+        "esoterica": false
+      },
+      {
+        "id": "conocimientos-magicos",
+        "nombre": {
+          "es": "Habilidades y conocimientos mágicos",
+          "en": "Magical Skills and Knowledge"
+        },
+        "esoterica": false
+      },
+      {
+        "id": "magia-elemental",
+        "nombre": {
+          "es": "Magia elemental",
+          "en": "Elemental Magic"
+        },
+        "esoterica": false
+      },
+      {
+        "id": "magia-esoterica",
+        "nombre": {
+          "es": "Magia esotérica",
+          "en": "Esoteric Magic"
+        },
+        "esoterica": true
+      }
+    ],
+    "habilidades": [
+      {
+        "id": "atletismo",
+        "nombre": {
+          "es": "Atletismo",
+          "en": "Athletics"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "fisico",
+        "nombre": {
+          "es": "Físico",
+          "en": "Physique"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "deportes",
+        "nombre": {
+          "es": "Deportes",
+          "en": "Sports"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "sigilo",
+        "nombre": {
+          "es": "Sigilo",
+          "en": "Stealth"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "prestidigitacion",
+        "nombre": {
+          "es": "Prestidigitación",
+          "en": "Sleight of Hand"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "duelo",
+        "nombre": {
+          "es": "Duelo",
+          "en": "Dueling"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "supervivencia",
+        "nombre": {
+          "es": "Supervivencia",
+          "en": "Survival"
+        },
+        "categoria": "fisicas"
+      },
+      {
+        "id": "investigar",
+        "nombre": {
+          "es": "Investigar",
+          "en": "Investigate"
+        },
+        "categoria": "mentales"
+      },
+      {
+        "id": "percepcion",
+        "nombre": {
+          "es": "Percepción",
+          "en": "Perception"
+        },
+        "categoria": "mentales"
+      },
+      {
+        "id": "voluntad",
+        "nombre": {
+          "es": "Voluntad",
+          "en": "Willpower"
+        },
+        "categoria": "mentales"
+      },
+      {
+        "id": "empatia",
+        "nombre": {
+          "es": "Empatía",
+          "en": "Empathy"
+        },
+        "categoria": "mentales"
+      },
+      {
+        "id": "contactos",
+        "nombre": {
+          "es": "Contactos",
+          "en": "Contacts"
+        },
+        "categoria": "sociales"
+      },
+      {
+        "id": "provocar",
+        "nombre": {
+          "es": "Provocar",
+          "en": "Provoke"
+        },
+        "categoria": "sociales"
+      },
+      {
+        "id": "carisma",
+        "nombre": {
+          "es": "Carisma",
+          "en": "Charisma"
+        },
+        "categoria": "sociales"
+      },
+      {
+        "id": "engano",
+        "nombre": {
+          "es": "Engaño",
+          "en": "Deception"
+        },
+        "categoria": "sociales"
+      },
+      {
+        "id": "magia-intuitiva",
+        "nombre": {
+          "es": "Magia intuitiva",
+          "en": "Intuitive Magic"
+        },
+        "categoria": "conocimientos-magicos",
+        "edadMaxima": 14
+      },
+      {
+        "id": "historia-de-la-magia",
+        "nombre": {
+          "es": "Historia de la magia",
+          "en": "History of Magic"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "herbologia",
+        "nombre": {
+          "es": "Herbología",
+          "en": "Herbology"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "seres-magicos",
+        "nombre": {
+          "es": "Seres mágicos",
+          "en": "Magical Creatures"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "astronomia",
+        "nombre": {
+          "es": "Astronomía",
+          "en": "Astronomy"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "conocimiento-de-varitas",
+        "nombre": {
+          "es": "Conocimiento de varitas",
+          "en": "Wand Lore"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "leyes-y-costumbres",
+        "nombre": {
+          "es": "Leyes y costumbres del mundo mágico",
+          "en": "Laws and Customs of the Magical World"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "cultura-de-casa",
+        "nombre": {
+          "es": "Cultura de casa",
+          "en": "House Culture"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "trivium",
+        "nombre": {
+          "es": "Trivium",
+          "en": "Trivium"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "quadrivium",
+        "nombre": {
+          "es": "Quadrivium",
+          "en": "Quadrivium"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "arte",
+        "nombre": {
+          "es": "Arte",
+          "en": "Art"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "conocimiento-muggle",
+        "nombre": {
+          "es": "Conocimiento muggle",
+          "en": "Muggle Studies"
+        },
+        "categoria": "conocimientos-magicos"
+      },
+      {
+        "id": "hermetica",
+        "nombre": {
+          "es": "Hermética",
+          "en": "Hermetics"
+        },
+        "categoria": "magia-elemental"
+      },
+      {
+        "id": "transmutacion",
+        "nombre": {
+          "es": "Transmutación",
+          "en": "Transmutation"
+        },
+        "categoria": "magia-elemental"
+      },
+      {
+        "id": "pociones",
+        "nombre": {
+          "es": "Pociones",
+          "en": "Potions"
+        },
+        "categoria": "magia-elemental"
+      },
+      {
+        "id": "magia-druidica",
+        "nombre": {
+          "es": "Magia druídica",
+          "en": "Druidic Magic"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "oraculos-y-adivinacion",
+        "nombre": {
+          "es": "Oráculos y adivinación",
+          "en": "Oracles and Divination"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "creacion-de-objetos-magicos",
+        "nombre": {
+          "es": "Creación de objetos mágicos",
+          "en": "Magical Item Crafting"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "espiritismo",
+        "nombre": {
+          "es": "Espiritismo",
+          "en": "Spiritualism"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "simpatica",
+        "nombre": {
+          "es": "Simpática",
+          "en": "Sympathetic Magic"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "quimerismo",
+        "nombre": {
+          "es": "Quimerismo",
+          "en": "Chimerism"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "oniromancia",
+        "nombre": {
+          "es": "Oniromancia",
+          "en": "Oneiromancy"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "musologia",
+        "nombre": {
+          "es": "Musología",
+          "en": "Museology"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "numerologia",
+        "nombre": {
+          "es": "Numerología",
+          "en": "Numerology"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "sanacion",
+        "nombre": {
+          "es": "Sanación",
+          "en": "Healing"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "cabala",
+        "nombre": {
+          "es": "Cábala",
+          "en": "Kabbalah"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "climatica",
+        "nombre": {
+          "es": "Climática",
+          "en": "Weather Magic"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "entropia",
+        "nombre": {
+          "es": "Entropía",
+          "en": "Entropy"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "cronomancia",
+        "nombre": {
+          "es": "Cronomancia",
+          "en": "Chronomancy"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "espejismo",
+        "nombre": {
+          "es": "Espejismo",
+          "en": "Mirage & Illusion"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "oclumancia",
+        "nombre": {
+          "es": "Oclumancia",
+          "en": "Occlumency"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "legeremancia",
+        "nombre": {
+          "es": "Legeremancia",
+          "en": "Legilimency"
+        },
+        "categoria": "magia-esoterica"
+      },
+      {
+        "id": "nigromancia",
+        "nombre": {
+          "es": "Nigromancia",
+          "en": "Necromancy"
+        },
+        "categoria": "magia-esoterica"
+      }
+    ]
+  }
 } as const;

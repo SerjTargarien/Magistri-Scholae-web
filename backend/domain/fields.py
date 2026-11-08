@@ -1,4 +1,4 @@
-"""Version 2 server field registry: every stored field with its rule.
+"""Version 3 server field registry: every stored field with its rule.
 
 The rules are the owner's decisions in docs/field-rules.md (8 November 2026):
 text lengths, whole-number ranges, choices and list sizes. The registry is
@@ -11,9 +11,10 @@ import json
 import re
 import uuid
 from copy import deepcopy
+from .catalogue import check_skills
 from .errors import APIError, require
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 MAX_SHEET_BYTES = 5 * 1024 * 1024  # stored text per sheet; images are separate files
 B = {"type": "boolean"}
 MEDIA = {"type": "media"}
@@ -70,8 +71,12 @@ CHARACTER = {
     **{maximum: whole(1, 10) for _, maximum in STRESS},
     "aspectoTemporal": values(30, 300),
     "consecuenciasFisicas": CONSEQUENCES, "consecuenciasMentales": CONSEQUENCES, "consecuenciasSociales": CONSEQUENCES,
-    # Interim until the skill catalogue (R3.2, second pull request) replaces the free category.
-    "habilidades": items({"nombre": text(60, required=True), "valor": whole(0, 5), "categoria": text(80)}, 200),
+    # A default skill links to the campaign's catalogue (`catalogo`); a skill the
+    # player invents has its own `nombre` and a catalogue `categoria`. Knowledge
+    # (basic: alteration, medium: destruction, advanced: creation) is only for
+    # esoteric categories. See domain/catalogue.py.
+    "habilidades": items({"catalogo": text(64), "nombre": text(60), "categoria": text(64), "valor": whole(0, 5),
+                          "conocimiento": choice("basico", "medio", "avanzado")}, 200, skillEntry=True),
     "conjuros": items({"nombre": text(100, required=True), "valor": whole(1, 5), "specialized": B}, 200),
     "pociones": items({"nombre": text(100, required=True), "valor": whole(1, 5), "specialized": B}, 200),
     "clubesList": items({"nombre": text(100, required=True)}, 50),
@@ -148,9 +153,16 @@ def validate_item(fields, spec, path):
     names = spec.get("requireOneOf")
     if names and not any(isinstance(fields.get(n), str) and fields[n].strip() for n in names):
         raise invalid("field_required", path, "requireOneOf", names)
+    if spec.get("skillEntry"):
+        linked = bool(fields.get("catalogo"))
+        own = bool(str(fields.get("nombre", "")).strip()) and bool(fields.get("categoria"))
+        if linked == own or (linked and ("nombre" in fields or "categoria" in fields)):
+            raise invalid("field_required", path, "linkedOrOwn", ["catalogo", "nombre+categoria"])
 
 
-def validate_sheet(kind, data):
+def validate_sheet(kind, data, catalogue=None, only_skills=None):
+    """With a campaign catalogue, also checks the character's skills against it
+    (all of them, or only `only_skills`, the entries a save touched)."""
     require(kind in REGISTRY, "invalid_entity_kind")
     validate(data, obj(REGISTRY[kind]))
     require(isinstance(data.get("nombre"), str) and data["nombre"].strip(), "name_required")
@@ -159,6 +171,8 @@ def validate_sheet(kind, data):
             raise invalid("field_out_of_range", current, "notAboveMaximum", maximum)
     if len(json.dumps(data, ensure_ascii=False).encode("utf-8")) > MAX_SHEET_BYTES:
         raise invalid("sheet_too_large", "", "maxSheetBytes", MAX_SHEET_BYTES)
+    if catalogue is not None and kind == "character":
+        check_skills(data.get("habilidades"), catalogue, only_skills)
 
 
 def descriptor(kind, path):
@@ -189,7 +203,7 @@ def leaf_paths(value, spec, prefix=""):
         yield prefix
 
 
-def replace_path(data, kind, path, value):
+def replace_path(data, kind, path, value, catalogue=None):
     spec = descriptor(kind, path)
     require(spec["type"] != "relation", "use_bond_operation")
     parent = descriptor(kind, path.rsplit("/", 1)[0]) if "/" in path else None
@@ -226,5 +240,9 @@ def replace_path(data, kind, path, value):
             existing.update({"id": entry_id, **deepcopy(value)})
     else:
         target[parts[-1]] = deepcopy(value)
-    validate_sheet(kind, result)
+    parts = path.split("/")
+    touched = None
+    if parts[0] == "habilidades":
+        touched = {entry["id"] for entry in result.get("habilidades", [])} if len(parts) == 1 else {parts[1]}
+    validate_sheet(kind, result, catalogue if touched else None, touched)
     return result

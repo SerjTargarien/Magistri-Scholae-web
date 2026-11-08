@@ -23,7 +23,7 @@ class APICase(TestCase):
         cls.sheet = Sheet.objects.create(campaign=cls.campaign, creator=cls.alice, assigned_player=cls.alice,
             kind="character", data={"nombre": "Fictional Luna", "linaje": "ordinary-gm-visible-journal",
                 "characterType": "student", "adultWizardProfile": {"reputation": "gm-secret-reputation", "role": "Apprentice"},
-                "habilidades": [{"id": "skill-a", "nombre": "Magic", "valor": 3, "categoria": "Demo"}],
+                "habilidades": [{"id": "skill-a", "catalogo": "herbologia", "valor": 3}],
                 "notasList": [{"id": "note-a", "titulo": "Demo title", "contenido": "secret-item-content", "fecha": 10}]})
         cls.familiar = Sheet.objects.create(campaign=cls.campaign, creator=cls.alice, assigned_player=cls.alice,
             kind="familiar", data={"nombre": "Demo Owl", "especie": "Owl", "descripcion": "demo-familiar-secret"})

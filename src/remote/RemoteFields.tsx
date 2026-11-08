@@ -42,7 +42,9 @@ export function RemoteFields({ queue, registry, lang, upload, locked }: {
       </div>)}{addable && <button disabled={locked || queue.busy} onClick={() => {
         // New entries must already satisfy the server's rules: numbers start at their minimum and required text holds a placeholder to overwrite.
         const entry = Object.fromEntries(Object.entries(spec.fields!).map(([key, s]) => [key, s.type === "number" ? (key === "fecha" ? Date.now() : s.minimum ?? 0) : s.type === "boolean" ? false : s.choices?.[0] ?? (s.required ? "—" : "")]));
-        queue.edit(`${path}/${crypto.randomUUID()}`, entry);
+        // Stopgap only: a new skill is the player's own, which needs a name and a catalogue category.
+        if (path === "habilidades") Object.assign(entry, { catalogo: undefined, nombre: "—", categoria: "conocimientos-magicos", conocimiento: undefined });
+        queue.edit(`${path}/${crypto.randomUUID()}`, JSON.parse(JSON.stringify(entry)));
       }}>{t.add} {title}</button>}</fieldset>;
     }
     if (value === undefined && !writable) return null;

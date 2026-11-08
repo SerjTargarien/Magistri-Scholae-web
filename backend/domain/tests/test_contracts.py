@@ -34,7 +34,7 @@ class ContractTests(APICase):
         self.assertEqual(re.findall(r'"([^"]+)"', choices), REGISTRY["character"]["characterType"]["choices"])
 
     def test_projection_query_count_does_not_grow_per_field_or_item(self):
-        self.sheet.data["habilidades"] = [{"id": f"skill-{i}", "nombre": "Demo", "valor": i % 6, "categoria": "Demo"} for i in range(100)]
+        self.sheet.data["habilidades"] = [{"id": f"skill-{i}", "nombre": f"Demo {i}", "valor": i % 6, "categoria": "mentales"} for i in range(100)]
         self.sheet.save()
         with CaptureQueriesContext(connection) as queries:
             result = projection(self.alice, self.sheet)

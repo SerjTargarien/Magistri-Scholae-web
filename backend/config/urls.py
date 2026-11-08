@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/v1/admin/users/<uuid:user_id>/state", views.user_state),
     path("api/v1/campaigns", views.campaigns),
     path("api/v1/campaigns/<uuid:campaign_id>/members", views.memberships),
+    path("api/v1/campaigns/<uuid:campaign_id>/skill-catalogue", views.skill_catalogue),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility/preview", views.campaign_visibility_preview),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility", views.campaign_visibility),
     path("api/v1/personal-notes", views.personal_notes),

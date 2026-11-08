@@ -40,7 +40,7 @@ def create_sheet(actor, kind, body):
     gm = is_gm(actor, campaign)
     require(gm or "assignedPlayerId" not in body, "forbidden", 403)
     owner = assigned_member(campaign, body.get("assignedPlayerId")) if gm else actor
-    validate_sheet(kind, body["fields"])
+    validate_sheet(kind, body["fields"], campaign.skill_catalogue)
     from .media import validate_references
     validate_references(None, body["fields"], kind)
     sheet = Sheet(campaign=campaign, creator=actor, assigned_player=owner, kind=kind, data=deepcopy(body["fields"]))
@@ -74,7 +74,7 @@ def patch_sheet(actor, sheet_id, kind, body):
         require(not any(path == p or path.startswith(p + "/") or p.startswith(path + "/") for p in paths), "overlapping_changes")
         paths.append(path)
         require(can_write(actor, sheet, path, gm=gm), "field_forbidden", 403)
-        updated = replace_path(sheet.data, kind, path, change["value"])
+        updated = replace_path(sheet.data, kind, path, change["value"], sheet.campaign.skill_catalogue)
         if not gm:
             # Replacing a section/list must not remove unseen descendants.
             candidates = set(leaf_paths(sheet.data, obj(REGISTRY[kind]))) | set(leaf_paths(updated, obj(REGISTRY[kind])))

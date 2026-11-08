@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from "react";
-import { Familiar, Character, VisualStyle, JournalNote } from "../types";
-import { Language, TRANSLATIONS } from "../localization";
-import { storage } from "../storage";
-import { referencesCharacter } from "../storage/backup";
-import { FiligreeCorner, CompassStarDivider } from "./AcademyOrnaments";
-import { HouseCrest } from "./HouseCrest";
+import React from "react";
+import type { FamiliarDetailProps } from "../account/screens";
+import type { CharacterSheet } from "../model/sheet";
+import { imageSrc } from "../remote/assets";
+import { FiligreeCorner } from "./AcademyOrnaments";
 import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../utils/imageCompressor";
 import {
   ArrowLeft,
   Edit,
@@ -19,17 +16,11 @@ import {
   PawPrint,
   FileText,
   Image as ImageIcon,
-  Plus,
-  Trash,
   X,
-  Maximize2,
   Check,
-  Upload,
   User,
   Sparkles,
   Link as LinkIcon,
-  Unlink,
-  ExternalLink,
 } from "lucide-react";
 
 import { useFamiliarDetail } from "./familiar/useFamiliarDetail";
@@ -37,33 +28,16 @@ import { FamiliarProfileTab } from "./familiar/FamiliarProfileTab";
 import { FamiliarNotesTab } from "./familiar/FamiliarNotesTab";
 import { FamiliarGalleryTab } from "./familiar/FamiliarGalleryTab";
 
-export interface FamiliarDetailProps {
-  lang: Language;
-  visualStyle?: VisualStyle;
-  familiar: Familiar;
-  characters: Character[];
-  onBack: () => void;
-  onEditInEditor: (id: string) => void;
-  onDelete: (id: string) => void;
-  onUpdateFamiliar: (updated: Familiar) => void;
-  onSelectCharacter: (charId: number) => void;
-  onBondMaster: (familiarId: string, charId: number | null) => void;
-  onShowToast?: (type: "success" | "error", text: string) => void;
-}
+export type { FamiliarDetailProps };
 
 export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
   const ctx = useFamiliarDetail(screenProps);
   const {
-    lang, visualStyle, familiar, characters, onBack, onEditInEditor, onDelete, onUpdateFamiliar, onSelectCharacter,
-    onBondMaster, onShowToast, t, isAcademy, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing, editNombre,
-    setEditNombre, editEspecie, setEditEspecie, editDescripcion, setEditDescripcion, editImageFit, setEditImageFit,
-    newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, lightboxImage, setLightboxImage, galleryError,
-    setGalleryError, pastedUrl, setPastedUrl, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, isDeleteOpen,
-    setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, saveFamiliarToDB, handleSaveQuickEdit,
-    handleAvatarChange, handleConfirmCrop, handleAddNote, handleSaveEditedNote, handleDeleteNote, handleAddGalleryImage,
-    handleAddUrlImage, handleDeleteGalleryImage,
+    store, familiar, familiarId, notes, gallery, characters, onBack, onEditInEditor, onArchive, t, archiveText,
+    isAcademy, canEditProfile, activeTab, setActiveTab, isQuickEditing, startQuickEdit, lightboxImage, setLightboxImage,
+    cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, setCroppedAreaPixels,
+    isDeleteOpen, setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, isBondedTo,
+    handleSaveQuickEdit, handleConfirmCrop, handleBondMaster,
   } = ctx;
 
   return (
@@ -105,7 +79,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
               </span>
               <span className="text-neutral-500">·</span>
               <span className="text-xs font-mono text-neutral-400">
-                {linkedMaster ? linkedMaster.nombre : t.familiarUnbound}
+                {linkedMaster ? linkedMaster.fields.nombre : store.sheet.bondId ? "—" : t.familiarUnbound}
               </span>
             </div>
             <h1 className="font-magic text-2xl sm:text-3xl font-bold text-neutral-100 uppercase tracking-wider glow-amber truncate max-w-md">
@@ -117,6 +91,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         {/* Header Action Buttons */}
         <div className="z-10 flex items-center gap-2 flex-wrap sm:flex-nowrap">
           {/* Quick Edit Toggle */}
+          {canEditProfile && (
           <button
             type="button"
             id="btn-familiar-quick-edit"
@@ -124,11 +99,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
               if (isQuickEditing) {
                 handleSaveQuickEdit();
               } else {
-                setEditNombre(familiar.nombre);
-                setEditEspecie(familiar.especie);
-                setEditDescripcion(familiar.descripcion || "");
-                setEditImageFit(familiar.imageFit || "cover");
-                setIsQuickEditing(true);
+                startQuickEdit();
               }
             }}
             className={`px-3 py-2 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border ${
@@ -140,28 +111,33 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
             {isQuickEditing ? <Check className="w-3.5 h-3.5" /> : <Edit className="w-3.5 h-3.5" />}
             <span>{isQuickEditing ? t.save : t.familiarQuickEdit}</span>
           </button>
+          )}
 
           {/* Full Editor */}
+          {canEditProfile && (
           <button
             type="button"
             id="btn-familiar-full-editor"
-            onClick={() => onEditInEditor(familiar.id)}
+            onClick={() => onEditInEditor(familiarId)}
             className="px-3 py-2 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/40 transition-colors cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden md:inline">{t.familiarEditInEditor}</span>
           </button>
+          )}
 
-          {/* Delete Button */}
+          {/* Archive Button (GM only; no one deletes) */}
+          {onArchive && (
           <button
             type="button"
             id="btn-familiar-delete"
             onClick={() => setIsDeleteOpen(true)}
             className="p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-800 transition-colors cursor-pointer"
-            title={t.delete}
+            title={archiveText.button}
           >
             <Trash2 className="w-4 h-4" />
           </button>
+          )}
         </div>
       </div>
 
@@ -193,9 +169,9 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         >
           <FileText className="w-4 h-4 text-amber-400" />
           {t.tabFamiliarNotes}
-          {(familiar.notasList?.length || 0) > 0 && (
+          {notes.length > 0 && (
             <span className="text-[10px] bg-neutral-800 px-1.5 py-0.2 rounded text-neutral-300">
-              {familiar.notasList?.length}
+              {notes.length}
             </span>
           )}
         </button>
@@ -212,9 +188,9 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         >
           <ImageIcon className="w-4 h-4 text-violet-400" />
           {t.tabFamiliarGallery}
-          {(familiar.galleryImages?.length || 0) > 0 && (
+          {gallery.length > 0 && (
             <span className="text-[10px] bg-neutral-800 px-1.5 py-0.2 rounded text-neutral-300">
-              {familiar.galleryImages?.length}
+              {gallery.length}
             </span>
           )}
         </button>
@@ -280,32 +256,32 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
               <button
                 type="button"
                 onClick={() => {
-                  onBondMaster(familiar.id, null);
+                  handleBondMaster(null);
                   setIsSelectMasterOpen(false);
                 }}
                 className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                  !familiar.studentId
+                  !store.sheet.bondId
                     ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
                     : "bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700"
                 }`}
               >
                 <span>{t.familiarBondNone}</span>
-                {!familiar.studentId && <Check className="w-4 h-4 text-emerald-400" />}
+                {!store.sheet.bondId && <Check className="w-4 h-4 text-emerald-400" />}
               </button>
 
               {/* Characters list */}
-              {characters.map((char) => (
+              {characters.map((charProjection) => {
+                const char = charProjection.fields as CharacterSheet;
+                return (
                 <button
-                  key={char.id}
+                  key={charProjection.id}
                   type="button"
                   onClick={() => {
-                    if (char.id) {
-                      onBondMaster(familiar.id, char.id);
-                      setIsSelectMasterOpen(false);
-                    }
+                    handleBondMaster(charProjection.id);
+                    setIsSelectMasterOpen(false);
                   }}
                   className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                    referencesCharacter(familiar.studentId, char.id!)
+                    isBondedTo(charProjection.id)
                       ? "bg-amber-950/60 border-amber-500 text-amber-200"
                       : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
                   }`}
@@ -313,7 +289,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
                   <div className="flex items-center gap-2.5 truncate">
                     {char.avatarImage ? (
                       <img
-                        src={char.avatarImage}
+                        src={imageSrc(char.avatarImage)}
                         alt={char.nombre}
                         className="w-7 h-7 rounded-lg object-cover shrink-0"
                       />
@@ -327,9 +303,10 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
                       ({char.characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : char.casa})
                     </span>
                   </div>
-                  {referencesCharacter(familiar.studentId, char.id!) && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  {isBondedTo(charProjection.id) && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
                 </button>
-              ))}
+                );
+              })}
             </div>
 
             <div className="flex justify-end pt-2 border-t border-neutral-800">
@@ -345,15 +322,15 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal (no window.confirm) */}
-      {isDeleteOpen && (
+      {/* Archive Confirmation Modal (no window.confirm) */}
+      {isDeleteOpen && onArchive && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-md glass-panel p-6 rounded-2xl border-2 border-rose-600/40 shadow-2xl space-y-4">
             <h3 className="font-magic text-base font-bold text-rose-400 uppercase tracking-wide">
-              {t.familiarDeleteTitle}
+              {archiveText.title}
             </h3>
             <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-              {t.familiarDeletePrompt}
+              {archiveText.prompt}
             </p>
             <div className="flex justify-end gap-3 pt-3 border-t border-neutral-800">
               <button
@@ -367,11 +344,11 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
                 type="button"
                 onClick={() => {
                   setIsDeleteOpen(false);
-                  onDelete(familiar.id);
+                  onArchive();
                 }}
                 className="px-4 py-2 bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold rounded-xl text-xs font-mono uppercase cursor-pointer"
               >
-                {t.familiarDeleteConfirmBtn}
+                {archiveText.confirm}
               </button>
             </div>
           </div>

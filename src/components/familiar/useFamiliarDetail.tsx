@@ -3,65 +3,83 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The familiar sheet's state and handlers, moved verbatim out of
-// FamiliarDetail.tsx (R3.4) so each tab can live in its own file.
+// The familiar sheet's state and handlers (R3.4). The sheet is read from the
+// SheetStore (what the viewer sees) and every change is a single-path edit:
+// no whole record or whole list is ever written for an existing familiar.
 import React, { useState, useRef } from "react";
-import { Familiar, Character, VisualStyle, JournalNote } from "../../types";
-import { Language, TRANSLATIONS } from "../../localization";
-import { storage } from "../../storage";
-import { referencesCharacter } from "../../storage/backup";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest } from "../HouseCrest";
-import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  PawPrint,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Trash,
-  X,
-  Maximize2,
-  Check,
-  Upload,
-  User,
-  Sparkles,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import { TRANSLATIONS } from "../../localization";
+import type { FamiliarDetailProps } from "../../account/screens";
+import type { CharacterSheet, FamiliarSheet } from "../../model/sheet";
+import { newItemId } from "../../model/sheet";
+import { getCroppedImg, compressImage } from "../../utils/imageCompressor";
 
-import type { FamiliarDetailProps } from "../FamiliarDetail";
+/** Texts for archiving (the GM's replacement for deleting); bilingual here until they move to localization. */
+const ARCHIVE_TEXT = {
+  es: {
+    button: "Archivar",
+    title: "Archivar Familiar",
+    prompt: "¿Deseas archivar la ficha de este familiar? La ficha no se elimina: se conservan sus notas y su galería.",
+    confirm: "Sí, Archivar Familiar",
+    bondError: "No se pudo cambiar el vínculo.",
+  },
+  en: {
+    button: "Archive",
+    title: "Archive Familiar",
+    prompt: "Do you want to archive this familiar's sheet? The sheet is not deleted: its notes and gallery are kept.",
+    confirm: "Yes, Archive Familiar",
+    bondError: "Could not change the bond.",
+  },
+};
 
 export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const {
-  lang,
-  visualStyle = "academy",
-  familiar,
-  characters,
-  onBack,
-  onEditInEditor,
-  onDelete,
-  onUpdateFamiliar,
-  onSelectCharacter,
-  onBondMaster,
-  onShowToast,
+    lang,
+    visualStyle = "academy",
+    store,
+    characters,
+    onBack,
+    onEditInEditor,
+    onArchive,
+    onSelectCharacter,
+    onBondMaster,
+    onUploadImage,
+    onShowToast,
   } = screenProps;
   const t = TRANSLATIONS[lang];
+  const archiveText = ARCHIVE_TEXT[lang === "en" ? "en" : "es"];
   const isAcademy = visualStyle === "academy";
+  const familiar = store.fields as FamiliarSheet;
+  const familiarId = store.sheet.id;
+  const { collectionPaths, bondWritable } = store.sheet.capabilities;
+
+  // What this viewer may change: a viewer without writable paths gets no editing controls.
+  const canEditName = store.allowed("nombre");
+  const canEditSpecies = store.allowed("especie");
+  const canEditDescription = store.allowed("descripcion");
+  const canEditImage = store.allowed("imagen");
+  const canEditImageFit = store.allowed("imageFit");
+  const canEditProfile = canEditName || canEditSpecies || canEditDescription || canEditImage || canEditImageFit;
+  const canAddNote = collectionPaths.includes("notasList");
+  const canEditNote = (id: string) => store.allowed(`notasList/${id}/titulo`) || store.allowed(`notasList/${id}/contenido`);
+  const canDeleteNote = (id: string) => store.allowed(`notasList/${id}`);
+  const canAddGalleryImage = collectionPaths.includes("galleryImages");
+  const canDeleteGalleryImage = (id: string) => store.allowed(`galleryImages/${id}`);
+  const canBond = bondWritable;
+
+  // Hidden lists are shown as empty. Journal entries newest first, as the old
+  // app stored them; gallery entries whose image is not uploaded yet are skipped.
+  const notes = [...(familiar.notasList ?? [])].sort((a, b) => (b.fecha ?? 0) - (a.fecha ?? 0));
+  const gallery = (familiar.galleryImages ?? []).filter((entry) => !!entry.value);
 
   // Tabs: perfil, notas, galeria
   const [activeTab, setActiveTab] = useState<"perfil" | "notas" | "galeria">("perfil");
 
   // Quick edit mode
   const [isQuickEditing, setIsQuickEditing] = useState(false);
-  const [editNombre, setEditNombre] = useState(familiar.nombre);
-  const [editEspecie, setEditEspecie] = useState(familiar.especie);
-  const [editDescripcion, setEditDescripcion] = useState(familiar.descripcion || "");
-  const [editImageFit, setEditImageFit] = useState<"cover" | "contain">(familiar.imageFit || "cover");
+  const [editNombre, setEditNombre] = useState(familiar.nombre ?? "");
+  const [editEspecie, setEditEspecie] = useState(familiar.especie ?? "");
+  const [editDescripcion, setEditDescripcion] = useState(familiar.descripcion ?? "");
+  const [editImageFit, setEditImageFit] = useState<"cover" | "contain">(familiar.imageFit ?? "cover");
 
   // Notes state
   const [newNoteTitle, setNewNoteTitle] = useState("");
@@ -73,7 +91,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   // Gallery state
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [galleryError, setGalleryError] = useState<string | null>(null);
-  const [pastedUrl, setPastedUrl] = useState("");
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Avatar cropping state
@@ -83,39 +100,44 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
-  // Delete modal state
+  // Archive modal state (the GM's archive replaces delete)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSelectMasterOpen, setIsSelectMasterOpen] = useState(false);
 
-  // Find linked character
-  const linkedMaster = familiar.studentId
-    ? characters.find((c) => referencesCharacter(familiar.studentId, c.id!))
+  // The bonded character, when the viewer can see it.
+  const linkedMasterProjection = store.sheet.bondId
+    ? characters.find((c) => c.id === store.sheet.bondId)
     : undefined;
+  const linkedMaster = linkedMasterProjection
+    ? { id: linkedMasterProjection.id, fields: linkedMasterProjection.fields as CharacterSheet }
+    : undefined;
+  const isBondedTo = (characterId: string) => store.sheet.bondId === characterId;
 
-  // Auto-save helper
-  const saveFamiliarToDB = async (updated: Familiar) => {
-    try {
-      updated.updatedAt = Date.now();
-      const saved = await storage.familiars.save(updated);
-      onUpdateFamiliar(saved);
-    } catch (err) {
-      console.error("Failed to save familiar to IndexedDB:", err);
-    }
+  const startQuickEdit = () => {
+    setEditNombre(familiar.nombre ?? "");
+    setEditEspecie(familiar.especie ?? "");
+    setEditDescripcion(familiar.descripcion ?? "");
+    setEditImageFit(familiar.imageFit ?? "cover");
+    setIsQuickEditing(true);
   };
 
+  /** Edits only the paths whose value changed; a blank name or species keeps the old value. */
   const handleSaveQuickEdit = async () => {
-    const updated: Familiar = {
-      ...familiar,
-      nombre: editNombre.trim() || familiar.nombre,
-      especie: editEspecie.trim() || familiar.especie,
-      descripcion: editDescripcion.trim(),
-      imageFit: editImageFit,
-    };
-    await saveFamiliarToDB(updated);
-    setIsQuickEditing(false);
-    if (onShowToast) {
-      onShowToast("success", t.familiarSavedInlineToast);
+    const changes: [string, unknown][] = [];
+    const nombre = editNombre.trim() || familiar.nombre;
+    const especie = editEspecie.trim() || familiar.especie;
+    const descripcion = editDescripcion.trim();
+    if (nombre !== undefined && nombre !== (familiar.nombre ?? "")) changes.push(["nombre", nombre]);
+    if (especie !== undefined && especie !== (familiar.especie ?? "")) changes.push(["especie", especie]);
+    if (descripcion !== (familiar.descripcion ?? "")) changes.push(["descripcion", descripcion]);
+    if (editImageFit !== (familiar.imageFit ?? "cover")) changes.push(["imageFit", editImageFit]);
+    const problems = changes.flatMap(([path, value]) => store.edit(path, value));
+    if (problems.length) {
+      onShowToast("error", t.validationErrorGeneric);
+      return;
     }
+    setIsQuickEditing(false);
+    onShowToast("success", t.familiarSavedInlineToast);
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,17 +162,20 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
 
   const handleConfirmCrop = async () => {
     if (!cropImageSrc || !croppedAreaPixels) return;
+    let croppedBase64: string;
     try {
-      const croppedBase64 = await getCroppedImg(cropImageSrc, croppedAreaPixels);
-      const updated: Familiar = {
-        ...familiar,
-        imagen: croppedBase64,
-      };
-      await saveFamiliarToDB(updated);
+      croppedBase64 = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+    } catch (err) {
+      console.error("Cropping error:", err);
+      return;
+    }
+    try {
+      await onUploadImage("imagen", croppedBase64);
       setIsCropperOpen(false);
       setCropImageSrc(null);
     } catch (err) {
-      console.error("Cropping error:", err);
+      console.error("Familiar image upload error:", err);
+      onShowToast("error", t.imageUploadError);
     }
   };
 
@@ -158,43 +183,40 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoteTitle.trim() && !newNoteContent.trim()) return;
-
-    const newNote: JournalNote = {
-      id: `note_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    const problems = store.edit(`notasList/${newItemId()}`, {
       titulo: newNoteTitle.trim() || t.noName,
       contenido: newNoteContent.trim(),
       fecha: Date.now(),
-    };
-
-    const currentNotes = familiar.notasList || [];
-    const updated: Familiar = {
-      ...familiar,
-      notasList: [newNote, ...currentNotes],
-    };
-    await saveFamiliarToDB(updated);
+    });
+    if (problems.length) {
+      onShowToast("error", t.validationErrorGeneric);
+      return;
+    }
     setNewNoteTitle("");
     setNewNoteContent("");
   };
 
   const handleSaveEditedNote = async (noteId: string) => {
-    const currentNotes = familiar.notasList || [];
-    const updatedNotes = currentNotes.map((n) =>
-      n.id === noteId
-        ? { ...n, titulo: editingNoteTitle.trim() || n.titulo, contenido: editingNoteContent.trim() }
-        : n
-    );
-    const updated: Familiar = { ...familiar, notasList: updatedNotes };
-    await saveFamiliarToDB(updated);
+    const note = (familiar.notasList ?? []).find((n) => n.id === noteId);
+    if (!note) {
+      setEditingNoteId(null);
+      return;
+    }
+    const titulo = editingNoteTitle.trim() || note.titulo;
+    const contenido = editingNoteContent.trim();
+    const problems = [
+      ...(titulo !== undefined && titulo !== (note.titulo ?? "") ? store.edit(`notasList/${noteId}/titulo`, titulo) : []),
+      ...(contenido !== (note.contenido ?? "") ? store.edit(`notasList/${noteId}/contenido`, contenido) : []),
+    ];
+    if (problems.length) {
+      onShowToast("error", t.validationErrorGeneric);
+      return;
+    }
     setEditingNoteId(null);
   };
 
   const handleDeleteNote = async (noteId: string) => {
-    const currentNotes = familiar.notasList || [];
-    const updated: Familiar = {
-      ...familiar,
-      notasList: currentNotes.filter((n) => n.id !== noteId),
-    };
-    await saveFamiliarToDB(updated);
+    store.edit(`notasList/${noteId}`, null);
   };
 
   // Gallery management
@@ -202,70 +224,78 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     setGalleryError(null);
-
-    if (file.size > 2.5 * 1024 * 1024) {
-      setGalleryError(t.imageTooLarge);
+    let dataUrl: string;
+    try {
+      dataUrl = await compressImage(file, 1600, 1600, 0.75);
+    } catch (err) {
+      console.error("Gallery compress error:", err);
+      setGalleryError(t.imageUploadError);
+      e.target.value = "";
       return;
     }
-
-    try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const base64 = event.target?.result as string;
-        const currentGallery = familiar.galleryImages || [];
-        const updated: Familiar = {
-          ...familiar,
-          galleryImages: [...currentGallery, base64],
-        };
-        await saveFamiliarToDB(updated);
-      };
-      reader.readAsDataURL(file);
-    } catch {
+    e.target.value = "";
+    const id = newItemId();
+    if (store.edit(`galleryImages/${id}`, { value: "" }).length) {
       setGalleryError(t.imageUploadError);
-    } finally {
-      e.target.value = "";
+      return;
+    }
+    try {
+      await onUploadImage(`galleryImages/${id}/value`, dataUrl);
+    } catch (err) {
+      console.error("Gallery upload error:", err);
+      setGalleryError(t.imageUploadError);
+      // Do not leave an empty entry behind.
+      store.edit(`galleryImages/${id}`, null);
     }
   };
 
-  const handleAddUrlImage = async () => {
-    if (!pastedUrl.trim()) return;
-    setGalleryError(null);
-    const currentGallery = familiar.galleryImages || [];
-    const updated: Familiar = {
-      ...familiar,
-      galleryImages: [...currentGallery, pastedUrl.trim()],
-    };
-    await saveFamiliarToDB(updated);
-    setPastedUrl("");
+  const handleDeleteGalleryImage = async (entryId: string) => {
+    store.edit(`galleryImages/${entryId}`, null);
   };
 
-  const handleDeleteGalleryImage = async (idx: number) => {
-    const currentGallery = familiar.galleryImages || [];
-    const updated: Familiar = {
-      ...familiar,
-      galleryImages: currentGallery.filter((_, i) => i !== idx),
-    };
-    await saveFamiliarToDB(updated);
+  const handleBondMaster = async (characterId: string | null) => {
+    try {
+      await onBondMaster(characterId);
+    } catch (err) {
+      console.error("Bond error:", err);
+      onShowToast("error", archiveText.bondError);
+    }
   };
 
   return {
     lang,
     visualStyle,
+    store,
     familiar,
+    familiarId,
+    notes,
+    gallery,
     characters,
     onBack,
     onEditInEditor,
-    onDelete,
-    onUpdateFamiliar,
+    onArchive,
     onSelectCharacter,
-    onBondMaster,
     onShowToast,
     t,
+    archiveText,
     isAcademy,
+    canEditName,
+    canEditSpecies,
+    canEditDescription,
+    canEditImage,
+    canEditImageFit,
+    canEditProfile,
+    canAddNote,
+    canEditNote,
+    canDeleteNote,
+    canAddGalleryImage,
+    canDeleteGalleryImage,
+    canBond,
     activeTab,
     setActiveTab,
     isQuickEditing,
     setIsQuickEditing,
+    startQuickEdit,
     editNombre,
     setEditNombre,
     editEspecie,
@@ -288,8 +318,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     setLightboxImage,
     galleryError,
     setGalleryError,
-    pastedUrl,
-    setPastedUrl,
     avatarInputRef,
     cropImageSrc,
     setCropImageSrc,
@@ -306,7 +334,7 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     isSelectMasterOpen,
     setIsSelectMasterOpen,
     linkedMaster,
-    saveFamiliarToDB,
+    isBondedTo,
     handleSaveQuickEdit,
     handleAvatarChange,
     handleConfirmCrop,
@@ -314,8 +342,8 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     handleSaveEditedNote,
     handleDeleteNote,
     handleAddGalleryImage,
-    handleAddUrlImage,
     handleDeleteGalleryImage,
+    handleBondMaster,
   };
 }
 

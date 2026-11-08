@@ -5,11 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "dev:mock": "vite --mode mock --port=3000 --host=0.0.0.0",
     "dev:remote": "vite --mode remote --port=3002 --host=127.0.0.1",
     "dev:demo": "vite --mode demo --port=3003 --host=127.0.0.1",
     "build": "vite build",
-    "build:mock": "vite build --mode mock",
     "build:remote": "vite build --mode remote",
     "build:demo": "vite build --mode demo",
     "preview": "vite preview",

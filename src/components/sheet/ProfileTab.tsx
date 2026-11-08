@@ -4,82 +4,32 @@
  */
 
 // The sheet's "perfil" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
-import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import {
-  Language,
-  TRANSLATIONS,
-  translateSkillName,
-  translateHouseMotto,
-  getLocalizedHouseLore,
-  areSameSkill
-} from "../../localization";
+import React from "react";
+import { HOUSES } from "../../data/gameData";
+import { translateHouseMotto } from "../../localization";
 import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
 import { HouseCrest, hasRecognizedCrest } from "../HouseCrest";
-import { storage } from "../../storage";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Shield,
-  User,
-  Flame,
-  BookOpen,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Minus,
-  Sparkles,
-  Award,
-  Coins,
-  Activity,
-  Trash,
-  X,
-  Maximize2,
-  Gem,
-  Check,
-  Upload,
-  Save,
-  PawPrint,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import { Shield, User, Plus, X } from "lucide-react";
+import type { House } from "../../model/sheet";
 
 import type { SheetContext } from "./useCharacterSheet";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
-    lang, character, familiars, onBack, onDelete, onUpdateCharacter, onSelectFamiliar, onBondFamiliar, onOpenCreateFamiliar,
-    visualStyle, t, hInfo, localizedLore, characterType, theme, isAcademy, profile, updateProfileField, activeTab,
-    setActiveTab, newSpellName, setNewSpellName, newSpellVal, setNewSpellVal, newSpellSpec, setNewSpellSpec,
-    newPotionName, setNewPotionName, newPotionVal, setNewPotionVal, newPotionSpec, setNewPotionSpec, newClubName,
-    setNewClubName, newItemName, setNewItemName, newItemQty, setNewItemQty, newNoteTitle, setNewNoteTitle,
-    newNoteContent, setNewNoteContent, lightboxImage, setLightboxImage, galleryError, setGalleryError, newTempAspect,
-    setNewTempAspect, newPhysicalConsequence, setNewPhysicalConsequence, newMentalConsequence, setNewMentalConsequence,
-    newSocialConsequence, setNewSocialConsequence, isQuickEditing, setIsQuickEditing, newPersonalAspectInput,
+    lang, character, t, hInfo, localizedLore, characterType, isAcademy, writable, shown, canAdd, canRemove, edit, profile,
+    teachingSubjectsText, updateProfileField, updateTeachingSubjects, isQuickEditing, newPersonalAspectInput,
     setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
-    newCustomFieldValue, setNewCustomFieldValue, avatarInputRef, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, newSkillNames,
-    setNewSkillNames, skillErrorCat, setSkillErrorCat, presetSavedSuccess, setPresetSavedSuccess, isDeleteStudentOpen,
-    setIsDeleteStudentOpen, deleteStudentUnderstood, setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget,
-    isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen, linkedFamiliar, saveStateToDB, changeStat, setDestinyPoints,
-    changeMaxStress, handleAvatarChange, onCropComplete, handleConfirmCrop, handleDeleteAspect, handleAddNewAspect,
-    handleDeleteComplication, handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
-    handleAddTempAspect, handleRemoveTempAspect, handleAddPhysicalConsequence, handleRemovePhysicalConsequence,
-    handleAddMentalConsequence, handleRemoveMentalConsequence, handleAddSocialConsequence, handleRemoveSocialConsequence,
-    changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handleSaveDefaultSkillPreset,
-    addSpell, removeSpell, confirmRemoveSpell, addPotion, removePotion, confirmRemovePotion, handleGalleryAdd,
-    removeGalleryImage, confirmRemoveGalleryImage, handleAddClub, handleRemoveClub, confirmRemoveClub, handleAddInventoryItem,
-    handleChangeInventoryQty, handleRemoveInventoryItem, confirmRemoveInventoryItem, handleAddNote, handleStartEditNote,
-    handleSaveEditedNote, newNoteNoteTitle, handleRemoveNote, confirmRemoveNote, handleDeleteCharacterClick,
-    confirmDeleteCharacter, handleExportCharacter, getCategoryTitle,
+    newCustomFieldValue, setNewCustomFieldValue, handleDeleteAspect, handleAddNewAspect, handleDeleteComplication,
+    handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
   } = ctx;
+  const casa = character.casa ?? "";
+  const customFields = character.camposPersonalizados ?? [];
+  /** The age, a whole number; an empty or unreadable box changes nothing. */
+  const editAge = (text: string) => {
+    if (!text.trim()) return;
+    const age = parseInt(text, 10);
+    if (Number.isFinite(age)) edit("edad", age);
+  };
   return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-tab-perfil">
 
@@ -101,145 +51,162 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
               {isQuickEditing ? (
                 <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                  {shown("jugador") && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.jugador}</label>
                     <input
                       type="text"
                       value={character.jugador || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, jugador: e.target.value };
-                        saveStateToDB(clone);
-                      }}
+                      disabled={!writable("jugador")}
+                      onChange={(e) => edit("jugador", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
+                  )}
 
+                  {shown("edad") && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.edad}</label>
                     <input
                       type="text"
-                      value={character.edad || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, edad: e.target.value };
-                        saveStateToDB(clone);
-                      }}
+                      value={String(character.edad ?? "")}
+                      disabled={!writable("edad")}
+                      onChange={(e) => editAge(e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
+                  )}
 
                   {characterType !== "adult_wizard" && (
                     <>
+                      {shown("curso") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
                         <input
                           type="text"
                           value={character.curso || ""}
-                          onChange={(e) => {
-                            const clone = { ...character, curso: e.target.value };
-                            saveStateToDB(clone);
-                          }}
+                          disabled={!writable("curso")}
+                          onChange={(e) => edit("curso", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("puestoClase") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
                         <input
                           type="text"
                           value={character.puestoClase || ""}
-                          onChange={(e) => {
-                            const clone = { ...character, puestoClase: e.target.value };
-                            saveStateToDB(clone);
-                          }}
+                          disabled={!writable("puestoClase")}
+                          onChange={(e) => edit("puestoClase", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
                     </>
                   )}
 
+                  {shown("linaje") && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.linaje}</label>
                     <input
                       type="text"
                       value={character.linaje || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, linaje: e.target.value };
-                        saveStateToDB(clone);
-                      }}
+                      disabled={!writable("linaje")}
+                      onChange={(e) => edit("linaje", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
+                  )}
 
+                  {shown("economia") && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.economia}</label>
                     <input
                       type="text"
                       value={character.economia || ""}
-                      onChange={(e) => {
-                        const clone = { ...character, economia: e.target.value };
-                        saveStateToDB(clone);
-                      }}
+                      disabled={!writable("economia")}
+                      onChange={(e) => edit("economia", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
+                  )}
 
                   {characterType === "adult_wizard" && (
                     <>
+                      {shown("adultWizardProfile/role") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardRole}</label>
                         <input
                           type="text"
                           value={profile.role || ""}
+                          disabled={!writable("adultWizardProfile/role")}
                           onChange={(e) => updateProfileField("role", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/institution") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardInstitution}</label>
                         <input
                           type="text"
                           value={profile.institution || ""}
+                          disabled={!writable("adultWizardProfile/institution")}
                           onChange={(e) => updateProfileField("institution", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/formerHouse") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardFormerHouse}</label>
                         <input
                           type="text"
                           value={profile.formerHouse || ""}
+                          disabled={!writable("adultWizardProfile/formerHouse")}
                           onChange={(e) => updateProfileField("formerHouse", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/magicalFocus") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardMagicalFocus}</label>
                         <input
                           type="text"
                           value={profile.magicalFocus || ""}
+                          disabled={!writable("adultWizardProfile/magicalFocus")}
                           onChange={(e) => updateProfileField("magicalFocus", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/reputation") && (
                       <div className="flex flex-col gap-1 col-span-2">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardReputation}</label>
                         <input
                           type="text"
                           value={profile.reputation || ""}
+                          disabled={!writable("adultWizardProfile/reputation")}
                           onChange={(e) => updateProfileField("reputation", e.target.value)}
                           className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                         />
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/isTeacher") && (
                       <div className="flex items-center gap-2 col-span-2 py-1">
                         <input
                           id="edit-aw-is-teacher"
                           type="checkbox"
                           checked={profile.isTeacher || false}
+                          disabled={!writable("adultWizardProfile/isTeacher")}
                           onChange={(e) => updateProfileField("isTeacher", e.target.checked)}
                           className="rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
                         />
@@ -247,6 +214,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           {t.adultWizardIsTeacher}
                         </label>
                       </div>
+                      )}
 
                       {profile.isTeacher && (
                         <div className="flex flex-col gap-1 col-span-2">
@@ -257,11 +225,9 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           <input
                             type="text"
                             placeholder={t.adultWizardTeachingSubjectsPlaceholder}
-                            value={(profile.teachingSubjects || []).join(", ")}
-                            onChange={(e) => {
-                              const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-                              updateProfileField("teachingSubjects", arr);
-                            }}
+                            value={teachingSubjectsText}
+                            disabled={!canAdd("adultWizardProfile/teachingSubjects")}
+                            onChange={(e) => updateTeachingSubjects(e.target.value)}
                             className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                           />
                         </div>
@@ -271,76 +237,100 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                  {shown("jugador") && (
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.jugador}</div>
                     <div className="text-neutral-200 mt-0.5">{character.jugador || "—"}</div>
                   </div>
+                  )}
 
+                  {shown("edad") && (
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.edad}</div>
-                    <div className="text-neutral-200 mt-0.5">{character.edad || "—"}</div>
+                    <div className="text-neutral-200 mt-0.5">{String(character.edad ?? "") || "—"}</div>
                   </div>
+                  )}
 
                   {characterType !== "adult_wizard" && (
                     <>
+                      {shown("curso") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
                         <div className="text-neutral-200 mt-0.5">{character.curso || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("puestoClase") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
                         <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
                       </div>
+                      )}
                     </>
                   )}
 
+                  {shown("linaje") && (
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.linaje}</div>
                     <div className="text-neutral-200 mt-0.5">{character.linaje || "—"}</div>
                   </div>
+                  )}
 
+                  {shown("economia") && (
                   <div>
                     <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.economia}</div>
                     <div className="text-neutral-200 mt-0.5">{character.economia || "—"}</div>
                   </div>
+                  )}
 
                   {characterType === "adult_wizard" && (
                     <>
+                      {shown("adultWizardProfile/role") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardRole}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.role || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/institution") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardInstitution}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.institution || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/formerHouse") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardFormerHouse}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.formerHouse || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/magicalFocus") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardMagicalFocus}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.magicalFocus || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/reputation") && (
                       <div className="col-span-2">
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardReputation}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.reputation || "—"}</div>
                       </div>
+                      )}
 
+                      {shown("adultWizardProfile/isTeacher") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardIsTeacher}</div>
                         <div className="text-neutral-200 mt-0.5">{profile.isTeacher ? t.yes : t.no}</div>
                       </div>
+                      )}
 
                       {profile.isTeacher && (
                         <div className="col-span-2">
                           <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardTeachingSubjects}</div>
-                          <div className="text-neutral-200 mt-0.5">{(profile.teachingSubjects || []).join(", ") || "—"}</div>
+                          <div className="text-neutral-200 mt-0.5">{teachingSubjectsText || "—"}</div>
                         </div>
                       )}
                     </>
@@ -349,22 +339,23 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
               )}
 
               {/* Varita */}
+              {shown("varitaSintonia") && (
               <div className={isAcademy ? "pt-2" : "border-t border-violet-500/10 pt-3"}>
                 {isAcademy && <CompassStarDivider className="mb-3" />}
                 {isQuickEditing ? (
                   <div className="grid grid-cols-1 gap-3 text-xs font-mono">
+                    {shown("varitaSintonia") && (
                     <div className="flex flex-col gap-1">
                       <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
                       <input
                         type="text"
                         value={character.varitaSintonia || ""}
-                        onChange={(e) => {
-                          const clone = { ...character, varitaSintonia: e.target.value };
-                          saveStateToDB(clone);
-                        }}
+                        disabled={!writable("varitaSintonia")}
+                        onChange={(e) => edit("varitaSintonia", e.target.value)}
                         className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                       />
                     </div>
+                    )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-3 text-xs font-mono">
@@ -379,10 +370,11 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {/* House Affiliation & Heraldry Panel (Row 1 Right on Desktop; Position 2 on Mobile) */}
-            {characterType !== "adult_wizard" && (
+            {characterType !== "adult_wizard" && shown("casa") && (
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-filiacion">
                 {isAcademy && (
                   <>
@@ -406,25 +398,15 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       {/* Left: House Crest with House Name Under It */}
                       <div className="flex flex-col items-center justify-center shrink-0 min-w-[90px] sm:min-w-[105px]">
                         <HouseCrest
-                          house={character.casa}
+                          house={casa}
                           isAdultWizard={false}
                           className="w-20 h-20 sm:w-22 sm:h-22 filter drop-shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-transform hover:scale-105"
                           variant="shield"
                         />
-                        {isQuickEditing ? (
+                        {isQuickEditing && writable("casa") ? (
                           <select
-                            value={character.casa.toUpperCase()}
-                            onChange={(e) => {
-                              const newVal = e.target.value;
-                              const hData = HOUSES[newVal];
-                              const clone = {
-                                ...character,
-                                casa: newVal,
-                                lema: hData ? translateHouseMotto(hData.lema, lang) : (character.lema || ""),
-                                escudoText: hData ? hData.escudo : (character.escudoText || "")
-                              };
-                              saveStateToDB(clone);
-                            }}
+                            value={casa.toUpperCase()}
+                            onChange={(e) => edit("casa", e.target.value as House)}
                             className="mt-2 w-full text-center text-[10px] bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-1.5 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
                           >
                             {Object.keys(HOUSES).map((hKey) => (
@@ -447,31 +429,21 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           {t.labelMotto}
                         </div>
                         <blockquote className={`font-serif italic text-base sm:text-lg md:text-xl font-medium ${isAcademy ? "text-amber-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-neutral-100"} leading-snug`}>
-                          « {translateHouseMotto(HOUSES[character.casa.toUpperCase()] ? hInfo.lema : (character.lema || hInfo.lema), lang)} »
+                          « {translateHouseMotto(hInfo.lema, lang)} »
                         </blockquote>
                       </div>
                     </div>
 
                     {/* Data grid: Casa Fundadora & Lema conditionally hidden when the house has a recognized crest */}
                     <div className="relative grid grid-cols-2 gap-3 text-xs font-mono mt-4">
-                      {!hasRecognizedCrest(character.casa) && (
+                      {!hasRecognizedCrest(casa) && (
                         <>
                           <div>
                             <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.casa}</div>
-                            {isQuickEditing ? (
+                            {isQuickEditing && writable("casa") ? (
                               <select
-                                value={character.casa.toUpperCase()}
-                                onChange={(e) => {
-                                  const newVal = e.target.value;
-                                  const hData = HOUSES[newVal];
-                                  const clone = {
-                                    ...character,
-                                    casa: newVal,
-                                    lema: hData ? translateHouseMotto(hData.lema, lang) : (character.lema || ""),
-                                    escudoText: hData ? hData.escudo : (character.escudoText || "")
-                                  };
-                                  saveStateToDB(clone);
-                                }}
+                                value={casa.toUpperCase()}
+                                onChange={(e) => edit("casa", e.target.value as House)}
                                 className="mt-1 w-full text-xs bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-2 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
                               >
                                 {Object.keys(HOUSES).map((hKey) => (
@@ -489,7 +461,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           <div>
                             <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelMotto}</div>
                             <div className="text-amber-300 font-serif italic text-sm mt-0.5">
-                              « {translateHouseMotto(HOUSES[character.casa.toUpperCase()] ? hInfo.lema : (character.lema || hInfo.lema), lang)} »
+                              « {translateHouseMotto(hInfo.lema, lang)} »
                             </div>
                           </div>
                         </>
@@ -536,26 +508,22 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
 
                   {(() => {
-                    const aspectList = Array.isArray(character.aspectosPersonales)
-                      ? character.aspectosPersonales
-                      : character.aspectosPersonales
-                        ? [character.aspectosPersonales]
-                        : [];
+                    const aspectList = character.aspectosPersonales ?? [];
 
                     return (
                       <div className="space-y-3">
                         {aspectList.length > 0 ? (
                           <div className="grid grid-cols-1 gap-2">
-                            {aspectList.map((aspect, idx) => (
+                            {aspectList.map((aspect) => (
                               <div
-                                key={idx}
+                                key={aspect.id}
                                 className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300 flex items-center justify-between gap-2"
                               >
-                                <span>“ {aspect} ”</span>
-                                {isQuickEditing && (
+                                <span>“ {aspect.value} ”</span>
+                                {isQuickEditing && canRemove("aspectosPersonales", aspect.id) && (
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteAspect(idx)}
+                                    onClick={() => handleDeleteAspect(aspect.id)}
                                     className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
                                     title={t.deleteAspect}
                                   >
@@ -571,7 +539,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           </span>
                         )}
 
-                        {isQuickEditing && (
+                        {isQuickEditing && canAdd("aspectosPersonales") && (
                           <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                             <input
                               type="text"
@@ -622,26 +590,22 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
 
                   {(() => {
-                    const compList = Array.isArray(character.complicaciones)
-                      ? character.complicaciones
-                      : character.complicaciones
-                        ? [character.complicaciones]
-                        : [];
+                    const compList = character.complicaciones ?? [];
 
                     return (
                       <div className="space-y-3">
                         {compList.length > 0 ? (
                           <div className="grid grid-cols-1 gap-2">
-                            {compList.map((comp, idx) => (
+                            {compList.map((comp) => (
                               <div
-                                key={idx}
+                                key={comp.id}
                                 className="p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-rose-300 flex items-center justify-between gap-2"
                               >
-                                <span>“ {comp} ”</span>
-                                {isQuickEditing && (
+                                <span>“ {comp.value} ”</span>
+                                {isQuickEditing && canRemove("complicaciones", comp.id) && (
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteComplication(idx)}
+                                    onClick={() => handleDeleteComplication(comp.id)}
                                     className="text-neutral-500 hover:text-red-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
                                     title={t.deleteComplication}
                                   >
@@ -657,7 +621,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           </span>
                         )}
 
-                        {isQuickEditing && (
+                        {isQuickEditing && canAdd("complicaciones") && (
                           <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                             <input
                               type="text"
@@ -693,7 +657,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
             </div>
 
             {/* Full-width Custom Fields Panel in both styles */}
-            {(isQuickEditing || (character.camposPersonalizados && character.camposPersonalizados.length > 0)) && (
+            {(isQuickEditing || customFields.length > 0) && (
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2 relative overflow-hidden" id="detail-panel-custom-fields">
                 {isAcademy && (
                   <>
@@ -707,11 +671,11 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   <span>🔮</span> {t.customFields}
                 </h3>
                 {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
-                {character.camposPersonalizados && character.camposPersonalizados.length > 0 ? (
+                {customFields.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {character.camposPersonalizados.map((fd, idx) => (
+                    {customFields.map((fd) => (
                       <div
-                        key={idx}
+                        key={fd.id}
                         className={
                           isAcademy
                             ? "p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs flex items-center justify-between gap-2"
@@ -722,26 +686,30 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           <>
                             <input
                               type="text"
-                              value={fd.nombre}
-                              onChange={(e) => handleUpdateCustomField(idx, "nombre", e.target.value)}
+                              value={fd.nombre ?? ""}
+                              disabled={!writable(`camposPersonalizados/${fd.id}/nombre`)}
+                              onChange={(e) => handleUpdateCustomField(fd.id, "nombre", e.target.value)}
                               placeholder={t.fieldName}
                               className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
                             />
                             <input
                               type="text"
-                              value={fd.valor}
-                              onChange={(e) => handleUpdateCustomField(idx, "valor", e.target.value)}
+                              value={fd.valor ?? ""}
+                              disabled={!writable(`camposPersonalizados/${fd.id}/valor`)}
+                              onChange={(e) => handleUpdateCustomField(fd.id, "valor", e.target.value)}
                               placeholder={t.fieldValue}
                               className="flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
                             />
+                            {canRemove("camposPersonalizados", fd.id) && (
                             <button
                               type="button"
-                              onClick={() => handleRemoveCustomField(idx)}
+                              onClick={() => handleRemoveCustomField(fd.id)}
                               className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
                               title={t.deleteCustomField}
                             >
                               <X className="w-3.5 h-3.5 shrink-0" />
                             </button>
+                            )}
                           </>
                         ) : (
                           <>
@@ -760,7 +728,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </span>
                 )}
 
-                {isQuickEditing && (
+                {isQuickEditing && canAdd("camposPersonalizados") && (
                   <div className={`flex flex-col sm:flex-row gap-2 items-center bg-neutral-950/40 p-2.5 border ${isAcademy ? "border-[#c8a248]/25" : "border-violet-500/10"} rounded-lg mt-3`}>
                     <input
                       type="text"

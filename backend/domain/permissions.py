@@ -48,7 +48,8 @@ def list_sheets(actor, campaign, kind):
     query = Sheet.objects.select_related("campaign").filter(campaign=campaign, kind=kind)
     if membership.role != "gm":
         query = query.filter(archived=False).filter(Q(assigned_player=actor) | Q(shares__recipient=actor)).distinct()
-    return query.order_by("id")
+    # Newest first, as the app has always listed sheets.
+    return query.order_by("-created_at", "id")
 
 
 def audience_tier(sheet, path):

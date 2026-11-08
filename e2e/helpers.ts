@@ -24,30 +24,9 @@ export async function openApp(page: Page) {
   await expect(page.locator("#character-list-container")).toBeVisible();
 }
 
-/**
- * Waits until the app's pending IndexedDB writes have committed. The UI saves
- * asynchronously after each edit, so a reload must not overtake a save.
- * Read-write transactions on the same stores run in creation order, so an
- * empty one opened now finishes only after earlier ones.
- */
+/** Demo builds: waits until the sheet stores have sent every change. */
 export async function flushWrites(page: Page) {
-  await page.evaluate(async () => {
-    const names = (await indexedDB.databases()).map(d => d.name).filter((n): n is string => !!n?.startsWith("MagistriScholae"));
-    for (const name of names) {
-      await new Promise<void>((resolve, reject) => {
-        const request = indexedDB.open(name);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          const db = request.result;
-          const stores = [...db.objectStoreNames];
-          if (!stores.length) { db.close(); resolve(); return; }
-          const transaction = db.transaction(stores, "readwrite");
-          transaction.oncomplete = () => { db.close(); resolve(); };
-          transaction.onerror = () => { db.close(); reject(transaction.error); };
-        };
-      });
-    }
-  });
+  await page.waitForFunction(() => (window as unknown as { __magistriSaved?: () => boolean }).__magistriSaved?.() ?? true);
 }
 
 export async function reloadApp(page: Page) {
@@ -109,20 +88,6 @@ export async function setEditMode(page: Page, on: boolean) {
   if ((await editing()) !== on) await toggle.click();
 }
 
-/** Downloads a JSON file from a button and parses it. */
-export async function downloadJson<T = any>(page: Page, trigger: Locator): Promise<{ data: T; path: string }> {
-  const [download] = await Promise.all([page.waitForEvent("download"), trigger.click()]);
-  const path = await download.path();
-  return { data: JSON.parse(await readFile(path, "utf8")) as T, path };
-}
-
-/** Exports the open character through "Export character" and returns the stored record. */
-export async function exportOpenCharacter(page: Page) {
-  const { data } = await downloadJson(page, page.locator("#btn-detail-export"));
-  expect(data.characters).toHaveLength(1);
-  return { character: data.characters[0], familiars: data.familiars ?? [] };
-}
-
 /** A valid solid-colour PNG, generated so the tests need no binary fixtures. */
 export function pngFile(name = "portrait.png", size = 96) {
   const chunk = (type: string, data: Buffer) => {
@@ -142,4 +107,22 @@ export function pngFile(name = "portrait.png", size = 96) {
   const buffer = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
     chunk("IHDR", header), chunk("IDAT", pixels), chunk("IEND", Buffer.alloc(0))]);
   return { name, mimeType: "image/png", buffer };
+}
+
+/** Demo builds: signs in as another demo viewer (GM, assigned player, shared reader) and reloads. */
+export async function viewAs(page: Page, role: "gm" | "player" | "reader") {
+  await page.evaluate(async role => {
+    const mock = await import("/src/mock/server.ts" as string);
+    mock.mockServer().signInAs(role);
+  }, role);
+  await page.reload();
+  await expect(page.locator("#character-list-container")).toBeVisible();
+}
+
+/** Demo builds: the stored fields of the first sheet with this name, read from the mock server. */
+export async function storedSheet(page: Page, name: string): Promise<Record<string, any> | undefined> {
+  return page.evaluate(async name => {
+    const mock = await import("/src/mock/server.ts" as string);
+    return mock.mockServer().state.sheets.find((s: { fields: { nombre?: string } }) => s.fields.nombre === name)?.fields;
+  }, name);
 }

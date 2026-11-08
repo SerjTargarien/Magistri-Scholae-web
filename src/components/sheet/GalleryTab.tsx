@@ -4,81 +4,16 @@
  */
 
 // The sheet's "galeria" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
-import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import {
-  Language,
-  TRANSLATIONS,
-  translateSkillName,
-  translateHouseMotto,
-  getLocalizedHouseLore,
-  areSameSkill
-} from "../../localization";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest, hasRecognizedCrest } from "../HouseCrest";
-import { storage } from "../../storage";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Shield,
-  User,
-  Flame,
-  BookOpen,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Minus,
-  Sparkles,
-  Award,
-  Coins,
-  Activity,
-  Trash,
-  X,
-  Maximize2,
-  Gem,
-  Check,
-  Upload,
-  Save,
-  PawPrint,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import React from "react";
+import { imageSrc } from "../../remote/assets";
+import { Image as ImageIcon, Plus, Trash, X } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
 
 export function GalleryTab({ ctx }: { ctx: SheetContext }) {
   const {
-    lang, character, familiars, onBack, onDelete, onUpdateCharacter, onSelectFamiliar, onBondFamiliar, onOpenCreateFamiliar,
-    visualStyle, t, hInfo, localizedLore, characterType, theme, isAcademy, profile, updateProfileField, activeTab,
-    setActiveTab, newSpellName, setNewSpellName, newSpellVal, setNewSpellVal, newSpellSpec, setNewSpellSpec,
-    newPotionName, setNewPotionName, newPotionVal, setNewPotionVal, newPotionSpec, setNewPotionSpec, newClubName,
-    setNewClubName, newItemName, setNewItemName, newItemQty, setNewItemQty, newNoteTitle, setNewNoteTitle,
-    newNoteContent, setNewNoteContent, lightboxImage, setLightboxImage, galleryError, setGalleryError, newTempAspect,
-    setNewTempAspect, newPhysicalConsequence, setNewPhysicalConsequence, newMentalConsequence, setNewMentalConsequence,
-    newSocialConsequence, setNewSocialConsequence, isQuickEditing, setIsQuickEditing, newPersonalAspectInput,
-    setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
-    newCustomFieldValue, setNewCustomFieldValue, avatarInputRef, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, newSkillNames,
-    setNewSkillNames, skillErrorCat, setSkillErrorCat, presetSavedSuccess, setPresetSavedSuccess, isDeleteStudentOpen,
-    setIsDeleteStudentOpen, deleteStudentUnderstood, setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget,
-    isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen, linkedFamiliar, saveStateToDB, changeStat, setDestinyPoints,
-    changeMaxStress, handleAvatarChange, onCropComplete, handleConfirmCrop, handleDeleteAspect, handleAddNewAspect,
-    handleDeleteComplication, handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
-    handleAddTempAspect, handleRemoveTempAspect, handleAddPhysicalConsequence, handleRemovePhysicalConsequence,
-    handleAddMentalConsequence, handleRemoveMentalConsequence, handleAddSocialConsequence, handleRemoveSocialConsequence,
-    changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handleSaveDefaultSkillPreset,
-    addSpell, removeSpell, confirmRemoveSpell, addPotion, removePotion, confirmRemovePotion, handleGalleryAdd,
-    removeGalleryImage, confirmRemoveGalleryImage, handleAddClub, handleRemoveClub, confirmRemoveClub, handleAddInventoryItem,
-    handleChangeInventoryQty, handleRemoveInventoryItem, confirmRemoveInventoryItem, handleAddNote, handleStartEditNote,
-    handleSaveEditedNote, newNoteNoteTitle, handleRemoveNote, confirmRemoveNote, handleDeleteCharacterClick,
-    confirmDeleteCharacter, handleExportCharacter, getCategoryTitle,
+    t, canAdd, canRemove, setLightboxImage, galleryError, setGalleryError, isQuickEditing, galleryImages,
+    handleGalleryAdd, removeGalleryImage,
   } = ctx;
   return (
           <div className="glass-panel p-6 rounded-xl border border-violet-500/15 space-y-6 animate-fade-in" id="detail-tab-galeria">
@@ -93,7 +28,7 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                 <p className="text-[10px] text-neutral-400 mt-1 font-mono">{t.galleryInstructions}</p>
               </div>
 
-              {isQuickEditing && (
+              {isQuickEditing && canAdd("galleryImages") && (
                 <div>
                   <label className="flex items-center gap-2 px-4 py-2 bg-violet-950 hover:bg-violet-900 border border-violet-500/35 rounded-xl text-xs font-bold transition-all cursor-pointer text-violet-100">
                     <Plus className="w-4 h-4" />
@@ -128,27 +63,27 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
             )}
 
             {/* Gallery images GRID / CSS columns Masonry */}
-            {character.galleryImages && character.galleryImages.length > 0 ? (
+            {galleryImages.length > 0 ? (
               <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-4" id="gallery-pics-view">
-                {character.galleryImages.map((pic, idx) => (
+                {galleryImages.map((pic, idx) => (
                   <div
                     id={`gallery-item-${idx}`}
-                    key={idx}
-                    onClick={() => setLightboxImage(pic)}
+                    key={pic.id}
+                    onClick={() => setLightboxImage(pic.id)}
                     className="break-inside-avoid bg-neutral-950 border border-violet-500/10 rounded-xl overflow-hidden cursor-pointer shadow hover:border-amber-500/40 hover:-translate-y-0.5 transition-all mb-4 relative group"
                   >
                     <img
-                      src={pic}
+                      src={imageSrc(pic.value)}
                       alt={`Relato ${idx}`}
                       className="w-full h-auto object-contain block transition-transform group-hover:scale-[1.02] duration-300"
                       referrerPolicy="no-referrer"
                     />
 
                     {/* Delete action indicator hover */}
-                    {isQuickEditing && (
+                    {isQuickEditing && canRemove("galleryImages", pic.id) && (
                       <button
                         id={`btn-del-gal-pic-${idx}`}
-                        onClick={(e) => removeGalleryImage(idx, e)}
+                        onClick={(e) => removeGalleryImage(pic.id, e)}
                         className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
                         title="Delete picture"
                       >

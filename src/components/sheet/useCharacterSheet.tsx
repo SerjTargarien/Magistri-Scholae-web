@@ -3,101 +3,113 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The character sheet's state and handlers, moved verbatim out of
-// CharacterDetail.tsx (R3.4) so each tab can live in its own file.
-import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
+// The character sheet's state and handlers (R3.4). The sheet is the server's
+// model (src/model/sheet.ts), read from the store; every change is a single
+// path edit through store.edit, list entries are addressed by their ID, and a
+// field the viewer may not see is absent (never blank).
+import React, { useState, useRef } from "react";
+import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import {
-  Language,
-  TRANSLATIONS,
-  translateSkillName,
-  translateHouseMotto,
-  getLocalizedHouseLore,
-  areSameSkill
-} from "../../localization";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest, hasRecognizedCrest } from "../HouseCrest";
-import { storage } from "../../storage";
-import Cropper from "react-easy-crop";
+import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
 import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Shield,
-  User,
-  Flame,
-  BookOpen,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Minus,
-  Sparkles,
-  Award,
-  Coins,
-  Activity,
-  Trash,
-  X,
-  Maximize2,
-  Gem,
-  Check,
-  Upload,
-  Save,
-  PawPrint,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry } from "../../model/sheet";
+import { saveSkillPreset } from "../../model/defaults";
+import type { CharacterDetailProps } from "../../account/screens";
 
-import type { CharacterDetailProps } from "../CharacterDetail";
+type TextList = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
+type ConsequenceList = "consecuenciasFisicas" | "consecuenciasMentales" | "consecuenciasSociales";
+type StressField = "estresFisico" | "estresMental" | "estresSocial";
+type StressMaxField = "estresFisicoMax" | "estresMentalMax" | "estresSocialMax";
+
+const MAX_PXS = 1_000_000;
+const MAX_QUANTITY = 9999;
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const sameName = (a: string | undefined, b: string) => !!a && a.trim().toLocaleLowerCase() === b.toLocaleLowerCase();
+
+/** Archiving replaces deleting (owner decision); local texts so the shared localization stays untouched. */
+const ARCHIVE_TEXT = {
+  es: {
+    button: "Archivar",
+    title: "Archivar personaje",
+    text: "¿Seguro que quieres archivar a este personaje? Dejará de aparecer en la campaña; su ficha, bitácora, galería, conjuros, pociones y equipo se conservan.",
+    checkbox: "Entiendo que el personaje dejará de estar visible en la campaña.",
+    confirm: "Archivar",
+  },
+  en: {
+    button: "Archive",
+    title: "Archive character",
+    text: "Are you sure you want to archive this character? It will no longer appear in the campaign; its sheet, journal, gallery, spells, potions and belongings are kept.",
+    checkbox: "I understand the character will no longer be visible in the campaign.",
+    confirm: "Archive",
+  },
+} as const;
 
 export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const {
-  lang,
-  character,
-  familiars = [],
-  onBack,
-  onDelete,
-  onUpdateCharacter,
-  onSelectFamiliar,
-  onBondFamiliar,
-  onOpenCreateFamiliar,
-  visualStyle = "academy",
+    lang,
+    store,
+    catalogue,
+    familiars,
+    onBack,
+    onArchive,
+    onSelectFamiliar,
+    onBondFamiliar,
+    onOpenCreateFamiliar,
+    onUploadImage,
+    visualStyle = "academy",
   } = sheetProps;
+  const character = store.fields as CharacterSheet;
+  const capabilities = store.sheet.capabilities;
   const t = TRANSLATIONS[lang];
-  const hInfo = HOUSES[character.casa.toUpperCase()] || HOUSES.IRATI;
-  const localizedLore = getLocalizedHouseLore(character.casa, lang);
-  const characterType = getCharacterType(character);
-  const theme = getCharacterVisualTheme(character);
+  const archiveText = ARCHIVE_TEXT[lang];
+  const casa = character.casa ?? "";
+  const hInfo = HOUSES[casa.toUpperCase()] || HOUSES.IRATI;
+  const localizedLore = getLocalizedHouseLore(casa, lang);
+  const characterType = character.characterType ?? "student";
+  const theme = getCharacterVisualTheme({ characterType, casa });
   const isAcademy = visualStyle === "academy";
 
-  const profile = character.adultWizardProfile || {
-    role: "",
-    institution: "",
-    isTeacher: false,
-    teachingSubjects: [],
-    formerHouse: "",
-    magicalFocus: "",
-    reputation: "",
+  // What this viewer may see and change.
+  const writable = (path: string) => store.allowed(path);
+  const readable = (path: string) => capabilities.readablePaths.some(p => p === path || p.startsWith(path + "/"));
+  /** A scalar field is rendered only when the viewer may read or write it. */
+  const shown = (path: string) => readable(path) || writable(path);
+  const canAdd = (list: string) => capabilities.collectionPaths.includes(list);
+  const canRemove = (list: string, id: string) => store.allowed(`${list}/${id}`);
+  const canEditSheet = capabilities.writablePaths.length > 0 || capabilities.collectionPaths.length > 0 || capabilities.removablePaths.length > 0;
+  const canBond = !!onBondFamiliar && capabilities.bondWritable;
+
+  const profile = character.adultWizardProfile ?? {};
+  const teachingSubjectsText = (profile.teachingSubjects ?? []).map(s => s.value).join(", ");
+
+  const edit = (path: string, value: unknown) => store.edit(path, value);
+  const addEntry = (list: string, entry: Record<string, unknown>) => store.edit(`${list}/${newItemId()}`, entry);
+  const removeEntry = (list: string, id: string) => store.edit(`${list}/${id}`, null);
+
+  const updateProfileField = (field: "role" | "institution" | "formerHouse" | "magicalFocus" | "reputation" | "isTeacher", value: string | boolean) => {
+    edit(`adultWizardProfile/${field}`, value);
   };
 
-  const updateProfileField = (field: string, value: any) => {
-    const clone = {
-      ...character,
-      adultWizardProfile: {
-        role: character.adultWizardProfile?.role || "",
-        institution: character.adultWizardProfile?.institution || "",
-        isTeacher: typeof character.adultWizardProfile?.isTeacher === "boolean" ? character.adultWizardProfile.isTeacher : false,
-        teachingSubjects: character.adultWizardProfile?.teachingSubjects || [],
-        formerHouse: character.adultWizardProfile?.formerHouse || "",
-        magicalFocus: character.adultWizardProfile?.magicalFocus || "",
-        reputation: character.adultWizardProfile?.reputation || "",
-        [field]: value
-      }
-    };
-    saveStateToDB(clone);
+  // The subjects stay one comma-separated box for now; each change becomes
+  // per-entry edits: unchanged subjects keep their entry, changed ones are
+  // rewritten in place, new ones added and dropped ones removed.
+  const updateTeachingSubjects = (text: string) => {
+    const next = text.split(",").map(s => s.trim()).filter(Boolean);
+    const current = profile.teachingSubjects ?? [];
+    const unused = [...current];
+    const unmatched: string[] = [];
+    for (const value of next) {
+      const index = unused.findIndex(entry => entry.value === value);
+      if (index >= 0) unused.splice(index, 1);
+      else unmatched.push(value);
+    }
+    const base = "adultWizardProfile/teachingSubjects";
+    unmatched.forEach((value, i) => {
+      const entry = unused[i];
+      if (entry) edit(`${base}/${entry.id}/value`, value);
+      else addEntry(base, { value });
+    });
+    unused.slice(unmatched.length).forEach(entry => removeEntry(base, entry.id));
   };
 
   // Tabs: perfil, sesion, habilidades, hechizos, notas, galeria
@@ -121,7 +133,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
 
-  // Gallery view states
+  // Gallery view states (the lightbox holds a gallery entry's ID)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [galleryError, setGalleryError] = useState<string | null>(null);
 
@@ -131,8 +143,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const [newMentalConsequence, setNewMentalConsequence] = useState("");
   const [newSocialConsequence, setNewSocialConsequence] = useState("");
 
-  // Quick Edit Mode states
-  const [isQuickEditing, setIsQuickEditing] = useState(false);
+  // Quick Edit Mode states (a viewer who can change nothing never enters it)
+  const [quickEditing, setIsQuickEditing] = useState(false);
+  const isQuickEditing = canEditSheet && quickEditing;
   const [newPersonalAspectInput, setNewPersonalAspectInput] = useState("");
   const [newComplicationInput, setNewComplicationInput] = useState("");
   const [newCustomFieldName, setNewCustomFieldName] = useState("");
@@ -151,7 +164,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
-  // Skills dynamic customization states
+  // Skills dynamic customization states, keyed by catalogue category ID
   const [newSkillNames, setNewSkillNames] = useState<Record<string, string>>({});
   const [skillErrorCat, setSkillErrorCat] = useState<string | null>(null);
   const [presetSavedSuccess, setPresetSavedSuccess] = useState(false);
@@ -159,57 +172,35 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   // Confirmation states to avoid window.confirm (blocked/unreliable in sandboxed iframes)
   const [isDeleteStudentOpen, setIsDeleteStudentOpen] = useState(false);
   const [deleteStudentUnderstood, setDeleteStudentUnderstood] = useState(false);
-  const [minorDeleteTarget, setMinorDeleteTarget] = useState<{ id: string | number; type: "spell" | "potion" | "gallery" | "club" | "item" | "note" } | null>(null);
+  const [minorDeleteTarget, setMinorDeleteTarget] = useState<{ id: string; type: "spell" | "potion" | "gallery" | "club" | "item" | "note" } | null>(null);
   const [isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen] = useState(false);
 
-  const linkedFamiliar = character.familiarId
-    ? familiars.find((f) => f.id === character.familiarId)
-    : undefined;
+  // The bonded familiar, as this viewer sees it.
+  const bondId = store.sheet.bondId;
+  const bonded = bondId ? familiars.find((f) => f.id === bondId) : undefined;
+  const linkedFamiliar = bonded ? { id: bonded.id, ...(bonded.fields as FamiliarSheet) } : undefined;
 
-  // Safe Auto-Save to IndexedDB helper
-  const saveStateToDB = async (updatedChar: Character) => {
-    if (!updatedChar.id) return;
-    try {
-      updatedChar.updatedAt = Date.now();
-      const saved = await storage.characters.save(updatedChar);
-      onUpdateCharacter(saved);
-    } catch (e) {
-      console.error("IndexedDB auto-save failed:", e);
-    }
+  const bondFamiliar = (familiarId: string | null) => {
+    if (!onBondFamiliar) return;
+    onBondFamiliar(familiarId).catch((err) => console.error("Familiar bond failed:", err));
   };
 
   // 1. Session Tracker / Increments
-  const changeStat = (field: keyof Character, count: number, maxValueField?: keyof Character) => {
-    // Make sure we clone the character properly
-    const clone = { ...character };
-    const currentVal = (clone[field] as number) || 0;
-    const maxVal = maxValueField ? (clone[maxValueField] as number) || 5 : 99;
-
-    const newVal = Math.max(0, Math.min(maxVal, currentVal + count));
-    (clone[field] as any) = newVal;
-
-    saveStateToDB(clone);
+  const changeStat = (field: "pxs", count: number) => {
+    edit(field, clamp((character[field] ?? 0) + count, 0, MAX_PXS));
   };
 
   const setDestinyPoints = (val: number) => {
-    const clone = { ...character };
-    clone.puntosDestino = Math.max(0, Math.min(5, val));
-    saveStateToDB(clone);
+    edit("puntosDestino", clamp(val, 0, 5));
   };
 
-  const changeMaxStress = (
-    maxField: "estresFisicoMax" | "estresMentalMax" | "estresSocialMax",
-    currentField: "estresFisico" | "estresMental" | "estresSocial",
-    delta: number
-  ) => {
-    const clone = { ...character };
-    const currentMax = (clone[maxField] as number) || 3;
-    const nextMax = Math.max(1, Math.min(10, currentMax + delta));
-    clone[maxField] = nextMax;
-    if ((clone[currentField] as number) > nextMax) {
-      clone[currentField] = nextMax;
-    }
-    saveStateToDB(clone);
+  const setStress = (field: StressField, value: number) => edit(field, value);
+
+  const changeMaxStress = (maxField: StressMaxField, currentField: StressField, delta: number) => {
+    const nextMax = clamp((character[maxField] || 3) + delta, 1, 10);
+    // Lowering the maximum below the current value lowers the value first, so neither edit breaks the rule.
+    if ((character[currentField] ?? 0) > nextMax) edit(currentField, nextMax);
+    edit(maxField, nextMax);
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,252 +231,92 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     if (!cropImageSrc || !croppedAreaPixels) return;
     try {
       const croppedBase64 = await getCroppedImg(cropImageSrc, croppedAreaPixels);
-      const clone = { ...character, avatarImage: croppedBase64 };
-      saveStateToDB(clone);
       setIsCropperOpen(false);
       setCropImageSrc(null);
+      await onUploadImage("avatarImage", croppedBase64);
     } catch (err: any) {
-      console.error("Cropping confirm error:", err);
+      console.error("Portrait upload error:", err);
     }
   };
 
-  const handleDeleteAspect = (idx: number) => {
-    const list = Array.isArray(character.aspectosPersonales)
-      ? character.aspectosPersonales
-      : (character.aspectosPersonales ? [character.aspectosPersonales] : []);
-    const clone = {
-      ...character,
-      aspectosPersonales: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
+  const setAvatarFit = (fit: "cover" | "contain") => edit("avatarFit", fit);
+  const removeAvatar = () => edit("avatarImage", "");
+
+  // Aspects, complications and temporary aspects: one text per entry.
+  const addText = (list: TextList, text: string) => {
+    if (!text.trim()) return;
+    addEntry(list, { value: text.trim() });
   };
 
-  const handleAddNewAspect = (name: string) => {
-    if (!name.trim()) return;
-    const list = Array.isArray(character.aspectosPersonales)
-      ? character.aspectosPersonales
-      : (character.aspectosPersonales ? [character.aspectosPersonales] : []);
-    const clone = {
-      ...character,
-      aspectosPersonales: [...list, name.trim()]
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleDeleteComplication = (idx: number) => {
-    const list = Array.isArray(character.complicaciones)
-      ? character.complicaciones
-      : (character.complicaciones ? [character.complicaciones] : []);
-    const clone = {
-      ...character,
-      complicaciones: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleAddNewComplication = (name: string) => {
-    if (!name.trim()) return;
-    const list = Array.isArray(character.complicaciones)
-      ? character.complicaciones
-      : (character.complicaciones ? [character.complicaciones] : []);
-    const clone = {
-      ...character,
-      complicaciones: [...list, name.trim()]
-    };
-    saveStateToDB(clone);
-  };
+  const handleDeleteAspect = (id: string) => removeEntry("aspectosPersonales", id);
+  const handleAddNewAspect = (name: string) => addText("aspectosPersonales", name);
+  const handleDeleteComplication = (id: string) => removeEntry("complicaciones", id);
+  const handleAddNewComplication = (name: string) => addText("complicaciones", name);
+  const handleAddTempAspect = (aspectName: string) => addText("aspectoTemporal", aspectName);
+  const handleRemoveTempAspect = (id: string) => removeEntry("aspectoTemporal", id);
 
   const handleAddCustomField = () => {
     if (!newCustomFieldName.trim()) return;
-    const list = Array.isArray(character.camposPersonalizados)
-      ? character.camposPersonalizados
-      : [];
-    const clone = {
-      ...character,
-      camposPersonalizados: [
-        ...list,
-        { nombre: newCustomFieldName.trim(), valor: newCustomFieldValue.trim() }
-      ]
-    };
-    saveStateToDB(clone);
+    addEntry("camposPersonalizados", { nombre: newCustomFieldName.trim(), valor: newCustomFieldValue.trim() });
     setNewCustomFieldName("");
     setNewCustomFieldValue("");
   };
 
-  const handleUpdateCustomField = (idx: number, field: "nombre" | "valor", val: string) => {
-    const list = Array.isArray(character.camposPersonalizados)
-      ? [...character.camposPersonalizados]
-      : [];
-    if (!list[idx]) return;
-    list[idx] = { ...list[idx], [field]: val };
-    const clone = {
-      ...character,
-      camposPersonalizados: list
-    };
-    saveStateToDB(clone);
+  const handleUpdateCustomField = (id: string, field: "nombre" | "valor", val: string) => {
+    edit(`camposPersonalizados/${id}/${field}`, val);
   };
 
-  const handleRemoveCustomField = (idx: number) => {
-    const list = Array.isArray(character.camposPersonalizados)
-      ? character.camposPersonalizados
-      : [];
-    const clone = {
-      ...character,
-      camposPersonalizados: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
+  const handleRemoveCustomField = (id: string) => removeEntry("camposPersonalizados", id);
+
+  // Consequences: a description (the severity selector comes later).
+  const addConsequence = (list: ConsequenceList, text: string) => {
+    if (!text.trim()) return;
+    addEntry(list, { descripcion: text.trim() });
   };
 
-  const handleAddTempAspect = (aspectName: string) => {
-    if (!aspectName.trim()) return;
-    const list = Array.isArray(character.aspectoTemporal)
-      ? character.aspectoTemporal
-      : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
-    const clone = {
-      ...character,
-      aspectoTemporal: [...list, aspectName.trim()]
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleRemoveTempAspect = (idx: number) => {
-    const list = Array.isArray(character.aspectoTemporal)
-      ? character.aspectoTemporal
-      : (character.aspectoTemporal ? [character.aspectoTemporal] : []);
-    const clone = {
-      ...character,
-      aspectoTemporal: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleAddPhysicalConsequence = (name: string) => {
-    if (!name.trim()) return;
-    const list = Array.isArray(character.consecuenciasFisicas)
-      ? character.consecuenciasFisicas
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasFisicas: [...list, name.trim()]
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleRemovePhysicalConsequence = (idx: number) => {
-    const list = Array.isArray(character.consecuenciasFisicas)
-      ? character.consecuenciasFisicas
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasFisicas: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleAddMentalConsequence = (name: string) => {
-    if (!name.trim()) return;
-    const list = Array.isArray(character.consecuenciasMentales)
-      ? character.consecuenciasMentales
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasMentales: [...list, name.trim()]
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleRemoveMentalConsequence = (idx: number) => {
-    const list = Array.isArray(character.consecuenciasMentales)
-      ? character.consecuenciasMentales
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasMentales: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleAddSocialConsequence = (name: string) => {
-    if (!name.trim()) return;
-    const list = Array.isArray(character.consecuenciasSociales)
-      ? character.consecuenciasSociales
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasSociales: [...list, name.trim()]
-    };
-    saveStateToDB(clone);
-  };
-
-  const handleRemoveSocialConsequence = (idx: number) => {
-    const list = Array.isArray(character.consecuenciasSociales)
-      ? character.consecuenciasSociales
-      : [];
-    const clone = {
-      ...character,
-      consecuenciasSociales: list.filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
-  };
+  const handleAddPhysicalConsequence = (name: string) => addConsequence("consecuenciasFisicas", name);
+  const handleRemovePhysicalConsequence = (id: string) => removeEntry("consecuenciasFisicas", id);
+  const handleAddMentalConsequence = (name: string) => addConsequence("consecuenciasMentales", name);
+  const handleRemoveMentalConsequence = (id: string) => removeEntry("consecuenciasMentales", id);
+  const handleAddSocialConsequence = (name: string) => addConsequence("consecuenciasSociales", name);
+  const handleRemoveSocialConsequence = (id: string) => removeEntry("consecuenciasSociales", id);
 
   // 2. Skill Modifiers
-  const changeSkillValue = (skillIdx: number, val: number) => {
-    const clone = { ...character };
-    const skills = [...clone.habilidades];
-    const originalSkill = skills[skillIdx];
-
-    // Ensure base level from 0 to 5 for standard play
-    const newVal = Math.max(0, Math.min(5, originalSkill.valor + val));
-    skills[skillIdx] = { ...originalSkill, valor: newVal };
-    clone.habilidades = skills;
-
-    saveStateToDB(clone);
+  const changeSkillValue = (skillId: string, val: number) => {
+    const skill = (character.habilidades ?? []).find(sk => sk.id === skillId);
+    if (!skill) return;
+    edit(`habilidades/${skillId}/valor`, clamp((skill.valor ?? 0) + val, 0, 5));
   };
 
-  const handleNewSkillNameChange = (catKey: string, val: string) => {
-    setNewSkillNames(prev => ({ ...prev, [catKey]: val }));
-    if (skillErrorCat === catKey) {
+  const handleNewSkillNameChange = (categoryId: string, val: string) => {
+    setNewSkillNames(prev => ({ ...prev, [categoryId]: val }));
+    if (skillErrorCat === categoryId) {
       setSkillErrorCat(null);
     }
   };
 
-  const handleAddSkill = (catKey: string) => {
-    const name = newSkillNames[catKey]?.trim();
+  /** Adds the player's own skill to a catalogue category; a name already in the catalogue (either language) or on the sheet is refused. */
+  const handleAddSkill = (categoryId: string) => {
+    const name = newSkillNames[categoryId]?.trim();
     if (!name) return;
 
-    // Check if skill already exists (including canonical translations)
-    const exists = character.habilidades.some(sk => areSameSkill(sk.nombre, name));
+    const exists = catalogue.habilidades.some(sk => Object.values(sk.nombre).some(n => sameName(n, name)))
+      || (character.habilidades ?? []).some(sk => !sk.catalogo && sameName(sk.nombre, name));
     if (exists) {
-      setSkillErrorCat(catKey);
+      setSkillErrorCat(categoryId);
       return;
     }
 
-    const newSkill: Skill = {
-      nombre: name,
-      categoria: catKey,
-      valor: 0
-    };
-
-    const clone = {
-      ...character,
-      habilidades: [...character.habilidades, newSkill]
-    };
-    saveStateToDB(clone);
-    setNewSkillNames(prev => ({ ...prev, [catKey]: "" }));
+    if (addEntry("habilidades", { nombre: name, categoria: categoryId, valor: 0 }).length) return;
+    setNewSkillNames(prev => ({ ...prev, [categoryId]: "" }));
     setSkillErrorCat(null);
   };
 
-  const handleRemoveSkill = (skillIdx: number) => {
-    const clone = {
-      ...character,
-      habilidades: character.habilidades.filter((_, i) => i !== skillIdx)
-    };
-    saveStateToDB(clone);
-  };
+  const handleRemoveSkill = (skillId: string) => removeEntry("habilidades", skillId);
 
   const handleSaveDefaultSkillPreset = () => {
     try {
-      localStorage.setItem("magistri_default_skills_preset", JSON.stringify(character.habilidades));
+      saveSkillPreset(character.habilidades ?? []);
       setPresetSavedSuccess(true);
       setTimeout(() => setPresetSavedSuccess(false), 3000);
     } catch (e) {
@@ -496,17 +327,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   // 3. Spells (Hechizos) Actions
   const addSpell = () => {
     if (!newSpellName.trim()) return;
-    const newSpell: Spell = {
-      id: "spell_" + Date.now(),
-      nombre: newSpellName.trim(),
-      valor: newSpellVal,
-      specialized: newSpellSpec,
-    };
-    const clone = {
-      ...character,
-      conjuros: [...(character.conjuros || []), newSpell]
-    };
-    saveStateToDB(clone);
+    addEntry("conjuros", { nombre: newSpellName.trim(), valor: newSpellVal, specialized: newSpellSpec });
 
     // Reset controls
     setNewSpellName("");
@@ -519,28 +340,14 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const confirmRemoveSpell = (id: string) => {
-    const clone = {
-      ...character,
-      conjuros: (character.conjuros || []).filter(sp => sp.id !== id)
-    };
-    saveStateToDB(clone);
+    removeEntry("conjuros", id);
     setMinorDeleteTarget(null);
   };
 
   // 4. Potions ACTIONS
   const addPotion = () => {
     if (!newPotionName.trim()) return;
-    const newPotion: Potion = {
-      id: "potion_" + Date.now(),
-      nombre: newPotionName.trim(),
-      valor: newPotionVal,
-      specialized: newPotionSpec,
-    };
-    const clone = {
-      ...character,
-      pociones: [...(character.pociones || []), newPotion]
-    };
-    saveStateToDB(clone);
+    addEntry("pociones", { nombre: newPotionName.trim(), valor: newPotionVal, specialized: newPotionSpec });
 
     // Reset controls
     setNewPotionName("");
@@ -553,15 +360,13 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const confirmRemovePotion = (id: string) => {
-    const clone = {
-      ...character,
-      pociones: (character.pociones || []).filter(po => po.id !== id)
-    };
-    saveStateToDB(clone);
+    removeEntry("pociones", id);
     setMinorDeleteTarget(null);
   };
 
-  // 6. Gallery base64 attachment with automatic compression & state errors (no blocking alert)
+  // 6. Gallery: compressed on the device, then uploaded into a new entry.
+  const galleryImages = (character.galleryImages ?? []).filter(pic => !!pic.value);
+
   const handleGalleryAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -570,47 +375,37 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
     try {
       // Auto compress to under ~200-400KB so it never fails or crashes the client state
-      const base64Str = await compressImage(file, 1600, 1600, 0.75);
-
-      const clone = {
-        ...character,
-        galleryImages: [...(character.galleryImages || []), base64Str]
-      };
-      saveStateToDB(clone);
+      const dataUrl = await compressImage(file, 1600, 1600, 0.75);
+      const id = newItemId();
+      if (store.edit(`galleryImages/${id}`, { value: "" }).length) throw new Error("gallery entry refused");
+      try {
+        await onUploadImage(`galleryImages/${id}/value`, dataUrl);
+      } catch (err) {
+        removeEntry("galleryImages", id); // no empty entry is left behind
+        throw err;
+      }
     } catch (err: any) {
-      console.error("Gallery compress error:", err);
+      console.error("Gallery upload error:", err);
       setGalleryError(t.imageUploadError);
     } finally {
       e.target.value = ""; // refresh list
     }
   };
 
-  const removeGalleryImage = (idx: number, e: React.MouseEvent) => {
+  const removeGalleryImage = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid triggering click expansion
-    setMinorDeleteTarget({ id: idx, type: "gallery" });
+    setMinorDeleteTarget({ id, type: "gallery" });
   };
 
-  const confirmRemoveGalleryImage = (idx: number) => {
-    const clone = {
-      ...character,
-      galleryImages: (character.galleryImages || []).filter((_, i) => i !== idx)
-    };
-    saveStateToDB(clone);
+  const confirmRemoveGalleryImage = (id: string) => {
+    removeEntry("galleryImages", id);
     setMinorDeleteTarget(null);
   };
 
   // 5b. Clubs Actions
   const handleAddClub = () => {
     if (!newClubName.trim()) return;
-    const newClub: Club = {
-      id: "club_" + Date.now(),
-      nombre: newClubName.trim()
-    };
-    const clone = {
-      ...character,
-      clubesList: [...(character.clubesList || []), newClub]
-    };
-    saveStateToDB(clone);
+    addEntry("clubesList", { nombre: newClubName.trim() });
     setNewClubName("");
   };
 
@@ -619,43 +414,22 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const confirmRemoveClub = (id: string) => {
-    const clone = {
-      ...character,
-      clubesList: (character.clubesList || []).filter(cl => cl.id !== id)
-    };
-    saveStateToDB(clone);
+    removeEntry("clubesList", id);
     setMinorDeleteTarget(null);
   };
 
   // 5c. Equipment / Inventory Actions
   const handleAddInventoryItem = () => {
     if (!newItemName.trim()) return;
-    const newItem: InventoryItem = {
-      id: "item_" + Date.now(),
-      nombre: newItemName.trim(),
-      cantidad: Math.max(1, newItemQty)
-    };
-    const clone = {
-      ...character,
-      equipoList: [...(character.equipoList || []), newItem]
-    };
-    saveStateToDB(clone);
+    addEntry("equipoList", { nombre: newItemName.trim(), cantidad: clamp(newItemQty, 1, MAX_QUANTITY) });
     setNewItemName("");
     setNewItemQty(1);
   };
 
   const handleChangeInventoryQty = (id: string, delta: number) => {
-    const list = (character.equipoList || []).map(eq => {
-      if (eq.id === id) {
-        return { ...eq, cantidad: Math.max(1, eq.cantidad + delta) };
-      }
-      return eq;
-    });
-    const clone = {
-      ...character,
-      equipoList: list
-    };
-    saveStateToDB(clone);
+    const item = (character.equipoList ?? []).find(eq => eq.id === id);
+    if (!item) return;
+    edit(`equipoList/${id}/cantidad`, clamp((item.cantidad ?? 1) + delta, 1, MAX_QUANTITY));
   };
 
   const handleRemoveInventoryItem = (id: string) => {
@@ -663,56 +437,33 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const confirmRemoveInventoryItem = (id: string) => {
-    const clone = {
-      ...character,
-      equipoList: (character.equipoList || []).filter(eq => eq.id !== id)
-    };
-    saveStateToDB(clone);
+    removeEntry("equipoList", id);
     setMinorDeleteTarget(null);
   };
 
   // 5d. Individual Diary Notes Actions
   const handleAddNote = () => {
     if (!newNoteContent.trim()) return;
-    const noteTitle = newNoteNoteTitle();
-    const newNote = {
-      id: "note_" + Date.now(),
-      titulo: noteTitle,
-      contenido: newNoteContent.trim(),
-      fecha: Date.now()
-    };
-    const clone = {
-      ...character,
-      notasList: [...(character.notasList || []), newNote]
-    };
-    saveStateToDB(clone);
+    addEntry("notasList", { titulo: newNoteNoteTitle(), contenido: newNoteContent.trim(), fecha: Date.now() });
     setNewNoteTitle("");
     setNewNoteContent("");
   };
 
-  const handleStartEditNote = (note: { id: string; titulo: string; contenido: string }) => {
+  const handleStartEditNote = (note: JournalEntry) => {
     setEditingNoteId(note.id);
-    setEditingNoteTitle(note.titulo);
-    setEditingNoteContent(note.contenido);
+    setEditingNoteTitle(note.titulo ?? "");
+    setEditingNoteContent(note.contenido ?? "");
   };
 
+  /** Saves only the parts of the note that changed. */
   const handleSaveEditedNote = (id: string) => {
     if (!editingNoteContent.trim()) return;
-    const updatedNotes = (character.notasList || []).map(n => {
-      if (n.id === id) {
-        return {
-          ...n,
-          titulo: editingNoteTitle.trim() || n.titulo,
-          contenido: editingNoteContent.trim(),
-        };
-      }
-      return n;
-    });
-    const clone = {
-      ...character,
-      notasList: updatedNotes
-    };
-    saveStateToDB(clone);
+    const note = (character.notasList ?? []).find(n => n.id === id);
+    if (!note) return;
+    const titulo = editingNoteTitle.trim() || note.titulo;
+    const contenido = editingNoteContent.trim();
+    if (titulo !== note.titulo) edit(`notasList/${id}/titulo`, titulo);
+    if (contenido !== note.contenido) edit(`notasList/${id}/contenido`, contenido);
     setEditingNoteId(null);
     setEditingNoteTitle("");
     setEditingNoteContent("");
@@ -735,173 +486,52 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const confirmRemoveNote = (id: string) => {
-    const clone = {
-      ...character,
-      notasList: (character.notasList || []).filter(n => n.id !== id)
-    };
-    saveStateToDB(clone);
+    removeEntry("notasList", id);
     setMinorDeleteTarget(null);
   };
 
-  // Automated legacy compatibility migration useEffect
-  useEffect(() => {
-    let changed = false;
-    const clone = { ...character };
-
-    if (
-      character.estresMentalConsecuencia &&
-      character.estresMentalConsecuencia.trim() &&
-      (!character.consecuenciasMentales || character.consecuenciasMentales.length === 0)
-    ) {
-      clone.consecuenciasMentales = [character.estresMentalConsecuencia.trim()];
-      clone.estresMentalConsecuencia = "";
-      changed = true;
-    }
-
-    if (character.notas && character.notas.trim() && (!character.notasList || character.notasList.length === 0)) {
-      const legacyNote = {
-        id: "note_mig_" + Date.now(),
-        titulo: t.consolidatedJournal,
-        contenido: character.notas,
-        fecha: Date.now()
-      };
-      clone.notasList = [legacyNote];
-      clone.notas = ""; // clear so we don't migrate again
-      changed = true;
-    }
-
-    if (character.clubes && (!character.clubesList || character.clubesList.length === 0)) {
-      const splitClubs = character.clubes
-        .split(/[,\n;]/)
-        .map(c => c.trim())
-        .filter(Boolean);
-      if (splitClubs.length > 0) {
-        clone.clubesList = splitClubs.map((clubStr, idx) => ({
-          id: `club_mig_${idx}_${Date.now() + idx}`,
-          nombre: clubStr
-        }));
-        clone.clubes = ""; // clear so we don't migrate again
-        changed = true;
-      }
-    }
-
-    if (character.equipo && (!character.equipoList || character.equipoList.length === 0)) {
-      const splitEquips = character.equipo
-        .split(/[,\n;]/)
-        .map(e => e.trim())
-        .filter(Boolean);
-      if (splitEquips.length > 0) {
-        clone.equipoList = splitEquips.map((eqStr, idx) => {
-          let cantidad = 1;
-          let nombre = eqStr;
-          const qtyRegexStart = /^(\d+)\s*[xX*]\s*(.+)$/;
-          const qtyRegexEnd = /^(.+)\s*\((\d+)\)$/;
-          if (qtyRegexStart.test(eqStr)) {
-            const match = eqStr.match(qtyRegexStart);
-            if (match) {
-              cantidad = parseInt(match[1]) || 1;
-              nombre = match[2].trim();
-            }
-          } else if (qtyRegexEnd.test(eqStr)) {
-            const match = eqStr.match(qtyRegexEnd);
-            if (match) {
-              cantidad = parseInt(match[2]) || 1;
-              nombre = match[1].trim();
-            }
-          }
-          return {
-            id: `item_mig_${idx}_${Date.now() + idx}`,
-            nombre,
-            cantidad
-          };
-        });
-        clone.equipo = ""; // clear so we don't migrate again
-        changed = true;
-      }
-    }
-
-    if (changed) {
-      saveStateToDB(clone);
-    }
-  }, [character]);
-
-  // Destructive character purge with strong check
+  // Archiving (GM only) with the strong double check
   const handleDeleteCharacterClick = () => {
     setDeleteStudentUnderstood(false);
     setIsDeleteStudentOpen(true);
   };
 
   const confirmDeleteCharacter = () => {
-    if (deleteStudentUnderstood && character.id) {
+    if (deleteStudentUnderstood && onArchive) {
       setIsDeleteStudentOpen(false);
-      onDelete(character.id);
-    }
-  };
-
-  const handleExportCharacter = async () => {
-    try {
-      const backupData = await storage.backups.export([character.id!]);
-      
-      const jsonStr = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      const cleanName = (character.nombre || "student")
-        .trim()
-        .replace(/[^a-zA-Z0-9]/g, "_")
-        .toUpperCase();
-        
-      const getExportTimestamp = () => {
-        const now = new Date();
-        const pad = (num: number) => String(num).padStart(2, '0');
-        return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      };
-
-      const filename = `${getExportTimestamp()}_magistri_scholae_${cleanName}.json`;
-      
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Failed to export individual student character:", err);
-    }
-  };
-
-  // Category Translation Helpers
-  const getCategoryTitle = (catKey: string) => {
-    switch (catKey) {
-      case "Físicas": return t.catFisicas;
-      case "Mentales": return t.catMentales;
-      case "Sociales": return t.catSociales;
-      case "Asignaturas Troncales": return t.catTroncales;
-      case "Asignaturas Optativas": return t.catOptativas;
-      default: return catKey;
+      onArchive();
     }
   };
 
   return {
     lang,
+    store,
+    catalogue,
     character,
     familiars,
     onBack,
-    onDelete,
-    onUpdateCharacter,
+    onArchive,
     onSelectFamiliar,
-    onBondFamiliar,
     onOpenCreateFamiliar,
     visualStyle,
     t,
+    archiveText,
     hInfo,
     localizedLore,
     characterType,
     theme,
     isAcademy,
+    writable,
+    shown,
+    canAdd,
+    canRemove,
+    canEditSheet,
+    canBond,
+    edit,
     profile,
+    teachingSubjectsText,
     updateProfileField,
+    updateTeachingSubjects,
     activeTab,
     setActiveTab,
     newSpellName,
@@ -963,14 +593,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setCrop,
     zoom,
     setZoom,
-    croppedAreaPixels,
-    setCroppedAreaPixels,
     newSkillNames,
-    setNewSkillNames,
     skillErrorCat,
-    setSkillErrorCat,
     presetSavedSuccess,
-    setPresetSavedSuccess,
     isDeleteStudentOpen,
     setIsDeleteStudentOpen,
     deleteStudentUnderstood,
@@ -979,14 +604,18 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setMinorDeleteTarget,
     isSelectFamiliarModalOpen,
     setIsSelectFamiliarModalOpen,
+    bondId,
     linkedFamiliar,
-    saveStateToDB,
+    bondFamiliar,
     changeStat,
     setDestinyPoints,
+    setStress,
     changeMaxStress,
     handleAvatarChange,
     onCropComplete,
     handleConfirmCrop,
+    setAvatarFit,
+    removeAvatar,
     handleDeleteAspect,
     handleAddNewAspect,
     handleDeleteComplication,
@@ -1013,6 +642,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     addPotion,
     removePotion,
     confirmRemovePotion,
+    galleryImages,
     handleGalleryAdd,
     removeGalleryImage,
     confirmRemoveGalleryImage,
@@ -1026,13 +656,10 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     handleAddNote,
     handleStartEditNote,
     handleSaveEditedNote,
-    newNoteNoteTitle,
     handleRemoveNote,
     confirmRemoveNote,
     handleDeleteCharacterClick,
     confirmDeleteCharacter,
-    handleExportCharacter,
-    getCategoryTitle,
   };
 }
 

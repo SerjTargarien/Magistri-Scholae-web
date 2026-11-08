@@ -21,7 +21,6 @@ deploy/releases-staging/
 .env*
 !.env.example
 !.env.staging.example
-!.env.mock
 !.env.remote
 !.env.demo
 

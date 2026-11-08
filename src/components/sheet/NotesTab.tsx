@@ -4,81 +4,18 @@
  */
 
 // The sheet's "notas" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
-import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import {
-  Language,
-  TRANSLATIONS,
-  translateSkillName,
-  translateHouseMotto,
-  getLocalizedHouseLore,
-  areSameSkill
-} from "../../localization";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest, hasRecognizedCrest } from "../HouseCrest";
-import { storage } from "../../storage";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Shield,
-  User,
-  Flame,
-  BookOpen,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Minus,
-  Sparkles,
-  Award,
-  Coins,
-  Activity,
-  Trash,
-  X,
-  Maximize2,
-  Gem,
-  Check,
-  Upload,
-  Save,
-  PawPrint,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import React from "react";
+import { Edit, Plus, Minus, Trash, Check } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
 
 export function NotesTab({ ctx }: { ctx: SheetContext }) {
   const {
-    lang, character, familiars, onBack, onDelete, onUpdateCharacter, onSelectFamiliar, onBondFamiliar, onOpenCreateFamiliar,
-    visualStyle, t, hInfo, localizedLore, characterType, theme, isAcademy, profile, updateProfileField, activeTab,
-    setActiveTab, newSpellName, setNewSpellName, newSpellVal, setNewSpellVal, newSpellSpec, setNewSpellSpec,
-    newPotionName, setNewPotionName, newPotionVal, setNewPotionVal, newPotionSpec, setNewPotionSpec, newClubName,
-    setNewClubName, newItemName, setNewItemName, newItemQty, setNewItemQty, newNoteTitle, setNewNoteTitle,
-    newNoteContent, setNewNoteContent, lightboxImage, setLightboxImage, galleryError, setGalleryError, newTempAspect,
-    setNewTempAspect, newPhysicalConsequence, setNewPhysicalConsequence, newMentalConsequence, setNewMentalConsequence,
-    newSocialConsequence, setNewSocialConsequence, isQuickEditing, setIsQuickEditing, newPersonalAspectInput,
-    setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
-    newCustomFieldValue, setNewCustomFieldValue, avatarInputRef, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, newSkillNames,
-    setNewSkillNames, skillErrorCat, setSkillErrorCat, presetSavedSuccess, setPresetSavedSuccess, isDeleteStudentOpen,
-    setIsDeleteStudentOpen, deleteStudentUnderstood, setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget,
-    isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen, linkedFamiliar, saveStateToDB, changeStat, setDestinyPoints,
-    changeMaxStress, handleAvatarChange, onCropComplete, handleConfirmCrop, handleDeleteAspect, handleAddNewAspect,
-    handleDeleteComplication, handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
-    handleAddTempAspect, handleRemoveTempAspect, handleAddPhysicalConsequence, handleRemovePhysicalConsequence,
-    handleAddMentalConsequence, handleRemoveMentalConsequence, handleAddSocialConsequence, handleRemoveSocialConsequence,
-    changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handleSaveDefaultSkillPreset,
-    addSpell, removeSpell, confirmRemoveSpell, addPotion, removePotion, confirmRemovePotion, handleGalleryAdd,
-    removeGalleryImage, confirmRemoveGalleryImage, handleAddClub, handleRemoveClub, confirmRemoveClub, handleAddInventoryItem,
-    handleChangeInventoryQty, handleRemoveInventoryItem, confirmRemoveInventoryItem, handleAddNote, handleStartEditNote,
-    handleSaveEditedNote, newNoteNoteTitle, handleRemoveNote, confirmRemoveNote, handleDeleteCharacterClick,
-    confirmDeleteCharacter, handleExportCharacter, getCategoryTitle,
+    lang, character, t, writable, canAdd, canRemove, newClubName, setNewClubName, newItemName, setNewItemName,
+    newItemQty, setNewItemQty, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, isQuickEditing,
+    editingNoteId, setEditingNoteId, editingNoteTitle, setEditingNoteTitle, editingNoteContent, setEditingNoteContent,
+    handleAddClub, handleRemoveClub, handleAddInventoryItem, handleChangeInventoryQty, handleRemoveInventoryItem,
+    handleAddNote, handleStartEditNote, handleSaveEditedNote, handleRemoveNote,
   } = ctx;
   return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" id="detail-tab-notas">
@@ -100,7 +37,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                         className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all"
                       >
                         <span className="text-xs text-neutral-200 font-sans break-words max-w-[80%]">{cl.nombre}</span>
-                        {isQuickEditing && (
+                        {isQuickEditing && canRemove("clubesList", cl.id) && (
                           <button
                             id={`btn-del-club-${cl.id}`}
                             onClick={() => handleRemoveClub(cl.id)}
@@ -119,7 +56,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 </div>
 
                 {/* Add Club Input Form */}
-                {isQuickEditing && (
+                {isQuickEditing && canAdd("clubesList") && (
                   <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
                     <input
                       id="input-new-club"
@@ -151,7 +88,10 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 {/* List First: Consultation Priority */}
                 <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
                   {character.equipoList && character.equipoList.length > 0 ? (
-                    character.equipoList.map((eq) => (
+                    character.equipoList.map((eq) => {
+                      const cantidad = eq.cantidad ?? 1;
+                      const canChangeQty = writable(`equipoList/${eq.id}/cantidad`);
+                      return (
                       <div
                         key={eq.id}
                         className="flex items-center justify-between bg-neutral-950/30 px-2.5 py-1.5 border border-neutral-900 rounded-lg group hover:border-violet-500/10 transition-all gap-2"
@@ -162,9 +102,9 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                             <button
                               type="button"
                               onClick={() => handleChangeInventoryQty(eq.id, -1)}
-                              disabled={eq.cantidad <= 1}
+                              disabled={!canChangeQty || cantidad <= 1}
                               className={`px-1.5 py-0.5 text-[10px] font-mono font-bold transition-colors ${
-                                eq.cantidad <= 1
+                                cantidad <= 1
                                   ? "text-neutral-700 cursor-not-allowed"
                                   : "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 cursor-pointer"
                               }`}
@@ -172,17 +112,18 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                               -
                             </button>
                             <span className="text-[10px] px-1.5 text-amber-400 font-mono font-bold tabular-nums">
-                              x{eq.cantidad}
+                              x{cantidad}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleChangeInventoryQty(eq.id, 1)}
+                              disabled={!canChangeQty}
                               className="px-1.5 py-0.5 text-[10px] font-mono font-bold text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 transition-colors cursor-pointer"
                             >
                               +
                             </button>
                           </div>
-                          {isQuickEditing && (
+                          {isQuickEditing && canRemove("equipoList", eq.id) && (
                             <button
                               id={`btn-del-item-${eq.id}`}
                               onClick={() => handleRemoveInventoryItem(eq.id)}
@@ -193,7 +134,8 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                           )}
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className="text-[10px] font-mono text-neutral-600 italic select-none py-4 text-center">
                       {t.emptyInventory}
@@ -202,7 +144,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 </div>
 
                 {/* Add Inventory Item Input Form */}
-                {isQuickEditing && (
+                {isQuickEditing && canAdd("equipoList") && (
                   <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
                     <input
                       id="input-new-item"
@@ -267,8 +209,9 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
               {/* List of custom notes - Order is consultation first, we render them neatly. Newest notes are at the top. */}
               <div className="space-y-3 overflow-y-auto max-h-[480px] pr-1 flex-1">
                 {character.notasList && character.notasList.length > 0 ? (
-                  [...character.notasList].sort((a, b) => b.fecha - a.fecha).map((note) => {
+                  [...character.notasList].sort((a, b) => (b.fecha ?? 0) - (a.fecha ?? 0)).map((note) => {
                     const isEditingThisNote = editingNoteId === note.id;
+                    const canEditNote = writable(`notasList/${note.id}/titulo`) || writable(`notasList/${note.id}/contenido`);
                     return (
                       <div
                         key={note.id}
@@ -316,7 +259,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                                   {note.titulo}
                                 </h4>
                                 <span className="text-[9px] font-mono text-neutral-500">
-                                  {new Date(note.fecha).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                                  {new Date(note.fecha ?? 0).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
                                     year: 'numeric',
                                     month: 'short',
                                     day: 'numeric',
@@ -326,6 +269,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
+                                {canEditNote && (
                                 <button
                                   type="button"
                                   onClick={() => handleStartEditNote(note)}
@@ -334,7 +278,8 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
-                                {isQuickEditing && (
+                                )}
+                                {isQuickEditing && canRemove("notasList", note.id) && (
                                   <button
                                     id={`btn-del-note-${note.id}`}
                                     onClick={() => handleRemoveNote(note.id)}
@@ -364,6 +309,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
               </div>
 
               {/* Form to Add New Note at the bottom */}
+              {canAdd("notasList") && (
               <div className="bg-neutral-950/30 p-4 border border-violet-500/5 rounded-xl space-y-3 mt-auto">
                 <h4 className="text-[10px] font-mono text-neutral-400 uppercase font-black tracking-wide flex items-center gap-1.5">
                   <span>🖋️</span> {t.addNote}
@@ -395,6 +341,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                   </button>
                 </div>
               </div>
+              )}
             </div>
 
           </div>

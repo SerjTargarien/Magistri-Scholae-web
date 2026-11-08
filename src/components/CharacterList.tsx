@@ -4,38 +4,27 @@
  */
 
 import React, { useState } from "react";
-import { Character, Familiar, BackupData, getCharacterType, VisualStyle } from "../types";
+import type { ApiSheetProjection } from "../contracts/api-v1";
+import type { CharacterSheet, FamiliarSheet } from "../model/sheet";
+import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
-import { storage } from "../storage";
-import { referencesCharacter } from "../storage/backup";
+import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { Language, TRANSLATIONS } from "../localization";
+import { TRANSLATIONS } from "../localization";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
-import { 
-  Plus, 
-  Settings, 
-  Search, 
-  Sparkles, 
+import {
+  Plus,
+  Settings,
+  Search,
   BadgeHelp,
-  Coins, 
+  Coins,
   Award,
-  Download,
   PawPrint
 } from "lucide-react";
 
-interface CharacterListProps {
-  lang: Language;
-  visualStyle?: VisualStyle;
-  characters: Character[];
-  familiars?: Familiar[];
-  onSelectCharacter: (id: number) => void;
-  onSelectFamiliar?: (id: string) => void;
-  onAddCharacter: () => void;
-  onOpenSettings: () => void;
-  onImportBackup: (backup: BackupData) => void;
-  onShowToast?: (type: "success" | "error", text: string) => void;
-}
+const characterFields = (item: ApiSheetProjection) => item.fields as CharacterSheet;
+const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarSheet;
 
 export const CharacterList: React.FC<CharacterListProps> = ({
   lang,
@@ -46,8 +35,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onSelectFamiliar,
   onAddCharacter,
   onOpenSettings,
-  onImportBackup,
-  onShowToast,
 }) => {
   const t = TRANSLATIONS[lang];
   const isAcademy = visualStyle === "academy";
@@ -55,34 +42,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedHouseFilter, setSelectedHouseFilter] = useState<string>("ALL");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const rawText = event.target?.result as string;
-        const backupData = storage.backups.parse(rawText);
-
-        onImportBackup(backupData);
-      } catch (err) {
-        console.error(err);
-        onShowToast?.("error", t.importError);
-      }
-    };
-    reader.readAsText(file);
-    // Reset file input
-    e.target.value = "";
-  };
+  /** The character a familiar is bonded to, when this viewer can see it. */
+  const bondedCharacter = (familiar: ApiSheetProjection) =>
+    familiar.bondId ? characters.find((c) => c.id === familiar.bondId) : undefined;
 
   // Filter & Search Logic
-  const filteredCharacters = characters.filter((c) => {
+  const filteredCharacters = characters.filter((item) => {
     if (selectedHouseFilter === "FAMILIARS") {
       return false;
     }
 
-    const charType = getCharacterType(c);
+    const c = characterFields(item);
+    const charType = c.characterType ?? "student";
 
     // House / Type filter
     if (selectedHouseFilter === "ADULT_WIZARD") {
@@ -118,18 +89,19 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     return true;
   });
 
-  const filteredFamiliars = familiars.filter((f) => {
+  const filteredFamiliars = familiars.filter((item) => {
     if (selectedHouseFilter !== "ALL" && selectedHouseFilter !== "FAMILIARS") {
       return false;
     }
 
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
-      const linkedStudent = f.studentId ? characters.find((c) => referencesCharacter(f.studentId, c.id!)) : undefined;
+      const f = familiarFields(item);
+      const linkedStudent = bondedCharacter(item);
       const matchName = (f.nombre || "").toLowerCase().includes(query);
       const matchSpecies = (f.especie || "").toLowerCase().includes(query);
       const matchDesc = (f.descripcion || "").toLowerCase().includes(query);
-      const matchStudent = (linkedStudent?.nombre || "").toLowerCase().includes(query);
+      const matchStudent = ((linkedStudent && characterFields(linkedStudent).nombre) || "").toLowerCase().includes(query);
       return matchName || matchSpecies || matchDesc || matchStudent;
     }
 
@@ -179,29 +151,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             <Settings className="w-4 h-4 mr-1 md:mr-2 text-violet-400" />
             <span className="hidden md:inline">{t.settings}</span>
           </button>
-
-          {/* Import Backup Trigger */}
-          <button
-            id="btn-import-header"
-            type="button"
-            onClick={() => document.getElementById("file-input-header")?.click()}
-            className={
-              isAcademy
-                ? "academy-header-btn flex items-center gap-1.5 px-3.5 py-2 text-neutral-200 hover:text-amber-300 font-mono text-xs rounded-lg transition-all cursor-pointer min-h-[38px]"
-                : "flex items-center gap-1.5 px-3 py-2 bg-neutral-900/60 hover:bg-neutral-800 border border-violet-500/20 text-neutral-300 hover:text-amber-400 font-mono text-xs rounded-lg transition-all cursor-pointer min-h-[36px]"
-            }
-            title={t.importBackup}
-          >
-            <Download className="w-4 h-4 text-violet-400" />
-            <span className="hidden sm:inline">{t.importAction}</span>
-          </button>
-          <input 
-            id="file-input-header"
-            type="file" 
-            accept=".json" 
-            onChange={handleFileChange} 
-            className="hidden" 
-          />
 
           <button
             id="btn-add-character-header"
@@ -336,17 +285,20 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         {/* Characters & Familiars list grid display */}
         {hasAnyResults ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="characters-grid">
-            {filteredCharacters.map((c) => {
-              const hInfo = HOUSES[c.casa.toUpperCase()] || HOUSES.IRATI;
-              const characterType = getCharacterType(c);
-              const theme = getCharacterVisualTheme(c);
+            {filteredCharacters.map((item) => {
+              const c = characterFields(item);
+              const casa = c.casa ?? "";
+              const hInfo = HOUSES[casa.toUpperCase()] || HOUSES.IRATI;
+              const characterType = c.characterType ?? "student";
+              const theme = getCharacterVisualTheme({ characterType, casa });
+              const avatarSrc = imageSrc(c.avatarImage);
 
               if (isAcademy) {
                 return (
                   <div
-                    id={`character-card-${c.id}`}
-                    key={c.id}
-                    onClick={() => c.id && onSelectCharacter(c.id)}
+                    id={`character-card-${item.id}`}
+                    key={item.id}
+                    onClick={() => onSelectCharacter(item.id)}
                     className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
                   >
                     <CardCornerOrnament position="tl" />
@@ -356,9 +308,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                     {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
                     <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
-                      {c.avatarImage ? (
+                      {avatarSrc ? (
                         <img
-                          src={c.avatarImage}
+                          src={avatarSrc}
                           alt={c.nombre}
                           className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
                             c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
@@ -368,7 +320,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       ) : (
                         <div className={`w-full h-full bg-gradient-to-b ${theme.bgClass} transition-colors flex flex-col justify-center items-center text-neutral-300 select-none p-4`}>
                           <HouseCrest
-                            house={c.casa}
+                            house={casa}
                             isAdultWizard={characterType === "adult_wizard"}
                             className="w-20 h-24 mb-2.5 group-hover:scale-105 transition-transform duration-300"
                           />
@@ -392,7 +344,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                     {/* Overlapping Heraldic House Crest Medallion */}
                     <div className="relative z-20 -mt-7 -mb-4 h-13 flex items-center justify-center pointer-events-none">
                       <HouseCrest
-                        house={c.casa}
+                        house={casa}
                         isAdultWizard={characterType === "adult_wizard"}
                         className="w-11 h-13 group-hover:scale-110 transition-transform duration-300"
                       />
@@ -452,9 +404,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               // Classic Mode Card (Untouched)
               return (
                 <div
-                  id={`character-card-${c.id}`}
-                  key={c.id}
-                  onClick={() => c.id && onSelectCharacter(c.id)}
+                  id={`character-card-${item.id}`}
+                  key={item.id}
+                  onClick={() => onSelectCharacter(item.id)}
                   className="group relative cursor-pointer rounded-2xl overflow-hidden glass-panel border border-violet-500/15 flex flex-col hover:border-amber-500/50 hover:-translate-y-1 transition-all duration-300 select-none shadow-xl shadow-neutral-950/50"
                 >
                   {/* Colored Top Crest-Accent Strip */}
@@ -469,9 +421,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                   {/* Card Top - Image and Badge */}
                   <div className="relative aspect-[3/4] w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
-                    {c.avatarImage ? (
+                    {avatarSrc ? (
                       <img 
-                        src={c.avatarImage} 
+                        src={avatarSrc} 
                         alt={c.nombre} 
                         className={`w-full h-full transition-all duration-500 group-hover:scale-105 ${c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                         referrerPolicy="no-referrer"
@@ -479,7 +431,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-b ${theme.bgClass} transition-colors flex flex-col justify-center items-center text-neutral-300 select-none p-4`}>
                         <HouseCrest
-                          house={c.casa}
+                          house={casa}
                           isAdultWizard={characterType === "adult_wizard"}
                           className="w-20 h-24 mb-2.5 group-hover:scale-105 transition-transform duration-300"
                         />
@@ -503,7 +455,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   {/* Overlapping Heraldic House Crest Medallion */}
                   <div className="relative z-20 -mt-7 -mb-3 h-13 flex items-center justify-center pointer-events-none">
                     <HouseCrest
-                      house={c.casa}
+                      house={casa}
                       isAdultWizard={characterType === "adult_wizard"}
                       className="w-11 h-13 group-hover:scale-110 transition-transform duration-300"
                     />
@@ -556,15 +508,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             })}
 
             {/* Familiar Cards */}
-            {filteredFamiliars.map((f) => {
-              const linkedStudent = f.studentId ? characters.find((c) => referencesCharacter(f.studentId, c.id!)) : undefined;
+            {filteredFamiliars.map((item) => {
+              const f = familiarFields(item);
+              const linked = bondedCharacter(item);
+              const linkedStudent = linked ? characterFields(linked) : undefined;
+              const familiarSrc = imageSrc(f.imagen);
 
               if (isAcademy) {
                 return (
                   <div
-                    id={`familiar-card-${f.id}`}
-                    key={f.id}
-                    onClick={() => onSelectFamiliar?.(f.id)}
+                    id={`familiar-card-${item.id}`}
+                    key={item.id}
+                    onClick={() => onSelectFamiliar(item.id)}
                     className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
                   >
                     <CardCornerOrnament position="tl" />
@@ -574,9 +529,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                     {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
                     <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
-                      {f.imagen ? (
+                      {familiarSrc ? (
                         <img
-                          src={f.imagen}
+                          src={familiarSrc}
                           alt={f.nombre}
                           className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
                             f.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
@@ -651,9 +606,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               // Classic Mode Familiar Card
               return (
                 <div
-                  id={`familiar-card-${f.id}`}
-                  key={f.id}
-                  onClick={() => onSelectFamiliar?.(f.id)}
+                  id={`familiar-card-${item.id}`}
+                  key={item.id}
+                  onClick={() => onSelectFamiliar(item.id)}
                   className="group relative cursor-pointer rounded-2xl overflow-hidden glass-panel border border-violet-500/15 flex flex-col hover:border-emerald-500/50 hover:-translate-y-1 transition-all duration-300 select-none shadow-xl shadow-neutral-950/50"
                 >
                   {/* Colored Top Crest-Accent Strip */}
@@ -661,9 +616,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                   {/* Card Top - Image and Badge */}
                   <div className="relative aspect-[3/4] w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
-                    {f.imagen ? (
+                    {familiarSrc ? (
                       <img
-                        src={f.imagen}
+                        src={familiarSrc}
                         alt={f.nombre}
                         className={`w-full h-full transition-all duration-500 group-hover:scale-105 ${
                           f.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"

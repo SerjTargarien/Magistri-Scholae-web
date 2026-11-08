@@ -3,54 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The familiar sheet's "notas" tab, moved verbatim out of FamiliarDetail.tsx (R3.4).
-import React, { useState, useRef } from "react";
-import { Familiar, Character, VisualStyle, JournalNote } from "../../types";
-import { Language, TRANSLATIONS } from "../../localization";
-import { storage } from "../../storage";
-import { referencesCharacter } from "../../storage/backup";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest } from "../HouseCrest";
-import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  PawPrint,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Trash,
-  X,
-  Maximize2,
-  Check,
-  Upload,
-  User,
-  Sparkles,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+// The familiar sheet's "notas" tab (R3.4).
+import React from "react";
+import { Edit, FileText, Plus, Trash } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
 
 export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    lang, visualStyle, familiar, characters, onBack, onEditInEditor, onDelete, onUpdateFamiliar, onSelectCharacter,
-    onBondMaster, onShowToast, t, isAcademy, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing, editNombre,
-    setEditNombre, editEspecie, setEditEspecie, editDescripcion, setEditDescripcion, editImageFit, setEditImageFit,
-    newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, lightboxImage, setLightboxImage, galleryError,
-    setGalleryError, pastedUrl, setPastedUrl, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, isDeleteOpen,
-    setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, saveFamiliarToDB, handleSaveQuickEdit,
-    handleAvatarChange, handleConfirmCrop, handleAddNote, handleSaveEditedNote, handleDeleteNote, handleAddGalleryImage,
-    handleAddUrlImage, handleDeleteGalleryImage,
+    notes, t, isAcademy, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
+    setEditingNoteId, editingNoteTitle, setEditingNoteTitle, editingNoteContent, setEditingNoteContent, handleAddNote,
+    handleSaveEditedNote, handleDeleteNote, canAddNote, canEditNote, canDeleteNote,
   } = ctx;
   return (
         <div className="space-y-6 animate-fade-in">
           {/* New note form */}
+          {canAddNote && (
           <form
             onSubmit={handleAddNote}
             className={`glass-panel p-5 sm:p-6 rounded-2xl ${
@@ -89,15 +57,16 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
               </div>
             </div>
           </form>
+          )}
 
           {/* Notes List */}
           <div className="space-y-3">
-            {(familiar.notasList || []).length === 0 ? (
+            {notes.length === 0 ? (
               <div className="glass-panel p-8 text-center text-neutral-400 font-serif italic text-xs rounded-2xl border border-neutral-800">
                 {t.emptyNotes}
               </div>
             ) : (
-              (familiar.notasList || []).map((note) => (
+              notes.map((note) => (
                 <div
                   key={note.id}
                   className="glass-panel p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 transition-colors space-y-2"
@@ -141,19 +110,22 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                         </h3>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono text-neutral-500">
-                            {new Date(note.fecha).toLocaleDateString()}
+                            {note.fecha !== undefined ? new Date(note.fecha).toLocaleDateString() : ""}
                           </span>
+                          {canEditNote(note.id) && (
                           <button
                             type="button"
                             onClick={() => {
                               setEditingNoteId(note.id);
-                              setEditingNoteTitle(note.titulo);
-                              setEditingNoteContent(note.contenido);
+                              setEditingNoteTitle(note.titulo ?? "");
+                              setEditingNoteContent(note.contenido ?? "");
                             }}
                             className="p-1 text-neutral-400 hover:text-amber-400 transition-colors cursor-pointer"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
+                          )}
+                          {canDeleteNote(note.id) && (
                           <button
                             type="button"
                             onClick={() => handleDeleteNote(note.id)}
@@ -161,6 +133,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                           >
                             <Trash className="w-3.5 h-3.5" />
                           </button>
+                          )}
                         </div>
                       </div>
                       <p className="text-xs text-neutral-300 font-sans whitespace-pre-wrap leading-relaxed">

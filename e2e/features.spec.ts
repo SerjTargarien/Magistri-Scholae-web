@@ -1,19 +1,23 @@
-// Feature-checklist smoke tests in mock mode (fictional data, isolated
-// MagistriScholaeMockDB). Runs at desktop and mobile widths. Text assertions
-// use the default Spanish UI unless a test switches language.
+// The feature checklist (docs/implementation-plan.md) on the account app,
+// against the in-browser mock server with fictional data (demo build, R3.4).
+// Runs at desktop and phone widths as the demo's assigned player; GM steps
+// switch viewer. Results are read back from the mock server's stored copy.
 import {
-  characterCard, createCharacter, createFamiliar, expect, exportOpenCharacter, familiarCard, isMobile,
-  openApp, openCharacter, openFamiliar, openTab, pngFile, reloadApp, setEditMode, test, visibleOf,
+  characterCard, createCharacter, createFamiliar, expect, familiarCard, isMobile, openApp, openCharacter,
+  openFamiliar, openTab, pngFile, reloadApp, setEditMode, storedSheet, test, viewAs, visibleOf,
 } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
+  // The demo's test panel stays out of the way of the screens under test.
+  await page.addInitScript(() => localStorage.setItem("magistri_demo_panel", "off"));
   await openApp(page);
 });
 
-test("mock mode shows the demo banner and the fictional records", async ({ page }) => {
+test("demo banner and the player's fictional records; the GM's own character stays hidden", async ({ page }) => {
   await expect(page.locator("#mock-mode-banner")).toBeVisible();
-  for (const name of ["Luna de Bruma", "Profesor Silvio Niebla"]) await expect(characterCard(page, name)).toBeVisible();
+  for (const name of ["Luna de Bruma", "Diego Marés"]) await expect(characterCard(page, name)).toBeVisible();
   for (const name of ["Ámbar", "Chispa"]) await expect(familiarCard(page, name)).toBeVisible();
+  await expect(characterCard(page, "Profesor Silvio Niebla")).toHaveCount(0);
 });
 
 test("student: identity, house, aspects, complications and custom fields persist", async ({ page }) => {
@@ -24,7 +28,6 @@ test("student: identity, house, aspects, complications and custom fields persist
       await page.locator("#btn-form-tab-afiliacion").click();
       await expect(page.locator("#house-btn-URANIA svg").first()).toBeVisible(); // house crest artwork
       await page.locator("#house-btn-URANIA").click();
-      await page.locator("#input-form-lema").fill("Per aspera");
     },
   });
   await setEditMode(page, true);
@@ -32,8 +35,8 @@ test("student: identity, house, aspects, complications and custom fields persist
   await page.getByPlaceholder("Añadir nuevo aspecto...").press("Enter");
   await page.getByPlaceholder("Añadir complicación...").fill("Owes a debt");
   await page.getByPlaceholder("Añadir complicación...").press("Enter");
-  await page.getByPlaceholder("Nombre del Atributo").fill("Patronus");
-  await page.getByPlaceholder("Valor", { exact: true }).fill("Heron");
+  await page.getByPlaceholder("Nombre del Atributo").last().fill("Patronus");
+  await page.getByPlaceholder("Valor", { exact: true }).last().fill("Heron");
   await page.getByRole("button", { name: "Añadir Atributo Personalizado" }).click();
   await setEditMode(page, false);
 
@@ -43,12 +46,12 @@ test("student: identity, house, aspects, complications and custom fields persist
   await expect(page.locator("#detail-panel-aspectos")).toContainText("Curious to a fault");
   await expect(page.locator("#detail-panel-complicaciones")).toContainText("Owes a debt");
   await expect(page.locator("#detail-panel-custom-fields")).toContainText("Heron");
-  const { character } = await exportOpenCharacter(page);
-  expect(character).toMatchObject({
-    nombre: "Smoke Student", concepto: "Alchemist with a secret", jugador: "Tester", casa: "URANIA", lema: "Per aspera",
-    aspectosPersonales: ["Curious to a fault"], complicaciones: ["Owes a debt"],
-    camposPersonalizados: [{ nombre: "Patronus", valor: "Heron" }],
-  });
+  const stored = await storedSheet(page, "Smoke Student");
+  expect(stored).toMatchObject({ concepto: "Alchemist with a secret", jugador: "Tester", casa: "URANIA" });
+  expect(stored!.aspectosPersonales.map((a: { value: string }) => a.value)).toEqual(["Curious to a fault"]);
+  expect(stored!.complicaciones.map((a: { value: string }) => a.value)).toEqual(["Owes a debt"]);
+  expect(stored!.camposPersonalizados).toEqual([expect.objectContaining({ nombre: "Patronus", valor: "Heron" })]);
+  expect(stored).not.toHaveProperty("lema");
 });
 
 test("session tracking: destiny, XP, stress, temporary aspects and consequences persist", async ({ page }) => {
@@ -70,11 +73,11 @@ test("session tracking: destiny, XP, stress, temporary aspects and consequences 
   await openCharacter(page, "Session Student");
   await openTab(page, "sesion");
   await expect(page.locator("#detail-tab-sesion")).toContainText("Numb arm");
-  const { character } = await exportOpenCharacter(page);
-  expect(character).toMatchObject({
-    puntosDestino: 5, pxs: 2, estresFisico: 2, estresMental: 1,
-    aspectoTemporal: ["Turned into a toad"], consecuenciasFisicas: ["Numb arm"], consecuenciasSociales: ["Whispers behind me"],
-  });
+  const stored = await storedSheet(page, "Session Student");
+  expect(stored).toMatchObject({ puntosDestino: 5, pxs: 2, estresFisico: 2, estresMental: 1 });
+  expect(stored!.aspectoTemporal.map((a: { value: string }) => a.value)).toEqual(["Turned into a toad"]);
+  expect(stored!.consecuenciasFisicas).toEqual([expect.objectContaining({ descripcion: "Numb arm" })]);
+  expect(stored!.consecuenciasSociales).toEqual([expect.objectContaining({ descripcion: "Whispers behind me" })]);
 });
 
 test("skills, spells, potions, clubs, equipment and journal entries persist", async ({ page }) => {
@@ -82,8 +85,8 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await setEditMode(page, true);
   await openTab(page, "habilidades");
   await page.locator("#btn-skill-Atletismo-plus").click();
-  await page.locator("#input-new-skill-name-Físicas").fill("Escalada");
-  await page.locator("#btn-add-skill-Físicas").click();
+  await page.locator("#input-new-skill-name-fisicas").fill("Escalada");
+  await page.locator("#btn-add-skill-fisicas").click();
   await openTab(page, "hechizos");
   await page.locator("#input-spell-name").fill("Revelio");
   await page.locator("#btn-add-spell").click();
@@ -105,15 +108,14 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await expect(page.locator("#detail-tab-hechizos")).toContainText("Revelio");
   await openTab(page, "notas");
   await expect(page.locator("#detail-tab-notas")).toContainText("Suspicions");
-  const { character } = await exportOpenCharacter(page);
-  const skill = (name: string) => character.habilidades.find((s: { nombre: string }) => s.nombre === name);
-  expect(skill("Atletismo").valor).toBe(1);
-  expect(skill("Escalada")).toMatchObject({ categoria: "Físicas" });
-  expect(character.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio" })]);
-  expect(character.pociones).toEqual([expect.objectContaining({ nombre: "Draught of Calm" })]);
-  expect(character.clubesList).toEqual([expect.objectContaining({ nombre: "Duelling Club" })]);
-  expect(character.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron" })]);
-  expect(character.notasList).toEqual([expect.objectContaining({ titulo: "Suspicions", contenido: "The alchemy teacher hides something." })]);
+  const stored = await storedSheet(page, "Studious Student");
+  expect(stored!.habilidades.find((s: { catalogo?: string }) => s.catalogo === "atletismo").valor).toBe(1);
+  expect(stored!.habilidades).toContainEqual(expect.objectContaining({ nombre: "Escalada", categoria: "fisicas" }));
+  expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio" })]);
+  expect(stored!.pociones).toEqual([expect.objectContaining({ nombre: "Draught of Calm" })]);
+  expect(stored!.clubesList).toEqual([expect.objectContaining({ nombre: "Duelling Club" })]);
+  expect(stored!.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron" })]);
+  expect(stored!.notasList).toEqual([expect.objectContaining({ titulo: "Suspicions", contenido: "The alchemy teacher hides something." })]);
 });
 
 test("adult wizard: profile fields and archetype tabs persist", async ({ page }) => {
@@ -132,17 +134,17 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   await expect(characterCard(page, "Luna de Bruma")).toHaveCount(0);
   await openCharacter(page, "Smoke Professor");
   await expect(page.locator("#character-detail-screen")).toContainText("Potions master");
-  const { character } = await exportOpenCharacter(page);
-  expect(character).toMatchObject({
+  expect(await storedSheet(page, "Smoke Professor")).toMatchObject({
     characterType: "adult_wizard",
     adultWizardProfile: expect.objectContaining({ role: "Potions master", institution: "Academy", isTeacher: true }),
   });
 });
 
-test("familiar: create standalone, edit in the editor and delete", async ({ page }) => {
+test("familiar: create standalone and edit in the editor; only the GM can archive it", async ({ page }) => {
   await createFamiliar(page, "Smoke Toad", "Toad");
   await expect(familiarCard(page, "Smoke Toad")).toContainText("Toad");
   await openFamiliar(page, "Smoke Toad");
+  await expect(page.locator("#btn-familiar-delete")).toHaveCount(0);
   await page.locator("#btn-familiar-full-editor").click();
   await page.locator("#input-familiar-especie").fill("Giant toad");
   await page.locator("#btn-save-familiar").click();
@@ -151,16 +153,18 @@ test("familiar: create standalone, edit in the editor and delete", async ({ page
 
   await reloadApp(page);
   await expect(familiarCard(page, "Smoke Toad")).toContainText("Giant toad");
+  await viewAs(page, "gm");
   await openFamiliar(page, "Smoke Toad");
   await page.locator("#btn-familiar-delete").click();
-  await page.getByRole("button", { name: "Sí, Eliminar Familiar" }).click();
+  await page.getByRole("button", { name: "Sí, Archivar Familiar" }).click();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await expect(familiarCard(page, "Smoke Toad")).toHaveCount(0);
   await reloadApp(page);
   await expect(familiarCard(page, "Smoke Toad")).toHaveCount(0);
+  expect(await storedSheet(page, "Smoke Toad")).toMatchObject({ especie: "Giant toad" }); // archived, not deleted
 });
 
-test("bonds: link from the character, navigate both ways, deletion clears the familiar's link", async ({ page }) => {
+test("bonds: link from the character, navigate both ways; archiving the character takes it off the list", async ({ page }) => {
   await createCharacter(page, "Bonded Student");
   await setEditMode(page, true);
   await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();
@@ -175,14 +179,15 @@ test("bonds: link from the character, navigate both ways, deletion clears the fa
   await expect(page.locator("#familiar-bond-card")).toContainText("Bonded Student");
   await page.locator("#btn-navigate-to-master").click();
   await expect(page.locator("#character-detail-screen")).toContainText("Bonded Student");
+  await expect(page.locator("#btn-detail-delete")).toHaveCount(0);
 
+  await viewAs(page, "gm");
+  await openCharacter(page, "Bonded Student");
   await page.locator("#btn-detail-delete").click();
   await page.locator("#checkbox-confirm-student-delete").check();
   await page.locator("#btn-confirm-delete-student-action").click();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await expect(characterCard(page, "Bonded Student")).toHaveCount(0);
-  await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
-  await reloadApp(page);
   await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
 });
 
@@ -199,16 +204,17 @@ test("portrait upload with crop and a gallery image persist", async ({ page }) =
   await setEditMode(page, true);
   await openTab(page, "galeria");
   await page.locator("#input-gallery-picker").setInputFiles(pngFile("gallery.png"));
-  await expect(page.locator("#gallery-item-0")).toBeVisible();
+  await expect(page.locator("#detail-tab-galeria img").first()).toBeVisible();
   await setEditMode(page, false);
 
   await reloadApp(page);
   await openCharacter(page, "Portrait Student");
   await openTab(page, "galeria");
-  await expect(page.locator("#gallery-item-0")).toBeVisible();
-  const { character } = await exportOpenCharacter(page);
-  expect(character.avatarImage).toMatch(/^data:image\//);
-  expect(character.galleryImages).toHaveLength(1);
+  await expect(page.locator("#detail-tab-galeria img").first()).toBeVisible();
+  const stored = await storedSheet(page, "Portrait Student");
+  const asset = /^[0-9a-f-]{36}$/;
+  expect(stored!.avatarImage).toMatch(asset);  // an uploaded image, never an embedded data URL
+  expect(stored!.galleryImages).toEqual([{ id: expect.any(String), value: expect.stringMatching(asset) }]);
 });
 
 test("visual style and language switch and persist", async ({ page }, testInfo) => {
@@ -229,6 +235,14 @@ test("visual style and language switch and persist", async ({ page }, testInfo) 
   await expect(addButton).toContainText("Add Character");
   await openCharacter(page, "Luna de Bruma");
   await testInfo.attach("detail-classic-en", { body: await page.screenshot(), contentType: "image/png" });
+});
+
+test("settings: account card with sign-out; signing out shows the sign-in screen", async ({ page }) => {
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#settings-card-account")).toContainText("demo_player");
+  for (const removed of ["#settings-card-backup", "#settings-card-reset"]) await expect(page.locator(removed)).toHaveCount(0);
+  await page.locator("#btn-settings-logout").click();
+  await expect(page.locator('input[type="password"]')).toBeVisible();
 });
 
 test("profile banner shows the bonded familiar for the current width, without horizontal scrolling", async ({ page }, testInfo) => {

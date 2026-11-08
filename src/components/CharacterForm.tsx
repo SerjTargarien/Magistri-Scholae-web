@@ -3,45 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
-import { Character, Skill, CustomField, CharacterType } from "../types";
-import { HOUSES, HOUSE_ICONS } from "../data/gameData";
-import {
-  Language,
-  TRANSLATIONS,
-  getLocalizedHouseLore,
-  translateHouseMotto,
-  translateSkillName,
-  canonicalizeSkillName,
-} from "../localization";
+import React from "react";
 import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../utils/imageCompressor";
-import { 
-  Save, 
-  X, 
-  Sparkles, 
-  Image as ImageIcon, 
-  Plus, 
-  Trash2, 
-  ShieldAlert, 
-  Coins, 
-  FileText,
+import {
+  Save,
+  X,
+  Sparkles,
+  ShieldAlert,
   User,
-  GraduationCap,
-  Sparkle,
-  Layers,
-  Dumbbell,
-  Shield,
   Activity,
   Award,
   BookOpen,
-  Minus,
   PawPrint
 } from "lucide-react";
-import { createDefaultCharacter, getInitialDefaultSkills } from "../utils/characterFactory";
-import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { HouseCrest } from "./HouseCrest";
 import { FamiliarEditor } from "./FamiliarEditor";
+import type { CharacterFormProps } from "../account/screens";
 
 import { useCharacterForm } from "./form/useCharacterForm";
 import { FormProfileTab } from "./form/FormProfileTab";
@@ -50,31 +26,15 @@ import { FormHouseTab } from "./form/FormHouseTab";
 import { FormSkillsTab } from "./form/FormSkillsTab";
 import { FormStressTab } from "./form/FormStressTab";
 
-export interface CharacterFormProps {
-  lang: Language;
-  initialCharacter?: Character | null; // If null, we are creating a new character
-  newCharacterType?: CharacterType;
-  onSave: (character: Character) => void;
-  onCancel: () => void;
-}
+export type { CharacterFormProps };
 
 export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
   const ctx = useCharacterForm(screenProps);
   const {
-    lang, initialCharacter, newCharacterType, onSave, onCancel, t, activeFormTab, setActiveFormTab, characterState,
-    setCharacterState, characterType, profile, updateProfileField, formError, setFormError, imageError, setImageError,
-    newAspectName, setNewAspectName, newComplicationName, setNewComplicationName, newFormTempAspect, setNewFormTempAspect,
-    pastedAvatarUrl, setPastedAvatarUrl, newPhysConsequence, setNewPhysConsequence, newMentConsequence, setNewMentConsequence,
-    newSocConsequence, setNewSocConsequence, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback, setSkillsSavedFeedback,
-    newItemName, setNewItemName, newItemQty, setNewItemQty, newCustomFieldName, setNewCustomFieldName, newCustomFieldValue,
-    setNewCustomFieldValue, showDiscardModal, setShowDiscardModal, showFamiliarEditorModal, setShowFamiliarEditorModal,
-    cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels,
-    setCroppedAreaPixels, handleHouseChange, handleImageUpload, handleUrlAvatarSubmit, onCropComplete, handleConfirmCrop,
-    addAspect, removeAspect, addTempAspect, removeTempAspect, addComplication, removeComplication, addEquipmentItem,
-    removeEquipmentItem, addCustomField, updateCustomField, removeCustomField, addPhysConsequence, removePhysConsequence,
-    addMentConsequence, removeMentConsequence, addSocConsequence, removeSocConsequence, adjustSkillValue, skillError,
-    setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills, handleSave, isStateDirty,
-    handleCancelClick, theme, houseAccentBorder, houseTabBtnStyle, houseIconColor,
+    lang, onCancel, t, activeFormTab, setActiveFormTab, characterType, formError, showDiscardModal, setShowDiscardModal,
+    showFamiliarEditorModal, setShowFamiliarEditorModal, cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen,
+    crop, setCrop, zoom, setZoom, onCropComplete, handleConfirmCrop, handleSave, handleCreateFamiliar, handleCancelClick,
+    houseMotto, theme, houseTabBtnStyle, houseIconColor,
   } = ctx;
 
   return (
@@ -89,13 +49,11 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
           <div className="flex items-center gap-2">
             <span className="text-2xl">{theme.icon}</span>
             <h2 className="font-magic text-xl md:text-2xl text-neutral-100 uppercase tracking-widest glow-amber">
-              {initialCharacter 
-                ? t.edit 
-                : (characterType === "adult_wizard" ? t.adultWizardRegistration : t.studentRegistration)}
+              {characterType === "adult_wizard" ? t.adultWizardRegistration : t.studentRegistration}
             </h2>
           </div>
           <p className="text-xs text-neutral-300 italic font-serif">
-            {characterState.lema ? `« ${translateHouseMotto(characterState.lema, lang)} »` : t.tagline}
+            {houseMotto ? `« ${houseMotto} »` : t.tagline}
           </p>
         </div>
 
@@ -339,14 +297,14 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
           <div className="w-full max-w-6xl my-auto">
             <FamiliarEditor
               lang={lang}
-              isModal={true}
+              store={undefined}
+              familiars={[]}
+              onOpenFamiliar={() => {}}
+              onCreate={handleCreateFamiliar}
+              onUploadImage={async () => {}}
               onBack={() => setShowFamiliarEditorModal(false)}
-              onFamiliarSaved={(savedFam) => {
-                setCharacterState((prev) => ({
-                  ...prev,
-                  familiarId: savedFam.id,
-                }));
-              }}
+              onShowToast={() => {}}
+              isModal={true}
             />
           </div>
         </div>

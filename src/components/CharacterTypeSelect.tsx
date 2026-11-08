@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { CharacterType } from "../types";
+import type { CharacterType } from "../model/sheet";
 import { CHARACTER_TYPES } from "../data/gameData";
 import { Language, TRANSLATIONS } from "../localization";
 import { ArrowLeft, Sparkles, PawPrint } from "lucide-react";

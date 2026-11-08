@@ -4,64 +4,17 @@
  */
 
 // The creation form's "perfil" tab, moved verbatim out of CharacterForm.tsx (R3.4).
-import React, { useState, useEffect } from "react";
-import { Character, Skill, CustomField, CharacterType } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import {
-  Language,
-  TRANSLATIONS,
-  getLocalizedHouseLore,
-  translateHouseMotto,
-  translateSkillName,
-  canonicalizeSkillName,
-} from "../../localization";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import { 
-  Save, 
-  X, 
-  Sparkles, 
-  Image as ImageIcon, 
-  Plus, 
-  Trash2, 
-  ShieldAlert, 
-  Coins, 
-  FileText,
-  User,
-  GraduationCap,
-  Sparkle,
-  Layers,
-  Dumbbell,
-  Shield,
-  Activity,
-  Award,
-  BookOpen,
-  Minus,
-  PawPrint
-} from "lucide-react";
-import { createDefaultCharacter, getInitialDefaultSkills } from "../../utils/characterFactory";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import { HouseCrest } from "../HouseCrest";
-import { FamiliarEditor } from "../FamiliarEditor";
+import React from "react";
+import { Sparkles, Trash2, User, X } from "lucide-react";
+import { imageSrc } from "../../remote/assets";
 
 import type { FormContext } from "./useCharacterForm";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
-    lang, initialCharacter, newCharacterType, onSave, onCancel, t, activeFormTab, setActiveFormTab, characterState,
-    setCharacterState, characterType, profile, updateProfileField, formError, setFormError, imageError, setImageError,
-    newAspectName, setNewAspectName, newComplicationName, setNewComplicationName, newFormTempAspect, setNewFormTempAspect,
-    pastedAvatarUrl, setPastedAvatarUrl, newPhysConsequence, setNewPhysConsequence, newMentConsequence, setNewMentConsequence,
-    newSocConsequence, setNewSocConsequence, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback, setSkillsSavedFeedback,
-    newItemName, setNewItemName, newItemQty, setNewItemQty, newCustomFieldName, setNewCustomFieldName, newCustomFieldValue,
-    setNewCustomFieldValue, showDiscardModal, setShowDiscardModal, showFamiliarEditorModal, setShowFamiliarEditorModal,
-    cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels,
-    setCroppedAreaPixels, handleHouseChange, handleImageUpload, handleUrlAvatarSubmit, onCropComplete, handleConfirmCrop,
-    addAspect, removeAspect, addTempAspect, removeTempAspect, addComplication, removeComplication, addEquipmentItem,
-    removeEquipmentItem, addCustomField, updateCustomField, removeCustomField, addPhysConsequence, removePhysConsequence,
-    addMentConsequence, removeMentConsequence, addSocConsequence, removeSocConsequence, adjustSkillValue, skillError,
-    setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills, handleSave, isStateDirty,
-    handleCancelClick, theme, houseAccentBorder, houseTabBtnStyle, houseIconColor,
+    t, characterState, setCharacterState, characterType, profile, updateProfileField, updateTeachingSubjects, formError,
+    setFormError, imageError, setImageError, pastedAvatarUrl, setPastedAvatarUrl, avatarDataUrl, removeAvatar,
+    handleAgeChange, handleImageUpload, handleUrlAvatarSubmit, houseAccentBorder, houseIconColor,
   } = ctx;
   return (
             <div className="space-y-6 animate-fade-in" id="form-tabpanel-perfil">
@@ -78,10 +31,10 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                 {/* Left Column: Portrait uploader */}
                 <div className="flex flex-col items-center md:items-stretch space-y-4">
                   <div className={`w-40 md:w-full aspect-[3/4] bg-neutral-950 rounded-2xl border-2 flex items-center justify-center overflow-hidden relative shadow-inner mx-auto ${houseAccentBorder}`} id="avatar-form-box">
-                    {characterState.avatarImage ? (
+                    {avatarDataUrl ? (
                       <img
                         id="avatar-edit-preview"
-                        src={characterState.avatarImage}
+                        src={imageSrc(avatarDataUrl)}
                         alt={characterState.nombre || t.uploadAvatar}
                         className={`w-full h-full ${characterState.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                         referrerPolicy="no-referrer"
@@ -93,11 +46,11 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         <span className="text-[8px] font-mono text-neutral-500 mt-1 block">{t.idealRatio}</span>
                       </div>
                     )}
-                    {characterState.avatarImage && (
+                    {avatarDataUrl && (
                       <button
                         id="btn-remove-avatar"
                         type="button"
-                        onClick={() => setCharacterState(prev => ({ ...prev, avatarImage: "" }))}
+                        onClick={removeAvatar}
                         className="absolute bottom-2 right-2 bg-rose-950/80 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 transition-all cursor-pointer shadow"
                         title={t.removeAvatar}
                       >
@@ -114,7 +67,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         id="avatar-file-input"
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleImageUpload(e, "avatar")}
+                        onChange={handleImageUpload}
                         className="block w-full text-[10px] text-neutral-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-bold file:bg-violet-950 file:text-violet-200 hover:file:bg-violet-900 cursor-pointer"
                       />
                     </div>
@@ -202,7 +155,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       type="text"
                       required
                       placeholder={t.placeholderNombre}
-                      value={characterState.nombre}
+                      value={characterState.nombre ?? ""}
                       onChange={(e) => {
                         setCharacterState(prev => ({ ...prev, nombre: e.target.value }));
                         if (formError) setFormError(null);
@@ -220,7 +173,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       id="input-concepto"
                       type="text"
                       placeholder={t.placeholderConcepto}
-                      value={characterState.concepto}
+                      value={characterState.concepto ?? ""}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, concepto: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
@@ -235,7 +188,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       id="input-jugador"
                       type="text"
                       placeholder={t.placeholderJugador}
-                      value={characterState.jugador}
+                      value={characterState.jugador ?? ""}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, jugador: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
@@ -249,8 +202,8 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                     <input
                       id="input-edad"
                       type="text"
-                      value={characterState.edad}
-                      onChange={(e) => setCharacterState(prev => ({ ...prev, edad: e.target.value }))}
+                      value={characterState.edad ?? ""}
+                      onChange={(e) => handleAgeChange(e.target.value)}
                       className="w-full text-xs font-mono"
                     />
                   </div>
@@ -266,7 +219,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         <input
                           id="input-curso"
                           type="text"
-                          value={characterState.curso}
+                          value={characterState.curso ?? ""}
                           onChange={(e) => setCharacterState(prev => ({ ...prev, curso: e.target.value }))}
                           className="w-full text-xs font-mono"
                         />
@@ -281,7 +234,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                           id="input-puesto-clase"
                           type="text"
                           placeholder={t.placeholderPuestoClase}
-                          value={characterState.puestoClase}
+                          value={characterState.puestoClase ?? ""}
                           onChange={(e) => setCharacterState(prev => ({ ...prev, puestoClase: e.target.value }))}
                           className="w-full text-xs font-sans"
                         />
@@ -298,7 +251,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       id="input-linaje"
                       type="text"
                       placeholder={t.placeholderLinaje}
-                      value={characterState.linaje}
+                      value={characterState.linaje ?? ""}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, linaje: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
@@ -313,7 +266,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       id="input-economia"
                       type="text"
                       placeholder={t.placeholderEconomia}
-                      value={characterState.economia}
+                      value={characterState.economia ?? ""}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, economia: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
@@ -328,7 +281,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       id="input-varita-sintonia"
                       type="text"
                       placeholder={t.placeholderVaritaSintonia}
-                      value={characterState.varitaSintonia}
+                      value={characterState.varitaSintonia ?? ""}
                       onChange={(e) => setCharacterState(prev => ({ ...prev, varitaSintonia: e.target.value }))}
                       className="w-full text-xs font-sans"
                     />
@@ -445,11 +398,8 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                               id="input-aw-teaching-subjects"
                               type="text"
                               placeholder={t.adultWizardTeachingSubjectsPlaceholder}
-                              value={profile.teachingSubjects.join(", ")}
-                              onChange={(e) => {
-                                const arr = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-                                updateProfileField("teachingSubjects", arr);
-                              }}
+                              value={profile.teachingSubjects.map(s => s.value ?? "").join(", ")}
+                              onChange={(e) => updateTeachingSubjects(e.target.value)}
                               className="w-full text-xs font-sans"
                             />
                           </div>

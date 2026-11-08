@@ -3,23 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
-import { Character, Familiar, Spell, Potion, Skill, Club, InventoryItem, getCharacterType, VisualStyle } from "../types";
-import { HOUSES, HOUSE_ICONS } from "../data/gameData";
-import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import {
-  Language,
-  TRANSLATIONS,
-  translateSkillName,
-  translateHouseMotto,
-  getLocalizedHouseLore,
-  areSameSkill
-} from "../localization";
-import { FiligreeCorner, CompassStarDivider } from "./AcademyOrnaments";
-import { HouseCrest, hasRecognizedCrest } from "./HouseCrest";
-import { storage } from "../storage";
+import React from "react";
+import { FiligreeCorner } from "./AcademyOrnaments";
+import { HouseCrest } from "./HouseCrest";
 import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../utils/imageCompressor";
+import { imageSrc } from "../remote/assets";
+import type { FamiliarSheet } from "../model/sheet";
+import type { CharacterDetailProps } from "../account/screens";
 import {
   ArrowLeft,
   Edit,
@@ -27,26 +17,16 @@ import {
   Shield,
   User,
   Flame,
-  BookOpen,
   FileText,
   Image as ImageIcon,
   Plus,
-  Minus,
-  Sparkles,
-  Award,
-  Coins,
   Activity,
   Trash,
   X,
-  Maximize2,
-  Gem,
   Check,
-  Upload,
-  Save,
   PawPrint,
   Link as LinkIcon,
   Unlink,
-  ExternalLink,
 } from "lucide-react";
 
 import { useCharacterSheet } from "./sheet/useCharacterSheet";
@@ -57,48 +37,26 @@ import { SpellsTab } from "./sheet/SpellsTab";
 import { NotesTab } from "./sheet/NotesTab";
 import { GalleryTab } from "./sheet/GalleryTab";
 
-export interface CharacterDetailProps {
-  lang: Language;
-  character: Character;
-  familiars?: Familiar[];
-  onBack: () => void;
-  onDelete: (id: number) => void;
-  onUpdateCharacter: (updated: Character) => void; // For immediate state updates
-  onSelectFamiliar?: (familiarId: string) => void;
-  onBondFamiliar?: (characterId: number, familiarId: string | null) => void;
-  onOpenCreateFamiliar?: () => void;
-  visualStyle?: VisualStyle;
-}
+export type { CharacterDetailProps } from "../account/screens";
 
 export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
   const ctx = useCharacterSheet(sheetProps);
   const {
-    lang, character, familiars, onBack, onDelete, onUpdateCharacter, onSelectFamiliar, onBondFamiliar, onOpenCreateFamiliar,
-    visualStyle, t, hInfo, localizedLore, characterType, theme, isAcademy, profile, updateProfileField, activeTab,
-    setActiveTab, newSpellName, setNewSpellName, newSpellVal, setNewSpellVal, newSpellSpec, setNewSpellSpec,
-    newPotionName, setNewPotionName, newPotionVal, setNewPotionVal, newPotionSpec, setNewPotionSpec, newClubName,
-    setNewClubName, newItemName, setNewItemName, newItemQty, setNewItemQty, newNoteTitle, setNewNoteTitle,
-    newNoteContent, setNewNoteContent, lightboxImage, setLightboxImage, galleryError, setGalleryError, newTempAspect,
-    setNewTempAspect, newPhysicalConsequence, setNewPhysicalConsequence, newMentalConsequence, setNewMentalConsequence,
-    newSocialConsequence, setNewSocialConsequence, isQuickEditing, setIsQuickEditing, newPersonalAspectInput,
-    setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
-    newCustomFieldValue, setNewCustomFieldValue, avatarInputRef, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, newSkillNames,
-    setNewSkillNames, skillErrorCat, setSkillErrorCat, presetSavedSuccess, setPresetSavedSuccess, isDeleteStudentOpen,
-    setIsDeleteStudentOpen, deleteStudentUnderstood, setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget,
-    isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen, linkedFamiliar, saveStateToDB, changeStat, setDestinyPoints,
-    changeMaxStress, handleAvatarChange, onCropComplete, handleConfirmCrop, handleDeleteAspect, handleAddNewAspect,
-    handleDeleteComplication, handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
-    handleAddTempAspect, handleRemoveTempAspect, handleAddPhysicalConsequence, handleRemovePhysicalConsequence,
-    handleAddMentalConsequence, handleRemoveMentalConsequence, handleAddSocialConsequence, handleRemoveSocialConsequence,
-    changeSkillValue, handleNewSkillNameChange, handleAddSkill, handleRemoveSkill, handleSaveDefaultSkillPreset,
-    addSpell, removeSpell, confirmRemoveSpell, addPotion, removePotion, confirmRemovePotion, handleGalleryAdd,
-    removeGalleryImage, confirmRemoveGalleryImage, handleAddClub, handleRemoveClub, confirmRemoveClub, handleAddInventoryItem,
-    handleChangeInventoryQty, handleRemoveInventoryItem, confirmRemoveInventoryItem, handleAddNote, handleStartEditNote,
-    handleSaveEditedNote, newNoteNoteTitle, handleRemoveNote, confirmRemoveNote, handleDeleteCharacterClick,
-    confirmDeleteCharacter, handleExportCharacter, getCategoryTitle,
+    character, familiars, onBack, onArchive, onSelectFamiliar, onOpenCreateFamiliar, t, archiveText, characterType,
+    theme, isAcademy, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
+    setLightboxImage, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
+    setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, deleteStudentUnderstood,
+    setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget, isSelectFamiliarModalOpen,
+    setIsSelectFamiliarModalOpen, bondId, linkedFamiliar, bondFamiliar, handleAvatarChange, onCropComplete,
+    handleConfirmCrop, setAvatarFit, removeAvatar, confirmRemoveSpell, confirmRemovePotion, galleryImages,
+    confirmRemoveGalleryImage, confirmRemoveClub, confirmRemoveInventoryItem, confirmRemoveNote,
+    handleDeleteCharacterClick, confirmDeleteCharacter,
   } = ctx;
+  const casa = character.casa ?? "";
+  // Edit mode shows only the controls this viewer may use.
+  const editAvatar = isQuickEditing && writable("avatarImage");
+  const editBond = isQuickEditing && canBond;
+  const lightboxEntry = lightboxImage ? galleryImages.find((pic) => pic.id === lightboxImage) : undefined;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-4" id="character-detail-screen">
@@ -135,22 +93,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         </button>
 
         <div className="flex gap-2">
-          {/* Direct Student Export Button */}
-          <button
-            id="btn-detail-export"
-            onClick={handleExportCharacter}
-            title={t.exportStudent}
-            className={
-              isAcademy
-                ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#e6d5b8] bg-gradient-to-b from-[#281c40] to-[#160f26] border border-[#c8a248]/45 hover:border-[#f3d88c] rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
-                : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-violet-100 bg-violet-950/70 border border-violet-500/35 hover:bg-violet-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[44px] transition-all cursor-pointer select-none"
-            }
-          >
-            <Upload className="w-4 h-4 shrink-0 text-amber-400" />
-            <span className="hidden md:inline">{t.exportStudent}</span>
-          </button>
-
-          {/* Edit Button */}
+          {/* Edit Button (only for a viewer who can change something) */}
+          {canEditSheet && (
           <button
             id="btn-detail-edit"
             onClick={() => setIsQuickEditing(!isQuickEditing)}
@@ -174,8 +118,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               </>
             )}
           </button>
+          )}
 
-          {/* Delete Button */}
+          {/* Archive Button (GM only) */}
+          {onArchive && (
           <button
             id="btn-detail-delete"
             onClick={handleDeleteCharacterClick}
@@ -186,8 +132,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             }
           >
             <Trash2 className="w-4 h-4 shrink-0 text-rose-300" />
-            <span className="hidden sm:inline">{t.delete}</span>
+            <span className="hidden sm:inline">{archiveText.button}</span>
           </button>
+          )}
         </div>
       </div>
 
@@ -220,18 +167,18 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             {/* Wizard Portrait Wrapper (with Mobile Corner-Overlaid Familiar & Bottom-Left Discrete Crest) */}
             <div className="relative">
               <div
-                onClick={isQuickEditing ? () => avatarInputRef.current?.click() : undefined}
+                onClick={editAvatar ? () => avatarInputRef.current?.click() : undefined}
                 className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl ${
                   isAcademy
                     ? "border-2 border-[#c8a248] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
                     : "border border-violet-500/30 shadow-md"
                 } overflow-hidden flex items-center justify-center relative ${
-                  isQuickEditing ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+                  editAvatar ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
                 }`}
               >
                 {character.avatarImage ? (
                   <img
-                    src={character.avatarImage}
+                    src={imageSrc(character.avatarImage)}
                     alt={character.nombre}
                     className={`w-full h-full ${character.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
                     referrerPolicy="no-referrer"
@@ -239,7 +186,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 ) : (
                   <div className="text-center text-[10px] font-mono text-neutral-400 uppercase select-none p-2 flex flex-col items-center justify-center">
                     <HouseCrest
-                      house={character.casa}
+                      house={casa}
                       isAdultWizard={characterType === "adult_wizard"}
                       className="w-16 h-20 mb-1"
                     />
@@ -248,7 +195,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 )}
 
                 {/* Editing overlay */}
-                {isQuickEditing && (
+                {editAvatar && (
                   <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-1 text-[10px] font-mono text-amber-300">
                     <ImageIcon className="w-5 h-5 mb-1 text-amber-400" />
                     <span>{t.btnChangePhoto}</span>
@@ -259,27 +206,27 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               {/* Mobile-Only Discrete House Crest in Bottom-Left Corner of Student Photo (< md) */}
               <div className="flex md:hidden items-center justify-center absolute -bottom-1.5 -left-2 z-20 pointer-events-none">
                 <HouseCrest
-                  house={character.casa}
+                  house={casa}
                   isAdultWizard={characterType === "adult_wizard"}
                   className="w-7 h-9 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] opacity-95"
                 />
               </div>
 
               {/* Mobile-Only Corner Overlaid Familiar Portrait (< md) */}
-              {(linkedFamiliar || isQuickEditing) && (
+              {(linkedFamiliar || editBond) && (
                 <div className="md:hidden absolute -bottom-2.5 -right-5 z-20">
                   {linkedFamiliar ? (
                     <div
                       id="header-familiar-card-mobile"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (isQuickEditing) {
+                        if (editBond) {
                           setIsSelectFamiliarModalOpen(true);
                         } else if (onSelectFamiliar) {
                           onSelectFamiliar(linkedFamiliar.id);
                         }
                       }}
-                      title={isQuickEditing ? t.familiarChangeBond : t.familiarViewDetail}
+                      title={editBond ? t.familiarChangeBond : t.familiarViewDetail}
                       className={`group w-14 aspect-[3/4] bg-neutral-950 rounded-lg overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-transform active:scale-95 shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 ${
                         isAcademy
                           ? "border-2 border-[#fce8a6]"
@@ -288,7 +235,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                     >
                       {linkedFamiliar.imagen ? (
                         <img
-                          src={linkedFamiliar.imagen}
+                          src={imageSrc(linkedFamiliar.imagen)}
                           alt={linkedFamiliar.nombre}
                           className={`w-full h-full ${
                             linkedFamiliar.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
@@ -313,7 +260,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       </div>
 
                       {/* Quick Edit Mode overlay on mobile corner badge */}
-                      {isQuickEditing && (
+                      {editBond && (
                         <div className="absolute inset-0 bg-black/65 flex items-center justify-center text-amber-300">
                           <LinkIcon className="w-4 h-4 text-amber-400" />
                         </div>
@@ -353,14 +300,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             className="hidden"
           />
 
-          {isQuickEditing && (character.avatarImage || (linkedFamiliar && onBondFamiliar && character.id)) && (
+          {isQuickEditing && ((character.avatarImage && (writable("avatarFit") || writable("avatarImage"))) || (linkedFamiliar && canBond)) && (
             <div className="flex flex-col gap-1.5 w-36 md:w-28 mt-1">
               {character.avatarImage && (
                 <>
+                  {writable("avatarFit") && (
                   <div className="grid grid-cols-2 gap-1 bg-neutral-950 p-0.5 rounded-lg border border-neutral-800">
                     <button
                       type="button"
-                      onClick={() => saveStateToDB({ ...character, avatarFit: "cover" })}
+                      onClick={() => setAvatarFit("cover")}
                       className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
                         (character.avatarFit || "cover") === "cover"
                           ? "bg-violet-900 text-amber-300 border border-amber-500/30"
@@ -372,7 +320,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => saveStateToDB({ ...character, avatarFit: "contain" })}
+                      onClick={() => setAvatarFit("contain")}
                       className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
                         character.avatarFit === "contain"
                           ? "bg-violet-900 text-amber-300 border border-amber-500/30"
@@ -383,21 +331,24 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       Contain
                     </button>
                   </div>
+                  )}
+                  {writable("avatarImage") && (
                   <button
                     type="button"
-                    onClick={() => saveStateToDB({ ...character, avatarImage: "" })}
+                    onClick={removeAvatar}
                     className="w-full py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono transition-colors cursor-pointer"
                   >
                     {t.removeAvatar}
                   </button>
+                  )}
                 </>
               )}
 
               {/* Mobile-Only Unbind Familiar button in Quick Edit Mode */}
-              {linkedFamiliar && onBondFamiliar && character.id && (
+              {linkedFamiliar && canBond && (
                 <button
                   type="button"
-                  onClick={() => onBondFamiliar(character.id!, null)}
+                  onClick={() => bondFamiliar(null)}
                   className="md:hidden w-full py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono flex items-center justify-center gap-1 transition-colors cursor-pointer"
                   title={t.familiarUnbind}
                 >
@@ -421,16 +372,15 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 <input
                   type="text"
                   value={character.nombre || ""}
-                  onChange={(e) => {
-                    const clone = { ...character, nombre: e.target.value };
-                    saveStateToDB(clone);
-                  }}
+                  disabled={!writable("nombre")}
+                  onChange={(e) => edit("nombre", e.target.value)}
                   className="w-full text-sm font-magic bg-neutral-950 text-neutral-100 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                   placeholder={t.placeholderNombre}
                 />
               </div>
 
               {/* Concept field */}
+              {shown("concepto") && (
               <div>
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
                   {t.concepto}
@@ -438,14 +388,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 <input
                   type="text"
                   value={character.concepto || ""}
-                  onChange={(e) => {
-                    const clone = { ...character, concepto: e.target.value };
-                    saveStateToDB(clone);
-                  }}
+                  disabled={!writable("concepto")}
+                  onChange={(e) => edit("concepto", e.target.value)}
                   className="w-full text-xs font-mono bg-neutral-950 text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                   placeholder={t.placeholderConceptoEdit}
                 />
               </div>
+              )}
             </div>
           ) : (
             <>
@@ -461,6 +410,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 </h1>
               </div>
 
+              {shown("concepto") && (
               <p
                 className={
                   isAcademy
@@ -470,6 +420,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               >
                 {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
               </p>
+              )}
             </>
           )}
         </div>
@@ -477,28 +428,28 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         {/* Right Aspect (Tablet & Desktop md+) - Bonded Familiar Portrait (left of Crest) & Vector House Crest Shield */}
         <div className="hidden md:flex shrink-0 items-center justify-center gap-5 relative z-10 md:pr-2">
           {/* Familiar Portrait Card (Shown in Read Mode when bonded, or in Edit Mode to link/change) */}
-          {(linkedFamiliar || isQuickEditing) && (
+          {(linkedFamiliar || editBond) && (
             <div className="flex flex-col items-center gap-1.5">
               {linkedFamiliar ? (
                 <div
                   id="header-familiar-card"
                   onClick={() => {
-                    if (isQuickEditing) {
+                    if (editBond) {
                       setIsSelectFamiliarModalOpen(true);
                     } else if (onSelectFamiliar) {
                       onSelectFamiliar(linkedFamiliar.id);
                     }
                   }}
-                  title={isQuickEditing ? t.familiarChangeBond : t.familiarViewDetail}
+                  title={editBond ? t.familiarChangeBond : t.familiarViewDetail}
                   className={`group w-28 aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-all duration-300 ${
                     isAcademy
                       ? "border-2 border-[#c8a248] hover:border-[#fce8a6] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
                       : "border border-emerald-500/40 hover:border-amber-400/70 shadow-md"
-                  } ${isQuickEditing ? "hover:ring-2 hover:ring-amber-500" : "hover:-translate-y-0.5"}`}
+                  } ${editBond ? "hover:ring-2 hover:ring-amber-500" : "hover:-translate-y-0.5"}`}
                 >
                   {linkedFamiliar.imagen ? (
                     <img
-                      src={linkedFamiliar.imagen}
+                      src={imageSrc(linkedFamiliar.imagen)}
                       alt={linkedFamiliar.nombre}
                       className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
                         linkedFamiliar.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
@@ -525,7 +476,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   </div>
 
                   {/* Quick Edit Mode overlay to change bond */}
-                  {isQuickEditing && (
+                  {editBond && (
                     <div className="absolute inset-0 bg-black/65 flex flex-col items-center justify-center text-center p-1.5 text-[10px] font-mono text-amber-300">
                       <LinkIcon className="w-5 h-5 mb-1 text-amber-400" />
                       <span>{t.familiarChangeBond}</span>
@@ -552,10 +503,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               )}
 
               {/* Quick Unlink button under portrait in Edit Mode when a familiar is bonded */}
-              {isQuickEditing && linkedFamiliar && onBondFamiliar && character.id && (
+              {editBond && linkedFamiliar && (
                 <button
                   type="button"
-                  onClick={() => onBondFamiliar(character.id!, null)}
+                  onClick={() => bondFamiliar(null)}
                   className="w-28 py-1 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded text-[9px] font-mono flex items-center justify-center gap-1 transition-colors cursor-pointer"
                   title={t.familiarUnbind}
                 >
@@ -568,7 +519,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
 
           <div className="flex items-center justify-center">
             <HouseCrest
-              house={character.casa}
+              house={casa}
               isAdultWizard={characterType === "adult_wizard"}
               className="w-20 h-24"
             />
@@ -642,7 +593,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
       </div>
 
       {/* Lightbox Modal overlay */}
-      {lightboxImage && (
+      {lightboxEntry && (
         <div
           id="lightbox-backdrop"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur duration-300 pointer-events-auto"
@@ -655,7 +606,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           <div className="max-w-[90vw] max-h-[85vh] overflow-hidden rounded-xl border border-violet-500/20" onClick={(e) => e.stopPropagation()}>
             <img
               id="lightbox-img"
-              src={lightboxImage}
+              src={imageSrc(lightboxEntry.value)}
               alt="Expanded"
               className="max-w-full max-h-[85vh] object-contain"
               referrerPolicy="no-referrer"
@@ -670,10 +621,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-rose-500/30 bg-[#0e0a16] shadow-2xl space-y-4">
             <h3 className="font-magic text-base text-rose-400 font-bold border-b border-rose-500/10 pb-2 flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-rose-400" />
-              {t.confirmDelete}
+              {archiveText.title}
             </h3>
             <p className="text-neutral-300 text-sm">
-              {t.confirmDeleteText}
+              {archiveText.text}
             </p>
 
             {/* Double check checkbox */}
@@ -689,7 +640,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 htmlFor="checkbox-confirm-student-delete"
                 className="text-xs text-neutral-400 hover:text-neutral-200 cursor-pointer select-none leading-relaxed"
               >
-                {t.confirmDeleteCheckbox}
+                {archiveText.checkbox}
               </label>
             </div>
 
@@ -711,7 +662,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   }`}
               >
                 <Trash2 className="w-4 h-4" />
-                {t.confirmDeleteButton}
+                {archiveText.confirm}
               </button>
             </div>
           </div>
@@ -746,17 +697,17 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 id="btn-minor-delete-confirm"
                 onClick={() => {
                   if (minorDeleteTarget.type === "spell") {
-                    confirmRemoveSpell(minorDeleteTarget.id as string);
+                    confirmRemoveSpell(minorDeleteTarget.id);
                   } else if (minorDeleteTarget.type === "potion") {
-                    confirmRemovePotion(minorDeleteTarget.id as string);
+                    confirmRemovePotion(minorDeleteTarget.id);
                   } else if (minorDeleteTarget.type === "gallery") {
-                    confirmRemoveGalleryImage(minorDeleteTarget.id as number);
+                    confirmRemoveGalleryImage(minorDeleteTarget.id);
                   } else if (minorDeleteTarget.type === "club") {
-                    confirmRemoveClub(minorDeleteTarget.id as string);
+                    confirmRemoveClub(minorDeleteTarget.id);
                   } else if (minorDeleteTarget.type === "item") {
-                    confirmRemoveInventoryItem(minorDeleteTarget.id as string);
+                    confirmRemoveInventoryItem(minorDeleteTarget.id);
                   } else if (minorDeleteTarget.type === "note") {
-                    confirmRemoveNote(minorDeleteTarget.id as string);
+                    confirmRemoveNote(minorDeleteTarget.id);
                   }
                 }}
                 className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-200 rounded-md text-[11px] font-bold transition-all cursor-pointer border border-rose-500/10"
@@ -873,40 +824,32 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               <button
                 type="button"
                 onClick={() => {
-                  if (onBondFamiliar && character.id) {
-                    onBondFamiliar(character.id, null);
-                  } else {
-                    const clone = { ...character, familiarId: undefined };
-                    saveStateToDB(clone);
-                  }
+                  bondFamiliar(null);
                   setIsSelectFamiliarModalOpen(false);
                 }}
                 className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                  !character.familiarId
+                  !bondId
                     ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
                     : "bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700"
                 }`}
               >
                 <span>{t.familiarBondNone}</span>
-                {!character.familiarId && <Check className="w-4 h-4 text-emerald-400" />}
+                {!bondId && <Check className="w-4 h-4 text-emerald-400" />}
               </button>
 
               {/* Lista de familiares creados */}
-              {familiars.map((fam) => (
+              {familiars.map((familiar) => {
+                const fam = familiar.fields as FamiliarSheet;
+                return (
                 <button
-                  key={fam.id}
+                  key={familiar.id}
                   type="button"
                   onClick={() => {
-                    if (onBondFamiliar && character.id) {
-                      onBondFamiliar(character.id, fam.id);
-                    } else {
-                      const clone = { ...character, familiarId: fam.id };
-                      saveStateToDB(clone);
-                    }
+                    bondFamiliar(familiar.id);
                     setIsSelectFamiliarModalOpen(false);
                   }}
                   className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                    character.familiarId === fam.id
+                    bondId === familiar.id
                       ? "bg-amber-950/60 border-amber-500 text-amber-200"
                       : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
                   }`}
@@ -914,7 +857,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   <div className="flex items-center gap-2.5 truncate">
                     {fam.imagen ? (
                       <img
-                        src={fam.imagen}
+                        src={imageSrc(fam.imagen)}
                         alt={fam.nombre}
                         className="w-7 h-7 rounded-lg object-cover shrink-0"
                       />
@@ -928,9 +871,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       ({fam.especie})
                     </span>
                   </div>
-                  {character.familiarId === fam.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  {bondId === familiar.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
                 </button>
-              ))}
+                );
+              })}
             </div>
 
             <div className="flex justify-between items-center pt-2 border-t border-neutral-800">

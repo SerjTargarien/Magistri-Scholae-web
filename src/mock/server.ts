@@ -170,7 +170,8 @@ export class MockServer {
     if (!id) {
       if (method === "POST") return this.receipt(body, () => this.create(kind, body, user));
       if (query.get("campaignId") !== CAMPAIGN.id) return fail(404, "not_found");
-      return new Reply(200, { items: this.state.sheets.filter(s => s.kind === kind && this.access(s, user)).map(s => this.projection(s, user)) });
+      // Newest first, like the server (sheets are stored in creation order).
+      return new Reply(200, { items: this.state.sheets.filter(s => s.kind === kind && this.access(s, user)).reverse().map(s => this.projection(s, user)) });
     }
     const sheet = this.state.sheets.find(s => s.id === id && s.kind === kind);
     if (!sheet || !this.access(sheet, user)) return fail(404, "not_found");

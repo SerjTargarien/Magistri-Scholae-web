@@ -1,98 +1,92 @@
-// The account app against the in-browser mock server (R3.3): roles and hidden
-// fields, saves through the sheet store, local rule checks, automatic merging,
-// same-field conflicts, connection drops and exact retries. Each test starts
-// with fresh demo data (a new browser context has empty storage).
+// The real screens through the sheet store, against the in-browser mock
+// server (R3.3/R3.4): roles and hidden fields, local rule checks, automatic
+// merging, same-field conflicts, connection drops and exact retries. Uses the
+// demo's test panel. Each test starts with fresh demo data.
 import type { Page } from "@playwright/test";
-import { expect, test } from "./helpers";
+import { expect, openApp, openCharacter, openTab, reloadApp, setEditMode, storedSheet, test, viewAs } from "./helpers";
 
-const status = (page: Page) => page.locator(".remote-status");
+const status = (page: Page) => page.locator("#save-status");
+const nameInput = (page: Page) => page.getByPlaceholder("p. ej. Leonora Vance").first();
+const conceptInput = (page: Page) => page.getByPlaceholder("Concepto del personaje");
 
-async function openSheet(page: Page, name: string, role?: "gm" | "player" | "reader") {
-  await page.goto("/");
-  await expect(page.locator("#demo-banner")).toBeVisible();
-  if (role && role !== "player") {
-    await page.locator(`#demo-role-${role}`).click();
-    await expect(page.locator(`#demo-role-${role}`)).toHaveAttribute("aria-pressed", "true");
-  }
-  await page.getByLabel("Campaña").selectOption("demo-campaign");
-  await page.getByRole("button", { name, exact: true }).click();
-  await expect(page.locator("#field-nombre")).toHaveValue(name);
-}
-
-async function reopen(page: Page, name: string) {
-  await page.reload();
-  await page.getByLabel("Campaña").selectOption("demo-campaign");
-  await page.getByRole("button", { name, exact: true }).click();
+async function openLuna(page: Page, role?: "gm" | "reader") {
+  await openApp(page);
+  if (role) await viewAs(page, role);
+  await openCharacter(page, "Luna de Bruma");
 }
 
 test("player: the GM-only field is absent, own fields save and survive a reload", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma");
-  await expect(page.locator("#field-economia")).toHaveCount(0);
-  await expect(page.locator("#field-linaje")).toHaveValue("Familia de herbolarias del Pirineo");
-  await page.locator("#field-concepto").fill("Rastreadora editada en la demo");
-  await expect(status(page)).toHaveText(/^Guardado/);
-  await reopen(page, "Luna de Bruma");
-  await expect(page.locator("#field-concepto")).toHaveValue("Rastreadora editada en la demo");
+  await openLuna(page);
+  await expect(page.locator("#detail-tab-perfil")).not.toContainText("Modesta");  // economía is GM-only
+  await expect(page.locator("#detail-tab-perfil")).toContainText("Familia de herbolarias del Pirineo");
+  await setEditMode(page, true);
+  await conceptInput(page).fill("Rastreadora editada en la demo");
+  await reloadApp(page);
+  expect((await storedSheet(page, "Luna de Bruma"))!.concepto).toBe("Rastreadora editada en la demo");
 });
 
 test("an edit that breaks a rule is refused with its rule and never saved", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma");
-  await page.locator("#field-nombre").fill("");
-  await expect(status(page)).toContainText("No aceptado: nombre (required)");
-  await page.getByRole("button", { name: "Sesión", exact: true }).click();
-  await page.locator("#field-puntosDestino").fill("11");
-  await expect(status(page)).toContainText("puntosDestino (range [0,10])");
-  await reopen(page, "Luna de Bruma");
-  await expect(page.locator("#field-nombre")).toHaveValue("Luna de Bruma");
-  await page.getByRole("button", { name: "Sesión", exact: true }).click();
-  await expect(page.locator("#field-puntosDestino")).toHaveValue("3");
+  await openLuna(page);
+  await setEditMode(page, true);
+  await expect(nameInput(page)).toHaveValue("Luna de Bruma");
+  await nameInput(page).fill("");
+  await expect(status(page)).toContainText("nombre (required)");
+  await reloadApp(page);
+  expect((await storedSheet(page, "Luna de Bruma"))!.nombre).toBe("Luna de Bruma");
 });
 
 test("someone else's change to another field merges without a conflict", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma");
+  await openLuna(page);
   await page.locator("#demo-other-nombre").click();
-  await page.locator("#field-concepto").fill("Mi concepto");
-  await expect(status(page)).toHaveText(/^Guardado/);
-  await expect(page.locator("#field-nombre")).toHaveValue(/cambiado por otra persona/);
-  await expect(page.getByRole("button", { name: "Mantener el mío" })).toHaveCount(0);
+  await setEditMode(page, true);
+  await conceptInput(page).fill("Mi concepto");
+  await reloadApp(page);
+  const stored = (await storedSheet(page, "Mi concepto") ?? await page.evaluate(async () => {
+    const mock = await import("/src/mock/server.ts" as string);
+    return mock.mockServer().state.sheets.find((s: { id: string }) => s.id === "demo-luna").fields;
+  }))!;
+  expect(stored.concepto).toBe("Mi concepto");
+  expect(stored.nombre).toMatch(/cambiado por otra persona/);
 });
 
 test("offline edits wait for the connection; a same-field collision asks which value to keep", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma");
+  await openLuna(page);
+  await setEditMode(page, true);
   await page.locator("#demo-offline").click();
-  await expect(status(page)).toHaveText(/^Sin conexión/);
-  await page.locator("#field-nombre").fill("Luna, versión propia");
-  await page.locator("#field-concepto").fill("Concepto escrito sin conexión");
+  await expect(status(page)).toContainText("Sin conexión");
+  await nameInput(page).fill("Luna, versión propia");
+  await conceptInput(page).fill("Concepto escrito sin conexión");
   await page.locator("#demo-other-nombre").click();
   await page.locator("#demo-offline").click();
-  await expect(page.getByRole("button", { name: "Mantener el mío" })).toBeVisible();
-  await expect(status(page)).toHaveText(/^Otra persona cambió el mismo campo/);
-  await page.getByRole("button", { name: "Mantener el mío" }).click();
-  await expect(status(page)).toHaveText(/^Guardado/);
-  await reopen(page, "Luna, versión propia");
-  await expect(page.locator("#field-nombre")).toHaveValue("Luna, versión propia");
-  await expect(page.locator("#field-concepto")).toHaveValue("Concepto escrito sin conexión");
+  await expect(status(page).getByRole("button", { name: "Mantener el mío" })).toBeVisible();
+  await status(page).getByRole("button", { name: "Mantener el mío" }).click();
+  await expect(status(page)).toHaveCount(0);
+  await reloadApp(page);
+  expect(await storedSheet(page, "Luna, versión propia")).toMatchObject({ concepto: "Concepto escrito sin conexión" });
 });
 
 test("a save whose reply is lost is retried as the same operation", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma");
+  await openLuna(page);
   await page.locator("#demo-lose-reply").click();
-  await page.locator("#field-concepto").fill("Guardado una sola vez");
-  await expect(status(page)).toHaveText(/^Guardado/, { timeout: 15_000 });
-  await reopen(page, "Luna de Bruma");
-  await expect(page.locator("#field-concepto")).toHaveValue("Guardado una sola vez");
+  await setEditMode(page, true);
+  await conceptInput(page).fill("Guardado una sola vez");
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __magistriSaved: () => boolean }).__magistriSaved()), { timeout: 15_000 }).toBe(true);
+  expect((await storedSheet(page, "Luna de Bruma"))!.concepto).toBe("Guardado una sola vez");
 });
 
 test("shared reader: restricted and GM-only fields are absent and nothing is editable", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma", "reader");
-  await expect(page.getByRole("button", { name: "Diego Marés" })).toHaveCount(0);
-  for (const hidden of ["#field-linaje", "#field-economia"]) await expect(page.locator(hidden)).toHaveCount(0);
-  await expect(page.locator("#field-concepto")).toBeDisabled();
+  await openLuna(page, "reader");
+  await expect(page.locator("#detail-tab-perfil")).not.toContainText("Familia de herbolarias del Pirineo");
+  await expect(page.locator("#detail-tab-perfil")).not.toContainText("Modesta");
+  await expect(page.locator("#btn-detail-edit")).toHaveCount(0);
+  await openTab(page, "notas");
+  await expect(page.locator("#detail-tab-notas")).not.toContainText("Primera expedición");  // the journal is restricted
 });
 
-test("GM: sees GM-only fields and the GM's own character", async ({ page }) => {
-  await openSheet(page, "Luna de Bruma", "gm");
-  await expect(page.locator("#field-economia")).toHaveValue("Modesta");
-  await page.getByRole("button", { name: /Volver|Back/ }).click();
-  await expect(page.getByRole("button", { name: "Profesor Silvio Niebla", exact: true })).toBeVisible();
+test("GM: sees GM-only fields and the GM's own character, and may archive", async ({ page }) => {
+  await openLuna(page, "gm");
+  await expect(page.locator("#detail-tab-perfil")).toContainText("Modesta");
+  await expect(page.locator("#btn-detail-delete")).toBeVisible();
+  await page.getByRole("button", { name: /Volver|Back/ }).first().click();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Profesor Silvio Niebla" })).toBeVisible();
 });

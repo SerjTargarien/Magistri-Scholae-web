@@ -3,10 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
-import { Familiar, VisualStyle } from "../types";
-import { Language, TRANSLATIONS } from "../localization";
-import { storage } from "../storage";
+import React, { useState } from "react";
+import type { ApiSheetProjection } from "../contracts/api-v1";
+import type { FamiliarEditorProps } from "../account/screens";
+import { TRANSLATIONS } from "../localization";
+import type { FamiliarSheet } from "../model/sheet";
+import { newFamiliarSheet } from "../model/defaults";
+import type { Problem } from "../model/rules";
+import { ApiFailure } from "../remote/client";
+import { imageSrc } from "../remote/assets";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../utils/imageCompressor";
 import { FiligreeCorner } from "./AcademyOrnaments";
@@ -23,40 +28,38 @@ import {
   PawPrint,
 } from "lucide-react";
 
-interface FamiliarEditorProps {
-  lang: Language;
-  visualStyle?: VisualStyle;
-  onBack: () => void;
-  onFamiliarSaved?: (familiar: Familiar) => void;
-  onFamiliarDeleted?: (id: string) => void;
-  onShowToast?: (type: "success" | "error", text: string) => void;
-  isModal?: boolean;
-  initialFamiliarId?: string | null;
-}
+export type { FamiliarEditorProps };
+
+/** Which message a refused save shows: the name/species rule, or the generic one. */
+const isNameRule = (path?: string, rule?: string) => (path === "nombre" || path === "especie") && rule === "required";
 
 export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   lang,
   visualStyle = "academy",
+  store,
+  familiars,
+  onOpenFamiliar,
+  onArchive,
+  onCreate,
+  onUploadImage,
   onBack,
-  onFamiliarSaved,
-  onFamiliarDeleted,
   onShowToast,
   isModal = false,
-  initialFamiliarId = null,
 }) => {
   const t = TRANSLATIONS[lang];
   const isAcademy = visualStyle === "academy";
+  const archiveLabel = lang === "en" ? "Archive" : "Archivar";
 
-  // List of saved familiars in IndexedDB
-  const [familiars, setFamiliars] = useState<Familiar[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  // The familiar being edited (the open store), or null while creating a new one.
+  const initial = (store?.fields ?? {}) as FamiliarSheet;
+  const [editingId, setEditingId] = useState<string | null>(store?.sheet.id ?? null);
 
-  // Form fields
-  const [nombre, setNombre] = useState("");
-  const [especie, setEspecie] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [imagen, setImagen] = useState("");
-  const [imageFit, setImageFit] = useState<"cover" | "contain">("cover");
+  // Form fields. `imagen` is the stored asset ID, or the cropped picture (data URL) not yet uploaded.
+  const [nombre, setNombre] = useState(initial.nombre ?? "");
+  const [especie, setEspecie] = useState(initial.especie ?? "");
+  const [descripcion, setDescripcion] = useState(initial.descripcion ?? "");
+  const [imagen, setImagen] = useState(initial.imagen ?? "");
+  const [imageFit, setImageFit] = useState<"cover" | "contain">(initial.imageFit ?? "cover");
   const [pastedUrl, setPastedUrl] = useState("");
 
   // Validation & feedback
@@ -71,28 +74,6 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
-  const loadFamiliars = async () => {
-    try {
-      const list = await storage.familiars.list();
-      setFamiliars(list);
-      return list;
-    } catch (err) {
-      console.error("Failed to load familiars:", err);
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    loadFamiliars().then((list) => {
-      if (initialFamiliarId) {
-        const found = list.find((f) => f.id === initialFamiliarId);
-        if (found) {
-          handleSelectFamiliarToEdit(found);
-        }
-      }
-    });
-  }, [initialFamiliarId]);
-
   const resetForm = () => {
     setEditingId(null);
     setNombre("");
@@ -105,13 +86,19 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
     setImageError(null);
   };
 
-  const handleSelectFamiliarToEdit = (fam: Familiar) => {
-    setEditingId(fam.id);
-    setNombre(fam.nombre);
-    setEspecie(fam.especie);
-    setDescripcion(fam.descripcion || "");
-    setImagen(fam.imagen || "");
-    setImageFit(fam.imageFit || "cover");
+  /** The open familiar reloads into the form; any other familiar is opened by the app (its own store). */
+  const handleSelectFamiliarToEdit = (fam: ApiSheetProjection) => {
+    if (!store || fam.id !== store.sheet.id) {
+      onOpenFamiliar(fam.id);
+      return;
+    }
+    const current = store.fields as FamiliarSheet;
+    setEditingId(store.sheet.id);
+    setNombre(current.nombre ?? "");
+    setEspecie(current.especie ?? "");
+    setDescripcion(current.descripcion ?? "");
+    setImagen(current.imagen ?? "");
+    setImageFit(current.imageFit ?? "cover");
     setFormError(null);
     setImageError(null);
   };
@@ -173,56 +160,62 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
       return;
     }
 
-    const now = Date.now();
-    const existing = editingId ? familiars.find((f) => f.id === editingId) : undefined;
+    const refused = (problems: Problem[]) =>
+      setFormError(problems.some((p) => isNameRule(p.path, p.rule)) ? t.familiarValidationError : t.validationErrorGeneric);
 
-    const familiarRecord: Familiar = {
-      id: editingId || `fam_${now}_${Math.random().toString(36).substring(2, 7)}`,
-      nombre: nombre.trim(),
-      especie: especie.trim(),
-      descripcion: descripcion.trim(),
-      imagen: imagen || undefined,
-      imageFit,
-      studentId: existing?.studentId,
-      notasList: existing?.notasList,
-      galleryImages: existing?.galleryImages,
-      createdAt: existing?.createdAt || now,
-      updatedAt: now,
-    };
-
-    try {
-      const saved = await storage.familiars.save(familiarRecord);
-      await loadFamiliars();
-      if (onShowToast) {
-        onShowToast("success", t.familiarSavedToast);
+    if (editingId && store) {
+      // Existing familiar: one edit per changed field, nothing else.
+      const current = store.fields as FamiliarSheet;
+      const changes: [string, unknown][] = [];
+      if (nombre.trim() !== (current.nombre ?? "")) changes.push(["nombre", nombre.trim()]);
+      if (especie.trim() !== (current.especie ?? "")) changes.push(["especie", especie.trim()]);
+      if (descripcion.trim() !== (current.descripcion ?? "")) changes.push(["descripcion", descripcion.trim()]);
+      if (imageFit !== (current.imageFit ?? "cover")) changes.push(["imageFit", imageFit]);
+      const imageChanged = imagen !== (current.imagen ?? "");
+      if (imageChanged && !imagen) changes.push(["imagen", ""]);
+      const problems = changes.flatMap(([path, value]) => store.edit(path, value));
+      if (problems.length) {
+        refused(problems);
+        return;
       }
-      if (onFamiliarSaved) {
-        onFamiliarSaved(saved);
+      if (imageChanged && imagen.startsWith("data:")) {
+        try {
+          await onUploadImage("imagen", imagen);
+        } catch (err) {
+          console.error("Familiar image upload error:", err);
+          setFormError(t.imageUploadError);
+          return;
+        }
       }
-      resetForm();
-    } catch (err) {
-      console.error("Failed to save familiar:", err);
-      setFormError(t.validationErrorGeneric);
+    } else {
+      // New familiar: the whole sheet is created once; the cropped picture is uploaded after.
+      const fields: FamiliarSheet = {
+        ...newFamiliarSheet(),
+        nombre: nombre.trim(),
+        especie: especie.trim(),
+        descripcion: descripcion.trim(),
+        imageFit,
+      };
+      try {
+        await onCreate(fields, imagen.startsWith("data:") ? imagen : undefined);
+      } catch (err) {
+        console.error("Failed to create familiar:", err);
+        setFormError(
+          err instanceof ApiFailure && isNameRule(err.details?.path, err.details?.rule)
+            ? t.familiarValidationError
+            : t.validationErrorGeneric
+        );
+        return;
+      }
     }
+
+    onShowToast("success", t.familiarSavedToast);
+    resetForm();
   };
 
-  const handleDeleteFamiliar = async (id: string) => {
-    try {
-      await storage.familiars.remove(id);
-      if (editingId === id) {
-        resetForm();
-      }
-      setConfirmDeleteId(null);
-      await loadFamiliars();
-      if (onFamiliarDeleted) {
-        onFamiliarDeleted(id);
-      }
-      if (onShowToast) {
-        onShowToast("success", t.familiarDeletedToast);
-      }
-    } catch (err) {
-      console.error("Failed to delete familiar:", err);
-    }
+  const handleArchiveFamiliar = () => {
+    setConfirmDeleteId(null);
+    onArchive?.();
   };
 
   return (
@@ -356,7 +349,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                   {imagen ? (
                     <img
                       id="familiar-avatar-preview"
-                      src={imagen}
+                      src={imageSrc(imagen)}
                       alt={nombre || t.archetypeFamiliar}
                       className={`w-full h-full ${
                         imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
@@ -592,9 +585,12 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
             </div>
           ) : (
             <div className="flex-1 space-y-3 overflow-y-auto max-h-[540px] pr-1 scrollbar-thin">
-              {familiars.map((fam) => {
+              {familiars.map((famProjection) => {
+                const fam = { ...(famProjection.fields as FamiliarSheet), id: famProjection.id };
                 const isSelected = editingId === fam.id;
                 const isConfirmingDelete = confirmDeleteId === fam.id;
+                // Only the GM archives, and only the familiar open in this editor.
+                const canArchive = !!onArchive && !!store && store.sheet.id === fam.id;
 
                 return (
                   <div
@@ -608,12 +604,12 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                   >
                     {/* Familiar Thumbnail */}
                     <div
-                      onClick={() => handleSelectFamiliarToEdit(fam)}
+                      onClick={() => handleSelectFamiliarToEdit(famProjection)}
                       className="w-16 h-20 rounded-lg bg-neutral-900 border border-amber-500/25 overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
                     >
                       {fam.imagen ? (
                         <img
-                          src={fam.imagen}
+                          src={imageSrc(fam.imagen)}
                           alt={fam.nombre}
                           className={`w-full h-full ${
                             fam.imageFit === "contain"
@@ -629,7 +625,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
                     {/* Familiar Details */}
                     <div
-                      onClick={() => handleSelectFamiliarToEdit(fam)}
+                      onClick={() => handleSelectFamiliarToEdit(famProjection)}
                       className="flex-1 min-w-0 cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
@@ -651,20 +647,20 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
                       <button
                         type="button"
-                        onClick={() => handleSelectFamiliarToEdit(fam)}
+                        onClick={() => handleSelectFamiliarToEdit(famProjection)}
                         className="p-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-amber-300 transition-colors cursor-pointer"
                         title={t.edit}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
 
-                      {isConfirmingDelete ? (
+                      {!canArchive ? null : isConfirmingDelete ? (
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => handleDeleteFamiliar(fam.id)}
+                            onClick={handleArchiveFamiliar}
                             className="p-1.5 rounded-lg bg-rose-700 hover:bg-rose-600 text-white transition-colors cursor-pointer"
-                            title={t.delete}
+                            title={archiveLabel}
                           >
                             <Check className="w-3.5 h-3.5" />
                           </button>
@@ -682,7 +678,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                           type="button"
                           onClick={() => setConfirmDeleteId(fam.id)}
                           className="p-1.5 rounded-lg bg-neutral-900 hover:bg-rose-950/70 border border-neutral-800 hover:border-rose-500/30 text-neutral-500 hover:text-rose-300 transition-colors cursor-pointer"
-                          title={t.delete}
+                          title={archiveLabel}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

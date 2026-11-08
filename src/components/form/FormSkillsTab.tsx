@@ -4,65 +4,29 @@
  */
 
 // The creation form's "habilidades" tab, moved verbatim out of CharacterForm.tsx (R3.4).
-import React, { useState, useEffect } from "react";
-import { Character, Skill, CustomField, CharacterType } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import {
-  Language,
-  TRANSLATIONS,
-  getLocalizedHouseLore,
-  translateHouseMotto,
-  translateSkillName,
-  canonicalizeSkillName,
-} from "../../localization";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import { 
-  Save, 
-  X, 
-  Sparkles, 
-  Image as ImageIcon, 
-  Plus, 
-  Trash2, 
-  ShieldAlert, 
-  Coins, 
-  FileText,
-  User,
-  GraduationCap,
-  Sparkle,
-  Layers,
-  Dumbbell,
-  Shield,
-  Activity,
-  Award,
-  BookOpen,
-  Minus,
-  PawPrint
-} from "lucide-react";
-import { createDefaultCharacter, getInitialDefaultSkills } from "../../utils/characterFactory";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import { HouseCrest } from "../HouseCrest";
-import { FamiliarEditor } from "../FamiliarEditor";
+import React from "react";
+import { Save, Plus, Trash2, BookOpen } from "lucide-react";
+import { catalogueName, skillName, skillsByCategory, type SkillCategory } from "../../model/catalogue";
 
 import type { FormContext } from "./useCharacterForm";
 
+/** The emoji before each category heading (the old app's, for the categories it had). */
+const CATEGORY_EMOJI: Record<string, string> = {
+  fisicas: "🛡️ ",
+  mentales: "🧠 ",
+  sociales: "🗣️ ",
+  "conocimientos-magicos": "📐 ",
+};
+const categoryHeading = (category: SkillCategory, lang: "es" | "en") =>
+  (CATEGORY_EMOJI[category.id] ?? "🔮 ") + catalogueName(category.nombre, lang);
+
 export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
   const {
-    lang, initialCharacter, newCharacterType, onSave, onCancel, t, activeFormTab, setActiveFormTab, characterState,
-    setCharacterState, characterType, profile, updateProfileField, formError, setFormError, imageError, setImageError,
-    newAspectName, setNewAspectName, newComplicationName, setNewComplicationName, newFormTempAspect, setNewFormTempAspect,
-    pastedAvatarUrl, setPastedAvatarUrl, newPhysConsequence, setNewPhysConsequence, newMentConsequence, setNewMentConsequence,
-    newSocConsequence, setNewSocConsequence, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback, setSkillsSavedFeedback,
-    newItemName, setNewItemName, newItemQty, setNewItemQty, newCustomFieldName, setNewCustomFieldName, newCustomFieldValue,
-    setNewCustomFieldValue, showDiscardModal, setShowDiscardModal, showFamiliarEditorModal, setShowFamiliarEditorModal,
-    cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels,
-    setCroppedAreaPixels, handleHouseChange, handleImageUpload, handleUrlAvatarSubmit, onCropComplete, handleConfirmCrop,
-    addAspect, removeAspect, addTempAspect, removeTempAspect, addComplication, removeComplication, addEquipmentItem,
-    removeEquipmentItem, addCustomField, updateCustomField, removeCustomField, addPhysConsequence, removePhysConsequence,
-    addMentConsequence, removeMentConsequence, addSocConsequence, removeSocConsequence, adjustSkillValue, skillError,
-    setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills, handleSave, isStateDirty,
-    handleCancelClick, theme, houseAccentBorder, houseTabBtnStyle, houseIconColor,
+    lang, catalogue, t, characterState, characterType, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback,
+    adjustSkillValue, skillError, setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills,
+    houseIconColor,
   } = ctx;
+  const groups = skillsByCategory(characterState.habilidades ?? [], catalogue, { characterType, edad: characterState.edad });
   return (
             <div className="space-y-6 animate-fade-in" id="form-tabpanel-habilidades">
               <div className="flex items-center justify-between border-b border-violet-500/10 pb-3">
@@ -78,31 +42,26 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
               </div>
 
               {/* Grouped sections vertically */}
-              {["Físicas", "Mentales", "Sociales", "Asignaturas Troncales", "Asignaturas Optativas"].map((category) => {
-                const skillsInCategory = characterState.habilidades.filter(s => s.categoria === category);
+              {groups.map(({ category, skills: skillsInCategory }) => {
                 return (
-                  <div key={category} className="space-y-3 bg-neutral-950/30 p-4 border border-violet-500/5 rounded-xl">
+                  <div key={category.id} className="space-y-3 bg-neutral-950/30 p-4 border border-violet-500/5 rounded-xl">
                     <h4 className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-extrabold border-b border-neutral-800 pb-1">
-                      {category === "Físicas" ? "🛡️ " + t.catFisicas :
-                       category === "Mentales" ? "🧠 " + t.catMentales :
-                       category === "Sociales" ? "🗣️ " + t.catSociales :
-                       category === "Asignaturas Troncales" ? "📐 " + t.catTroncales :
-                       "🔮 " + t.catOptativas}
+                      {categoryHeading(category, lang)}
                     </h4>
 
                     {skillsInCategory.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                         {skillsInCategory.map((sk) => {
-                          const displaySkillName = translateSkillName(sk.nombre, lang);
+                          const displaySkillName = skillName(sk, catalogue, lang);
                           return (
                             <div
-                              key={sk.nombre}
+                              key={sk.id}
                               className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                             >
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <button
                                   type="button"
-                                  onClick={() => handleRemoveSkill(sk.nombre)}
+                                  onClick={() => handleRemoveSkill(sk.id)}
                                   className="text-neutral-500 hover:text-rose-400 p-0.5 transition-colors shrink-0 cursor-pointer"
                                   title={t.removeSkill}
                                 >
@@ -117,8 +76,8 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                                 {/* Decrement */}
                                 <button
                                   type="button"
-                                  onClick={() => adjustSkillValue(sk.nombre, -1)}
-                                  disabled={sk.valor <= 0}
+                                  onClick={() => adjustSkillValue(sk.id, -1)}
+                                  disabled={(sk.valor ?? 0) <= 0}
                                   className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
                                 >
                                   -
@@ -126,14 +85,14 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                                 
                                 {/* Score displaying filled points */}
                                 <span className="text-[11px] min-w-[28px] font-mono font-bold text-center text-amber-400 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-800">
-                                  {sk.valor}
+                                  {sk.valor ?? 0}
                                 </span>
 
                                 {/* Increment */}
                                 <button
                                   type="button"
-                                  onClick={() => adjustSkillValue(sk.nombre, 1)}
-                                  disabled={sk.valor >= 5}
+                                  onClick={() => adjustSkillValue(sk.id, 1)}
+                                  disabled={(sk.valor ?? 0) >= 5}
                                   className="w-5 h-5 bg-neutral-950 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-800 text-[10px] font-mono text-neutral-400 flex items-center justify-center rounded cursor-pointer select-none"
                                 >
                                   +
@@ -155,9 +114,9 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                         <input
                           type="text"
                           placeholder={t.placeholderNewSkillCategory}
-                          value={inlineSkillNames[category] || ""}
+                          value={inlineSkillNames[category.id] || ""}
                           onChange={(e) => {
-                            setInlineSkillNames(prev => ({ ...prev, [category]: e.target.value }));
+                            setInlineSkillNames(prev => ({ ...prev, [category.id]: e.target.value }));
                             if (skillError) setSkillError(null);
                           }}
                           className="flex-1 text-[11px] font-sans py-1 px-2.5 bg-neutral-950 border border-neutral-800 text-neutral-200 rounded-lg placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-violet-500/50"

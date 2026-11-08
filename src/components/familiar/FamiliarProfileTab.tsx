@@ -3,50 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The familiar sheet's "perfil" tab, moved verbatim out of FamiliarDetail.tsx (R3.4).
-import React, { useState, useRef } from "react";
-import { Familiar, Character, VisualStyle, JournalNote } from "../../types";
-import { Language, TRANSLATIONS } from "../../localization";
-import { storage } from "../../storage";
-import { referencesCharacter } from "../../storage/backup";
+// The familiar sheet's "perfil" tab (R3.4).
+import React from "react";
 import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
 import { HouseCrest } from "../HouseCrest";
-import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../../utils/imageCompressor";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  PawPrint,
-  FileText,
-  Image as ImageIcon,
-  Plus,
-  Trash,
-  X,
-  Maximize2,
-  Check,
-  Upload,
-  User,
-  Sparkles,
-  Link as LinkIcon,
-  Unlink,
-  ExternalLink,
-} from "lucide-react";
+import { imageSrc } from "../../remote/assets";
+import { PawPrint, Upload, Link as LinkIcon, Unlink, ExternalLink } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    lang, visualStyle, familiar, characters, onBack, onEditInEditor, onDelete, onUpdateFamiliar, onSelectCharacter,
-    onBondMaster, onShowToast, t, isAcademy, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing, editNombre,
-    setEditNombre, editEspecie, setEditEspecie, editDescripcion, setEditDescripcion, editImageFit, setEditImageFit,
-    newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId, setEditingNoteId, editingNoteTitle,
-    setEditingNoteTitle, editingNoteContent, setEditingNoteContent, lightboxImage, setLightboxImage, galleryError,
-    setGalleryError, pastedUrl, setPastedUrl, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels, setCroppedAreaPixels, isDeleteOpen,
-    setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, saveFamiliarToDB, handleSaveQuickEdit,
-    handleAvatarChange, handleConfirmCrop, handleAddNote, handleSaveEditedNote, handleDeleteNote, handleAddGalleryImage,
-    handleAddUrlImage, handleDeleteGalleryImage,
+    familiar, onSelectCharacter, t, isAcademy, isQuickEditing, editNombre, setEditNombre, editEspecie, setEditEspecie,
+    editDescripcion, setEditDescripcion, editImageFit, setEditImageFit, avatarInputRef, setIsSelectMasterOpen,
+    linkedMaster, handleAvatarChange, handleBondMaster, canEditName, canEditSpecies, canEditDescription, canEditImage,
+    canEditImageFit, canBond,
   } = ctx;
   return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
@@ -70,7 +41,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
               <div className="relative aspect-[3/4] w-full bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center group">
                 {familiar.imagen ? (
                   <img
-                    src={familiar.imagen}
+                    src={imageSrc(familiar.imagen)}
                     alt={familiar.nombre}
                     className={`w-full h-full ${
                       familiar.imageFit === "contain" ? "object-contain bg-[#0e0917]" : "object-cover"
@@ -87,8 +58,9 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 )}
 
                 {/* Quick edit overlay for avatar */}
-                {isQuickEditing && (
+                {isQuickEditing && (canEditImage || canEditImageFit) && (
                   <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canEditImage && (
                     <label className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-mono uppercase cursor-pointer flex items-center gap-1.5 shadow-lg">
                       <Upload className="w-4 h-4" />
                       <span>{t.btnChangePhoto}</span>
@@ -100,7 +72,9 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                         onChange={handleAvatarChange}
                       />
                     </label>
+                    )}
 
+                    {canEditImageFit && (
                     <div className="flex items-center gap-1 bg-neutral-900/90 border border-neutral-700 p-1 rounded-lg text-xs font-mono">
                       <button
                         type="button"
@@ -121,6 +95,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                         {t.optAvatarContain}
                       </button>
                     </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -130,7 +105,8 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 <span className="text-emerald-400 uppercase font-bold tracking-wider">
                   {familiar.especie || "—"}
                 </span>
-                <span>{new Date(familiar.createdAt).toLocaleDateString()}</span>
+                {/* The creation date is not part of the server's model: the element stays, empty. */}
+                <span></span>
               </div>
             </div>
           </div>
@@ -158,6 +134,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <input
                       type="text"
                       value={editNombre}
+                      disabled={!canEditName}
                       onChange={(e) => setEditNombre(e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
@@ -170,6 +147,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <input
                       type="text"
                       value={editEspecie}
+                      disabled={!canEditSpecies}
                       onChange={(e) => setEditEspecie(e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
@@ -182,6 +160,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <textarea
                       rows={4}
                       value={editDescripcion}
+                      disabled={!canEditDescription}
                       onChange={(e) => setEditDescripcion(e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none font-sans"
                     />
@@ -231,6 +210,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                   {t.familiarBondSectionTitle}
                 </h2>
 
+                {canBond && (
                 <button
                   type="button"
                   onClick={() => setIsSelectMasterOpen(true)}
@@ -239,6 +219,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                   <LinkIcon className="w-3 h-3" />
                   <span>{linkedMaster ? t.familiarChangeBond : t.familiarBondStudent}</span>
                 </button>
+                )}
               </div>
               {isAcademy && <CompassStarDivider className="mb-4" />}
 
@@ -246,29 +227,29 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 <div className="p-4 rounded-xl bg-gradient-to-r from-neutral-950/90 to-[#181126] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   {/* Master Info */}
                   <div className="flex items-center gap-3.5">
-                    {linkedMaster.avatarImage ? (
+                    {linkedMaster.fields.avatarImage ? (
                       <img
-                        src={linkedMaster.avatarImage}
-                        alt={linkedMaster.nombre}
+                        src={imageSrc(linkedMaster.fields.avatarImage)}
+                        alt={linkedMaster.fields.nombre}
                         className="w-14 h-14 rounded-xl object-cover border border-amber-500/50 shadow-md shrink-0"
                       />
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-violet-950/60 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                        <HouseCrest house={linkedMaster.casa} className="w-8 h-8" />
+                        <HouseCrest house={linkedMaster.fields.casa ?? ""} className="w-8 h-8" />
                       </div>
                     )}
 
                     <div>
                       <div className="text-[10px] font-mono uppercase tracking-widest text-amber-400/90">
-                        {linkedMaster.characterType === "adult_wizard"
+                        {linkedMaster.fields.characterType === "adult_wizard"
                           ? t.characterTypeAdultWizard
-                          : `${t.studentPrefix} • ${linkedMaster.casa}`}
+                          : `${t.studentPrefix} • ${linkedMaster.fields.casa ?? ""}`}
                       </div>
                       <div className="font-magic text-lg font-bold text-neutral-100 uppercase tracking-wide">
-                        {linkedMaster.nombre}
+                        {linkedMaster.fields.nombre}
                       </div>
                       <div className="text-xs text-neutral-400 font-serif italic truncate max-w-xs">
-                        {linkedMaster.concepto || linkedMaster.lema || "—"}
+                        {linkedMaster.fields.concepto || "—"}
                       </div>
                     </div>
                   </div>
@@ -278,21 +259,23 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <button
                       type="button"
                       id="btn-navigate-to-master"
-                      onClick={() => linkedMaster.id && onSelectCharacter(linkedMaster.id)}
+                      onClick={() => onSelectCharacter(linkedMaster.id)}
                       className="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold font-mono text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-lg cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>{t.wizardViewDetail}</span>
                     </button>
 
+                    {canBond && (
                     <button
                       type="button"
-                      onClick={() => onBondMaster(familiar.id, null)}
+                      onClick={() => handleBondMaster(null)}
                       className="p-2 text-neutral-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg border border-neutral-800 transition-colors cursor-pointer"
                       title={t.familiarUnbind}
                     >
                       <Unlink className="w-4 h-4" />
                     </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -306,6 +289,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       Este compañero no está vinculado a ningún alumno o mago actualmente.
                     </div>
                   </div>
+                  {canBond && (
                   <button
                     type="button"
                     onClick={() => setIsSelectMasterOpen(true)}
@@ -314,6 +298,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <LinkIcon className="w-3.5 h-3.5" />
                     <span>{t.familiarBondStudent}</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>

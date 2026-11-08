@@ -3,10 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
-import { Character, Familiar, BackupData, CharacterType, VisualStyle } from "./types";
-import { storage } from "./storage";
+// The account app (R3.4 switch): the real screens on the account server.
+// Sheets are read and saved through one SheetStore each, kept alive while
+// signed in so leaving a sheet never drops unsent changes. The layout,
+// background, loading screen and DEMO banner are the old app's, unchanged.
+import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import type { ApiSheetProjection, ApiUser, EntityKind } from "./contracts/api-v1";
 import { Language, TRANSLATIONS } from "./localization";
+import { DEFAULT_SKILL_CATALOGUE, type SkillCatalogue } from "./model/catalogue";
+import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
+import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/client";
+import { SheetStore } from "./store/sheetStore";
+import type { VisualStyle } from "./types";
+import { CampaignChooser, SignIn } from "./account/SignIn";
+import { SaveStatus } from "./account/SaveStatus";
 import { CharacterList } from "./components/CharacterList";
 import { CharacterDetail } from "./components/CharacterDetail";
 import { CharacterForm } from "./components/CharacterForm";
@@ -15,195 +25,245 @@ import { FamiliarEditor } from "./components/FamiliarEditor";
 import { FamiliarDetail } from "./components/FamiliarDetail";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { AcademyBackground } from "./components/AcademyOrnaments";
-import { Sparkles, Loader, CheckCircle } from "lucide-react";
+import { Loader, CheckCircle } from "lucide-react";
+
+const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
+// Demo builds only; the condition is replaced at build time.
+const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
+const CAMPAIGN_KEY = "magistri_campaign";
+const LIST_LIMIT = 200;
+
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS";
+type Campaign = { id: string; name: string };
+
+/** Reads the data URL's base64 part, as the asset endpoint expects. */
+const base64Of = (dataUrl: string) => dataUrl.slice(dataUrl.indexOf(",") + 1);
 
 export default function App() {
-  // Screens: LIST, DETAIL, FAMILIAR_DETAIL, TYPE_SELECT, FORM, FAMILIAR_EDITOR, SETTINGS
-  const [screen, setScreen] = useState<"LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS">("LIST");
-  
-  // Storage arrays & selections
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [familiars, setFamiliars] = useState<Familiar[]>([]);
-  const [selectedCharId, setSelectedCharId] = useState<number | null>(null);
+  const [screen, setScreen] = useState<Screen>("LIST");
+  const [boot, setBoot] = useState(true);
+  const [user, setUser] = useState<ApiUser>();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignId, setCampaignId] = useState<string>("");
+  const [catalogue, setCatalogue] = useState<SkillCatalogue>(DEFAULT_SKILL_CATALOGUE);
+  const [characters, setCharacters] = useState<ApiSheetProjection[]>([]);
+  const [familiars, setFamiliars] = useState<ApiSheetProjection[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedCharId, setSelectedCharId] = useState<string | null>(null);
   const [selectedFamiliarId, setSelectedFamiliarId] = useState<string | null>(null);
   const [familiarEditorOrigin, setFamiliarEditorOrigin] = useState<"LIST" | "TYPE_SELECT" | "DETAIL" | "FAMILIAR_DETAIL">("TYPE_SELECT");
   const [newCharacterType, setNewCharacterType] = useState<CharacterType>("student");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const stores = useRef(new Map<string, SheetStore>());
+  // Demo builds only: lets the browser tests wait until every change has been saved.
+  if (DEMO) (window as unknown as { __magistriSaved?: () => boolean }).__magistriSaved = () => [...stores.current.values()].every(s => s.state === "saved");
 
-  // Localization Language State (Spanish default)
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem("magistri_scholae_lang");
-    return (saved === "es" || saved === "en") ? saved : "es";
+    return saved === "es" || saved === "en" ? saved : "es";
   });
-
-  // Visual Style State ("academy" default, "classic" original)
   const [visualStyle, setVisualStyle] = useState<VisualStyle>(() => {
     const saved = localStorage.getItem("magistri_scholae_style");
-    return (saved === "academy" || saved === "classic") ? saved : "academy";
+    return saved === "academy" || saved === "classic" ? saved : "academy";
   });
-
-  // Import Flow States
-  const [pendingBackup, setPendingBackup] = useState<BackupData | null>(null);
-  const [showImportModal, setShowImportModal] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
   const t = TRANSLATIONS[lang];
+  const showToast = useCallback((type: "success" | "error", text: string) => setToastMessage({ type, text }), []);
 
-  // Load characters on boot or reload
-  useEffect(() => {
-    loadCharacters();
+  const clearSession = useCallback(() => {
+    for (const store of stores.current.values()) store.dispose();
+    stores.current.clear();
+    setUser(undefined); setCampaigns([]); setCampaignId(""); setCharacters([]); setFamiliars([]);
+    setSelectedCharId(null); setSelectedFamiliarId(null); setScreen("LIST");
   }, []);
+  const client = useMemo(() => new RemoteClient(apiTransport, () => { clearSession(); showToast("error", t.storageLoadError); }), []);
 
-  const loadCharacters = async () => {
-    setLoading(true);
+  // Restore the session on start (finishing a sign-out that could not reach the server).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        await client.token();
+        if (localStorage.getItem("magistri_logout_pending")) {
+          try { await client.request("auth/logout", "POST", {}); } catch (e) { if (!(e instanceof ApiFailure && e.status === 401)) throw e; }
+          localStorage.removeItem("magistri_logout_pending");
+        } else {
+          const account = await client.request<ApiUser>("auth/me", "GET", undefined, true);
+          if (active) setUser(account);
+        }
+      } catch (e) {
+        if (active && !(e instanceof ApiFailure && e.status === 401)) showToast("error", t.storageLoadError);
+      } finally { if (active) setBoot(false); }
+    })();
+    return () => { active = false; };
+  }, [client]);
+
+  // Campaigns: the remembered one, or the only one.
+  useEffect(() => {
+    if (!user) return;
+    client.request<{ items: Campaign[] }>("campaigns?limit=100").then(result => {
+      setCampaigns(result.items);
+      const remembered = localStorage.getItem(CAMPAIGN_KEY);
+      const chosen = result.items.find(c => c.id === remembered) ?? (result.items.length === 1 ? result.items[0] : undefined);
+      setCampaignId(chosen?.id ?? "");
+    }).catch(() => showToast("error", t.storageLoadError));
+  }, [user, client]);
+
+  const loadLists = useCallback(async () => {
+    if (!campaignId) return;
+    const list = (kind: EntityKind) =>
+      client.request<{ items: ApiSheetProjection[] }>(`${kind === "character" ? "characters" : "familiars"}?campaignId=${campaignId}&limit=${LIST_LIMIT}`);
     try {
-      const [allChars, allFamiliars] = await Promise.all([
-        storage.characters.list(),
-        storage.familiars.list(),
-      ]);
-      setCharacters(allChars);
-      setFamiliars(allFamiliars);
-    } catch (e) {
-      console.error("Failed to load records:", e);
-      setToastMessage({ type: "error", text: t.storageLoadError });
-    } finally {
-      setLoading(false);
+      const [chars, fams] = await Promise.all([list("character"), list("familiar")]);
+      // Archived sheets leave the list (the GM restores them from R4's screens).
+      setCharacters(chars.items.filter(s => !s.archived));
+      setFamiliars(fams.items.filter(s => !s.archived));
+    } catch {
+      showToast("error", t.storageLoadError);
+    }
+  }, [campaignId, client]);
+
+  useEffect(() => {
+    if (!campaignId) return;
+    localStorage.setItem(CAMPAIGN_KEY, campaignId);
+    setLoading(true);
+    Promise.all([
+      client.request<{ catalogue: SkillCatalogue }>(`campaigns/${campaignId}/skill-catalogue`).then(r => setCatalogue(r.catalogue)),
+      loadLists(),
+    ]).catch(() => showToast("error", t.storageLoadError)).finally(() => setLoading(false));
+  }, [campaignId, client, loadLists]);
+
+  // Connection and returning to the tab.
+  useEffect(() => {
+    const connection = () => { for (const store of stores.current.values()) store.setOnline(navigator.onLine); };
+    const visible = () => { if (document.visibilityState === "visible") { void loadLists(); for (const store of stores.current.values()) void store.refresh(); } };
+    const unload = (e: BeforeUnloadEvent) => { if ([...stores.current.values()].some(s => s.busy)) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("online", connection); window.addEventListener("offline", connection);
+    document.addEventListener("visibilitychange", visible); window.addEventListener("beforeunload", unload);
+    return () => {
+      window.removeEventListener("online", connection); window.removeEventListener("offline", connection);
+      document.removeEventListener("visibilitychange", visible); window.removeEventListener("beforeunload", unload);
+    };
+  }, [loadLists]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  /** The store for a sheet, created on first use and kept while signed in. */
+  const storeFor = useCallback((sheet: ApiSheetProjection) => {
+    let store = stores.current.get(sheet.id);
+    if (!store) {
+      const path = entityPath(sheet);
+      store = new SheetStore(sheet, {
+        read: () => client.request<ApiSheetProjection>(path),
+        patch: body => client.request<ApiSheetProjection>(path, "PATCH", body),
+      }, rerender);
+      store.setOnline(navigator.onLine);
+      stores.current.set(sheet.id, store);
+    }
+    return store;
+  }, [client]);
+
+  const openStore = (id: string | null, list: ApiSheetProjection[]) => {
+    const known = id ? stores.current.get(id) ?? list.find(s => s.id === id) : undefined;
+    if (!known) return undefined;
+    return known instanceof SheetStore ? known : storeFor(known);
+  };
+  const characterStore = openStore(selectedCharId, characters);
+  const familiarStore = openStore(selectedFamiliarId, familiars);
+  // Opening a sheet re-reads it, so a list a few seconds old never shows stale data.
+  useEffect(() => { if (selectedCharId) void stores.current.get(selectedCharId)?.refresh(); }, [selectedCharId]);
+  useEffect(() => { if (selectedFamiliarId) void stores.current.get(selectedFamiliarId)?.refresh(); }, [selectedFamiliarId]);
+
+  /** Waits until the store has nothing left to send, so an upload or bond uses the current revision. */
+  const settle = async (store: SheetStore) => {
+    for (let i = 0; i < 20 && (store.pending.size || store.state === "saving" || store.state === "unsaved"); i++) {
+      await store.flush();
+      if (store.pending.size) await new Promise(resolve => setTimeout(resolve, 100));
     }
   };
 
-  // Persist language choices
-  const handleLanguageChange = (newLang: Language) => {
-    setLang(newLang);
-    localStorage.setItem("magistri_scholae_lang", newLang);
+  const mutate = async (store: SheetStore, action: string, body: object) => {
+    await settle(store);
+    const send = () => client.mutation<ApiSheetProjection>(`${entityPath(store.sheet)}/${action}`, { expectedRevision: store.sheet.revision, ...body })();
+    let result: ApiSheetProjection;
+    try {
+      result = await send();
+    } catch (e) {
+      if (!(e instanceof ApiFailure && e.code === "revision_conflict")) throw e;
+      await store.refresh();
+      result = await send();
+    }
+    store.accept(result);
+    return result;
   };
 
-  // Persist visual style choices
-  const handleStyleChange = (newStyle: VisualStyle) => {
-    setVisualStyle(newStyle);
-    localStorage.setItem("magistri_scholae_style", newStyle);
+  const uploadImage = (store: SheetStore) => async (path: string, dataUrl: string) => {
+    try {
+      await mutate(store, "assets", { path, imageBase64: base64Of(dataUrl) });
+    } catch (e) {
+      showToast("error", t.imageUploadError);
+      throw e;
+    }
   };
 
-  // Find currently active chosen character and familiar
-  const activeCharacter = characters.find((c) => c.id === selectedCharId) || null;
-  const activeFamiliar = familiars.find((f) => f.id === selectedFamiliarId) || null;
+  const bond = async (store: SheetStore, targetId: string | null) => {
+    const target = targetId ? [...characters, ...familiars].find(s => s.id === targetId) : undefined;
+    await mutate(store, "bond", { targetId, ...(target ? { targetRevision: stores.current.get(target.id)?.sheet.revision ?? target.revision } : {}) });
+    for (const other of stores.current.values()) if (other !== store) void other.refresh();
+    await loadLists();
+    showToast("success", t.familiarSavedToast);
+  };
 
-  // Actions
-  const handleSelectCharacter = (id: number) => {
-    setSelectedCharId(id);
+  const archive = async (store: SheetStore) => {
+    await mutate(store, "manage", { archived: true });
+    store.dispose();
+    stores.current.delete(store.sheet.id);
+    setSelectedCharId(null); setSelectedFamiliarId(null); setScreen("LIST");
+    await loadLists();
+  };
+
+  const create = async <T extends CharacterSheet | FamiliarSheet>(kind: EntityKind, fields: T, image?: { path: string; dataUrl: string }) => {
+    const created = await client.mutation<ApiSheetProjection>(kind === "character" ? "characters" : "familiars", { campaignId, fields })();
+    const store = storeFor(created);
+    if (image) await uploadImage(store)(image.path, image.dataUrl).catch(() => {});
+    return store;
+  };
+
+  const handleSaveForm = async (fields: CharacterSheet, avatar?: string, familiarId?: string) => {
+    const store = await create("character", fields, avatar ? { path: "avatarImage", dataUrl: avatar } : undefined);
+    if (familiarId) await bond(store, familiarId).catch(() => showToast("error", t.errorStoringStudent));
+    await loadLists();
+    setSelectedCharId(store.sheet.id);
     setScreen("DETAIL");
   };
 
-  const handleSelectFamiliar = (famId: string) => {
-    setSelectedFamiliarId(famId);
-    setScreen("FAMILIAR_DETAIL");
+  const createFamiliar = async (fields: FamiliarSheet, image?: string) => {
+    const store = await create("familiar", fields, image ? { path: "imagen", dataUrl: image } : undefined);
+    await loadLists();
+    return store;
   };
 
-  const handleAddCharacterClick = () => {
-    setScreen("TYPE_SELECT");
+  const logout = async () => {
+    localStorage.setItem("magistri_logout_pending", "1");
+    clearSession(); client.clear();
+    try { await client.request("auth/logout", "POST", {}); localStorage.removeItem("magistri_logout_pending"); }
+    catch (e) { if (e instanceof ApiFailure && e.status === 401) localStorage.removeItem("magistri_logout_pending"); }
   };
 
-  const handleSaveForm = async (savedChar: Character) => {
-    try {
-      const saved = await storage.characters.save(savedChar);
-      
-      // Re-fetch and route
-      await loadCharacters();
-      setSelectedCharId(saved.id);
-      setScreen("DETAIL");
-    } catch (error) {
-      console.error("Save failed:", error);
-      setToastMessage({ type: "error", text: t.errorStoringStudent });
-    }
-  };
+  const handleLanguageChange = (newLang: Language) => { setLang(newLang); localStorage.setItem("magistri_scholae_lang", newLang); };
+  const handleStyleChange = (newStyle: VisualStyle) => { setVisualStyle(newStyle); localStorage.setItem("magistri_scholae_style", newStyle); };
+  const panel = DemoPanel && localStorage.getItem("magistri_demo_panel") !== "off"
+    ? <Suspense fallback={null}><DemoPanel lang={lang} /></Suspense> : null;
 
-  const handleDeleteCharacter = async (id: number) => {
-    try {
-      await storage.characters.remove(id);
-      await loadCharacters();
-      setSelectedCharId(null);
-      setScreen("LIST");
-    } catch (error) {
-      console.error("Delete failed:", error);
-      setToastMessage({ type: "error", text: t.errorStoringStudent });
-    }
-  };
+  if (!boot && !user) return <>{panel}<SignIn client={client} lang={lang} onSignedIn={account => setUser(account)} /></>;
+  if (!boot && user && campaigns.length !== 1 && !campaignId)
+    return <>{panel}<CampaignChooser lang={lang} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} /></>;
 
-  const handleDeleteFamiliar = async (id: string) => {
-    try {
-      await storage.familiars.remove(id);
-      await loadCharacters();
-      setSelectedFamiliarId(null);
-      setScreen("LIST");
-      setToastMessage({ type: "success", text: t.familiarDeletedToast });
-    } catch (error) {
-      console.error("Delete failed:", error);
-      setToastMessage({ type: "error", text: t.errorStoringStudent });
-    }
-  };
-
-  const handleBondFamiliar = async (characterId: number, familiarId: string | null) => {
-    try {
-      await storage.bonds.assignCharacter(characterId, familiarId);
-      await loadCharacters();
-      setToastMessage({ type: "success", text: t.familiarSavedToast });
-    } catch (error) {
-      console.error("Bond failed:", error);
-      setToastMessage({ type: "error", text: t.errorStoringStudent });
-    }
-  };
-
-  const handleBondMaster = async (familiarId: string, characterId: number | null) => {
-    try {
-      await storage.bonds.assignFamiliar(familiarId, characterId);
-      await loadCharacters();
-      setToastMessage({ type: "success", text: t.familiarSavedToast });
-    } catch (error) {
-      console.error("Bond failed:", error);
-      setToastMessage({ type: "error", text: t.errorStoringStudent });
-    }
-  };
-
-  // Live in-page reactive propagation helpers
-  const handleUpdateActiveCharacterState = (updatedChar: Character) => {
-    setCharacters((prev) => prev.map((c) => (c.id === updatedChar.id ? updatedChar : c)));
-  };
-
-  const handleUpdateActiveFamiliarState = (updatedFam: Familiar) => {
-    setFamiliars((prev) => prev.map((f) => (f.id === updatedFam.id ? updatedFam : f)));
-  };
-
-  // Clear toast feedback automatically
-  useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => {
-        setToastMessage(null);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toastMessage]);
-
-  const handleImportBackup = (backup: BackupData) => {
-    setPendingBackup(backup);
-    setShowImportModal(true);
-  };
-
-  const applyImport = async (action: "add" | "replace") => {
-    if (!pendingBackup) return;
-    try {
-      const result = await storage.backups.import(pendingBackup, action);
-      setShowImportModal(false);
-      setPendingBackup(null);
-      await loadCharacters();
-      setToastMessage({ type: "success", text: result.warnings.length
-        ? t.importBondWarnings.replace("{n}", String(result.warnings.length))
-        : t.importSuccess });
-    } catch (error) {
-      console.error("Import failed:", error);
-      setToastMessage({ type: "error", text: action === "replace" ? t.backupErrorOverwriteMsg : t.backupErrorMergeMsg });
-    }
-  };
-  const handleImportReplace = () => applyImport("replace");
-  const handleImportAdd = () => applyImport("add");
+  const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
 
   return (
     <div
@@ -211,24 +271,22 @@ export default function App() {
       id="academy-app-root"
       data-style={visualStyle}
     >
-      {storage.mode === "mock" && (
+      {DEMO && (
         <div id="mock-mode-banner" role="status" className="relative z-40 bg-amber-950 text-amber-100 border-b border-amber-500/40 px-4 py-2 text-center text-sm">
           {t.mockModeBanner}
         </div>
       )}
-      {/* Dynamic Ambient Background Canvas */}
+      {panel}
       {visualStyle === "academy" ? (
         <AcademyBackground />
       ) : (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#0a0514]">
-          {/* Indigo glow top left */}
           <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-indigo-900/30 rounded-full blur-[120px]"></div>
-          {/* Violet glow bottom right */}
           <div className="absolute bottom-[-100px] right-[-100px] w-[500px] h-[500px] bg-violet-900/30 rounded-full blur-[120px]"></div>
         </div>
       )}
 
-      {loading ? (
+      {boot || loading ? (
         <div className="flex flex-col justify-center items-center h-screen gap-4" id="app-loading-screen">
           <Loader className="w-10 h-10 text-amber-500 animate-spin" />
           <span className="font-magic text-sm tracking-widest text-neutral-400 uppercase animate-pulse">
@@ -243,104 +301,80 @@ export default function App() {
               visualStyle={visualStyle}
               characters={characters}
               familiars={familiars}
-              onSelectCharacter={handleSelectCharacter}
-              onSelectFamiliar={handleSelectFamiliar}
-              onAddCharacter={handleAddCharacterClick}
+              onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
+              onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
+              onAddCharacter={() => setScreen("TYPE_SELECT")}
               onOpenSettings={() => setScreen("SETTINGS")}
-              onImportBackup={handleImportBackup}
-              onShowToast={(type, text) => setToastMessage({ type, text })}
+              onShowToast={showToast}
             />
           )}
 
-          {screen === "DETAIL" && activeCharacter && (
+          {screen === "DETAIL" && characterStore && (
             <CharacterDetail
+              key={characterStore.sheet.id}
               lang={lang}
               visualStyle={visualStyle}
-              character={activeCharacter}
+              store={characterStore}
+              catalogue={catalogue}
               familiars={familiars}
-              onBack={() => {
-                setSelectedCharId(null);
-                setScreen("LIST");
-              }}
-              onDelete={handleDeleteCharacter}
-              onUpdateCharacter={handleUpdateActiveCharacterState}
-              onSelectFamiliar={handleSelectFamiliar}
-              onBondFamiliar={handleBondFamiliar}
-              onOpenCreateFamiliar={() => {
-                setSelectedFamiliarId(null);
-                setFamiliarEditorOrigin("DETAIL");
-                setScreen("FAMILIAR_EDITOR");
-              }}
+              onBack={() => { setSelectedCharId(null); setScreen("LIST"); void loadLists(); }}
+              onArchive={isGM(characterStore) ? () => void archive(characterStore) : undefined}
+              onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
+              onBondFamiliar={familiarId => bond(characterStore, familiarId)}
+              onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
+              onUploadImage={uploadImage(characterStore)}
             />
           )}
 
-          {screen === "FAMILIAR_DETAIL" && activeFamiliar && (
+          {screen === "FAMILIAR_DETAIL" && familiarStore && (
             <FamiliarDetail
+              key={familiarStore.sheet.id}
               lang={lang}
               visualStyle={visualStyle}
-              familiar={activeFamiliar}
+              store={familiarStore}
               characters={characters}
-              onBack={() => {
-                setSelectedFamiliarId(null);
-                setScreen("LIST");
-              }}
-              onEditInEditor={(famId) => {
-                setSelectedFamiliarId(famId);
-                setFamiliarEditorOrigin("FAMILIAR_DETAIL");
-                setScreen("FAMILIAR_EDITOR");
-              }}
-              onDelete={handleDeleteFamiliar}
-              onUpdateFamiliar={handleUpdateActiveFamiliarState}
-              onSelectCharacter={handleSelectCharacter}
-              onBondMaster={handleBondMaster}
-              onShowToast={(type, text) => setToastMessage({ type, text })}
+              onBack={() => { setSelectedFamiliarId(null); setScreen("LIST"); void loadLists(); }}
+              onEditInEditor={id => { setSelectedFamiliarId(id); setFamiliarEditorOrigin("FAMILIAR_DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
+              onArchive={isGM(familiarStore) ? () => void archive(familiarStore) : undefined}
+              onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
+              onBondMaster={characterId => bond(familiarStore, characterId)}
+              onUploadImage={uploadImage(familiarStore)}
+              onShowToast={showToast}
             />
           )}
 
           {screen === "TYPE_SELECT" && (
             <CharacterTypeSelect
               lang={lang}
-              onSelectType={(type) => {
-                setNewCharacterType(type);
-                setScreen("FORM");
-              }}
-              onOpenFamiliarEditor={() => {
-                setSelectedFamiliarId(null);
-                setFamiliarEditorOrigin("TYPE_SELECT");
-                setScreen("FAMILIAR_EDITOR");
-              }}
-              onCancel={() => {
-                setScreen("LIST");
-              }}
+              onSelectType={type => { setNewCharacterType(type); setScreen("FORM"); }}
+              onOpenFamiliarEditor={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("TYPE_SELECT"); setScreen("FAMILIAR_EDITOR"); }}
+              onCancel={() => setScreen("LIST")}
             />
           )}
 
           {screen === "FAMILIAR_EDITOR" && (
             <FamiliarEditor
+              key={familiarStore?.sheet.id ?? "new"}
               lang={lang}
               visualStyle={visualStyle}
-              initialFamiliarId={selectedFamiliarId}
-              onFamiliarSaved={() => {
-                loadCharacters();
+              store={familiarStore}
+              familiars={familiars}
+              onOpenFamiliar={id => setSelectedFamiliarId(id)}
+              onArchive={familiarStore && isGM(familiarStore) ? () => void archive(familiarStore) : undefined}
+              onCreate={async (fields, image) => {
+                const store = await createFamiliar(fields, image);
+                setSelectedFamiliarId(store.sheet.id);
+                return store.sheet.id;
               }}
-              onFamiliarDeleted={() => {
-                loadCharacters();
-              }}
+              onUploadImage={familiarStore ? uploadImage(familiarStore) : async () => {}}
               onBack={() => {
-                loadCharacters();
-                if (familiarEditorOrigin === "FAMILIAR_DETAIL" && selectedFamiliarId) {
-                  setScreen("FAMILIAR_DETAIL");
-                } else if (familiarEditorOrigin === "DETAIL" && selectedCharId) {
-                  setScreen("DETAIL");
-                } else if (familiarEditorOrigin === "TYPE_SELECT") {
-                  setSelectedFamiliarId(null);
-                  setScreen("TYPE_SELECT");
-                } else {
-                  setSelectedFamiliarId(null);
-                  setScreen("LIST");
-                }
+                void loadLists();
+                if (familiarEditorOrigin === "FAMILIAR_DETAIL" && selectedFamiliarId) setScreen("FAMILIAR_DETAIL");
+                else if (familiarEditorOrigin === "DETAIL" && selectedCharId) setScreen("DETAIL");
+                else if (familiarEditorOrigin === "TYPE_SELECT") { setSelectedFamiliarId(null); setScreen("TYPE_SELECT"); }
+                else { setSelectedFamiliarId(null); setScreen("LIST"); }
               }}
-              onShowToast={(type, text) => setToastMessage({ type, text })}
+              onShowToast={showToast}
             />
           )}
 
@@ -348,97 +382,50 @@ export default function App() {
             <CharacterForm
               lang={lang}
               newCharacterType={newCharacterType}
+              catalogue={catalogue}
               onSave={handleSaveForm}
-              onCancel={() => {
-                setScreen("LIST");
+              onCreateFamiliar={async (fields, image) => {
+                const store = await createFamiliar(fields, image);
+                return { id: store.sheet.id, nombre: String(store.sheet.fields.nombre ?? "") };
               }}
+              onCancel={() => setScreen("LIST")}
             />
           )}
 
-          {screen === "SETTINGS" && (
+          {screen === "SETTINGS" && user && (
             <SettingsScreen
               lang={lang}
               visualStyle={visualStyle}
               onStyleChange={handleStyleChange}
               onLanguageChange={handleLanguageChange}
               onBack={() => setScreen("LIST")}
-              onReloadRequested={loadCharacters}
+              account={{
+                displayName: user.displayName || user.username,
+                username: user.username,
+                campaignId,
+                campaigns,
+                onChangeCampaign: id => { for (const store of stores.current.values()) store.dispose(); stores.current.clear(); setCampaignId(id); setScreen("LIST"); },
+                onLogout: () => void logout(),
+              }}
             />
           )}
         </main>
       )}
 
-      {/* Dual Import Choice Modal / Overlay */}
-      {showImportModal && pendingBackup && (
-        <div 
-          id="backup-import-dialog"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md text-neutral-200"
-        >
-          <div className="w-full max-w-lg glass-panel p-6 rounded-2xl border-2 border-amber-500/30 shadow-2xl animate-fade-in">
-            <div className="flex items-center gap-3 mb-4 text-amber-500">
-              <CheckCircle className="w-7 h-7 shrink-0" />
-              <h3 className="font-magic text-lg md:text-xl uppercase tracking-wider">
-                {t.importMergeRequestTitle}
-              </h3>
-            </div>
+      <SaveStatus lang={lang} store={screen === "DETAIL" ? characterStore : screen === "FAMILIAR_DETAIL" || screen === "FAMILIAR_EDITOR" ? familiarStore : undefined} />
 
-            <p className="text-sm text-neutral-300 leading-relaxed mb-6 font-sans">
-              {t.importMergeRequestText}
-            </p>
-
-            <div className="bg-neutral-950/70 p-4 rounded-lg border border-neutral-800 mb-6 text-xs font-mono text-neutral-400 space-y-1">
-              <div>• {t.backupTotalStudentsInFile}: <span className="text-amber-400 font-bold">{pendingBackup.characters.length}</span></div>
-              <div>• {t.backupExportedOn}: {new Date(pendingBackup.exportedAt).toLocaleString()}</div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Replace Option */}
-              <button
-                id="btn-import-replace"
-                onClick={handleImportReplace}
-                className="bg-rose-900/80 hover:bg-rose-900 border border-rose-600/40 text-rose-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
-              >
-                🗑️ {t.importReplace}
-              </button>
-
-              {/* Add/Merge Option */}
-              <button
-                id="btn-import-merge"
-                onClick={handleImportAdd}
-                className="bg-violet-950 hover:bg-violet-900 border border-violet-500/40 text-violet-100 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center uppercase"
-              >
-                ➕ {t.importAdd}
-              </button>
-
-              {/* Cancel Option */}
-              <button
-                id="btn-import-cancel"
-                onClick={() => {
-                  setPendingBackup(null);
-                  setShowImportModal(false);
-                }}
-                className="bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-400 py-2.5 px-3 rounded-xl text-xs transition-all cursor-pointer text-center uppercase font-bold"
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Dynamic Toast / Feedback Alert */}
       {toastMessage && (
-        <div 
+        <div
           id="app-global-toast"
           className={`fixed bottom-5 right-5 z-50 max-w-sm p-4 rounded-xl border-2 shadow-2xl animate-fade-in flex items-start gap-3 text-xs leading-relaxed ${
-            toastMessage.type === "success" 
-              ? "bg-emerald-950/95 border-emerald-500/40 text-emerald-200" 
+            toastMessage.type === "success"
+              ? "bg-emerald-950/95 border-emerald-500/40 text-emerald-200"
               : "bg-rose-950/95 border-rose-500/40 text-rose-200"
           }`}
         >
           <CheckCircle className={`w-5 h-5 shrink-0 mt-0.5 ${toastMessage.type === "success" ? "text-emerald-400" : "text-rose-400"}`} />
           <div className="flex-1 font-sans font-medium">{toastMessage.text}</div>
-          <button 
+          <button
             type="button"
             onClick={() => setToastMessage(null)}
             className="text-base font-mono hover:text-amber-400 opacity-60 hover:opacity-100 transition-opacity ml-2 shrink-0 cursor-pointer"

@@ -8,7 +8,7 @@
 // (docs/development.md, "Screenshot tests").
 import type { Page } from "@playwright/test";
 import { expect, openApp, openCharacter, openFamiliar, openTab, setEditMode, test } from "./helpers";
-import { seedMockDatabase } from "./visual-fixture";
+import { viewAs } from "./helpers";
 
 // A sheet test takes twelve pictures; each waits until two captures match.
 test.describe.configure({ timeout: 180_000 });
@@ -22,15 +22,13 @@ async function prepare(page: Page, style: string, lang: string) {
   await page.addInitScript(([style, lang]) => {
     localStorage.setItem("magistri_scholae_style", style);
     localStorage.setItem("magistri_scholae_lang", lang);
-    // Settings shows the browser's storage use, which differs on every run.
-    Object.defineProperty(navigator.storage, "estimate", {
-      value: async () => ({ usage: 1.5 * 1024 * 1024, quota: 1024 * 1024 * 1024 }),
-    });
+    // The demo's test panel is not part of the screens.
+    localStorage.setItem("magistri_demo_panel", "off");
   }, [style, lang]);
   await openApp(page);
-  await seedMockDatabase(page);
-  await page.reload();
-  await expect(page.locator("#character-list-container")).toBeVisible();
+  // The GM sees every sheet and field, as the screenshots always have. The demo
+  // data is the fictional characters these pictures were first taken with.
+  await viewAs(page, "gm");
 }
 
 /** Takes one full-page picture once the page is still: fonts loaded, no hover, no focus ring. */
@@ -115,7 +113,7 @@ for (const style of STYLES) {
 
       test("settings", async ({ page }) => {
         await page.locator("#btn-settings").click();
-        await expect(page.locator("#settings-card-storage")).toContainText("1.50");
+        await expect(page.locator("#settings-card-account")).toContainText("demo_gm");
         await snap(page, id("settings"));
       });
     });

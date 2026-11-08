@@ -51,6 +51,7 @@ const [PORTRAIT, GALLERY_A, GALLERY_B, OWL] = Object.keys(demoAssets());
 function skills(values: Record<string, number>, extra: SkillEntry[] = []): SkillEntry[] {
   return [...DEFAULT_SKILL_CATALOGUE.habilidades.map(s => ({ id: `skill-${s.id}`, catalogo: s.id, valor: values[s.id] ?? 0 })), ...extra];
 }
+const LUNA_SKILLS = { investigar: 3, percepcion: 2, sigilo: 2, herbologia: 3, astronomia: 1, empatia: 1, "seres-magicos": 2 };
 const text = (prefix: string, values: string[]) => values.map((value, i) => ({ id: `${prefix}-${i + 1}`, value }));
 
 const luna: CharacterSheet = {
@@ -64,8 +65,8 @@ const luna: CharacterSheet = {
   consecuenciasFisicas: [{ id: "cons-1", descripcion: "Tobillo torcido", gravedad: "leve" }],
   consecuenciasMentales: [{ id: "cons-2", descripcion: "Pesadillas recurrentes", gravedad: "moderada" }],
   consecuenciasSociales: [],
-  habilidades: skills({ investigar: 3, percepcion: 2, sigilo: 2, herbologia: 3, astronomia: 1, empatia: 1, "seres-magicos": 2, cabala: 1 },
-    [{ id: "skill-own-cetreria", nombre: "Cetrería", categoria: "fisicas", valor: 1 }]).map(s => s.catalogo === "cabala" ? { ...s, conocimiento: "basico" as const } : s),
+  // The screenshot fixture's values (e2e/visual-fixture.ts), so pictures compare like with like.
+  habilidades: skills(LUNA_SKILLS),
   conjuros: [{ id: "spell-1", nombre: "Lumen", valor: 2, specialized: true }, { id: "spell-2", nombre: "Velo de niebla", valor: 1, specialized: false }],
   pociones: [{ id: "potion-1", nombre: "Tónico de vigilia", valor: 2, specialized: false }, { id: "potion-2", nombre: "Bálsamo de ortiga", valor: 1, specialized: true }],
   clubesList: [{ id: "club-1", nombre: "Club de Astronomía" }, { id: "club-2", nombre: "Coro de la Torre" }],
@@ -81,9 +82,8 @@ const luna: CharacterSheet = {
 };
 
 const diego: CharacterSheet = {
-  ...luna, nombre: "Diego Marés", casa: "CALANTES", curso: "2", puestoClase: "", edad: 13,
+  ...luna, nombre: "Diego Marés", casa: "CALANTES", curso: "2", puestoClase: "",
   concepto: "Navegante que habla con las corrientes", avatarImage: "", galleryImages: [], notasList: [],
-  habilidades: skills({ atletismo: 2, supervivencia: 1, "magia-intuitiva": 2, climatica: 1 }),
 };
 
 const professor: CharacterSheet = {
@@ -92,8 +92,7 @@ const professor: CharacterSheet = {
   adultWizardProfile: { role: "Archivero mayor", institution: "Academia Magistri Scholae", isTeacher: true,
     teachingSubjects: text("subject", ["Historia de la magia", "Cábala"]), formerHouse: "URANIA", magicalFocus: "Runas y archivos",
     reputation: "Respetado y temido" },
-  habilidades: skills({ "historia-de-la-magia": 5, cabala: 4, "leyes-y-costumbres": 3 }).filter(s => s.catalogo !== "magia-intuitiva")
-    .map(s => s.catalogo === "cabala" ? { ...s, conocimiento: "avanzado" as const } : s),
+  habilidades: skills(LUNA_SKILLS).filter(s => s.catalogo !== "magia-intuitiva"),
 };
 
 const amber: FamiliarSheet = {

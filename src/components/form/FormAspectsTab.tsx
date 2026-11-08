@@ -4,64 +4,17 @@
  */
 
 // The creation form's "aspectos" tab, moved verbatim out of CharacterForm.tsx (R3.4).
-import React, { useState, useEffect } from "react";
-import { Character, Skill, CustomField, CharacterType } from "../../types";
-import { HOUSES, HOUSE_ICONS } from "../../data/gameData";
-import {
-  Language,
-  TRANSLATIONS,
-  getLocalizedHouseLore,
-  translateHouseMotto,
-  translateSkillName,
-  canonicalizeSkillName,
-} from "../../localization";
-import Cropper from "react-easy-crop";
-import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import { 
-  Save, 
-  X, 
-  Sparkles, 
-  Image as ImageIcon, 
-  Plus, 
-  Trash2, 
-  ShieldAlert, 
-  Coins, 
-  FileText,
-  User,
-  GraduationCap,
-  Sparkle,
-  Layers,
-  Dumbbell,
-  Shield,
-  Activity,
-  Award,
-  BookOpen,
-  Minus,
-  PawPrint
-} from "lucide-react";
-import { createDefaultCharacter, getInitialDefaultSkills } from "../../utils/characterFactory";
-import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import { HouseCrest } from "../HouseCrest";
-import { FamiliarEditor } from "../FamiliarEditor";
+import React from "react";
+import { Sparkles, Plus, Trash2, X, Minus } from "lucide-react";
 
 import type { FormContext } from "./useCharacterForm";
 
 export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
   const {
-    lang, initialCharacter, newCharacterType, onSave, onCancel, t, activeFormTab, setActiveFormTab, characterState,
-    setCharacterState, characterType, profile, updateProfileField, formError, setFormError, imageError, setImageError,
-    newAspectName, setNewAspectName, newComplicationName, setNewComplicationName, newFormTempAspect, setNewFormTempAspect,
-    pastedAvatarUrl, setPastedAvatarUrl, newPhysConsequence, setNewPhysConsequence, newMentConsequence, setNewMentConsequence,
-    newSocConsequence, setNewSocConsequence, inlineSkillNames, setInlineSkillNames, skillsSavedFeedback, setSkillsSavedFeedback,
-    newItemName, setNewItemName, newItemQty, setNewItemQty, newCustomFieldName, setNewCustomFieldName, newCustomFieldValue,
-    setNewCustomFieldValue, showDiscardModal, setShowDiscardModal, showFamiliarEditorModal, setShowFamiliarEditorModal,
-    cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, croppedAreaPixels,
-    setCroppedAreaPixels, handleHouseChange, handleImageUpload, handleUrlAvatarSubmit, onCropComplete, handleConfirmCrop,
-    addAspect, removeAspect, addTempAspect, removeTempAspect, addComplication, removeComplication, addEquipmentItem,
-    removeEquipmentItem, addCustomField, updateCustomField, removeCustomField, addPhysConsequence, removePhysConsequence,
-    addMentConsequence, removeMentConsequence, addSocConsequence, removeSocConsequence, adjustSkillValue, skillError,
-    setSkillError, handleAddInlineSkill, handleRemoveSkill, handleSaveDefaultSkills, handleSave, isStateDirty,
-    handleCancelClick, theme, houseAccentBorder, houseTabBtnStyle, houseIconColor,
+    t, characterState, newAspectName, setNewAspectName, newComplicationName, setNewComplicationName, newItemName,
+    setNewItemName, newItemQty, setNewItemQty, newCustomFieldName, setNewCustomFieldName, newCustomFieldValue,
+    setNewCustomFieldValue, addAspect, removeAspect, addComplication, removeComplication, addEquipmentItem,
+    removeEquipmentItem, addCustomField, updateCustomField, removeCustomField, houseIconColor,
   } = ctx;
   return (
             <div className="space-y-6 animate-fade-in" id="form-tabpanel-aspectos">
@@ -84,15 +37,15 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                     
                     <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                       {characterState.aspectosPersonales && characterState.aspectosPersonales.length > 0 ? (
-                        characterState.aspectosPersonales.map((asp, idx) => (
+                        characterState.aspectosPersonales.map((asp) => (
                           <div
-                            key={idx}
+                            key={asp.id}
                             className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                           >
-                            <span className="text-[11px] text-neutral-200 italic font-serif">“ {asp} ”</span>
+                            <span className="text-[11px] text-neutral-200 italic font-serif">“ {asp.value} ”</span>
                             <button
                               type="button"
-                              onClick={() => removeAspect(idx)}
+                              onClick={() => removeAspect(asp.id)}
                               className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
                               title={t.deleteAspect}
                             >
@@ -140,15 +93,15 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
 
                     <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                       {characterState.complicaciones && characterState.complicaciones.length > 0 ? (
-                        characterState.complicaciones.map((comp, idx) => (
+                        characterState.complicaciones.map((comp) => (
                           <div
-                            key={idx}
+                            key={comp.id}
                             className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800 px-3 py-1.5 rounded-lg hover:border-violet-500/10 transition-colors"
                           >
-                            <span className="text-[11px] text-rose-300 font-serif italic">“ {comp} ”</span>
+                            <span className="text-[11px] text-rose-300 font-serif italic">“ {comp.value} ”</span>
                             <button
                               type="button"
-                              onClick={() => removeComplication(idx)}
+                              onClick={() => removeComplication(comp.id)}
                               className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-950 transition-colors cursor-pointer"
                               title={t.deleteComplication}
                             >
@@ -289,28 +242,28 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
 
                     <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                       {characterState.camposPersonalizados && characterState.camposPersonalizados.length > 0 ? (
-                        characterState.camposPersonalizados.map((cf, idx) => (
+                        characterState.camposPersonalizados.map((cf) => (
                           <div
-                            key={idx}
+                            key={cf.id}
                             className="flex items-center gap-2 bg-neutral-900/40 px-2.5 py-1.5 border border-neutral-800 rounded-lg"
                           >
                             <input
                               type="text"
-                              value={cf.nombre}
-                              onChange={(e) => updateCustomField(idx, "nombre", e.target.value)}
+                              value={cf.nombre ?? ""}
+                              onChange={(e) => updateCustomField(cf.id, "nombre", e.target.value)}
                               placeholder={t.fieldName}
                               className="w-1/3 text-[10px] font-mono text-amber-400 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
                             />
                             <input
                               type="text"
-                              value={cf.valor}
-                              onChange={(e) => updateCustomField(idx, "valor", e.target.value)}
+                              value={cf.valor ?? ""}
+                              onChange={(e) => updateCustomField(cf.id, "valor", e.target.value)}
                               placeholder={t.fieldValue}
                               className="flex-1 text-[11px] font-sans text-neutral-200 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
                             />
                             <button
                               type="button"
-                              onClick={() => removeCustomField(idx)}
+                              onClick={() => removeCustomField(cf.id)}
                               className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer transition-colors shrink-0"
                               title={t.deleteCustomField}
                             >

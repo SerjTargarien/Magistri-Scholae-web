@@ -6,7 +6,7 @@ Server specifics (IP address, resources, existing containers, access method) liv
 
 | File | Purpose |
 |---|---|
-| `compose.yaml` | Caddy service; ports 80/443; opts out of container auto-updaters. |
+| `compose.yaml` | Caddy service; ports 80/443; opts out of container auto-updaters; mounts other websites' folders (section 8). |
 | `caddy/Caddyfile` | HTTPS, compression, security headers, cache rules, single-page-app fallback. |
 | `release.sh` | Builds a Git ref in a pinned Node container and switches releases atomically. |
 | `.env.example` | Copy to `deploy/.env` on the server (git-ignored). No secrets in R1. |
@@ -175,6 +175,37 @@ docker compose -f deploy/compose.yaml up -d api-staging
 - **Restore drill:** `deploy/restore-check.sh --target staging [archive]` decrypts an archive (default: the newest local one), restores it into a throwaway PostgreSQL on an isolated network, and compares every table's row count and the media file count with the live environment. It then removes everything temporary.
 - **Restoring for real** (not yet needed): decrypt with `gpg --decrypt` using the passphrase, then `pg_restore` the `database.dump` into the target database and untar `media.tar` into the media volume, with the backend stopped. Write the exact steps the first time it is needed.
 - **If the server is lost:** download the archive from the Backblaze web console. Decrypt it on any computer with GnuPG (Gpg4win on Windows) and the paper passphrase: `gpg --decrypt archive.tar.gpg > archive.tar`.
+
+## 8. Other websites on this server
+
+Caddy in this stack owns ports 80 and 443, so other websites on the VPS are served through it, while their files stay outside this repository. The web container mounts `/opt/sites` (override with `SITES_DIR` in `deploy/.env`) read-only at `/srv/sites`, and the Caddyfile imports `/srv/sites/*/Caddyfile`.
+
+**One-time setup** (before the web container first starts with this mount, or Docker creates the folder as root):
+
+```bash
+sudo install -d -m 755 -o deploy -g deploy /opt/sites
+cd /opt/magistri/app && git pull --ff-only
+docker compose -f deploy/compose.yaml up -d web   # recreates Caddy: about two seconds of downtime, certificates kept
+```
+
+A plain `restart` does not pick up a new mount; the container must be recreated.
+
+**Rules for a site's files** (`/opt/sites/<site>/Caddyfile`, content in e.g. `/opt/sites/<site>/public/`):
+
+- Only that site's own blocks. No global options block, and no snippet names this Caddyfile already uses (`static_app`).
+- Paths as Caddy sees them inside the container: `root * /srv/sites/<site>/public`, not `/opt/sites/...`.
+- The site sets its own headers; it does not reuse Magistri's snippet.
+- Add the DNS record (A only: Caddy listens on IPv4) and check it reaches the VPS before adding the Caddyfile, so Caddy can obtain the certificate at once.
+
+**Changing a site:** validate, then reload. A reload has no downtime, and a failed one keeps the previous configuration. Never restart Caddy for a site change: a broken file would stop Caddy, and every site with it, from starting.
+
+```bash
+cd /opt/magistri/app
+docker compose -f deploy/compose.yaml exec web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+docker compose -f deploy/compose.yaml exec web caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+```
+
+To remove a site, delete its folder, then validate and reload.
 
 ## Releasing and rolling back
 

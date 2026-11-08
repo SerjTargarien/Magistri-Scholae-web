@@ -57,3 +57,8 @@
 
 	import static_app
 }
+
+# Other websites on this server (deploy/README.md section 8). Each file holds
+# only its own site blocks. With no files present, Caddy logs a warning and
+# carries on.
+import /srv/sites/*/Caddyfile

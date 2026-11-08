@@ -34,6 +34,9 @@ services:
       - ./caddy:/etc/caddy:ro
       - ./releases:/srv/releases:ro
       - ./releases-staging:/srv/releases-staging:ro
+      # Other websites on this server, kept outside this repository: one
+      # folder per site with its own Caddyfile (deploy/README.md section 8).
+      - ${SITES_DIR:-/opt/sites}:/srv/sites:ro
       - caddy_data:/data
       - caddy_config:/config
     networks: [edge]

@@ -56,7 +56,7 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - The mobile profile banner.
 - Local mode only, until R3.6 retires it: backup export and import (full, selected, familiar-only) and the typed-phrase reset. Account export/import returns in R7.4.
 
-The existing screens must also match their R3.1 screenshots, apart from changes the owner approved.
+The existing screens must also keep their look, apart from changes the owner approved.
 
 ## R0 — Safety net (S)
 
@@ -163,7 +163,7 @@ The existing screens must also match their R3.1 screenshots, apart from changes 
 
 - **Do it right: no translation layer** between the screens and the server. The screens use the server's data model directly.
 - **No old data to keep.** The only records in the old local format are the owner's test data. So there is no converter, no data carry-over (R5 is dropped), and the old local mode is retired at the end of R3. The live site stays frozen on its current release until launch (R6).
-- **Every existing screen keeps its current look** whenever reasonable. A change needs a reason and the owner's approval: the agent shows before-and-after screenshots, and only after approval are the reference screenshots updated, in the same pull request. Screenshot tests enforce this. New screens (sign-in, campaign selection) follow the existing academy and classic styles.
+- **Every existing screen keeps its current look** whenever reasonable. A change needs a reason and the owner's approval: the owner checks it by looking, in the demo (`npm run dev:demo`) or on staging; the agent describes the change and adds pictures when they help. (Screenshot tests enforced this from R3.1 until the owner retired them on 8 November 2026.) New screens (sign-in, campaign selection) follow the existing academy and classic styles.
 - **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens.
 - Rejected: a translation layer, rewriting the server to store position-based lists (which would lose per-item updates and per-item privacy), and keeping the old local mode alive alongside the new one.
 
@@ -173,7 +173,7 @@ The existing screens must also match their R3.1 screenshots, apart from changes 
 
 Each step below is its own pull request. It keeps the app working under the browser tests (extended as screens change) and is explained to the owner before it starts.
 
-- **R3.1 Look baseline** (**done 8 November 2026**: 336 pictures, see [development.md](development.md), "Screenshot tests").
+- **R3.1 Look baseline** (**done 8 November 2026**: 336 pictures; **retired the same day** by the owner after the R3.4 switch, as slow and better checked by looking; the pictures remain in Git history).
   - Screenshot tests of every existing screen: the character list and its cards, the type selection, the creation form, the character sheet (every tab, and the phone profile banner), the familiar sheet and editor, and settings. Each at desktop and phone widths, in the academy and classic styles, in English and Spanish.
   - Taken from today's app before any screen code changes. CI (Linux) holds the reference images; a difference fails the check.
   - A justified change follows the approval step above. Parts that R3.6 removes (local backups and the typed reset in settings) leave the baseline then, with the owner's approval.
@@ -200,11 +200,11 @@ Each step below is its own pull request. It keeps the app working under the brow
   2. **The switch, one pull request** (**done 8 November 2026**; differences approved by the owner): the app runs on the account side (the stopgap sign-in and campaign selection until R3.5), the real screens replace the stopgap forms on the new model and the sheet store, images through one helper and the upload endpoint, bonds through the bond endpoint; the screenshot tests move onto the demo mock (same fictional data, same DEMO banner). Unavoidable visible changes (the six skill categories, age as a number) are approved with pictures. The old browser-only mode ends here (owner decision); R3.6 only deletes its code. Staging gets the real screens.
   3. **The decided visible changes,** one small pull request each (listed below).
   - Account mode has no delete: the GM archives and restores; players see no delete button (owner decision). Export, import and the typed reset are hidden until account export/import (R7.4); settings keeps language and style (owner decision).
-  - `CharacterDetail` is split into per-tab files as each tab moves; the screenshot tests confirm the look is unchanged. This also fixes the bundle-size warning.
+  - `CharacterDetail` is split into per-tab files as each tab moves; the screenshot tests confirmed the look was unchanged. This also fixes the bundle-size warning.
   - Edits work by item ID, not by position. The list, the creation form and the familiar screens move too.
   - One image helper shows server assets and newly picked images.
   - Shared readers get a read-only sheet; fields outside the writable paths are disabled.
-  - **Visible changes decided by the owner** (8 November 2026), each shown as before-and-after pictures for approval when its screen moves:
+  - **Visible changes decided by the owner** (8 November 2026), each approved by the owner by looking (demo or staging) when its screen moves:
     - destiny points: three gems by default, + adds up to 10;
     - experience: up to 1,000,000, typeable in edit mode;
     - consequences: a description plus a severity (mild, moderate, severe);
@@ -227,7 +227,7 @@ Each step below is its own pull request. It keeps the app working under the brow
 **Exit criteria:**
 
 - The feature checklist passes in mock mode for all three roles and in remote mode on staging.
-- The existing screens match their screenshots, apart from changes the owner approved.
+- The existing screens keep their look, apart from changes the owner approved.
 - The smoke suite runs in CI against the mock and a real backend.
 - All existing tests pass.
 
@@ -337,7 +337,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 | 9 | How to model the GM's two crossing-over campaigns? | R2 | **Decided 7 November 2026:** one universe campaign in the app, with two tables labelled per character (option A). Player characters cross over by sharing or reassignment within the same campaign. Players remain separated by default. Rejected: two campaigns with moving (B), or characters in two campaigns at once (C). |
 | 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
-| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** every existing screen keeps its current look whenever reasonable, enforced by screenshot tests (R3.1). A change needs a reason and the owner's approval of before-and-after screenshots. New screens follow the existing styles. |
+| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** every existing screen keeps its current look whenever reasonable. A change needs a reason and the owner's approval, checked by looking (the R3.1 screenshot tests were retired the same day). New screens follow the existing styles. |
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
 
 ## Former milestones

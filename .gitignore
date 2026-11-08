@@ -24,6 +24,5 @@ deploy/releases-staging/
 !.env.remote
 !.env.demo
 
-# Screenshot references are made only on Linux in CI; local runs write their own.
-e2e/visual.spec.ts-snapshots/*-win32.*
-e2e/visual.spec.ts-snapshots/*-darwin.*
+# Local pictures left by the retired screenshot tests (removed 8 November 2026).
+e2e/visual.spec.ts-snapshots/

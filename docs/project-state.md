@@ -448,7 +448,13 @@ The owner's staging test as a player found that lists never loaded ("No se pudie
 - Checked: type check, unit tests, both builds, features (24) and demo (7) browser tests.
 - Still open: which player actions should be GM-only (the owner is listing them).
 
-**Next:** release this fix to staging (the owner's go-ahead), then phase 3: the decided visible changes, one pull request each.
+Released to staging (`20261108-143610-176b36f`).
+
+## Screenshot tests retired — 8 November 2026
+
+Owner decision: the R3.1 screenshot tests are retired. Each visible change cost a long CI run (exact comparison with retries) and a manual approval of pictures, and the owner checks the look better by looking. Removed: the CI job `visual`, `e2e/visual.spec.ts`, the 336 reference pictures (they remain in Git history) and the visual projects in `playwright.config.ts`. The rule itself stays: every existing screen keeps its look whenever reasonable, and a visible change needs a reason and the owner's approval, now given by looking at the demo or staging (AGENTS.md, development.md "Checking the look"). The feature and demo browser tests are unchanged.
+
+**Next:** the open pull request for Empatía and custom fields (owner checks it by looking), then the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

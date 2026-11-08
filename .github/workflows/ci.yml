@@ -45,40 +45,6 @@ jobs:
             test-results/
           retention-days: 7
 
-  # Look baseline (release R3.1): screenshots of every existing screen compared
-  # with the reference pictures in e2e/visual.spec.ts-snapshots/. The pinned
-  # Playwright image keeps fonts and rendering identical between runs. On a
-  # difference, or a missing reference, the job fails and uploads the new
-  # pictures and the differences for review (docs/development.md).
-  visual:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble
-      options: --user 1001
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      # Exact comparison. Text anti-aliasing occasionally jitters on one picture
-      # (about 2 of 80 tests per run, never the same one twice), so a failed test
-      # is retried twice; a real change fails all three attempts.
-      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=2
-        env:
-          CI: "true"
-          E2E_VISUAL: "1"
-      - if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-differences
-          path: |
-            test-results/
-            e2e/visual.spec.ts-snapshots/
-          retention-days: 7
-
   deploy-config:
     runs-on: ubuntu-latest
     timeout-minutes: 15

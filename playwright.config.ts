@@ -5,11 +5,6 @@ import { defineConfig, devices } from "@playwright/test";
 // data starts from scratch and never touches a real browser profile.
 const DEMO_URL = "http://127.0.0.1:4312";
 const CI = !!process.env.CI;
-// Screenshot tests (release R3.1) run only in the pinned Playwright container
-// (CI job "visual"), where fonts and rendering never change between runs.
-const VISUAL = !!process.env.E2E_VISUAL;
-// Fixed browser locale and time zone, so dates render the same everywhere.
-const visualUse = { baseURL: DEMO_URL, locale: "es-ES", timezoneId: "Europe/Madrid" };
 const desktop = { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: DEMO_URL };
 
 export default defineConfig({
@@ -32,14 +27,8 @@ export default defineConfig({
     { name: "features-mobile", testMatch: /features\.spec\.ts/, use: { ...devices["Pixel 7"], baseURL: DEMO_URL } },
     // Roles, hidden fields, connection drops, conflicts and retries through the sheet store.
     { name: "demo-desktop", testMatch: /demo\.spec\.ts/, use: desktop },
-    ...(VISUAL ? [
-      { name: "visual-desktop", testMatch: /visual\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, ...visualUse } },
-      // Phone layout at normal pixel density: the same layout, a seventh of the image size.
-      { name: "visual-mobile", testMatch: /visual\.spec\.ts/, use: { ...devices["Pixel 7"], deviceScaleFactor: 1, ...visualUse } },
-    ] : []),
   ],
-  // Screenshot references are lossless WebP: a quarter smaller than PNG.
-  expect: { timeout: 10_000, toHaveScreenshot: { type: "webp" } },
+  expect: { timeout: 10_000 },
   webServer: [
     { command: "npx vite --mode demo --port 4312 --strictPort --host 127.0.0.1", url: DEMO_URL, reuseExistingServer: !CI, timeout: 120_000 },
   ],

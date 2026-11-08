@@ -1,6 +1,5 @@
-// A tiny PNG encoder for the demo's generated images (R3.3). It produces the
-// same pixels as the screenshot fixture's images (e2e/visual-fixture.ts): a
-// diagonal two-colour gradient. Pure TypeScript with uncompressed deflate
+// A tiny PNG encoder for the demo's generated images (R3.3): a diagonal
+// two-colour gradient. Pure TypeScript with uncompressed deflate
 // blocks, so it runs in the browser and in tests without dependencies.
 
 type RGB = readonly [number, number, number];

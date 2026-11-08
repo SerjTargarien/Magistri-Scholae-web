@@ -35,6 +35,16 @@ The original template README asked for `GEMINI_API_KEY`; the prepared README now
 
 Use both English and Spanish. Exercise academy and classic styles, desktop and mobile layouts, student and adult-wizard forms, familiar detail/editor flows, image cropping, journals, and character/familiar links. Reuse `src/models/characterRegistry.ts` rather than introducing a competing archetype definition.
 
+### Screenshot tests
+
+Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, using the fixed fictional records in `e2e/visual-fixture.ts`. The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.
+
+- **Where it runs:** only in the CI job `visual`, inside the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble`, where fonts and rendering are identical between runs (verified: a second run matched all 336 pictures exactly). Windows and macOS draw text slightly differently, so their pictures never match Linux references. Running `E2E_VISUAL=1 npx playwright test --project=visual-desktop --project=visual-mobile` locally is useful only to check navigation; it writes `-win32`/`-darwin` pictures, which Git ignores.
+- **Stability:** a fixed clock, browser locale and time zone; storage figures in settings replaced by fixed values; no hover or focus ring; animations off; each test waits for the Google fonts.
+- **When the check fails:** the job uploads an artifact `visual-differences` with the new picture and a difference image for each failure. An unintended difference is a bug to fix.
+- **Approving a change:** a visible change needs a reason and the owner's approval of before-and-after pictures. After approval, download the artifact (`gh run download <run-id> -n visual-differences`), copy the approved `*-linux.webp` pictures from its `e2e/visual.spec.ts-snapshots/` over the references (for a missing reference the new picture is there; for a changed one, use the `-actual` picture from `test-results/`, renamed to the reference's name), and commit them in the same pull request as the change.
+- **New screens or states:** add a test; the first CI run fails with "snapshot doesn't exist" and uploads the new pictures for review in the same way.
+
 Keep the existing `DISABLE_HMR` handling in `vite.config.ts` unless a task specifically requires changing it. Do not restructure the frontend root merely to add a backend folder.
 
 ## Local and mock modes

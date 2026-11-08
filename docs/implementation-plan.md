@@ -173,7 +173,7 @@ The existing screens must also match their R3.1 screenshots, apart from changes 
 
 Each step below is its own pull request. It keeps the app working under the browser tests (extended as screens change) and is explained to the owner before it starts.
 
-- **R3.1 Look baseline.**
+- **R3.1 Look baseline** (**done 8 November 2026**: 336 pictures, see [development.md](development.md), "Screenshot tests").
   - Screenshot tests of every existing screen: the character list and its cards, the type selection, the creation form, the character sheet (every tab, and the phone profile banner), the familiar sheet and editor, and settings. Each at desktop and phone widths, in the academy and classic styles, in English and Spanish.
   - Taken from today's app before any screen code changes. CI (Linux) holds the reference images; a difference fails the check.
   - A justified change follows the approval step above. Parts that R3.6 removes (local backups and the typed reset in settings) leave the baseline then, with the owner's approval.

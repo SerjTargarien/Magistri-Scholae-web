@@ -354,7 +354,18 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 
 **Plan merged** (PR #11). **Other websites on the VPS** (PR #12, owner-approved): Caddy now mounts `/opt/sites` read-only and imports each site's own Caddyfile, so another agent can add a site without editing this repository (runbook section 8). Applied on the server with about 2 seconds of downtime; certificates kept; both Magistri sites checked afterwards. Details are in `docs/infrastructure.local.md`.
 
-**Next:** explain R3.1 (look baseline) before starting it.
+**Next:** R3.1, below.
+
+## R3.1 look baseline — 8 November 2026
+
+- **What:** `e2e/visual.spec.ts` photographs every existing screen: the list, type selection, both creation forms (every tab), both character sheets (every tab, view and edit), the familiar sheet (every tab and quick edit), both familiar editors and settings. Each in academy and classic, Spanish and English, at desktop width and phone width (normal pixel density). That makes 336 reference pictures, lossless WebP, about 57 MB.
+- **Data:** fixed fictional records in `e2e/visual-fixture.ts` (two students, one adult wizard, a bonded and an unbonded familiar, generated portraits and gallery images), richer than the mock demo data so lists, stress, skills and journals all show content.
+- **Runs** only in the CI job `visual`, in the pinned Playwright container. Measured: 80 tests in about 3.4 minutes; a second run in the same container matched all 336 pictures exactly. On Windows, the same tests showed a few pixels of text-rendering variation, which is why references are Linux-only.
+- **App change:** three `id` attributes on the familiar sheet's tab buttons (no visual effect).
+- **Owner decisions:** the full matrix, stored in the repository (the alternatives were a separate branch or a reduced set). The size grows with each approved change (about 3 MB for one tab, about 33 MB for a change on every sheet).
+- **Approval process:** see [development.md](development.md), "Screenshot tests".
+
+**Next:** R3.2 (one data model: generated types), explained before it starts.
 
 ## Updating this handoff
 

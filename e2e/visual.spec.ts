@@ -43,7 +43,7 @@ async function snap(page: Page, name: string) {
     return loaded("Cinzel") && loaded("Inter");
   });
   expect(fontsReady, "Google fonts loaded").toBe(true);
-  await expect(page).toHaveScreenshot(`${name}.webp`, { fullPage: true, animations: "disabled", caret: "hide", timeout: 20_000, type: "webp" });
+  await expect(page).toHaveScreenshot(`${name}.webp`, { fullPage: true, animations: "disabled", caret: "hide", timeout: 20_000 });
 }
 
 for (const style of STYLES) {

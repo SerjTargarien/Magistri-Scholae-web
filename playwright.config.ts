@@ -38,7 +38,8 @@ export default defineConfig({
       { name: "visual-mobile", testMatch: /visual\.spec\.ts/, use: { ...devices["Pixel 7"], deviceScaleFactor: 1, ...visualUse } },
     ] : []),
   ],
-  expect: { timeout: 10_000 },
+  // Screenshot references are lossless WebP: a quarter smaller than PNG.
+  expect: { timeout: 10_000, toHaveScreenshot: { type: "webp" } },
   webServer: [
     { command: "npx vite --mode mock --port 4310 --strictPort --host 127.0.0.1", url: MOCK_URL, reuseExistingServer: !CI, timeout: 120_000 },
     // No --mode: VITE_STORAGE_MODE is unset, so the app uses local storage.

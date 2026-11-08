@@ -63,7 +63,10 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=0
+      # Exact comparison. Text anti-aliasing occasionally jitters on one picture
+      # (about 2 of 80 tests per run, never the same one twice), so a failed test
+      # is retried twice; a real change fails all three attempts.
+      - run: npx playwright test --project=visual-desktop --project=visual-mobile --retries=2
         env:
           CI: "true"
           E2E_VISUAL: "1"

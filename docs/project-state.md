@@ -374,6 +374,8 @@ Before R3.2, every stored field was reviewed screen by screen (the creation form
 
 The owner decided every field ([field-rules.md](field-rules.md), roadmap decision 13): destiny 0–10 (three gems by default), XP up to 1,000,000, consequences with a severity, subjects taught as a list, no stored motto, age as a number with Magia intuitiva hidden above 14, 50 gallery images with backups storing images once, generous limits with clear warnings, and new skill categories (magical knowledge, elemental magic, esoteric magic with a knowledge level) in a campaign-wide catalogue the GM edits (R4). R3.2 builds the data model; the visible changes come with R3.4, each approved with pictures.
 
+**Screenshot jitter (found on this pull request's checks):** the Linux container is not perfectly repeatable; text anti-aliasing differs slightly on about 2 of 80 tests per run (up to a few hundred pixels on the glowing name headings, invisible to the eye). Chromium flags for deterministic text did not help (three repeated runs). The comparison stays exact and failed screenshot tests are retried twice, so a real change still fails.
+
 **Next:** R3.2, explained before it starts.
 
 ## Updating this handoff

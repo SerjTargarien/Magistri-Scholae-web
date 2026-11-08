@@ -1,7 +1,6 @@
 // Fictional demo data for the in-browser mock server (R3.3), in the server's
-// model. The characters are the screenshot fixture's (e2e/visual-fixture.ts),
-// so the screens look the same against the mock once they move to the store
-// (R3.4). Nothing here is real data or a real account.
+// model: two students, an adult wizard and two familiars, covering every tab.
+// Nothing here is real data or a real account.
 import { DEFAULT_SKILL_CATALOGUE } from "../model/catalogue";
 import type { CharacterSheet, FamiliarSheet, SkillEntry } from "../model/sheet";
 import { gradientPng } from "./png";
@@ -65,7 +64,6 @@ const luna: CharacterSheet = {
   consecuenciasFisicas: [{ id: "cons-1", descripcion: "Tobillo torcido", gravedad: "leve" }],
   consecuenciasMentales: [{ id: "cons-2", descripcion: "Pesadillas recurrentes", gravedad: "moderada" }],
   consecuenciasSociales: [],
-  // The screenshot fixture's values (e2e/visual-fixture.ts), so pictures compare like with like.
   habilidades: skills(LUNA_SKILLS),
   conjuros: [{ id: "spell-1", nombre: "Lumen", valor: 2, specialized: true }, { id: "spell-2", nombre: "Velo de niebla", valor: 1, specialized: false }],
   pociones: [{ id: "potion-1", nombre: "Tónico de vigilia", valor: 2, specialized: false }, { id: "potion-2", nombre: "Bálsamo de ortiga", valor: 1, specialized: true }],

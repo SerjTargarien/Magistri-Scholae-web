@@ -2,7 +2,7 @@
 // waiting for the connection, a change someone else made to the same field
 // (keep mine or theirs), a change the server refused, and drafts discarded
 // because the field became read-only. Hidden while everything is saved, so it
-// never appears in the screenshot tests. R3.5 gives it its final design.
+// never covers the screens. R3.5 gives it its final design.
 import type { Language } from "../localization";
 import type { SheetStore } from "../store/sheetStore";
 

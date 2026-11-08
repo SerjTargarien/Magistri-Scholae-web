@@ -457,7 +457,11 @@ Released to staging (`20261108-143610-176b36f`).
 - Owner decisions from that test are recorded in field-rules.md and implementation-plan.md (R3.4): Empatía to social skills; custom fields without boxes; one «Varita / Foco mágico» field; GM-only skill creation and default skills, with a + button for players; a full-screen image viewer later, as its own design step.
 - This pull request: Empatía moves to the end of social skills in the default catalogue, and migration `0005_empatia_social` moves it in every campaign whose catalogue still has it under Mentales (reversible; it raises the catalogue revision). Sheets store a link, so no sheet changes. Custom fields on the sheet read like the other values in reading mode; edit mode is unchanged.
 
-**Next:** the owner approves the before-and-after pictures, then merge and update staging (migration 0005). After that: the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
+## Screenshot tests retired, look rule relaxed — 8 November 2026
+
+Owner decisions: the R3.1 screenshot tests are retired, and with the transition nearly complete the look rule is relaxed: **no aesthetic changes without a reason; any step that has a reason for a visible change may make it.** No before-and-after pictures or separate approval are needed. Removed: the CI job `visual`, `e2e/visual.spec.ts`, the 336 reference pictures (they remain in Git history) and the visual projects in `playwright.config.ts`. AGENTS.md, design.md, implementation-plan.md (decision 12) and development.md ("Checking the look") say so. The feature and demo browser tests are unchanged.
+
+**Next:** update staging (backup, migration 0005), then the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

@@ -306,9 +306,12 @@ export default function App() {
   const panel = DemoPanel && localStorage.getItem("magistri_demo_panel") !== "off"
     ? <Suspense fallback={null}><DemoPanel lang={lang} /></Suspense> : null;
 
-  if (!boot && !user) return <>{panel}<SignIn client={client} lang={lang} onSignedIn={account => setUser(account)} /></>;
-  if (!boot && user && campaigns.length !== 1 && !campaignId)
-    return <>{panel}<CampaignChooser lang={lang} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} /></>;
+  // Signed out, or not yet in a campaign: these screens share the app's frame.
+  const gate = boot ? null
+    : !user ? <SignIn client={client} lang={lang} visualStyle={visualStyle} onSignedIn={account => setUser(account)} />
+    : campaigns.length !== 1 && !campaignId
+      ? <CampaignChooser lang={lang} visualStyle={visualStyle} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} />
+      : null;
 
   const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
 
@@ -333,7 +336,7 @@ export default function App() {
         </div>
       )}
 
-      {boot || loading ? (
+      {gate ?? (boot || loading ? (
         <div className="flex flex-col justify-center items-center h-screen gap-4" id="app-loading-screen">
           <Loader className="w-10 h-10 text-amber-500 animate-spin" />
           <span className="font-magic text-sm tracking-widest text-neutral-400 uppercase animate-pulse">
@@ -474,7 +477,7 @@ export default function App() {
             />
           )}
         </main>
-      )}
+      ))}
 
       <SaveStatus lang={lang} store={screen === "DETAIL" ? characterStore : screen === "FAMILIAR_DETAIL" || screen === "FAMILIAR_EDITOR" ? familiarStore : undefined} />
 

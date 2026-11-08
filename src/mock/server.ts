@@ -174,10 +174,13 @@ export class MockServer {
     if (path === "auth/csrf") return new Reply(200, { csrfToken: "demo-csrf" });
     if (path === "auth/login" && method === "POST") {
       const user = Object.values(USERS).find(u => u.username === body.username);
-      if (!user) return fail(400, "invalid_credentials");
+      if (!user) return fail(401, "invalid_credentials"); // like the server
       this.signInAs(user.role);
       return new Reply(200, { user: this.userView(user), csrfToken: "demo-csrf" });
     }
+    // The demo has no invitations or reset codes: every code is refused, as the server refuses a bad one.
+    if (path === "auth/register" && method === "POST") return fail(400, "invalid_invitation");
+    if (path === "auth/password-reset" && method === "POST") return fail(400, "invalid_reset_code");
     const user = this.viewer();
     if (path === "auth/logout" && method === "POST") { this.state.viewer = null; this.save(); return new Reply(200, {}); }
     if (!user) return fail(401, "authentication_required");

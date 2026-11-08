@@ -1,6 +1,7 @@
 // The demo test panel (R3.3): switch the viewer's role and simulate what the
 // sheet store must survive. Demo builds only.
 import { useState } from "react";
+import "../remote/remote.css"; // the panel's styles
 import type { Language } from "../localization";
 import { mockServer, setOffline } from "./server";
 import type { DemoRole } from "./fixtures";

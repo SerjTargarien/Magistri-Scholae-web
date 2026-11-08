@@ -498,6 +498,15 @@ The owner asked for a proper design document before further changes, and for sta
 - Images from a web address: the boxes in the creation form and the familiar editor are hidden (`IMAGE_FROM_URL = false`), because most sites block the browser from reading their images; they return when the server downloads images (remaining PR 4, its own security review).
 - Checked: type check, 49 unit tests, both builds, 37 browser tests (new: the knowledge level in the form and on the sheet, set, shown, cleared); looked at both modes in the demo.
 
+Merged and released to staging (release `20261108-165610-23673df`). Staging testers: a new empty campaign «Magistri Scholae, la Promoción del Caos» (the app picks it automatically; the GM cannot rename it yet), 1 GM and 8 player invitation codes (7 days) in the git-ignored `docs/staging-invitations.local.md`, and a Spanish testers' guide given to the owner.
+
+## Sign-in screen in the app's style — 8 November 2026
+
+- Visibility for now (owner): the GM sees every sheet in the campaign; a player sees the sheets they create (assigned to them) and none of the GM's. This is what the server already does; the full permissions system (sharing, GM restrictions) comes later.
+- The sign-in screen and the campaign choice are drawn inside the app's frame in the academy or classic style (background, crest, title and tagline, a card with tabs for «Iniciar sesión», «Aceptar invitación» and «Restablecer contraseña»), instead of the stopgap page. Account errors have plain messages (wrong username or password, used or expired code, username taken, weak password, too many attempts, disabled account, no connection).
+- Fixed: a refused sign-in (401) also showed «No se pudieron cargar los datos», as if a session had expired; sign-in requests now say a 401 is expected. The demo server answers a wrong sign-in with 401 like the server (it answered 400, which hid the bug) and refuses invitation and reset codes, since it has none.
+- Checked: type check, 49 unit tests, both builds, 37 browser tests (the sign-out test now signs back in through the new screen, with a wrong attempt first); looked at both styles and a phone width in the demo.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

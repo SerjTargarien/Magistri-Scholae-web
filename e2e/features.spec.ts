@@ -370,7 +370,18 @@ test("settings: account card with sign-out; signing out shows the sign-in screen
   await expect(page.locator("#settings-card-account")).toContainText("demo_player");
   for (const removed of ["#settings-card-backup", "#settings-card-reset"]) await expect(page.locator(removed)).toHaveCount(0);
   await page.locator("#btn-settings-logout").click();
-  await expect(page.locator('input[type="password"]')).toBeVisible();
+  // The sign-in screen is drawn in the app's own frame and style.
+  await expect(page.locator("#academy-app-root #sign-in-card")).toBeVisible();
+  await page.locator("#input-sign-in-username").fill("nobody");
+  await page.locator("#input-sign-in-password").fill("whatever");
+  await page.locator("#btn-sign-in-submit").click();
+  await expect(page.getByRole("alert")).toContainText("Usuario o contraseña incorrectos.");
+  await page.waitForTimeout(500); // the expired-session message, when wrongly shown, comes a moment later
+  await expect(page.getByText("No se pudieron cargar los datos")).toHaveCount(0); // not an expired session
+  await page.locator("#input-sign-in-username").fill("demo_player");
+  await page.locator("#input-sign-in-password").fill("whatever");
+  await page.locator("#btn-sign-in-submit").click();
+  await expect(page.locator("#character-list-container")).toBeVisible();
 });
 
 test("profile banner shows the bonded familiar for the current width, without horizontal scrolling", async ({ page }, testInfo) => {

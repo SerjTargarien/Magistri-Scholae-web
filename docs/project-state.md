@@ -450,11 +450,11 @@ The owner's staging test as a player found that lists never loaded ("No se pudie
 
 Released to staging (`20261108-143610-176b36f`).
 
-## Screenshot tests retired — 8 November 2026
+## Screenshot tests retired, look rule relaxed — 8 November 2026
 
-Owner decision: the R3.1 screenshot tests are retired. Each visible change cost a long CI run (exact comparison with retries) and a manual approval of pictures, and the owner checks the look better by looking. Removed: the CI job `visual`, `e2e/visual.spec.ts`, the 336 reference pictures (they remain in Git history) and the visual projects in `playwright.config.ts`. The rule itself stays: every existing screen keeps its look whenever reasonable, and a visible change needs a reason and the owner's approval, now given by looking at the demo or staging (AGENTS.md, development.md "Checking the look"). The feature and demo browser tests are unchanged.
+Owner decisions: the R3.1 screenshot tests are retired, and with the transition nearly complete the look rule is relaxed: **no aesthetic changes without a reason; any step that has a reason for a visible change may make it.** No before-and-after pictures or separate approval are needed. Removed: the CI job `visual`, `e2e/visual.spec.ts`, the 336 reference pictures (they remain in Git history) and the visual projects in `playwright.config.ts`. AGENTS.md, design.md, implementation-plan.md (decision 12) and development.md ("Checking the look") say so. The feature and demo browser tests are unchanged.
 
-**Next:** the open pull request for Empatía and custom fields (owner checks it by looking), then the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
+**Next:** merge the open pull request for Empatía and custom fields and update staging, then the one wand field, then the GM-only skill actions (design first), then the remaining phase 3 changes.
 
 ## Updating this handoff
 

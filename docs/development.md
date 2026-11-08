@@ -60,7 +60,7 @@ The old hand-written types in `src/types.ts` stay until each screen moves (R3.4)
 
 ### Checking the look
 
-Every existing screen keeps its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). A visible change needs a reason; the owner checks it by looking, in the demo (`npm run dev:demo`) or on staging, and the agent describes what changes and adds pictures when they help. The R3.1 screenshot tests (336 reference pictures compared in a CI job) were retired on 8 November 2026 by the owner's decision: each visible change cost a long CI run and a manual approval of pictures, and looking checks it better. The pictures and the test remain in Git history.
+No aesthetic changes without a reason; any step that has a reason for a visible change may make it (owner decision, 8 November 2026, replacing the stricter rule of the transition and the R3.1 screenshot tests). See [implementation-plan.md](implementation-plan.md), decision 12. The R3.1 screenshot tests (336 reference pictures compared in a CI job) were retired the same day: each visible change cost a long CI run and a manual approval of pictures. The pictures and the test remain in Git history.
 
 Keep the existing `DISABLE_HMR` handling in `vite.config.ts` unless a task specifically requires changing it. Do not restructure the frontend root merely to add a backend folder.
 

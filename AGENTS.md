@@ -10,7 +10,7 @@
 ## Current application
 
 - Keep the React/TypeScript/Vite frontend and its English/Spanish localization, archetype registry, academy/classic styles, and responsive character/familiar interfaces.
-- Every existing screen keeps its current look whenever reasonable (owner decision, 8 November 2026). A visible change needs a reason and the owner's approval: the owner checks it by looking, in the demo (`npm run dev:demo`) or on staging; the agent describes the change and adds pictures when they help. The R3.1 screenshot tests were retired on 8 November 2026 (owner decision: slow, and better checked by looking). New screens follow the existing academy and classic styles.
+- No aesthetic changes without a reason; any step that has a reason for a visible change may make it (owner decision, 8 November 2026, replacing the stricter rule of the transition and the R3.1 screenshot tests). New screens follow the existing academy and classic styles.
 - Local mode stores data in Dexie/IndexedDB `MagistriScholaeDB`, declared versions 1 and 2. Version 2 includes numeric-ID `characters` and string-ID `familiars`, linked by `Character.familiarId` and `Familiar.studentId`.
 - **Local mode ended at the R3.4 switch (owner decision, 8 November 2026).** Its only records were the owner's test data, so nothing is migrated or converted: no legacy reader, no importer for backup format `1.0`. The app is the account app; R3.6 deletes the unused local storage code. Do not bump or reset its schema meanwhile.
 - Entity persistence belongs behind the repository/service boundary. Keep direct Dexie entity access out of UI/application entry points; see project-state for actual implementation progress.

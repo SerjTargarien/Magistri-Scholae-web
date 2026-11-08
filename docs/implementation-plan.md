@@ -56,7 +56,7 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - The mobile profile banner.
 - Local mode only, until R3.6 retires it: backup export and import (full, selected, familiar-only) and the typed-phrase reset. Account export/import returns in R7.4.
 
-The existing screens must also keep their look, apart from changes the owner approved.
+No aesthetic change is made without a reason.
 
 ## R0 — Safety net (S)
 
@@ -163,7 +163,7 @@ The existing screens must also keep their look, apart from changes the owner app
 
 - **Do it right: no translation layer** between the screens and the server. The screens use the server's data model directly.
 - **No old data to keep.** The only records in the old local format are the owner's test data. So there is no converter, no data carry-over (R5 is dropped), and the old local mode is retired at the end of R3. The live site stays frozen on its current release until launch (R6).
-- **Every existing screen keeps its current look** whenever reasonable. A change needs a reason and the owner's approval: the owner checks it by looking, in the demo (`npm run dev:demo`) or on staging; the agent describes the change and adds pictures when they help. (Screenshot tests enforced this from R3.1 until the owner retired them on 8 November 2026.) New screens (sign-in, campaign selection) follow the existing academy and classic styles.
+- **No aesthetic changes without a reason;** any step that has a reason for a visible change may make it (owner decision, 8 November 2026; until then every change needed the owner's approval of before-and-after screenshots, enforced by the R3.1 screenshot tests). New screens (sign-in, campaign selection) follow the existing academy and classic styles.
 - **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens.
 - Rejected: a translation layer, rewriting the server to store position-based lists (which would lose per-item updates and per-item privacy), and keeping the old local mode alive alongside the new one.
 
@@ -204,7 +204,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Edits work by item ID, not by position. The list, the creation form and the familiar screens move too.
   - One image helper shows server assets and newly picked images.
   - Shared readers get a read-only sheet; fields outside the writable paths are disabled.
-  - **Visible changes decided by the owner** (8 November 2026), each approved by the owner by looking (demo or staging) when its screen moves:
+  - **Visible changes decided by the owner** (8 November 2026), made when their screen moves:
     - destiny points: three gems by default, + adds up to 10;
     - experience: up to 1,000,000, typeable in edit mode;
     - consequences: a description plus a severity (mild, moderate, severe);
@@ -227,11 +227,11 @@ Each step below is its own pull request. It keeps the app working under the brow
 **Exit criteria:**
 
 - The feature checklist passes in mock mode for all three roles and in remote mode on staging.
-- The existing screens keep their look, apart from changes the owner approved.
+- No aesthetic change was made without a reason.
 - The smoke suite runs in CI against the mock and a real backend.
 - All existing tests pass.
 
-**Owner actions:** review each step, and approve or reject each proposed visible change. AI Studio is paused until launch (decision 6).
+**Owner actions:** review each step and check the result on staging. AI Studio is paused until launch (decision 6).
 
 **Rollback:** revert the step's pull request. The live site is unaffected until R6.
 
@@ -337,7 +337,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 | 9 | How to model the GM's two crossing-over campaigns? | R2 | **Decided 7 November 2026:** one universe campaign in the app, with two tables labelled per character (option A). Player characters cross over by sharing or reassignment within the same campaign. Players remain separated by default. Rejected: two campaigns with moving (B), or characters in two campaigns at once (C). |
 | 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
-| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** every existing screen keeps its current look whenever reasonable. A change needs a reason and the owner's approval, checked by looking (the R3.1 screenshot tests were retired the same day). New screens follow the existing styles. |
+| 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** first, every screen kept its look unless the owner approved before-and-after screenshots (R3.1 screenshot tests). **Relaxed the same day,** with the transition nearly complete: no aesthetic changes without a reason; any step that has a reason for a visible change may make it. |
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
 
 ## Former milestones

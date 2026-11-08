@@ -124,9 +124,10 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
     if (localStorage.getItem("magistri_logout_pending")) { location.reload(); return; }
     // A new password is typed twice (owner decision, 8 November 2026).
     if (mode !== "login" && password !== repeat) { setError("password_mismatch"); setPassword(""); setRepeat(""); return; }
-    // Phones add a space after a word; usernames never contain one.
+    // Phones add a space after a word; usernames never contain one. The username is
+    // stored in lowercase, so the name as typed (capitals kept) is the display name.
     const name = username.trim(), code = token.trim();
-    const body = mode === "login" ? { username: name, password } : mode === "register" ? { invitationToken: code, username: name, password } : { code, newPassword: password };
+    const body = mode === "login" ? { username: name, password } : mode === "register" ? { invitationToken: code, username: name, password, displayName: name } : { code, newPassword: password };
     const path = mode === "reset" ? "password-reset" : mode;
     setBusy(true); setError(""); setMessage("");
     try {

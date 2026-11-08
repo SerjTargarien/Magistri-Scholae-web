@@ -535,6 +535,8 @@ Released to both sites (release `20261108-173809-a20cd0c`).
 ## Usernames from phones — 8 November 2026
 
 The owner registered (`serj`, a player in the testers' campaign) but signing in said «Usuario o contraseña incorrectos». Usernames allow only letters, digits, `_` and `-` (compared in lowercase), and the server treats anything else as a wrong username, so a space a phone keyboard adds after the word blocks sign-in. The sign-in screen now trims the username and the code and turns off phone capitalisation and autocorrection in those boxes; the demo server compares usernames like the server, so the sign-out test (which signs back in as «Demo_Player ») would catch it.
+- Display names keep capitals (owner): usernames are stored in lowercase, so registration now sends the name as typed as the display name, which the app shows. The owner's account got the display name «Serj» on the server (backup first).
+- Recovery link tried for real: a reset code for `serj` was issued on the server into the git-ignored `docs/staging-recovery.local.md` as a `#recuperacion=` link (valid 15 minutes; the server's times are UTC).
 
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 

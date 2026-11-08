@@ -3,12 +3,13 @@ import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../utils/imageCompressor";
 import { TRANSLATIONS, type Language } from "../localization";
 import { remoteText } from "./text";
-import { SaveQueue, pathValue } from "./saveQueue";
+import { pathValue } from "../store/paths";
+import type { SheetStore } from "../store/sheetStore";
 
 export type Spec = { type: string; choices?: readonly string[]; fields?: Record<string, Spec>; maxLength?: number; required?: boolean; integer?: boolean; minimum?: number; maximum?: number; maxItems?: number };
 
 export function RemoteFields({ queue, registry, lang, upload, locked }: {
-  queue: SaveQueue; registry: Record<string, Spec>; lang: Language; upload: (path: string, data: string) => void; locked: boolean;
+  queue: SheetStore; registry: Record<string, Spec>; lang: Language; upload: (path: string, data: string) => void; locked: boolean;
 }) {
   const t = remoteText[lang];
   const base = TRANSLATIONS[lang] as unknown as Record<string, string>;

@@ -184,7 +184,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - **Defaults:** blank new sheets in the new model (destiny 3, stress maximum 3 for students and 5 for adults, the 48 default skills), each list item with a permanent ID. The custom skill preset reads the key the sheet's button writes (fixing the mismatch found on 8 November).
   - Static game data (houses, categories, default skills) moves out of `src/types.ts` into its own file.
   - A new stored field is declared once, in the backend registry, with its rule, a fixture and a test.
-- **R3.3 Sheet store and mock server.**
+- **R3.3 Sheet store and mock server** (owner decisions, 8 November 2026: edits to different fields merge automatically; edits continue during short connection drops, kept in memory). The store landed first (`src/store/`); the mock server follows.
   - One store per open sheet holds the server's copy (only what the viewer may see), the unsent changes by path, the revision they are based on, and the save state. Screens read and write only through it.
   - It grows out of today's `SaveQueue`. Unsent changes live in the page's memory; R7.2 moves them to device storage without changing the screens.
   - Two adapters: the existing remote client, and an in-browser mock server with the same projection, permission and error behaviour. The mock has a visible role switcher (GM, assigned player, shared reader) and the DEMO banner. It simulates hidden fields, conflicts, failed saves and connection drops.

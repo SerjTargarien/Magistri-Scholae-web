@@ -46,6 +46,10 @@ Use both English and Spanish. Exercise academy and classic styles, desktop and m
 
 The old hand-written types in `src/types.ts` stay until each screen moves (R3.4); game data (houses, character types, the old default skills) is in `src/data/gameData.ts`.
 
+### The sheet store
+
+`src/store/sheetStore.ts` is the one path through which screens read and save a sheet (R3.3). It checks each edit against the viewer's permissions and the field rules before queueing it (a refused edit returns its problems), sends only changed paths with the revision and an operation ID, retries a save of unknown outcome with the same ID, merges automatically when someone else changed other fields, lists same-field collisions in `conflicts` for the viewer to settle (`resolve`), holds a change the server refused while the rest keep saving, and keeps edits during a connection drop. Unsent changes live in memory; a `PendingSlot` (device storage) comes with R7.2. The stopgap account screens use it; the old screens move to it in R3.4.
+
 ### Screenshot tests
 
 Every existing screen must keep its look unless the owner approves a change ([implementation-plan.md](implementation-plan.md), decision 12). `e2e/visual.spec.ts` photographs each screen in both styles and both languages, at desktop width and at phone width with normal pixel density, using the fixed fictional records in `e2e/visual-fixture.ts`. The 336 reference pictures (lossless WebP, about 57 MB) are in `e2e/visual.spec.ts-snapshots/`.

@@ -1,7 +1,10 @@
 import type { ApiSheetProjection } from "../contracts/api-v1";
 
+/** Which rule a refused value broke, when the server names it (field rules, R3.2). */
+export interface FailureDetails { path?: string; rule?: string; limit?: unknown }
+
 export class ApiFailure extends Error {
-  constructor(public status: number, public code: string) { super(code); }
+  constructor(public status: number, public code: string, public details?: FailureDetails) { super(code); }
 }
 
 export class RemoteClient {
@@ -26,7 +29,8 @@ export class RemoteClient {
       if (generation !== this.generation) throw new DOMException("Session changed", "AbortError");
       if (!response.ok) {
         if (response.status === 401 && !quiet401) this.expired();
-        throw new ApiFailure(response.status, data.error?.code || "request_failed");
+        const { code, path, rule, limit } = data.error ?? {};
+        throw new ApiFailure(response.status, code || "request_failed", path === undefined && rule === undefined ? undefined : { path, rule, limit });
       }
       if (data.csrfToken) this.csrf = data.csrfToken;
       return data as T;

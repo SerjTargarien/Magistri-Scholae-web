@@ -4,7 +4,7 @@ import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
 import { ARCHETYPES_REGISTRY } from "../models/characterRegistry";
 import { TRANSLATIONS, type Language } from "../localization";
 import { ApiFailure, RemoteClient, entityPath } from "./client";
-import { SaveQueue, pathValue } from "./saveQueue";
+import { SheetStore } from "../store/sheetStore";
 import { RemoteFields, type Spec } from "./RemoteFields";
 import { remoteText } from "./text";
 import "./remote.css";
@@ -31,7 +31,7 @@ export default function RemoteApp() {
   const [more, setMore] = useState(false);
   const [listVersion, setListVersion] = useState(0);
   const channel = useRef<BroadcastChannel | null>(null);
-  const activeQueue = useRef<SaveQueue | undefined>(undefined);
+  const activeQueue = useRef<SheetStore | undefined>(undefined);
   const session = useRef(0);
   const action = useRef<(() => Promise<void>) | null>(null);
   const t = remoteText[lang];
@@ -156,9 +156,9 @@ function CreateSheet({ client, campaign, kind, lang, run, locked, created }: { c
   </form>;
 }
 
-function SheetEditor({ sheet, client, lang, locked, online, run, back, navigate, register }: { sheet: ApiSheetProjection; client: RemoteClient; lang: Language; locked: boolean; online: boolean; run: Run; back: () => void; navigate: (s: ApiSheetProjection) => void; register: (q: SaveQueue) => void }) {
+function SheetEditor({ sheet, client, lang, locked, online, run, back, navigate, register }: { sheet: ApiSheetProjection; client: RemoteClient; lang: Language; locked: boolean; online: boolean; run: Run; back: () => void; navigate: (s: ApiSheetProjection) => void; register: (q: SheetStore) => void }) {
   const [, update] = useState(0);
-  const [queue] = useState(() => new SaveQueue(sheet, body => client.request(entityPath(sheet), "PATCH", body), () => client.request(entityPath(sheet)), () => update(v => v + 1)));
+  const [queue] = useState(() => new SheetStore(sheet, { patch: body => client.request(entityPath(sheet), "PATCH", body), read: () => client.request(entityPath(sheet)) }, () => update(v => v + 1)));
   const [tab, setTab] = useState("perfil"); const [targets, setTargets] = useState<ApiSheetProjection[]>([]); const [target, setTarget] = useState("");
   const t = remoteText[lang]; const base = TRANSLATIONS[lang] as any;
   useEffect(() => { queue.activate(); register(queue); const focus = () => { if (document.visibilityState === "visible") void queue.refresh(); }; const unload = (e: BeforeUnloadEvent) => { if (queue.busy) { e.preventDefault(); e.returnValue = ""; } };
@@ -175,9 +175,12 @@ function SheetEditor({ sheet, client, lang, locked, online, run, back, navigate,
   })) as Record<string, Spec>;
   const blocked = locked || !queue.canEdit;
   return <><div className="remote-toolbar"><button disabled={locked} onClick={back}>{t.back}</button><h2>{current.fields.nombre || t.hidden}</h2></div>
-    <div className="remote-status" role="status" aria-live="polite">{t[queue.state]}{queue.errorCode && ` · ${queue.errorCode}`}</div>
-    {["conflict", "error"].includes(queue.state) && <section className="remote-section"><p>{t.reconcile}</p>{[...queue.pending].map(([path, value]) => <div key={path}><strong>{path}</strong><pre>{t.mine}: {JSON.stringify(value)}{"\n"}{t.current}: {JSON.stringify(pathValue(queue.sheet.fields, path))}</pre></div>)}
-      <button disabled={!online || locked} onClick={() => void queue.retry()}>{t.retry}</button><button disabled={!online || locked} onClick={() => void queue.reconcile(true)}>{t.reload}</button><button disabled={!online || locked} onClick={() => void queue.reconcile(false)}>{t.reapply}</button></section>}
+    <div className="remote-status" role="status" aria-live="polite">{t[queue.state]}{queue.error && ` · ${[queue.error.code, queue.error.path, queue.error.rule, queue.error.limit === undefined ? "" : JSON.stringify(queue.error.limit)].filter(Boolean).join(" · ")}`}
+      {queue.problems.length > 0 && <span role="alert"> · {t.notAccepted}: {queue.problems.map(p => `${p.path} (${p.rule}${p.limit === undefined ? "" : ` ${JSON.stringify(p.limit)}`})`).join(", ")}</span>}
+      {queue.dropped.length > 0 && <span> · {t.dropped}: {queue.dropped.join(", ")}</span>}</div>
+    {queue.conflicts.length > 0 && <section className="remote-section"><p>{t.reconcile}</p>{queue.conflicts.map(c => <div key={c.path}><strong>{c.path}</strong><pre>{t.mine}: {JSON.stringify(c.mine)}{"\n"}{t.current}: {JSON.stringify(c.theirs)}</pre>
+      <button disabled={locked} onClick={() => queue.resolve(c.path, "mine")}>{t.keepMine}</button><button disabled={locked} onClick={() => queue.resolve(c.path, "theirs")}>{t.keepTheirs}</button></div>)}</section>}
+    {queue.state === "error" && <section className="remote-section"><button disabled={!online || locked} onClick={() => void queue.flush()}>{t.retry}</button></section>}
     <nav className="remote-toolbar">{tabs.map(section => <button key={section} onClick={() => setTab(section)}>{base[section]}</button>)}</nav>
     <RemoteFields queue={queue} registry={registry} lang={lang} locked={blocked} upload={(path, imageBase64) => run(client.mutation<ApiSheetProjection>(`${entityPath(current)}/assets`, { expectedRevision: current.revision, path, imageBase64 }), result => queue.accept(result))} />
     {tab === "notas" && current.capabilities.isGM && <GMNotes client={client} sheet={current} lang={lang} run={run} locked={blocked || queue.busy} />}

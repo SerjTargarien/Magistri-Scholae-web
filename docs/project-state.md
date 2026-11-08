@@ -404,7 +404,15 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 - Tests: `tests/model.test.ts`. Locally: lint, `npm test` (42 passed), all three builds.
 - **R3.2 is complete.**
 
-**Next:** R3.3, the sheet store and the in-browser mock server, explained before it starts.
+## R3.3 sheet store — 8 November 2026 (first pull request)
+
+- Owner decisions: someone else's change to a different field merges automatically (no conflict screen); a change to the same field waits for the viewer's choice; edits continue during a connection drop and are sent when it returns (memory only until R7.2).
+- `src/store/sheetStore.ts` replaces `src/remote/saveQueue.ts`: local permission and rule checks before queueing (problems returned, nothing sent), path-only saves, exact retries of unknown outcomes with backoff, automatic merge on a stale revision, `conflicts` with `resolve(mine|theirs)`, drafts dropped when their path becomes read-only (`dropped`), server refusals held per path while other changes save, offline edits kept, a `PendingSlot` hook for R7.2. `src/store/paths.ts` holds the path helpers.
+- The API client keeps refused-value details (`ApiFailure.details`).
+- The stopgap account screens use the store, show refused edits with their rule, and offer "keep mine / keep theirs" for same-field conflicts.
+- Tests: `tests/store.test.ts` (15) replaces the old queue tests; `tests/remote.test.ts` keeps the client tests plus error details. Locally: lint, `npm test` (48 passed), builds.
+
+**Next:** the in-browser mock server (second R3.3 pull request).
 
 ## Updating this handoff
 

@@ -297,9 +297,6 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
           <div className="w-full max-w-6xl my-auto">
             <FamiliarEditor
               lang={lang}
-              store={undefined}
-              familiars={[]}
-              onOpenFamiliar={() => {}}
               onCreate={handleCreateFamiliar}
               onUploadImage={async () => {}}
               onBack={() => setShowFamiliarEditorModal(false)}

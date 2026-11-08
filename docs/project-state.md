@@ -538,6 +538,17 @@ The owner registered (`serj`, a player in the testers' campaign) but signing in 
 - Display names keep capitals (owner): usernames are stored in lowercase, so registration now sends the name as typed as the display name, which the app shows. The owner's account got the display name «Serj» on the server (backup first).
 - Recovery link tried for real: a reset code for `serj` was issued on the server into the git-ignored `docs/staging-recovery.local.md` as a `#recuperacion=` link (valid 15 minutes; the server's times are UTC).
 
+## Familiar sheet like the character sheet — 8 November 2026
+
+Owner, after testing on his phone: familiars had two ways to edit (quick edit and a full editor) and should behave like characters. Incoherencies found and fixed:
+1. Two edit paths (quick edit on the sheet, «Editor Completo» on a separate screen): the sheet now has one edit mode, «Editar» / «Finalizar Edición», styled like the character sheet's; the full-editor button is gone.
+2. The quick edit kept a draft and saved only on «Guardar» (blank name or species silently kept the old value): fields now save as they are typed, like characters.
+3. The photo could only be changed by hovering over the portrait, which phones cannot do: in edit mode, tapping the portrait opens the picker and «Cambiar foto» is always shown over it.
+4. The picture fit applied only on «Guardar», and there was no way to remove the picture: «Recortar / Ajustar» and «Quitar retrato» sit below the portrait and apply at once.
+5. Linking a character, deleting journal entries and adding or removing gallery pictures were available outside edit mode, unlike characters: they now need edit mode, as on the character sheet (adding and editing journal entries stays available, as for characters).
+6. Gallery pictures could only be enlarged or deleted by hovering: tapping a picture enlarges it, and the delete button is always visible in edit mode. The character gallery's delete button was hover-only too and is fixed the same way.
+7. The familiar editor also edited existing familiars and listed every familiar with edit and archive buttons: it now only creates (familiars are listed on the main card view). After saving it returns to the character's sheet it was opened from, or opens the new familiar's sheet, as creating a character does.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

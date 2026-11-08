@@ -72,8 +72,9 @@ export async function createFamiliar(page: Page, name: string, species: string) 
   await page.locator("#input-familiar-especie").fill(species);
   await page.locator("#input-familiar-descripcion").fill(`${name} description`);
   await page.locator("#btn-save-familiar").click();
+  // Saving opens the new familiar's sheet, as creating a character does; back to the list.
+  await expect(page.locator("#familiar-detail-container")).toContainText(name);
   await page.locator("#btn-familiar-back").click();
-  await page.locator("#btn-type-select-cancel").click();
   await expect(familiarCard(page, name)).toBeVisible();
 }
 

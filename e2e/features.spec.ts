@@ -246,19 +246,35 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   expect(stored!.adultWizardProfile).not.toHaveProperty("magicalFocus");
 });
 
-test("familiar: create standalone and edit in the editor; only the GM can archive it", async ({ page }) => {
+test("familiar sheet: one edit mode like a character's (fields, portrait by tapping, gallery); only the GM can archive it", async ({ page }) => {
   await createFamiliar(page, "Smoke Toad", "Toad");
   await expect(familiarCard(page, "Smoke Toad")).toContainText("Toad");
   await openFamiliar(page, "Smoke Toad");
   await expect(page.locator("#btn-familiar-delete")).toHaveCount(0);
-  await page.locator("#btn-familiar-full-editor").click();
-  await page.locator("#input-familiar-especie").fill("Giant toad");
-  await page.locator("#btn-save-familiar").click();
-  await page.locator("#btn-familiar-back").click();
+  await expect(page.locator("#btn-familiar-full-editor")).toHaveCount(0); // one edit mode only
+  await expect(page.locator("#input-familiar-especie")).toHaveCount(0); // reading mode
+  await page.locator("#btn-familiar-edit").click();
+  await page.locator("#input-familiar-especie").fill("Giant toad"); // saved as typed
+  // The portrait changes by tapping it: no hover, so phones can do it too.
+  const chooser = page.waitForEvent("filechooser");
+  await page.locator("#familiar-portrait").click();
+  await (await chooser).setFiles(pngFile());
+  await page.getByRole("button", { name: "Confirmar Recorte" }).click();
+  await expect(page.locator("#familiar-portrait img")).toBeVisible();
+  await page.locator("#btn-familiar-fit-contain").click();
+  await page.locator("#familiar-tab-galeria").click();
+  await page.locator("#input-familiar-gallery-picker").setInputFiles(pngFile("gallery.png"));
+  await expect(page.locator("#btn-familiar-del-gal-pic-0")).toBeVisible();
+  await page.locator("#btn-familiar-edit").click(); // «Finalizar Edición»
+  await expect(page.locator("#input-familiar-gallery-picker")).toHaveCount(0);
+  await expect(page.locator("#btn-familiar-del-gal-pic-0")).toHaveCount(0);
   await expect(page.locator("#familiar-detail-container")).toContainText("Giant toad");
 
   await reloadApp(page);
   await expect(familiarCard(page, "Smoke Toad")).toContainText("Giant toad");
+  const asset = /^[0-9a-f-]{36}$/;
+  expect(await storedSheet(page, "Smoke Toad")).toMatchObject({ especie: "Giant toad", imageFit: "contain", imagen: expect.stringMatching(asset),
+    galleryImages: [{ id: expect.any(String), value: expect.stringMatching(asset) }] });
   await viewAs(page, "gm");
   await openFamiliar(page, "Smoke Toad");
   await page.locator("#btn-familiar-delete").click();
@@ -305,8 +321,7 @@ test("player: create a familiar from the character sheet, then bond it there", a
   await page.locator("#input-familiar-nombre").fill("Sheet Owl");
   await page.locator("#input-familiar-especie").fill("Owl");
   await page.locator("#input-familiar-descripcion").fill("Sheet Owl description");
-  await page.locator("#btn-save-familiar").click();
-  await page.locator("#btn-familiar-back").click();
+  await page.locator("#btn-save-familiar").click(); // back to the character's sheet
   await expect(page.locator("#character-detail-screen")).toContainText("Sheet Owner");
   await setEditMode(page, true); // the sheet reopens in reading mode, as before the switch
   await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();

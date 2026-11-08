@@ -4,12 +4,10 @@
  */
 
 import React, { useState } from "react";
-import type { ApiSheetProjection } from "../contracts/api-v1";
 import type { FamiliarEditorProps } from "../account/screens";
 import { TRANSLATIONS } from "../localization";
 import type { FamiliarSheet } from "../model/sheet";
 import { newFamiliarSheet } from "../model/defaults";
-import type { Problem } from "../model/rules";
 import { ApiFailure } from "../remote/client";
 import { imageSrc } from "../remote/assets";
 import Cropper from "react-easy-crop";
@@ -21,11 +19,8 @@ import {
   X,
   Sparkles,
   Trash2,
-  Plus,
-  Edit2,
   ArrowLeft,
   ShieldAlert,
-  Check,
   PawPrint,
 } from "lucide-react";
 
@@ -37,10 +32,6 @@ const isNameRule = (path?: string, rule?: string) => (path === "nombre" || path 
 export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   lang,
   visualStyle = "academy",
-  store,
-  familiars,
-  onOpenFamiliar,
-  onArchive,
   onCreate,
   onUploadImage,
   onBack,
@@ -49,24 +40,19 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 }) => {
   const t = TRANSLATIONS[lang];
   const isAcademy = visualStyle === "academy";
-  const archiveLabel = lang === "en" ? "Archive" : "Archivar";
-
-  // The familiar being edited (the open store), or null while creating a new one.
-  const initial = (store?.fields ?? {}) as FamiliarSheet;
-  const [editingId, setEditingId] = useState<string | null>(store?.sheet.id ?? null);
-
-  // Form fields. `imagen` is the stored asset ID, or the cropped picture (data URL) not yet uploaded.
-  const [nombre, setNombre] = useState(initial.nombre ?? "");
-  const [especie, setEspecie] = useState(initial.especie ?? "");
-  const [descripcion, setDescripcion] = useState(initial.descripcion ?? "");
-  const [imagen, setImagen] = useState(initial.imagen ?? "");
-  const [imageFit, setImageFit] = useState<"cover" | "contain">(initial.imageFit ?? "cover");
+  // Creation only (owner decision, 8 November 2026): an existing familiar is edited on its
+  // own sheet, like a character, and familiars are listed on the main card view.
+  // Form fields. `imagen` is the cropped picture (data URL), uploaded after creation.
+  const [nombre, setNombre] = useState("");
+  const [especie, setEspecie] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [imagen, setImagen] = useState("");
+  const [imageFit, setImageFit] = useState<"cover" | "contain">("cover");
   const [pastedUrl, setPastedUrl] = useState("");
 
   // Validation & feedback
   const [formError, setFormError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Cropper states
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
@@ -76,30 +62,12 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   const resetForm = () => {
-    setEditingId(null);
     setNombre("");
     setEspecie("");
     setDescripcion("");
     setImagen("");
     setImageFit("cover");
     setPastedUrl("");
-    setFormError(null);
-    setImageError(null);
-  };
-
-  /** The open familiar reloads into the form; any other familiar is opened by the app (its own store). */
-  const handleSelectFamiliarToEdit = (fam: ApiSheetProjection) => {
-    if (!store || fam.id !== store.sheet.id) {
-      onOpenFamiliar(fam.id);
-      return;
-    }
-    const current = store.fields as FamiliarSheet;
-    setEditingId(store.sheet.id);
-    setNombre(current.nombre ?? "");
-    setEspecie(current.especie ?? "");
-    setDescripcion(current.descripcion ?? "");
-    setImagen(current.imagen ?? "");
-    setImageFit(current.imageFit ?? "cover");
     setFormError(null);
     setImageError(null);
   };
@@ -161,35 +129,8 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
       return;
     }
 
-    const refused = (problems: Problem[]) =>
-      setFormError(problems.some((p) => isNameRule(p.path, p.rule)) ? t.familiarValidationError : t.validationErrorGeneric);
-
-    if (editingId && store) {
-      // Existing familiar: one edit per changed field, nothing else.
-      const current = store.fields as FamiliarSheet;
-      const changes: [string, unknown][] = [];
-      if (nombre.trim() !== (current.nombre ?? "")) changes.push(["nombre", nombre.trim()]);
-      if (especie.trim() !== (current.especie ?? "")) changes.push(["especie", especie.trim()]);
-      if (descripcion.trim() !== (current.descripcion ?? "")) changes.push(["descripcion", descripcion.trim()]);
-      if (imageFit !== (current.imageFit ?? "cover")) changes.push(["imageFit", imageFit]);
-      const imageChanged = imagen !== (current.imagen ?? "");
-      if (imageChanged && !imagen) changes.push(["imagen", ""]);
-      const problems = changes.flatMap(([path, value]) => store.edit(path, value));
-      if (problems.length) {
-        refused(problems);
-        return;
-      }
-      if (imageChanged && imagen.startsWith("data:")) {
-        try {
-          await onUploadImage("imagen", imagen);
-        } catch (err) {
-          console.error("Familiar image upload error:", err);
-          setFormError(t.imageUploadError);
-          return;
-        }
-      }
-    } else {
-      // New familiar: the whole sheet is created once; the cropped picture is uploaded after.
+    {
+      // The whole sheet is created once; the cropped picture is uploaded after.
       const fields: FamiliarSheet = {
         ...newFamiliarSheet(),
         nombre: nombre.trim(),
@@ -212,11 +153,6 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
     onShowToast("success", t.familiarSavedToast);
     resetForm();
-  };
-
-  const handleArchiveFamiliar = () => {
-    setConfirmDeleteId(null);
-    onArchive?.();
   };
 
   return (
@@ -258,17 +194,6 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
         </div>
 
         <div className="z-10 flex items-center gap-2.5 w-full sm:w-auto justify-end">
-          {editingId && (
-            <button
-              id="btn-familiar-new-reset"
-              type="button"
-              onClick={resetForm}
-              className="flex items-center gap-1.5 px-3.5 py-2 border border-emerald-500/30 bg-emerald-950/60 hover:bg-emerald-900/70 rounded-xl text-xs font-semibold font-mono text-emerald-200 transition-all cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {t.familiarCreateNewBtn}
-            </button>
-          )}
 
           <button
             id="btn-familiar-back"
@@ -301,8 +226,8 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
         </div>
       )}
 
-      {/* Main Editor Panel + Saved Familiars Registry */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6 items-stretch">
+      {/* The creation form (familiars are listed on the main card view) */}
+      <div className="max-w-3xl mx-auto">
         {/* Left Panel: Familiar Creation / Edition Form */}
         <form
           onSubmit={handleSaveFamiliar}
@@ -325,14 +250,9 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
                 <h3 className="font-magic text-sm uppercase tracking-wider text-neutral-200">
-                  {editingId ? t.familiarUpdateBtn : t.familiarCreateNewBtn}
+                  {t.familiarCreateNewBtn}
                 </h3>
               </div>
-              {editingId && (
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300">
-                  {t.edit}
-                </span>
-              )}
             </div>
 
             {/* Portrait + Fields Grid */}
@@ -534,166 +454,17 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
           {/* Submit Footer */}
           <div className="flex items-center justify-end gap-3 pt-5 mt-6 border-t border-violet-500/15">
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 border border-neutral-700 bg-neutral-950/80 hover:bg-neutral-900 rounded-xl text-xs font-semibold font-mono text-neutral-300 transition-all cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-            )}
             <button
               id="btn-save-familiar"
               type="submit"
               className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl text-neutral-950 transition-all font-sans cursor-pointer shadow-lg hover:scale-[1.02] active:scale-[0.98] bg-amber-500 hover:bg-amber-400"
             >
               <Save className="w-4 h-4" />
-              {editingId ? t.familiarUpdateBtn : t.familiarSaveNewBtn}
+              {t.familiarSaveNewBtn}
             </button>
           </div>
         </form>
 
-        {/* Right Panel: Registered Familiars Gallery */}
-        <div
-          className={`glass-panel p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col ${
-            isAcademy ? "border border-amber-500/20" : "border border-violet-500/15"
-          }`}
-          id="familiar-registry-list-panel"
-        >
-          {isAcademy && (
-            <>
-              <FiligreeCorner position="tl" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="tr" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="bl" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="br" className="w-5 h-5 text-amber-500/30" />
-            </>
-          )}
-
-          <div className="flex items-center justify-between border-b border-violet-500/15 pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <PawPrint className="w-4 h-4 text-amber-400" />
-              <h3 className="font-magic text-sm uppercase tracking-wider text-neutral-200">
-                {t.familiarGalleryTitle}
-              </h3>
-            </div>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-amber-400">
-              {familiars.length}
-            </span>
-          </div>
-
-          {familiars.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-neutral-800 rounded-xl bg-neutral-950/30">
-              <PawPrint className="w-10 h-10 text-neutral-700 mb-2" />
-              <p className="text-xs font-mono text-neutral-500">{t.familiarGalleryEmpty}</p>
-            </div>
-          ) : (
-            <div className="flex-1 space-y-3 overflow-y-auto max-h-[540px] pr-1 scrollbar-thin">
-              {familiars.map((famProjection) => {
-                const fam = { ...(famProjection.fields as FamiliarSheet), id: famProjection.id };
-                const isSelected = editingId === fam.id;
-                const isConfirmingDelete = confirmDeleteId === fam.id;
-                // Only the GM archives, and only the familiar open in this editor.
-                const canArchive = !!onArchive && !!store && store.sheet.id === fam.id;
-
-                return (
-                  <div
-                    key={fam.id}
-                    id={`familiar-card-${fam.id}`}
-                    className={`p-3 rounded-xl border transition-all flex gap-3.5 items-start ${
-                      isSelected
-                        ? "bg-emerald-950/40 border-emerald-500/50 shadow-md"
-                        : "bg-neutral-950/60 border-neutral-800/90 hover:border-neutral-700"
-                    }`}
-                  >
-                    {/* Familiar Thumbnail */}
-                    <div
-                      onClick={() => handleSelectFamiliarToEdit(famProjection)}
-                      className="w-16 h-20 rounded-lg bg-neutral-900 border border-amber-500/25 overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
-                    >
-                      {fam.imagen ? (
-                        <img
-                          src={imageSrc(fam.imagen)}
-                          alt={fam.nombre}
-                          className={`w-full h-full ${
-                            fam.imageFit === "contain"
-                              ? "object-contain bg-[#11091f]"
-                              : "object-cover"
-                          }`}
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <PawPrint className="w-6 h-6 text-neutral-700" />
-                      )}
-                    </div>
-
-                    {/* Familiar Details */}
-                    <div
-                      onClick={() => handleSelectFamiliarToEdit(famProjection)}
-                      className="flex-1 min-w-0 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-magic text-sm text-amber-300 font-bold truncate">
-                          {fam.nombre}
-                        </h4>
-                      </div>
-                      <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-emerald-300 bg-emerald-950/60 border border-emerald-500/25 px-1.5 py-0.5 rounded mt-0.5">
-                        {fam.especie}
-                      </span>
-                      {fam.descripcion && (
-                        <p className="text-xs text-neutral-400 line-clamp-2 mt-1.5 font-sans leading-snug">
-                          {fam.descripcion}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectFamiliarToEdit(famProjection)}
-                        className="p-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-amber-300 transition-colors cursor-pointer"
-                        title={t.edit}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-
-                      {!canArchive ? null : isConfirmingDelete ? (
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={handleArchiveFamiliar}
-                            className="p-1.5 rounded-lg bg-rose-700 hover:bg-rose-600 text-white transition-colors cursor-pointer"
-                            title={archiveLabel}
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="p-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors cursor-pointer"
-                            title={t.cancel}
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteId(fam.id)}
-                          className="p-1.5 rounded-lg bg-neutral-900 hover:bg-rose-950/70 border border-neutral-800 hover:border-rose-500/30 text-neutral-500 hover:text-rose-300 transition-colors cursor-pointer"
-                          title={archiveLabel}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Interactive Portrait Cropper Modal */}

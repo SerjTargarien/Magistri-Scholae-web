@@ -8,17 +8,19 @@ import React from "react";
 import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
 import { HouseCrest } from "../HouseCrest";
 import { imageSrc } from "../../remote/assets";
-import { PawPrint, Upload, Link as LinkIcon, Unlink, ExternalLink } from "lucide-react";
+import { PawPrint, Image as ImageIcon, Link as LinkIcon, Unlink, ExternalLink } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    familiar, onSelectCharacter, t, isAcademy, isQuickEditing, editNombre, setEditNombre, editEspecie, setEditEspecie,
-    editDescripcion, setEditDescripcion, editImageFit, setEditImageFit, avatarInputRef, setIsSelectMasterOpen,
-    linkedMaster, handleAvatarChange, handleBondMaster, canEditName, canEditSpecies, canEditDescription, canEditImage,
-    canEditImageFit, canBond,
+    familiar, onSelectCharacter, t, isAcademy, isQuickEditing, edit, setImageFit, removeImage, avatarInputRef,
+    setIsSelectMasterOpen, linkedMaster, handleAvatarChange, handleBondMaster, canEditName, canEditSpecies,
+    canEditDescription, canEditImage, canEditImageFit, canBond,
   } = ctx;
+  // As on the character sheet: tap the portrait in edit mode to change it (no hover, so phones can too).
+  const editImage = isQuickEditing && canEditImage;
+  const editBond = isQuickEditing && canBond;
   return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
           {/* Left Column: Portrait Card (4 cols) */}
@@ -38,7 +40,13 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
               )}
 
               {/* Portrait container */}
-              <div className="relative aspect-[3/4] w-full bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center group">
+              <div
+                id="familiar-portrait"
+                onClick={editImage ? () => avatarInputRef.current?.click() : undefined}
+                className={`relative aspect-[3/4] w-full bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center ${
+                  editImage ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+                }`}
+              >
                 {familiar.imagen ? (
                   <img
                     src={imageSrc(familiar.imagen)}
@@ -57,48 +65,50 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                   </div>
                 )}
 
-                {/* Quick edit overlay for avatar */}
-                {isQuickEditing && (canEditImage || canEditImageFit) && (
-                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canEditImage && (
-                    <label className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-mono uppercase cursor-pointer flex items-center gap-1.5 shadow-lg">
-                      <Upload className="w-4 h-4" />
-                      <span>{t.btnChangePhoto}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        ref={avatarInputRef}
-                        onChange={handleAvatarChange}
-                      />
-                    </label>
-                    )}
-
-                    {canEditImageFit && (
-                    <div className="flex items-center gap-1 bg-neutral-900/90 border border-neutral-700 p-1 rounded-lg text-xs font-mono">
-                      <button
-                        type="button"
-                        onClick={() => setEditImageFit("cover")}
-                        className={`px-2 py-1 rounded cursor-pointer ${
-                          editImageFit === "cover" ? "bg-amber-500 text-neutral-950 font-bold" : "text-neutral-400"
-                        }`}
-                      >
-                        {t.optAvatarCover}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditImageFit("contain")}
-                        className={`px-2 py-1 rounded cursor-pointer ${
-                          editImageFit === "contain" ? "bg-amber-500 text-neutral-950 font-bold" : "text-neutral-400"
-                        }`}
-                      >
-                        {t.optAvatarContain}
-                      </button>
-                    </div>
-                    )}
+                {/* Editing overlay, always visible in edit mode (as on the character sheet) */}
+                {editImage && (
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-2 text-xs font-mono text-amber-300">
+                    <ImageIcon className="w-7 h-7 mb-1.5 text-amber-400" />
+                    <span>{t.btnChangePhoto}</span>
                   </div>
                 )}
               </div>
+              <input id="input-familiar-portrait" type="file" accept="image/*" className="hidden" ref={avatarInputRef} onChange={handleAvatarChange} />
+
+              {/* Fit and removal, below the portrait, applied at once (as on the character sheet) */}
+              {isQuickEditing && familiar.imagen && (canEditImageFit || canEditImage) && (
+                <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                  {canEditImageFit && (
+                  <div className="grid grid-cols-2 gap-1 bg-neutral-950 p-0.5 rounded-lg border border-neutral-800 flex-1">
+                    {(["cover", "contain"] as const).map(fit => (
+                      <button
+                        key={fit}
+                        type="button"
+                        id={`btn-familiar-fit-${fit}`}
+                        onClick={() => setImageFit(fit)}
+                        className={`py-1.5 px-2 rounded text-[10px] font-mono font-bold transition-all cursor-pointer truncate ${
+                          (familiar.imageFit ?? "cover") === fit
+                            ? "bg-violet-900 text-amber-300 border border-amber-500/30"
+                            : "text-neutral-500 hover:text-neutral-300"
+                        }`}
+                      >
+                        {fit === "cover" ? t.optAvatarCover : t.optAvatarContain}
+                      </button>
+                    ))}
+                  </div>
+                  )}
+                  {canEditImage && (
+                  <button
+                    type="button"
+                    id="btn-familiar-remove-portrait"
+                    onClick={removeImage}
+                    className="py-1.5 px-3 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded-lg text-[10px] font-mono transition-colors cursor-pointer"
+                  >
+                    {t.removeAvatar}
+                  </button>
+                  )}
+                </div>
+              )}
 
               {/* Portrait footer details */}
               <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs font-mono text-neutral-400">
@@ -132,10 +142,11 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarName}
                     </label>
                     <input
+                      id="input-familiar-nombre"
                       type="text"
-                      value={editNombre}
+                      value={familiar.nombre ?? ""}
                       disabled={!canEditName}
-                      onChange={(e) => setEditNombre(e.target.value)}
+                      onChange={(e) => edit("nombre", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
                   </div>
@@ -145,10 +156,11 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarSpecies}
                     </label>
                     <input
+                      id="input-familiar-especie"
                       type="text"
-                      value={editEspecie}
+                      value={familiar.especie ?? ""}
                       disabled={!canEditSpecies}
-                      onChange={(e) => setEditEspecie(e.target.value)}
+                      onChange={(e) => edit("especie", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
                   </div>
@@ -158,10 +170,11 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarDescription}
                     </label>
                     <textarea
+                      id="input-familiar-descripcion"
                       rows={4}
-                      value={editDescripcion}
+                      value={familiar.descripcion ?? ""}
                       disabled={!canEditDescription}
-                      onChange={(e) => setEditDescripcion(e.target.value)}
+                      onChange={(e) => edit("descripcion", e.target.value)}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none font-sans"
                     />
                   </div>
@@ -210,9 +223,10 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                   {t.familiarBondSectionTitle}
                 </h2>
 
-                {canBond && (
+                {editBond && (
                 <button
                   type="button"
+                  id="btn-familiar-bond"
                   onClick={() => setIsSelectMasterOpen(true)}
                   className="px-2.5 py-1 rounded-lg text-xs font-mono text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 transition-colors flex items-center gap-1 cursor-pointer"
                 >
@@ -266,7 +280,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       <span>{t.wizardViewDetail}</span>
                     </button>
 
-                    {canBond && (
+                    {editBond && (
                     <button
                       type="button"
                       onClick={() => handleBondMaster(null)}
@@ -289,7 +303,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       Este compañero no está vinculado a ningún alumno o mago actualmente.
                     </div>
                   </div>
-                  {canBond && (
+                  {editBond && (
                   <button
                     type="button"
                     onClick={() => setIsSelectMasterOpen(true)}

@@ -5,7 +5,7 @@
 
 // The familiar sheet's "galeria" tab (R3.4).
 import React from "react";
-import { Image as ImageIcon, Maximize2, Trash, Upload } from "lucide-react";
+import { Image as ImageIcon, Trash, Upload } from "lucide-react";
 import { imageSrc } from "../../remote/assets";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
@@ -13,12 +13,12 @@ import type { FamiliarContext } from "./useFamiliarDetail";
 export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
   const {
     gallery, t, isAcademy, setLightboxImage, galleryError, handleAddGalleryImage, handleDeleteGalleryImage,
-    canAddGalleryImage, canDeleteGalleryImage,
+    canAddGalleryImage, canDeleteGalleryImage, isQuickEditing,
   } = ctx;
   return (
         <div className="space-y-6 animate-fade-in">
-          {/* Gallery upload header */}
-          {canAddGalleryImage && (
+          {/* Gallery upload header: in edit mode, as on the character sheet */}
+          {isQuickEditing && canAddGalleryImage && (
           <div
             className={`glass-panel p-5 sm:p-6 rounded-2xl ${
               isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
@@ -34,6 +34,7 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
                 <Upload className="w-4 h-4 text-emerald-400" />
                 <span>Subir Imagen Local</span>
                 <input
+                  id="input-familiar-gallery-picker"
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -60,7 +61,9 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
               gallery.map((entry, idx) => (
                 <div
                   key={entry.id}
-                  className="relative aspect-square rounded-xl overflow-hidden group bg-neutral-950 border border-neutral-800 shadow-lg"
+                  id={`familiar-gallery-item-${idx}`}
+                  onClick={() => setLightboxImage(imageSrc(entry.value))}
+                  className="relative aspect-square rounded-xl overflow-hidden group bg-neutral-950 border border-neutral-800 shadow-lg cursor-pointer"
                 >
                   <img
                     src={imageSrc(entry.value)}
@@ -68,24 +71,18 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  {/* Tap to enlarge; in edit mode the delete button is always visible (phones have no hover). */}
+                  {isQuickEditing && canDeleteGalleryImage(entry.id) && (
                     <button
                       type="button"
-                      onClick={() => setLightboxImage(imageSrc(entry.value))}
-                      className="p-2 rounded-full bg-neutral-900/90 text-neutral-200 hover:text-amber-400 transition-colors cursor-pointer"
+                      id={`btn-familiar-del-gal-pic-${idx}`}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteGalleryImage(entry.id); }}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-950/90 border border-rose-500/30 text-rose-300 hover:text-rose-100 transition-colors cursor-pointer shadow"
+                      title={t.delete}
                     >
-                      <Maximize2 className="w-4 h-4" />
+                      <Trash className="w-3.5 h-3.5" />
                     </button>
-                    {canDeleteGalleryImage(entry.id) && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteGalleryImage(entry.id)}
-                      className="p-2 rounded-full bg-rose-950/90 text-rose-300 hover:text-rose-100 transition-colors cursor-pointer"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))
             )}

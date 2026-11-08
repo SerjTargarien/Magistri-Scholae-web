@@ -6,6 +6,8 @@
 // The familiar sheet's state and handlers (R3.4). The sheet is read from the
 // SheetStore (what the viewer sees) and every change is a single-path edit:
 // no whole record or whole list is ever written for an existing familiar.
+// Like the character sheet (owner decision, 8 November 2026): one edit mode,
+// «Editar» / «Finalizar Edición», each field saved as it is typed.
 import React, { useState, useRef } from "react";
 import { TRANSLATIONS } from "../../localization";
 import type { FamiliarDetailProps } from "../../account/screens";
@@ -38,7 +40,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     store,
     characters,
     onBack,
-    onEditInEditor,
     onArchive,
     onSelectCharacter,
     onBondMaster,
@@ -74,12 +75,11 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   // Tabs: perfil, notas, galeria
   const [activeTab, setActiveTab] = useState<"perfil" | "notas" | "galeria">("perfil");
 
-  // Quick edit mode
+  // Edit mode, as on the character sheet: fields save as they are typed.
   const [isQuickEditing, setIsQuickEditing] = useState(false);
-  const [editNombre, setEditNombre] = useState(familiar.nombre ?? "");
-  const [editEspecie, setEditEspecie] = useState(familiar.especie ?? "");
-  const [editDescripcion, setEditDescripcion] = useState(familiar.descripcion ?? "");
-  const [editImageFit, setEditImageFit] = useState<"cover" | "contain">(familiar.imageFit ?? "cover");
+  const edit = (path: string, value: unknown) => store.edit(path, value);
+  const setImageFit = (fit: "cover" | "contain") => edit("imageFit", fit);
+  const removeImage = () => edit("imagen", "");
 
   // Notes state
   const [newNoteTitle, setNewNoteTitle] = useState("");
@@ -112,33 +112,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     ? { id: linkedMasterProjection.id, fields: linkedMasterProjection.fields as CharacterSheet }
     : undefined;
   const isBondedTo = (characterId: string) => store.sheet.bondId === characterId;
-
-  const startQuickEdit = () => {
-    setEditNombre(familiar.nombre ?? "");
-    setEditEspecie(familiar.especie ?? "");
-    setEditDescripcion(familiar.descripcion ?? "");
-    setEditImageFit(familiar.imageFit ?? "cover");
-    setIsQuickEditing(true);
-  };
-
-  /** Edits only the paths whose value changed; a blank name or species keeps the old value. */
-  const handleSaveQuickEdit = async () => {
-    const changes: [string, unknown][] = [];
-    const nombre = editNombre.trim() || familiar.nombre;
-    const especie = editEspecie.trim() || familiar.especie;
-    const descripcion = editDescripcion.trim();
-    if (nombre !== undefined && nombre !== (familiar.nombre ?? "")) changes.push(["nombre", nombre]);
-    if (especie !== undefined && especie !== (familiar.especie ?? "")) changes.push(["especie", especie]);
-    if (descripcion !== (familiar.descripcion ?? "")) changes.push(["descripcion", descripcion]);
-    if (editImageFit !== (familiar.imageFit ?? "cover")) changes.push(["imageFit", editImageFit]);
-    const problems = changes.flatMap(([path, value]) => store.edit(path, value));
-    if (problems.length) {
-      onShowToast("error", t.validationErrorGeneric);
-      return;
-    }
-    setIsQuickEditing(false);
-    onShowToast("success", t.familiarSavedInlineToast);
-  };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -272,7 +245,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     gallery,
     characters,
     onBack,
-    onEditInEditor,
     onArchive,
     onSelectCharacter,
     onShowToast,
@@ -295,15 +267,9 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     setActiveTab,
     isQuickEditing,
     setIsQuickEditing,
-    startQuickEdit,
-    editNombre,
-    setEditNombre,
-    editEspecie,
-    setEditEspecie,
-    editDescripcion,
-    setEditDescripcion,
-    editImageFit,
-    setEditImageFit,
+    edit,
+    setImageFit,
+    removeImage,
     newNoteTitle,
     setNewNoteTitle,
     newNoteContent,
@@ -335,7 +301,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     setIsSelectMasterOpen,
     linkedMaster,
     isBondedTo,
-    handleSaveQuickEdit,
     handleAvatarChange,
     handleConfirmCrop,
     handleAddNote,

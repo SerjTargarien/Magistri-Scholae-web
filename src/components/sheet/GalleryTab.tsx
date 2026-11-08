@@ -79,12 +79,12 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                       referrerPolicy="no-referrer"
                     />
 
-                    {/* Delete action indicator hover */}
+                    {/* Delete, always visible in edit mode (phones have no hover) */}
                     {isQuickEditing && canRemove("galleryImages", pic.id) && (
                       <button
                         id={`btn-del-gal-pic-${idx}`}
                         onClick={(e) => removeGalleryImage(pic.id, e)}
-                        className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow"
+                        className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 transition-colors cursor-pointer shadow"
                         title="Delete picture"
                       >
                         <Trash className="w-3.5 h-3.5" />

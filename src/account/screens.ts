@@ -67,7 +67,6 @@ export interface FamiliarDetailProps {
   /** Characters this viewer can see, for the bonded-master card and the bond picker. */
   characters: ApiSheetProjection[];
   onBack: () => void;
-  onEditInEditor: (familiarId: string) => void;
   /** GM only; absent for everyone else. */
   onArchive?: () => void;
   onSelectCharacter: (characterId: string) => void;
@@ -80,15 +79,7 @@ export interface FamiliarDetailProps {
 export interface FamiliarEditorProps {
   lang: Language;
   visualStyle?: VisualStyle;
-  /** An existing familiar to edit (changes go through store.edit), or undefined to create one. */
-  store?: SheetStore;
-  /** Familiars this viewer can see, for the editor's list beside the form. */
-  familiars: ApiSheetProjection[];
-  /** Opens another familiar from that list in the editor. */
-  onOpenFamiliar: (familiarId: string) => void;
-  /** GM only, for an existing familiar; absent for everyone else (no one deletes). */
-  onArchive?: () => void;
-  /** Creates a new familiar; `image` (data URL) is uploaded after creation. Resolves with its id. */
+  /** Creates a new familiar (the editor only creates; existing familiars are edited on their sheet); `image` (data URL) is uploaded after creation. Resolves with its id. */
   onCreate: (fields: FamiliarSheet, image?: string) => Promise<string>;
   onUploadImage: UploadImage;
   onBack: () => void;

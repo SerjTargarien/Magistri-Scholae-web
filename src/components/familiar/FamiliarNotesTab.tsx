@@ -13,7 +13,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
   const {
     notes, t, isAcademy, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
     setEditingNoteId, editingNoteTitle, setEditingNoteTitle, editingNoteContent, setEditingNoteContent, handleAddNote,
-    handleSaveEditedNote, handleDeleteNote, canAddNote, canEditNote, canDeleteNote,
+    handleSaveEditedNote, handleDeleteNote, canAddNote, canEditNote, canDeleteNote, isQuickEditing,
   } = ctx;
   return (
         <div className="space-y-6 animate-fade-in">
@@ -125,7 +125,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           )}
-                          {canDeleteNote(note.id) && (
+                          {isQuickEditing && canDeleteNote(note.id) && (
                           <button
                             type="button"
                             onClick={() => handleDeleteNote(note.id)}

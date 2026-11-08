@@ -19,7 +19,6 @@ import {
   X,
   Check,
   User,
-  Sparkles,
   Link as LinkIcon,
 } from "lucide-react";
 
@@ -33,12 +32,15 @@ export type { FamiliarDetailProps };
 export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
   const ctx = useFamiliarDetail(screenProps);
   const {
-    store, familiar, familiarId, notes, gallery, characters, onBack, onEditInEditor, onArchive, t, archiveText,
-    isAcademy, canEditProfile, activeTab, setActiveTab, isQuickEditing, startQuickEdit, lightboxImage, setLightboxImage,
+    store, familiar, notes, gallery, characters, onBack, onArchive, t, archiveText,
+    isAcademy, canEditProfile, canAddNote, canAddGalleryImage, canBond, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing,
+    lightboxImage, setLightboxImage,
     cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, setCroppedAreaPixels,
     isDeleteOpen, setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, isBondedTo,
-    handleSaveQuickEdit, handleConfirmCrop, handleBondMaster,
+    handleConfirmCrop, handleBondMaster,
   } = ctx;
+  // As on the character sheet: the edit button shows when the viewer can change anything.
+  const canEditSheet = canEditProfile || canAddNote || canAddGalleryImage || canBond;
 
   return (
     <div
@@ -90,39 +92,31 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
 
         {/* Header Action Buttons */}
         <div className="z-10 flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          {/* Quick Edit Toggle */}
-          {canEditProfile && (
+          {/* Edit toggle, as on the character sheet: changes save as they are made */}
+          {canEditSheet && (
           <button
             type="button"
-            id="btn-familiar-quick-edit"
-            onClick={() => {
-              if (isQuickEditing) {
-                handleSaveQuickEdit();
-              } else {
-                startQuickEdit();
-              }
-            }}
-            className={`px-3 py-2 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border ${
+            id="btn-familiar-edit"
+            onClick={() => setIsQuickEditing(!isQuickEditing)}
+            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none ${
               isQuickEditing
-                ? "bg-amber-500 text-neutral-950 font-bold border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
-                : "bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 border-neutral-700/60"
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400"
+                : isAcademy
+                  ? "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
+                  : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
             }`}
           >
-            {isQuickEditing ? <Check className="w-3.5 h-3.5" /> : <Edit className="w-3.5 h-3.5" />}
-            <span>{isQuickEditing ? t.save : t.familiarQuickEdit}</span>
-          </button>
-          )}
-
-          {/* Full Editor */}
-          {canEditProfile && (
-          <button
-            type="button"
-            id="btn-familiar-full-editor"
-            onClick={() => onEditInEditor(familiarId)}
-            className="px-3 py-2 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/40 transition-colors cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden md:inline">{t.familiarEditInEditor}</span>
+            {isQuickEditing ? (
+              <>
+                <Check className="w-4 h-4 shrink-0" />
+                <span>{t.btnFinish}</span>
+              </>
+            ) : (
+              <>
+                <Edit className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.edit}</span>
+              </>
+            )}
           </button>
           )}
 

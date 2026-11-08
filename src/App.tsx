@@ -57,7 +57,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedCharId, setSelectedCharId] = useState<string | null>(null);
   const [selectedFamiliarId, setSelectedFamiliarId] = useState<string | null>(null);
-  const [familiarEditorOrigin, setFamiliarEditorOrigin] = useState<"LIST" | "TYPE_SELECT" | "DETAIL" | "FAMILIAR_DETAIL">("TYPE_SELECT");
+  // Where the familiar creation screen was opened from: a character's sheet, or the type choice.
+  const [familiarEditorOrigin, setFamiliarEditorOrigin] = useState<"TYPE_SELECT" | "DETAIL">("TYPE_SELECT");
   const [newCharacterType, setNewCharacterType] = useState<CharacterType>("student");
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [, rerender] = useReducer((n: number) => n + 1, 0);
@@ -385,7 +386,6 @@ export default function App() {
               store={familiarStore}
               characters={characters}
               onBack={() => { setSelectedFamiliarId(null); setScreen("LIST"); void loadLists(); }}
-              onEditInEditor={id => { setSelectedFamiliarId(id); setFamiliarEditorOrigin("FAMILIAR_DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onArchive={isGM(familiarStore) ? () => void archive(familiarStore) : undefined}
               onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
               onBondMaster={characterId => bond(familiarStore, characterId)}
@@ -405,25 +405,22 @@ export default function App() {
 
           {screen === "FAMILIAR_EDITOR" && (
             <FamiliarEditor
-              key={familiarStore?.sheet.id ?? "new"}
+              key="new"
               lang={lang}
               visualStyle={visualStyle}
-              store={familiarStore}
-              familiars={familiars}
-              onOpenFamiliar={id => setSelectedFamiliarId(id)}
-              onArchive={familiarStore && isGM(familiarStore) ? () => void archive(familiarStore) : undefined}
+              // Creation only; afterwards back to the character's sheet it was opened from,
+              // or to the new familiar's own sheet (as creating a character does).
               onCreate={async (fields, image) => {
                 const store = await createFamiliar(fields, image);
-                setSelectedFamiliarId(store.sheet.id);
+                if (familiarEditorOrigin === "DETAIL" && selectedCharId) setScreen("DETAIL");
+                else { setSelectedFamiliarId(store.sheet.id); setScreen("FAMILIAR_DETAIL"); }
                 return store.sheet.id;
               }}
-              onUploadImage={familiarStore ? uploadImage(familiarStore) : async () => {}}
+              onUploadImage={async () => {}}
               onBack={() => {
                 void loadLists();
-                if (familiarEditorOrigin === "FAMILIAR_DETAIL" && selectedFamiliarId) setScreen("FAMILIAR_DETAIL");
-                else if (familiarEditorOrigin === "DETAIL" && selectedCharId) setScreen("DETAIL");
-                else if (familiarEditorOrigin === "TYPE_SELECT") { setSelectedFamiliarId(null); setScreen("TYPE_SELECT"); }
-                else { setSelectedFamiliarId(null); setScreen("LIST"); }
+                if (familiarEditorOrigin === "DETAIL" && selectedCharId) setScreen("DETAIL");
+                else { setSelectedFamiliarId(null); setScreen("TYPE_SELECT"); }
               }}
               onShowToast={showToast}
             />

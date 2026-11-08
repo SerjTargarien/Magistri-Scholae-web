@@ -177,10 +177,13 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Screenshot tests of every existing screen: the character list and its cards, the type selection, the creation form, the character sheet (every tab, and the phone profile banner), the familiar sheet and editor, and settings. Each at desktop and phone widths, in the academy and classic styles, in English and Spanish.
   - Taken from today's app before any screen code changes. CI (Linux) holds the reference images; a difference fails the check.
   - A justified change follows the approval step above. Parts that R3.6 removes (local backups and the typed reset in settings) leave the baseline then, with the owner's approval.
-- **R3.2 One data model.**
-  - `export_api_contract` also generates TypeScript types for characters and familiars from the backend field registry, alongside `fieldRegistry.generated.ts`. List items carry permanent IDs; images are asset references.
-  - The generated types replace the sheet types in `src/types.ts`. Static game data (houses, default skills) moves to its own file. New-sheet defaults (`characterFactory`) produce the new model.
-  - A new stored field is declared once, in the backend registry, with a fixture and a test.
+- **R3.2 One data model and its field rules** ([field-rules.md](field-rules.md), decided by the owner on 8 November 2026). It may land as two pull requests: server first, then the app's types.
+  - **Server:** every field gets the rule from field-rules.md: text lengths, whole-number ranges, choices, list sizes and a 5 MB limit per sheet. New fields: a severity for each consequence, an esoteric knowledge level per skill, age as a number. Removed fields: `lema`, `escudoText`, `notas`, `clubes`, `equipo`, `estresMentalConsecuencia`, also removed from stored staging records in the same change. `teachingSubjects` stays a list.
+  - **Skill catalogue:** each campaign gets a catalogue of skill categories and default skills (name, position, esoteric or not), starting with the six categories and 48 skills in field-rules.md. A character's default skills link to it, so a GM change applies campaign-wide. The GM screens to edit it come with R4.
+  - **App types:** named types for characters, familiars, list items and the catalogue, generated from the server's field list, including the limits (so input boxes can use them). They are added **alongside** the old hand-written types, which stay until each screen moves (R3.4) and are deleted in R3.6; replacing them earlier would break the screens.
+  - **Defaults:** blank new sheets in the new model (destiny 3, stress maximum 3 for students and 5 for adults, the 48 default skills), each list item with a permanent ID. The custom skill preset reads the key the sheet's button writes (fixing the mismatch found on 8 November).
+  - Static game data (houses, categories, default skills) moves out of `src/types.ts` into its own file.
+  - A new stored field is declared once, in the backend registry, with its rule, a fixture and a test.
 - **R3.3 Sheet store and mock server.**
   - One store per open sheet holds the server's copy (only what the viewer may see), the unsent changes by path, the revision they are based on, and the save state. Screens read and write only through it.
   - It grows out of today's `SaveQueue`. Unsent changes live in the page's memory; R7.2 moves them to device storage without changing the screens.
@@ -197,6 +200,17 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Edits work by item ID, not by position. The list, the creation form and the familiar screens move too.
   - One image helper shows server assets and newly picked images.
   - Shared readers get a read-only sheet; fields outside the writable paths are disabled.
+  - **Visible changes decided by the owner** (8 November 2026), each shown as before-and-after pictures for approval when its screen moves:
+    - destiny points: three gems by default, + adds up to 10;
+    - experience: up to 1,000,000, typeable in edit mode;
+    - consequences: a description plus a severity (mild, moderate, severe);
+    - subjects taught: a list like aspects;
+    - the form's motto box goes (the motto is the house's);
+    - age as a number; Magia intuitiva hidden above 14 and for adult wizards;
+    - the new skill categories and the esoteric knowledge level;
+    - counters and clear warnings near every limit;
+    - images from a web address are downloaded and uploaded, never stored as links; familiar gallery images are compressed;
+    - a blank name is never saved; generated journal titles are shown, not stored.
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles.
   - Lists show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
@@ -237,6 +251,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Enable and disable accounts.
   - Manage members and roles.
 - **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
+- **Skill catalogue editor (GM, owner decision 8 November 2026):** add and rename categories, mark a category as esoteric, add default skills, move skills between categories and reorder them. Changes apply to every character in the campaign ([field-rules.md](field-rules.md)).
 
 The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).
 
@@ -258,6 +273,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 - Generate production secrets and bootstrap the administrator.
 - Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him).
 - Switch the apex frontend from the old local-mode app to the account app. Check in a browser that had the old app that its service worker hands over to the new one.
+- Before launch, backups store each image once (owner decision, 8 November 2026): the database is dumped nightly as now, but images are uploaded to Backblaze only when new, so the 30-day history does not multiply image storage. The restore drill covers it.
 - Run the first production backup and check it restores.
 - Tag the release.
 
@@ -294,7 +310,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 5. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11).
 6. Clean-up:
    - Remove unused dependencies (L1).
-   - Fix the skill-preset key (L3).
+   - ~~Fix the skill-preset key (L3)~~: done in R3.2.
    - Reduce list query counts (M2).
    - Reclaim orphaned media.
    - Trim the docs.
@@ -317,6 +333,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 | 10 | Roles and audience at launch? | R4 | **Recorded 7 November 2026:** the owner is site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players. The GM is comfortable with clear, visual screens, and the owner does setup otherwise. |
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
 | 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** every existing screen keeps its current look whenever reasonable, enforced by screenshot tests (R3.1). A change needs a reason and the owner's approval of before-and-after screenshots. New screens follow the existing styles. |
+| 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
 
 ## Former milestones
 

@@ -1,0 +1,147 @@
+# Field rules (draft, 8 November 2026)
+
+Every stored field of a character and a familiar, screen by screen: what the app does today, and the rule the server will enforce from R3.2. The server stores what the app sends, so these rules are the only protection against values the screens cannot show. Source: a read of `CharacterForm.tsx`, `CharacterDetail.tsx`, `FamiliarDetail.tsx`, `FamiliarEditor.tsx` and `CharacterList.tsx` at `b97d96a`, and the owner's answers of 8 November 2026.
+
+**Status:** all owner decisions recorded (8 November 2026). Changes marked **visible** follow the screenshot approval step when the screen moves to the new model (R3.4).
+
+## How to read the rules
+
+- **Text N:** at most N characters. The input box gets the same limit, and the app trims spaces at both ends before saving.
+- **Required:** must not be empty after trimming.
+- **Whole number a–b:** an integer in that range; decimals are rejected.
+- **Choice:** one of a fixed list. **List ≤ N:** at most N entries; each entry has a permanent ID and a position, so it can be reordered.
+- **Warnings (owner decision):** limits are set well above normal use, and the app warns clearly before one is reached: a counter appears on a text box or list once it passes 90% of its limit, and a save over the limit explains which limit was hit.
+- Today no input has a length limit, and the server allows 64,000 characters per text, any number up to a trillion, and 500 entries per list.
+
+## Character list (cards)
+
+The cards show: portrait, house crest, archetype, `curso` (badge, not clipped), `nombre` (one line), `concepto` (two lines), destiny points, XP, `jugador` (one line). Familiar cards: image, `nombre`, `especie`, `descripcion` (two lines), bonded student. These displays set the practical text lengths below.
+
+## Type selection
+
+`characterType`: **choice** student / adult wizard; not changeable afterwards.
+
+## Identity (form tab Perfil; sheet banner and tab Perfil)
+
+| Field | Today | Rule |
+|---|---|---|
+| `nombre` | Required in the form; the sheet saves it on every keystroke, even blank. Banner heading not clipped. | **Required, text 80.** The sheet keeps the last valid name instead of saving a blank one (R3.4). |
+| `concepto` | Free; the character's personal motto ("like their personal motto", owner). Banner wraps; cards show two lines. | **Text 200** |
+| `jugador` | Free label, never ownership. | **Text 80** |
+| `edad` | Free text ("11 años"). | **Whole number 0–999 (owner decision, visible):** years, shown as "11 años" / "11 years". Needed for the Magia intuitiva rule below. |
+| `curso` (students) | Free text ("1º"). | **Text 20** |
+| `puestoClase` (students) | Free. | **Text 80** |
+| `linaje`, `economia`, `varitaSintonia` | Free. | **Text 200** each |
+| `avatarImage`, `avatarFit` | Cropper 3:4, JPEG ≤900 px, 0.75; a web address works only if the site allows it. | Uploaded image (4 MB, 16 MP); cover/contain. Web address: downloaded in the browser and uploaded, or a clear message to save and upload the file (R3.4). |
+
+**Adult wizard profile** (`adultWizardProfile`):
+
+| Field | Today | Rule |
+|---|---|---|
+| `role`, `institution`, `magicalFocus`, `reputation` | Free. | **Text 120** each |
+| `formerHouse` | Free text; the house filter matches it by substring. | **Text 80** |
+| `isTeacher` | Checkbox. | Yes/no |
+| `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** |
+
+## House (form tab Afiliación, students; sheet Perfil heraldry)
+
+| Field | Today | Rule |
+|---|---|---|
+| `casa` | Five houses; an unknown value shows mismatched colours and crest. | **Choice** of the five houses, or empty for adult wizards |
+| `lema` | Overwritten with the house motto in the interface language of the moment; a typed motto is never displayed. | **Removed (owner decision).** The motto always belongs to the house (or, after 1.0, the organization) and is shown from the house's own data. The form's motto box goes (visible). |
+| `escudoText` | Copy of the house key, never displayed. | **Removed** |
+
+Organizations (with their own mottos) get a builder and editor after 1.0.
+
+## Aspects (form tab Aspectos; sheet Perfil)
+
+| Field | Today | Rule |
+|---|---|---|
+| `aspectosPersonales` | Add/remove. | **List ≤ 30**, each **required, text 300** |
+| `complicaciones` | Add/remove. | **List ≤ 30**, each **required, text 300** |
+| `camposPersonalizados` | Add name + value; the name can be blanked when edited. | **List ≤ 100**; name **required, text 60**; value **text 500** |
+
+## Session (sheet tab Sesión; form tab Estrés for the maximums)
+
+| Field | Today | Rule |
+|---|---|---|
+| `puntosDestino` | Five gems, 0–5, default 3. | **Whole number 0–10, default 3 (owner decision).** Per-session points: normally spent, can grow during a session. **Visible:** three gems by default; the + button adds points up to 10, with a gem appearing for each point above 3. |
+| `pxs` (experience) | −/+ only, silently stops at 99. | **Whole number 0–1,000,000 (owner decision).** XP is also spent. Proposal (visible): in edit mode the number can also be typed, so a GM can set large values. |
+| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | 1–10; default 3 (students), 5 (adults). | **Whole number 1–10** |
+| `estresFisico`, `estresMental`, `estresSocial` | 0..maximum (sheet only). | **Whole number 0–10, not above its maximum** |
+| `aspectoTemporal` | Add/remove. | **List ≤ 30**, each **required, text 300** |
+| `consecuenciasFisicas`, `consecuenciasMentales`, `consecuenciasSociales` | Free text lists. | **Owner decision (visible):** each consequence is a **description** (required, **text 1,000**: the important part for role-play) plus a **severity**: **choice** mild / moderate / severe (*leve / moderada / grave*). **List ≤ 30** per track. |
+
+## Skills (form tab Habilidades; sheet tab Habilidades)
+
+**New categories (owner decision, visible).** "Asignaturas troncales" and "Asignaturas optativas" are replaced by three categories. Physical, mental and social skills stay as they are, except that Espiritismo moves to esoteric magic.
+
+| Category | Default skills |
+|---|---|
+| Físicas | Atletismo, Físico, Deportes, Sigilo, Prestidigitación, Duelo, Supervivencia |
+| Mentales | Investigar, Percepción, Voluntad, Empatía |
+| Sociales | Contactos, Provocar, Carisma, Engaño |
+| Habilidades y conocimientos mágicos | Magia intuitiva (hidden automatically when the character is older than 14, and never shown for adult wizards; the stored value is kept, so correcting the age brings it back), Historia de la magia (was "Historia del mundo mágico"), Herbología, Seres mágicos, Astronomía, Conocimiento de varitas, Leyes y costumbres del mundo mágico, Cultura de casa; **classified by eye, confirmed by the owner:** Trivium, Quadrivium, Arte, Conocimiento muggle |
+| Magia elemental | Hermética, Transmutación, Pociones |
+| Magia esotérica | Magia druídica, Oráculos y adivinación (was "Oráculo"), Creación de objetos mágicos, Espiritismo, Simpática, Quimerismo, Oniromancia, Musología, Numerología, Sanación, Cábala, Climática, Entropía, Cronomancia, Espejismo, Oclumancia, Legeremancia, Nigromancia |
+
+That makes 48 default skills (Oniromancia appeared twice in the owner's list and is counted once). English names are added for the new ones (for example Wand Lore, House Culture, Occlumency, Legilimency, Necromancy) and for the three new categories (Magical Skills and Knowledge, Elemental Magic, Esoteric Magic).
+
+**Esoteric knowledge (owner decision):** each esoteric skill also records its knowledge, independent of its level: basic (alteration), medium (destruction), advanced (creation). **One level per skill (owner decision):** none, basic, medium or advanced; each level includes the ones below it.
+
+**Categories become data (owner decision).** The GM can add categories, move skills between categories and reorder them. So categories stop being fixed text in the code: each campaign has a **skill catalogue** (categories with a name, a position and whether they use esoteric knowledge; default skills with their category and position). The six categories above are the starting catalogue. **A GM change applies to the whole campaign (owner decision):** each character's default skills are linked to the catalogue, so moving or reordering a skill there moves it on every sheet. Skills a player invents stay on that character, filed under a catalogue category and placed after the catalogue's skills in that category. The GM screens to edit the catalogue come with R4; R3.2 builds the data model.
+
+| Field | Today | Rule |
+|---|---|---|
+| `habilidades[].nombre` | Players add their own skills (owner: keep), duplicates rejected. | **Required, text 60**; no duplicate names within a character |
+| `habilidades[].valor` | 0–5. | **Whole number 0–5** |
+| `habilidades[].categoria` | One of five fixed texts; others are invisible. | **A category of the campaign's catalogue** (by ID); default skills also keep a link to their catalogue entry |
+| `habilidades[].conocimiento` | — (new) | **Choice** none / basic / medium / advanced; only for skills in a category marked esoteric |
+| position | List order; no reordering. | Taken from the catalogue for linked skills; invented skills follow in creation order |
+| `habilidades` | 39 defaults. | **List ≤ 200** |
+
+## Spells and potions (sheet tab Hechizos)
+
+| Field | Today | Rule |
+|---|---|---|
+| `conjuros[]`, `pociones[]` `.nombre` | Add/remove; names wrap. | **Required, text 100** |
+| `.valor` | I–V, stored 1–5. | **Whole number 1–5** |
+| `.specialized` | Checkbox. | Yes/no |
+| lists | | **List ≤ 200** each |
+
+## Clubs, equipment and journal (sheet tab Notas)
+
+| Field | Today | Rule |
+|---|---|---|
+| `clubesList[].nombre` | Add/remove. | **Required, text 100**; **list ≤ 50** |
+| `equipoList[].nombre` | Add/remove. | **Required, text 100**; **list ≤ 500** |
+| `equipoList[].cantidad` | At least 1, no maximum. | **Whole number 1–9,999** |
+| `notasList[].titulo` | An empty title becomes "Entrada del …" in the interface language, stored as data. | **Text 200**; an empty title is stored empty and the generated title is only shown (R3.4) |
+| `notasList[].contenido` | Required, multi-line. | **Required, text 50,000** |
+| `notasList[].fecha` | Set by the player's device at creation. | **Whole number**, a real date |
+| `notasList` | Newest first. | **List ≤ 5,000** (owner: higher limits with clear warnings) |
+
+## Gallery (sheet tab Galería)
+
+| Field | Today | Rule |
+|---|---|---|
+| `galleryImages` | Compressed to 1,600 px, JPEG 0.75; removed by position. | Uploaded images only; **list ≤ 50 (owner decision)** |
+
+## Familiar sheet and editor
+
+| Field | Today | Rule |
+|---|---|---|
+| `nombre` | Required in the editor. | **Required, text 80** |
+| `especie` | Required in the editor, not on the server. | **Required, text 60** |
+| `descripcion` | Multi-line. | **Text 5,000** |
+| `imagen`, `imageFit` | Same cropper as the portrait. | As `avatarImage` / `avatarFit` |
+| `notasList` | Needs a title or content. | As the character journal, but content may be empty if there is a title |
+| `galleryImages` | Up to 2.5 MB stored **uncompressed**, or a **web link** stored as is. | Uploaded and compressed like the character gallery; web addresses as for portraits; **list ≤ 50** |
+| bond | One familiar per student. | Unchanged: a separate bond operation |
+
+## Whole sheet and storage
+
+- **Total size: 5 MB of text** per character or familiar (images are separate files), with the 90% warning. A weekly 2,000-character journal entry adds about 100 KB a year. If a journal ever approaches the limit, journals can move into their own records later without changing the screens.
+- **Removed fields:** `lema`, `escudoText`, and the four old-app fields `notas`, `clubes`, `equipo`, `estresMentalConsecuencia`. A removed field is also removed from stored records in the same release, or players could no longer save.
+- **Set by the server, not the app:** IDs, creation and update times, owner, campaign, table.
+- **Backups store each image once (owner decision).** Each night the database is backed up as now, but images are uploaded only when new, so the 30-day history no longer multiplies image storage. This is deployment work, due before launch (R6).

@@ -33,6 +33,7 @@
 ## Persistence and privacy rules
 
 - Screens read and write records only through the sheet store and its adapters (remote, the in-browser mock server, and later the offline store), never through Dexie or the API directly.
+- Every stored field has a rule in [docs/field-rules.md](docs/field-rules.md) (length, range, choice or list size), enforced by the server and mirrored by the input. A new field gets its rule there and in the backend registry.
 - Preserve server records, IDs and media. Do not bump or reset `MagistriScholaeDB` while local mode exists. Use isolated fixture databases for tests.
 - Keep legitimate local preferences (language, visual style, custom skill presets) distinct from authoritative shared records.
 - Hidden values are not blank values. Never turn a partial viewer projection into a destructive whole-record save. Network writes are validated (changed fields and revisions) on the server.

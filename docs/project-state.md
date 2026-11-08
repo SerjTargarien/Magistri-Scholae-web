@@ -365,7 +365,16 @@ Intermediate checks caught browser fetch binding, sign-in busy-state handling, S
 - **Owner decisions:** the full matrix, stored in the repository (the alternatives were a separate branch or a reduced set). The size grows with each approved change (about 3 MB for one tab, about 33 MB for a change on every sheet).
 - **Approval process:** see [development.md](development.md), "Screenshot tests".
 
-**Next:** R3.2 (one data model: generated types), explained before it starts.
+## Field rules — 8 November 2026
+
+Before R3.2, every stored field was reviewed screen by screen (the creation form, the sheet, the familiar screens and the list). Findings:
+
+- The screens already limit most numbers (destiny 0–5, stress maximums 1–10, skills 0–5, spells 1–5), but the server enforces none of it, and no input has a text limit.
+- Problems found in the current app: subjects taught cannot be typed normally; a typed motto is saved but never shown; the sheet saves a blank name while typing; XP silently stops at 99; familiar gallery images are stored uncompressed or as raw web links; generated journal titles are stored in the interface language; `escudoText` and the sheet's skill-preset slot are written but never used.
+
+The owner decided every field ([field-rules.md](field-rules.md), roadmap decision 13): destiny 0–10 (three gems by default), XP up to 1,000,000, consequences with a severity, subjects taught as a list, no stored motto, age as a number with Magia intuitiva hidden above 14, 50 gallery images with backups storing images once, generous limits with clear warnings, and new skill categories (magical knowledge, elemental magic, esoteric magic with a knowledge level) in a campaign-wide catalogue the GM edits (R4). R3.2 builds the data model; the visible changes come with R3.4, each approved with pictures.
+
+**Next:** R3.2, explained before it starts.
 
 ## Updating this handoff
 

@@ -23,7 +23,9 @@ class ContractTests(APICase):
 
     def test_registry_covers_current_local_fields_and_archetypes(self):
         source = (settings.BASE_DIR.parent / "src/types.ts").read_text(encoding="utf-8")
-        for name, kind, metadata in [("Character", "character", {"id", "tempId", "familiarId", "createdAt", "updatedAt"}),
+        # Fields the server dropped in registry version 2 stay in the old local types until R3.6 retires them.
+        retired = {"lema", "escudoText", "notas", "clubes", "equipo", "estresMentalConsecuencia"}
+        for name, kind, metadata in [("Character", "character", {"id", "tempId", "familiarId", "createdAt", "updatedAt"} | retired),
                                      ("Familiar", "familiar", {"id", "studentId", "createdAt", "updatedAt"})]:
             block = re.search(r"export interface " + name + r" \{(.*?)\n\}", source, re.S).group(1)
             fields = set(re.findall(r"^  (\w+)\??:", block, re.M))

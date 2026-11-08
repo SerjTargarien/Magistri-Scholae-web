@@ -113,7 +113,8 @@ class ProjectionTests(APICase):
         self.sheet.save()
         self.assertNotIn("futureSecret", self.read(self.alice_client, f"characters/{self.sheet.pk}")["fields"])
         self.assertIn("futureSecret", self.read(self.gm_client, f"characters/{self.sheet.pk}")["fields"])
-        self.patch(self.alice_client, "futureSecret", "forged", status=400)
+        refused = self.patch(self.alice_client, "futureSecret", "forged", status=409)
+        self.assertEqual(refused, {"error": {"code": "stored_sheet_invalid"}})
 
     def test_stale_and_other_viewer_revisions_fail_without_secret_payload(self):
         old = self.current()["revision"]

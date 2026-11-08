@@ -259,8 +259,11 @@ export default function App() {
   };
 
   const bond = async (store: SheetStore, targetId: string | null) => {
-    const target = targetId ? [...characters, ...familiars].find(s => s.id === targetId) : undefined;
-    await mutate(store, "bond", { targetId, ...(target ? { targetRevision: stores.current.get(target.id)?.sheet.revision ?? target.revision } : {}) });
+    // The target's current revision: its open store (a sheet just created has one), else the list.
+    const targetRevision = targetId
+      ? stores.current.get(targetId)?.sheet.revision ?? [...characters, ...familiars].find(s => s.id === targetId)?.revision
+      : undefined;
+    await mutate(store, "bond", { targetId, ...(targetRevision ? { targetRevision } : {}) });
     for (const other of stores.current.values()) if (other !== store) void other.refresh();
     await loadLists();
     showToast("success", t.familiarSavedToast);
@@ -412,8 +415,13 @@ export default function App() {
               // or to the new familiar's own sheet (as creating a character does).
               onCreate={async (fields, image) => {
                 const store = await createFamiliar(fields, image);
-                if (familiarEditorOrigin === "DETAIL" && selectedCharId) setScreen("DETAIL");
-                else { setSelectedFamiliarId(store.sheet.id); setScreen("FAMILIAR_DETAIL"); }
+                if (familiarEditorOrigin === "DETAIL" && selectedCharId) {
+                  // Created from a character's sheet (whose link picker is only offered while the
+                  // character has no familiar): linked to that character (owner decision, 8 November 2026).
+                  const character = stores.current.get(selectedCharId);
+                  if (character) await bond(character, store.sheet.id).catch(() => showToast("error", t.errorStoringStudent));
+                  setScreen("DETAIL");
+                } else { setSelectedFamiliarId(store.sheet.id); setScreen("FAMILIAR_DETAIL"); }
                 return store.sheet.id;
               }}
               onUploadImage={async () => {}}

@@ -313,26 +313,23 @@ test("bonds: link from the character, navigate both ways; archiving the characte
   await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
 });
 
-test("player: create a familiar from the character sheet, then bond it there", async ({ page }) => {
+test("player: a familiar created from the character sheet is linked to that character", async ({ page }) => {
+  const createFromSheet = async (name: string) => {
+    await setEditMode(page, true);
+    await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();
+    await page.getByRole("button", { name: /Create Familiar|Crear Familiar/ }).click();
+    await page.locator("#input-familiar-nombre").fill(name);
+    await page.locator("#input-familiar-especie").fill("Owl");
+    await page.locator("#btn-save-familiar").click(); // back to the character's sheet, already linked
+    await expect(page.locator("#character-detail-screen")).toContainText("Sheet Owner");
+    await expect(visibleOf(page, "header-familiar-card", "header-familiar-card-mobile")).toContainText(name);
+  };
   await createCharacter(page, "Sheet Owner");
-  await setEditMode(page, true);
-  await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();
-  await page.getByRole("button", { name: /Create Familiar|Crear Familiar/ }).click();
-  await page.locator("#input-familiar-nombre").fill("Sheet Owl");
-  await page.locator("#input-familiar-especie").fill("Owl");
-  await page.locator("#input-familiar-descripcion").fill("Sheet Owl description");
-  await page.locator("#btn-save-familiar").click(); // back to the character's sheet
-  await expect(page.locator("#character-detail-screen")).toContainText("Sheet Owner");
-  await setEditMode(page, true); // the sheet reopens in reading mode, as before the switch
-  await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();
-  await page.getByRole("button", { name: /Sheet Owl/ }).last().click();
-  await setEditMode(page, false);
-
+  await createFromSheet("Sheet Owl");
   await reloadApp(page);
   await expect(familiarCard(page, "Sheet Owl")).toContainText("Sheet Owner");
   await expect(page.getByText(/Could not load your data|No se pudieron cargar los datos/)).toHaveCount(0);
 });
-
 test("portrait upload with crop and a gallery image persist", async ({ page }) => {
   await createCharacter(page, "Portrait Student", {
     fill: async () => {

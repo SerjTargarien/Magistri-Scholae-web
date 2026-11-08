@@ -549,6 +549,10 @@ Owner, after testing on his phone: familiars had two ways to edit (quick edit an
 6. Gallery pictures could only be enlarged or deleted by hovering: tapping a picture enlarges it, and the delete button is always visible in edit mode. The character gallery's delete button was hover-only too and is fixed the same way.
 7. The familiar editor also edited existing familiars and listed every familiar with edit and archive buttons: it now only creates (familiars are listed on the main card view). After saving it returns to the character's sheet it was opened from, or opens the new familiar's sheet, as creating a character does.
 
+Released to both sites (release `20261108-182351-4a11cca`), with #34 (usernames and codes trimmed; display names keep capitals).
+
+- Owner decision (same day): a familiar created from a character's sheet is linked to that character on saving. The sheet only offers «Crear Familiar» while the character has no familiar, so no existing link is replaced.
+
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff

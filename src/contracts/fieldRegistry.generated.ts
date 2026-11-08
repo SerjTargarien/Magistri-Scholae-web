@@ -4,121 +4,9 @@ export const API_SCHEMA = {
   "entities": {
     "character": {
       "nombre": {
-        "type": "string"
-      },
-      "jugador": {
-        "type": "string"
-      },
-      "edad": {
-        "type": "string"
-      },
-      "casa": {
-        "type": "string"
-      },
-      "curso": {
-        "type": "string"
-      },
-      "puestoClase": {
-        "type": "string"
-      },
-      "concepto": {
-        "type": "string"
-      },
-      "lema": {
-        "type": "string"
-      },
-      "escudoText": {
-        "type": "string"
-      },
-      "linaje": {
-        "type": "string"
-      },
-      "economia": {
-        "type": "string"
-      },
-      "varitaSintonia": {
-        "type": "string"
-      },
-      "clubes": {
-        "type": "string"
-      },
-      "equipo": {
-        "type": "string"
-      },
-      "notas": {
-        "type": "string"
-      },
-      "puntosDestino": {
-        "type": "number"
-      },
-      "estresFisico": {
-        "type": "number"
-      },
-      "estresFisicoMax": {
-        "type": "number"
-      },
-      "estresMental": {
-        "type": "number"
-      },
-      "estresMentalMax": {
-        "type": "number"
-      },
-      "estresSocial": {
-        "type": "number"
-      },
-      "estresSocialMax": {
-        "type": "number"
-      },
-      "pxs": {
-        "type": "number"
-      },
-      "complicaciones": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "consecuenciasFisicas": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "consecuenciasMentales": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "consecuenciasSociales": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "aspectoTemporal": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "aspectosPersonales": {
-        "type": "items",
-        "fields": {
-          "value": {
-            "type": "string"
-          }
-        }
+        "type": "string",
+        "maxLength": 80,
+        "required": true
       },
       "characterType": {
         "type": "string",
@@ -127,23 +15,73 @@ export const API_SCHEMA = {
           "adult_wizard"
         ]
       },
+      "concepto": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "jugador": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "edad": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 999
+      },
+      "curso": {
+        "type": "string",
+        "maxLength": 20
+      },
+      "puestoClase": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "casa": {
+        "type": "string",
+        "choices": [
+          "",
+          "IRATI",
+          "URANIA",
+          "AL-KHWARIZMI",
+          "CALANTES",
+          "ALEIXIS"
+        ]
+      },
+      "linaje": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "economia": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "varitaSintonia": {
+        "type": "string",
+        "maxLength": 200
+      },
       "adultWizardProfile": {
         "type": "object",
         "fields": {
           "role": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 120
           },
           "institution": {
-            "type": "string"
-          },
-          "formerHouse": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 120
           },
           "magicalFocus": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 120
           },
           "reputation": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 120
+          },
+          "formerHouse": {
+            "type": "string",
+            "maxLength": 80
           },
           "isTeacher": {
             "type": "boolean"
@@ -152,101 +90,277 @@ export const API_SCHEMA = {
             "type": "items",
             "fields": {
               "value": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 120,
+                "required": true
               }
-            }
+            },
+            "maxItems": 30
           }
         }
       },
-      "estresMentalConsecuencia": {
-        "type": "string"
-      },
-      "habilidades": {
+      "aspectosPersonales": {
         "type": "items",
         "fields": {
-          "nombre": {
-            "type": "string"
-          },
-          "valor": {
-            "type": "number"
-          },
-          "categoria": {
-            "type": "string"
+          "value": {
+            "type": "string",
+            "maxLength": 300,
+            "required": true
           }
-        }
+        },
+        "maxItems": 30
       },
-      "conjuros": {
+      "complicaciones": {
         "type": "items",
         "fields": {
-          "nombre": {
-            "type": "string"
-          },
-          "valor": {
-            "type": "number"
-          },
-          "specialized": {
-            "type": "boolean"
+          "value": {
+            "type": "string",
+            "maxLength": 300,
+            "required": true
           }
-        }
-      },
-      "pociones": {
-        "type": "items",
-        "fields": {
-          "nombre": {
-            "type": "string"
-          },
-          "valor": {
-            "type": "number"
-          },
-          "specialized": {
-            "type": "boolean"
-          }
-        }
-      },
-      "clubesList": {
-        "type": "items",
-        "fields": {
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "equipoList": {
-        "type": "items",
-        "fields": {
-          "nombre": {
-            "type": "string"
-          },
-          "cantidad": {
-            "type": "number"
-          }
-        }
+        },
+        "maxItems": 30
       },
       "camposPersonalizados": {
         "type": "items",
         "fields": {
           "nombre": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 60,
+            "required": true
           },
           "valor": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 500
           }
-        }
+        },
+        "maxItems": 100
+      },
+      "puntosDestino": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 10
+      },
+      "pxs": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 1000000
+      },
+      "estresFisico": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 10
+      },
+      "estresMental": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 10
+      },
+      "estresSocial": {
+        "type": "number",
+        "integer": true,
+        "minimum": 0,
+        "maximum": 10
+      },
+      "estresFisicoMax": {
+        "type": "number",
+        "integer": true,
+        "minimum": 1,
+        "maximum": 10
+      },
+      "estresMentalMax": {
+        "type": "number",
+        "integer": true,
+        "minimum": 1,
+        "maximum": 10
+      },
+      "estresSocialMax": {
+        "type": "number",
+        "integer": true,
+        "minimum": 1,
+        "maximum": 10
+      },
+      "aspectoTemporal": {
+        "type": "items",
+        "fields": {
+          "value": {
+            "type": "string",
+            "maxLength": 300,
+            "required": true
+          }
+        },
+        "maxItems": 30
+      },
+      "consecuenciasFisicas": {
+        "type": "items",
+        "fields": {
+          "descripcion": {
+            "type": "string",
+            "maxLength": 1000,
+            "required": true
+          },
+          "gravedad": {
+            "type": "string",
+            "choices": [
+              "leve",
+              "moderada",
+              "grave"
+            ]
+          }
+        },
+        "maxItems": 30
+      },
+      "consecuenciasMentales": {
+        "type": "items",
+        "fields": {
+          "descripcion": {
+            "type": "string",
+            "maxLength": 1000,
+            "required": true
+          },
+          "gravedad": {
+            "type": "string",
+            "choices": [
+              "leve",
+              "moderada",
+              "grave"
+            ]
+          }
+        },
+        "maxItems": 30
+      },
+      "consecuenciasSociales": {
+        "type": "items",
+        "fields": {
+          "descripcion": {
+            "type": "string",
+            "maxLength": 1000,
+            "required": true
+          },
+          "gravedad": {
+            "type": "string",
+            "choices": [
+              "leve",
+              "moderada",
+              "grave"
+            ]
+          }
+        },
+        "maxItems": 30
+      },
+      "habilidades": {
+        "type": "items",
+        "fields": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 60,
+            "required": true
+          },
+          "valor": {
+            "type": "number",
+            "integer": true,
+            "minimum": 0,
+            "maximum": 5
+          },
+          "categoria": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "maxItems": 200
+      },
+      "conjuros": {
+        "type": "items",
+        "fields": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "required": true
+          },
+          "valor": {
+            "type": "number",
+            "integer": true,
+            "minimum": 1,
+            "maximum": 5
+          },
+          "specialized": {
+            "type": "boolean"
+          }
+        },
+        "maxItems": 200
+      },
+      "pociones": {
+        "type": "items",
+        "fields": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "required": true
+          },
+          "valor": {
+            "type": "number",
+            "integer": true,
+            "minimum": 1,
+            "maximum": 5
+          },
+          "specialized": {
+            "type": "boolean"
+          }
+        },
+        "maxItems": 200
+      },
+      "clubesList": {
+        "type": "items",
+        "fields": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "required": true
+          }
+        },
+        "maxItems": 50
+      },
+      "equipoList": {
+        "type": "items",
+        "fields": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "required": true
+          },
+          "cantidad": {
+            "type": "number",
+            "integer": true,
+            "minimum": 1,
+            "maximum": 9999
+          }
+        },
+        "maxItems": 500
       },
       "notasList": {
         "type": "items",
         "fields": {
           "titulo": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 200
           },
           "contenido": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 50000,
+            "required": true
           },
           "fecha": {
             "type": "number",
+            "integer": true,
+            "minimum": 0,
             "maximum": 8640000000000000
           }
-        }
+        },
+        "maxItems": 5000
       },
       "avatarImage": {
         "type": "media"
@@ -264,18 +378,24 @@ export const API_SCHEMA = {
           "value": {
             "type": "media"
           }
-        }
+        },
+        "maxItems": 50
       }
     },
     "familiar": {
       "nombre": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 80,
+        "required": true
       },
       "especie": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 60,
+        "required": true
       },
       "descripcion": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 5000
       },
       "imagen": {
         "type": "media"
@@ -291,16 +411,25 @@ export const API_SCHEMA = {
         "type": "items",
         "fields": {
           "titulo": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 200
           },
           "contenido": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 50000
           },
           "fecha": {
             "type": "number",
+            "integer": true,
+            "minimum": 0,
             "maximum": 8640000000000000
           }
-        }
+        },
+        "maxItems": 5000,
+        "requireOneOf": [
+          "titulo",
+          "contenido"
+        ]
       },
       "galleryImages": {
         "type": "items",
@@ -308,7 +437,8 @@ export const API_SCHEMA = {
           "value": {
             "type": "media"
           }
-        }
+        },
+        "maxItems": 50
       }
     }
   },

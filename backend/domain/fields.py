@@ -1,73 +1,124 @@
-"""Version 1 server field registry; local Dexie schema remains untouched.
+"""Version 2 server field registry: every stored field with its rule.
+
+The rules are the owner's decisions in docs/field-rules.md (8 November 2026):
+text lengths, whole-number ranges, choices and list sizes. The registry is
+exported to the frontend (export_api_contract), so inputs use the same limits.
 
 Repeated server values use stable item IDs, never array indices in policies.
 Media values are private asset UUIDs; services validate their owning sheet/path.
 """
-import math
+import json
 import re
 import uuid
 from copy import deepcopy
-from .errors import require
+from .errors import APIError, require
 
-S = {"type": "string"}
-N = {"type": "number"}
+SCHEMA_VERSION = 2
+MAX_SHEET_BYTES = 5 * 1024 * 1024  # stored text per sheet; images are separate files
 B = {"type": "boolean"}
 MEDIA = {"type": "media"}
+
+
+def text(max_length, required=False):
+    spec = {"type": "string", "maxLength": max_length}
+    if required:
+        spec["required"] = True
+    return spec
+
+
+def choice(*values):
+    return {"type": "string", "choices": list(values)}
+
+
+def whole(minimum, maximum):
+    return {"type": "number", "integer": True, "minimum": minimum, "maximum": maximum}
 
 
 def obj(fields):
     return {"type": "object", "fields": fields}
 
 
-def items(fields):
-    return {"type": "items", "fields": fields}
+def items(fields, max_items, **extra):
+    return {"type": "items", "fields": fields, "maxItems": max_items, **extra}
 
 
-VALUES = items({"value": S})
-JOURNAL = items({"titulo": S, "contenido": S, "fecha": {"type": "number", "maximum": 8640000000000000}})
-CHARACTER = {key: S for key in (
-    "nombre jugador edad casa curso puestoClase concepto lema escudoText linaje economia varitaSintonia clubes equipo notas"
-).split()}
-CHARACTER.update({key: N for key in (
-    "puntosDestino estresFisico estresFisicoMax estresMental estresMentalMax estresSocial estresSocialMax pxs"
-).split()})
-CHARACTER.update({key: VALUES for key in (
-    "complicaciones consecuenciasFisicas consecuenciasMentales consecuenciasSociales aspectoTemporal aspectosPersonales"
-).split()})
-CHARACTER.update({
-    "characterType": {"type": "string", "choices": ["student", "adult_wizard"]},
+def values(max_items, max_length):
+    return items({"value": text(max_length, required=True)}, max_items)
+
+
+HOUSES = ["", "IRATI", "URANIA", "AL-KHWARIZMI", "CALANTES", "ALEIXIS"]
+FIT = choice("cover", "contain")
+DATE = whole(0, 8640000000000000)
+GALLERY = items({"value": MEDIA}, 50)
+CONSEQUENCES = items({"descripcion": text(1000, required=True), "gravedad": choice("leve", "moderada", "grave")}, 30)
+STRESS = [("estresFisico", "estresFisicoMax"), ("estresMental", "estresMentalMax"), ("estresSocial", "estresSocialMax")]
+
+CHARACTER = {
+    "nombre": text(80, required=True),
+    "characterType": choice("student", "adult_wizard"),
+    "concepto": text(200), "jugador": text(80), "edad": whole(0, 999),
+    "curso": text(20), "puestoClase": text(80), "casa": choice(*HOUSES),
+    "linaje": text(200), "economia": text(200), "varitaSintonia": text(200),
     "adultWizardProfile": obj({
-        **{k: S for k in "role institution formerHouse magicalFocus reputation".split()},
-        "isTeacher": B, "teachingSubjects": VALUES,
+        **{key: text(120) for key in ("role", "institution", "magicalFocus", "reputation")},
+        "formerHouse": text(80), "isTeacher": B, "teachingSubjects": values(30, 120),
     }),
-    "estresMentalConsecuencia": S,
-    "habilidades": items({"nombre": S, "valor": N, "categoria": S}),
-    "conjuros": items({"nombre": S, "valor": N, "specialized": B}),
-    "pociones": items({"nombre": S, "valor": N, "specialized": B}),
-    "clubesList": items({"nombre": S}),
-    "equipoList": items({"nombre": S, "cantidad": N}),
-    "camposPersonalizados": items({"nombre": S, "valor": S}),
-    "notasList": JOURNAL, "avatarImage": MEDIA,
-    "avatarFit": {"type": "string", "choices": ["cover", "contain"]},
-    "galleryImages": items({"value": MEDIA}),
-})
-FAMILIAR = {"nombre": S, "especie": S, "descripcion": S, "imagen": MEDIA,
-            "imageFit": {"type": "string", "choices": ["cover", "contain"]},
-            "notasList": JOURNAL, "galleryImages": items({"value": MEDIA})}
+    "aspectosPersonales": values(30, 300), "complicaciones": values(30, 300),
+    "camposPersonalizados": items({"nombre": text(60, required=True), "valor": text(500)}, 100),
+    "puntosDestino": whole(0, 10), "pxs": whole(0, 1000000),
+    **{current: whole(0, 10) for current, _ in STRESS},
+    **{maximum: whole(1, 10) for _, maximum in STRESS},
+    "aspectoTemporal": values(30, 300),
+    "consecuenciasFisicas": CONSEQUENCES, "consecuenciasMentales": CONSEQUENCES, "consecuenciasSociales": CONSEQUENCES,
+    # Interim until the skill catalogue (R3.2, second pull request) replaces the free category.
+    "habilidades": items({"nombre": text(60, required=True), "valor": whole(0, 5), "categoria": text(80)}, 200),
+    "conjuros": items({"nombre": text(100, required=True), "valor": whole(1, 5), "specialized": B}, 200),
+    "pociones": items({"nombre": text(100, required=True), "valor": whole(1, 5), "specialized": B}, 200),
+    "clubesList": items({"nombre": text(100, required=True)}, 50),
+    "equipoList": items({"nombre": text(100, required=True), "cantidad": whole(1, 9999)}, 500),
+    "notasList": items({"titulo": text(200), "contenido": text(50000, required=True), "fecha": DATE}, 5000),
+    "avatarImage": MEDIA, "avatarFit": FIT, "galleryImages": GALLERY,
+}
+FAMILIAR = {
+    "nombre": text(80, required=True), "especie": text(60, required=True), "descripcion": text(5000),
+    "imagen": MEDIA, "imageFit": FIT,
+    # A familiar's journal entry needs a title or a text (owner decision).
+    "notasList": items({"titulo": text(200), "contenido": text(50000), "fecha": DATE}, 5000, requireOneOf=["titulo", "contenido"]),
+    "galleryImages": GALLERY,
+}
 REGISTRY = {"character": CHARACTER, "familiar": FAMILIAR}
 ITEM_ID = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
 
 
-def validate(value, spec):
+def invalid(code, path, rule, limit=None):
+    """A rejected value. The path and limit let the app say which rule was hit."""
+    details = {"path": path, "rule": rule}
+    if limit is not None:
+        details["limit"] = limit
+    return APIError(code, 400, details)
+
+
+def validate(value, spec, path=""):
     kind = spec["type"]
     if kind == "string":
-        require(isinstance(value, str) and "\x00" not in value and len(value) <= 64000, "invalid_field_value")
+        if not isinstance(value, str) or "\x00" in value:
+            raise invalid("invalid_field_value", path, "type")
         value.encode("utf-8")
-        require("choices" not in spec or value in spec["choices"], "invalid_field_value")
+        if "choices" in spec and value not in spec["choices"]:
+            raise invalid("invalid_field_value", path, "choice", spec["choices"])
+        if len(value) > spec.get("maxLength", 64000):
+            raise invalid("field_too_long", path, "maxLength", spec.get("maxLength", 64000))
+        if spec.get("required") and not value.strip():
+            raise invalid("field_required", path, "required")
     elif kind == "number":
-        require(type(value) in (int, float) and math.isfinite(value) and abs(value) <= spec.get("maximum", 1e12), "invalid_field_value")
+        allowed = (int,) if spec.get("integer") else (int, float)
+        if type(value) not in allowed or (isinstance(value, float) and value != value):
+            raise invalid("invalid_field_value", path, "integer" if spec.get("integer") else "type")
+        if not spec.get("minimum", -1e12) <= value <= spec.get("maximum", 1e12):
+            raise invalid("field_out_of_range", path, "range", [spec.get("minimum"), spec.get("maximum")])
     elif kind == "boolean":
-        require(type(value) is bool, "invalid_field_value")
+        if type(value) is not bool:
+            raise invalid("invalid_field_value", path, "type")
     elif kind == "media":
         if value not in (None, ""):
             require(isinstance(value, str), "invalid_media")
@@ -78,21 +129,36 @@ def validate(value, spec):
     elif kind == "object":
         require(isinstance(value, dict) and not (value.keys() - spec["fields"].keys()), "unknown_field")
         for key, entry in value.items():
-            validate(entry, spec["fields"][key])
+            validate(entry, spec["fields"][key], f"{path}/{key}".strip("/"))
     elif kind == "items":
-        require(isinstance(value, list) and len(value) <= 500, "invalid_collection")
+        require(isinstance(value, list), "invalid_collection")
+        if len(value) > spec["maxItems"]:
+            raise invalid("too_many_items", path, "maxItems", spec["maxItems"])
         ids = set()
         for entry in value:
             require(isinstance(entry, dict) and isinstance(entry.get("id"), str) and ITEM_ID.fullmatch(entry["id"]), "invalid_item_id")
             require(entry["id"] not in ids, "duplicate_item_id")
             ids.add(entry["id"])
-            validate({k: v for k, v in entry.items() if k != "id"}, obj(spec["fields"]))
+            validate_item({k: v for k, v in entry.items() if k != "id"}, spec, f"{path}/{entry['id']}")
+
+
+def validate_item(fields, spec, path):
+    """One list entry, without its id, against the list's spec."""
+    validate(fields, obj(spec["fields"]), path)
+    names = spec.get("requireOneOf")
+    if names and not any(isinstance(fields.get(n), str) and fields[n].strip() for n in names):
+        raise invalid("field_required", path, "requireOneOf", names)
 
 
 def validate_sheet(kind, data):
     require(kind in REGISTRY, "invalid_entity_kind")
     validate(data, obj(REGISTRY[kind]))
-    require(isinstance(data.get("nombre"), str) and 0 < len(data["nombre"].strip()) <= 200, "name_required")
+    require(isinstance(data.get("nombre"), str) and data["nombre"].strip(), "name_required")
+    for current, maximum in STRESS:
+        if current in data and data[current] > data.get(maximum, 10):
+            raise invalid("field_out_of_range", current, "notAboveMaximum", maximum)
+    if len(json.dumps(data, ensure_ascii=False).encode("utf-8")) > MAX_SHEET_BYTES:
+        raise invalid("sheet_too_large", "", "maxSheetBytes", MAX_SHEET_BYTES)
 
 
 def descriptor(kind, path):
@@ -126,9 +192,12 @@ def leaf_paths(value, spec, prefix=""):
 def replace_path(data, kind, path, value):
     spec = descriptor(kind, path)
     require(spec["type"] != "relation", "use_bond_operation")
-    item_path = len(path.split("/")) > 1 and descriptor(kind, path.rsplit("/", 1)[0])["type"] == "items"
-    if not (item_path and value is None):
-        validate(value, spec)
+    parent = descriptor(kind, path.rsplit("/", 1)[0]) if "/" in path else None
+    item_path = parent is not None and parent["type"] == "items"
+    if item_path and value is not None:
+        validate_item(value, parent, path)
+    elif not item_path:
+        validate(value, spec, path)
     result = deepcopy(data)
     target = result
     parts = path.split("/")

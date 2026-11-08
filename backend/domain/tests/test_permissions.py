@@ -50,21 +50,21 @@ class ProjectionTests(APICase):
     def test_player_restrictions_never_hide_ordinary_data_from_gm_or_self(self):
         Share.objects.create(sheet=self.sheet, recipient=self.bob)
         self.policy(self.gm_client, {"defaultAudience": "shared"})
-        self.policy(self.alice_client, {"restrictions": {"notas": True}})
+        self.policy(self.alice_client, {"restrictions": {"linaje": True}})
         shared = self.read(self.bob_client, f"characters/{self.sheet.pk}")
-        self.assertNotIn("notas", shared["fields"])
+        self.assertNotIn("linaje", shared["fields"])
         for client in [self.alice_client, self.gm_client]:
             result = self.read(client, f"characters/{self.sheet.pk}")
-            self.assertEqual(result["fields"]["notas"], "ordinary-gm-visible-journal")
+            self.assertEqual(result["fields"]["linaje"], "ordinary-gm-visible-journal")
 
     def test_player_cannot_override_gm_policy(self):
         current = self.current()
         self.send(self.alice_client, f"characters/{self.sheet.pk}/visibility/preview", {
-            "expectedRevision": current["revision"], "overrides": {"notas": "shared"}}, status=400)
-        self.policy(self.gm_client, {"overrides": {"notas": "gm"}})
-        self.patch(self.alice_client, "notas", "forged", status=403)
+            "expectedRevision": current["revision"], "overrides": {"linaje": "shared"}}, status=400)
+        self.policy(self.gm_client, {"overrides": {"linaje": "gm"}})
+        self.patch(self.alice_client, "linaje", "forged", status=403)
         self.sheet.refresh_from_db()
-        self.assertEqual(self.sheet.data["notas"], "ordinary-gm-visible-journal")
+        self.assertEqual(self.sheet.data["linaje"], "ordinary-gm-visible-journal")
 
     def test_patch_of_visible_field_preserves_hidden_values(self):
         self.policy(self.gm_client, {"overrides": {"adultWizardProfile/reputation": "gm"}})
@@ -137,11 +137,11 @@ class ProjectionTests(APICase):
 
     def test_campaign_defaults_preview_apply_and_explicit_sheet_override(self):
         preview = self.send(self.gm_client, f"campaigns/{self.campaign.pk}/visibility/preview", {
-            "expectedRevision": 1, "defaults": {"character": {"*": "assigned", "notas": "gm"}}})
+            "expectedRevision": 1, "defaults": {"character": {"*": "assigned", "linaje": "gm"}}})
         self.send(self.gm_client, f"campaigns/{self.campaign.pk}/visibility", {"expectedRevision": 1, "previewToken": preview["previewToken"]})
-        self.assertNotIn("notas", self.read(self.alice_client, f"characters/{self.sheet.pk}")["fields"])
-        self.policy(self.gm_client, {"overrides": {"notas": "assigned"}})
-        self.assertIn("notas", self.read(self.alice_client, f"characters/{self.sheet.pk}")["fields"])
+        self.assertNotIn("linaje", self.read(self.alice_client, f"characters/{self.sheet.pk}")["fields"])
+        self.policy(self.gm_client, {"overrides": {"linaje": "assigned"}})
+        self.assertIn("linaje", self.read(self.alice_client, f"characters/{self.sheet.pk}")["fields"])
 
     def test_list_cards_do_not_leak_hidden_type_or_search_values(self):
         Share.objects.create(sheet=self.sheet, recipient=self.bob)
@@ -152,12 +152,12 @@ class ProjectionTests(APICase):
         self.read(self.bob_client, f"characters?campaignId={self.campaign.pk}&sort=notas", status=400)
 
     def test_entity_default_replaces_campaign_defaults_but_keeps_field_exceptions(self):
-        self.campaign.visibility_defaults = {"character": {"notas": "gm"}}
+        self.campaign.visibility_defaults = {"character": {"linaje": "gm"}}
         self.campaign.save()
         self.policy(self.gm_client, {"overrides": {"characterType": "gm"}})
         self.policy(self.gm_client, {"defaultAudience": "assigned"})
         result = self.read(self.alice_client, f"characters/{self.sheet.pk}")
-        self.assertIn("notas", result["fields"])
+        self.assertIn("linaje", result["fields"])
         self.assertNotIn("characterType", result["fields"])
 
     def test_player_cannot_forge_assignment_or_share(self):

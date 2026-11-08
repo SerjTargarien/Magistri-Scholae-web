@@ -37,7 +37,7 @@ def endpoint(methods, public=False, outcome=None):
                     return result
                 return JsonResponse(result, json_dumps_params={"ensure_ascii": False, "allow_nan": False})
             except APIError as error:
-                response = JsonResponse({"error": {"code": error.code}}, status=error.status)
+                response = JsonResponse({"error": {"code": error.code, **error.details}}, status=error.status)
                 if error.status == 405:
                     response["Allow"] = ", ".join(methods)
                 return response

@@ -1,7 +1,9 @@
 class APIError(Exception):
-    def __init__(self, code, status=400):
+    def __init__(self, code, status=400, details=None):
         self.code = code
         self.status = status
+        # Optional {"path", "rule", "limit"} naming the rule a submitted value broke.
+        self.details = details or {}
 
 
 def require(condition, code="invalid_request", status=400):

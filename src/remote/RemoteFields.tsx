@@ -5,7 +5,7 @@ import { TRANSLATIONS, type Language } from "../localization";
 import { remoteText } from "./text";
 import { SaveQueue, pathValue } from "./saveQueue";
 
-export type Spec = { type: string; choices?: readonly string[]; fields?: Record<string, Spec> };
+export type Spec = { type: string; choices?: readonly string[]; fields?: Record<string, Spec>; maxLength?: number; required?: boolean; integer?: boolean; minimum?: number; maximum?: number; maxItems?: number };
 
 export function RemoteFields({ queue, registry, lang, upload, locked }: {
   queue: SaveQueue; registry: Record<string, Spec>; lang: Language; upload: (path: string, data: string) => void; locked: boolean;
@@ -40,7 +40,8 @@ export function RemoteFields({ queue, registry, lang, upload, locked }: {
         {Object.entries(spec.fields!).map(([key, s]) => render(s, `${path}/${entry.id}/${key}`, labels[key] || base[key] || key))}
         {queue.sheet.capabilities.removablePaths.includes(`${path}/${entry.id}`) && <button disabled={locked || queue.busy} onClick={() => queue.edit(`${path}/${entry.id}`, null)}>{t.remove}</button>}
       </div>)}{addable && <button disabled={locked || queue.busy} onClick={() => {
-        const entry = Object.fromEntries(Object.entries(spec.fields!).map(([key, s]) => [key, s.type === "number" ? (key === "fecha" ? Date.now() : 0) : s.type === "boolean" ? false : s.choices?.[0] ?? ""]));
+        // New entries must already satisfy the server's rules: numbers start at their minimum and required text holds a placeholder to overwrite.
+        const entry = Object.fromEntries(Object.entries(spec.fields!).map(([key, s]) => [key, s.type === "number" ? (key === "fecha" ? Date.now() : s.minimum ?? 0) : s.type === "boolean" ? false : s.choices?.[0] ?? (s.required ? "—" : "")]));
         queue.edit(`${path}/${crypto.randomUUID()}`, entry);
       }}>{t.add} {title}</button>}</fieldset>;
     }
@@ -51,8 +52,8 @@ export function RemoteFields({ queue, registry, lang, upload, locked }: {
         {value === undefined && <option value="">—</option>}{spec.choices.map(choice => <option key={choice} value={choice}>{({ student: base.characterTypeStudent, adult_wizard: base.characterTypeAdultWizard, cover: lang === "es" ? "Rellenar" : "Fill", contain: lang === "es" ? "Ajustar" : "Fit" } as Record<string, string>)[choice] || base[choice] || choice}</option>)}
       </select> : spec.type === "boolean" ? <input id={id} type="checkbox" disabled={locked || !writable} checked={value === true} onChange={e => queue.edit(path, e.target.checked)} />
         : spec.type === "number" && path.endsWith("/fecha") ? <input id={id} type="datetime-local" disabled={locked || !writable} value={typeof value === "number" ? new Date(value - new Date(value).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""} onChange={e => { const timestamp = new Date(e.target.value).getTime(); if (Number.isFinite(timestamp)) queue.edit(path, timestamp); }} />
-        : spec.type === "number" ? <input id={id} type="number" disabled={locked || !writable} value={value ?? ""} onChange={e => { if (e.target.value !== "" && Number.isFinite(e.target.valueAsNumber)) queue.edit(path, e.target.valueAsNumber); }} />
-          : <textarea id={id} rows={path.includes("contenido") || path === "notas" ? 4 : 1} disabled={locked || !writable} value={value ?? ""} onChange={e => queue.edit(path, e.target.value)} />}
+        : spec.type === "number" ? <input id={id} type="number" min={spec.minimum} max={spec.maximum} step={spec.integer ? 1 : undefined} disabled={locked || !writable} value={value ?? ""} onChange={e => { if (e.target.value !== "" && Number.isFinite(e.target.valueAsNumber)) queue.edit(path, e.target.valueAsNumber); }} />
+          : <textarea id={id} rows={path.includes("contenido") ? 4 : 1} maxLength={spec.maxLength} disabled={locked || !writable} value={value ?? ""} onChange={e => queue.edit(path, e.target.value)} />}
     </label>;
   }
   return <div>{Object.entries(registry).map(([key, spec]) => render(spec, key, labels[key] || base[key] || key))}</div>;

@@ -32,7 +32,7 @@ class ContractTests(APICase):
         self.assertEqual(re.findall(r'"([^"]+)"', choices), REGISTRY["character"]["characterType"]["choices"])
 
     def test_projection_query_count_does_not_grow_per_field_or_item(self):
-        self.sheet.data["habilidades"] = [{"id": f"skill-{i}", "nombre": "Demo", "valor": i, "categoria": "Demo"} for i in range(100)]
+        self.sheet.data["habilidades"] = [{"id": f"skill-{i}", "nombre": "Demo", "valor": i % 6, "categoria": "Demo"} for i in range(100)]
         self.sheet.save()
         with CaptureQueriesContext(connection) as queries:
             result = projection(self.alice, self.sheet)
@@ -43,8 +43,8 @@ class ContractTests(APICase):
         client = self.client_for(self.gm)
         current = self.read(client, f"characters/{self.sheet.pk}")
         preview = self.send(client, f"characters/{self.sheet.pk}/visibility/preview", {
-            "expectedRevision": current["revision"], "overrides": {"notas": "shared"}})
-        self.assertIn({"path": "notas", "before": "assigned", "after": "shared"}, preview["audienceChanges"])
+            "expectedRevision": current["revision"], "overrides": {"linaje": "shared"}})
+        self.assertIn({"path": "linaje", "before": "assigned", "after": "shared"}, preview["audienceChanges"])
         self.assertNotIn("ordinary-gm-visible-journal", str(preview))
 
     def test_bond_failure_rolls_back_removed_and_new_links(self):

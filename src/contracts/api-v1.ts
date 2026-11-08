@@ -20,7 +20,7 @@ export interface ApiSheetProjection<K extends EntityKind = EntityKind> {
   id: string;
   entityType: K;
   campaignId: string;
-  schemaVersion: 1;
+  schemaVersion: 2;
   revision: string;
   fields: ServerFields<K>;
   capabilities: { readablePaths: string[]; writablePaths: string[]; collectionPaths: string[]; removablePaths: string[]; bondWritable: boolean; isGM: boolean };

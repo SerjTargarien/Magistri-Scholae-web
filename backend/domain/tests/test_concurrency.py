@@ -44,7 +44,7 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
 
     def test_stale_simultaneous_mutation_cannot_overwrite_newer_data(self):
         sheet = Sheet.objects.create(campaign=self.campaign, creator=self.alice, assigned_player=self.alice,
-                                      kind="character", data={"nombre": "Original", "notas": "keep"})
+                                      kind="character", data={"nombre": "Original", "linaje": "keep"})
         revision = projection(self.alice, sheet)["revision"]
         def update(value):
             actor = User.objects.get(pk=self.alice.pk)
@@ -52,7 +52,7 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
         results = self.race([lambda: update("First"), lambda: update("Second")])
         self.assertCountEqual(results, ["ok", "revision_conflict"])
         sheet.refresh_from_db()
-        self.assertEqual(sheet.data["notas"], "keep")
+        self.assertEqual(sheet.data["linaje"], "keep")
         self.assertEqual(sheet.revision, 2)
 
     def test_reset_code_is_single_use_under_race(self):

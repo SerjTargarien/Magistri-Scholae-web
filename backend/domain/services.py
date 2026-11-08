@@ -60,7 +60,12 @@ def patch_sheet(actor, sheet_id, kind, body):
     require(isinstance(changes, list) and 1 <= len(changes) <= 100)
     gm = is_gm(actor, sheet.campaign)
     if not gm:
-        validate_sheet(kind, sheet.data)  # Unknown future fields fail closed.
+        # Unknown future fields fail closed. No details: the stored sheet may
+        # contain paths this player cannot see.
+        try:
+            validate_sheet(kind, sheet.data)
+        except APIError as error:
+            raise APIError("stored_sheet_invalid", 409) from error
     paths = []
     for change in changes:
         keys(change, ["path", "value"], ["path", "value"])

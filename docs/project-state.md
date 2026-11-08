@@ -376,7 +376,16 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 
 **Screenshot jitter (found on this pull request's checks):** the Linux container is not perfectly repeatable; text anti-aliasing differs slightly on about 2 of 80 tests per run (up to a few hundred pixels on the glowing name headings, invisible to the eye). Chromium flags for deterministic text did not help (three repeated runs). The comparison stays exact and failed screenshot tests are retried twice, so a real change still fails.
 
-**Next:** R3.2, explained before it starts.
+## R3.2 server field rules — 8 November 2026 (first pull request)
+
+- `backend/domain/fields.py` is now registry version 2: every field carries its rule from [field-rules.md](field-rules.md) (text length, required, whole-number range, choice, list size), plus current stress not above its maximum and a 5 MB limit per sheet. Removed: `lema`, `escudoText`, `notas`, `clubes`, `equipo`, `estresMentalConsecuencia`. Age is a whole number; each consequence has a description and a severity (`leve`, `moderada`, `grave`). Skills keep an interim free category until the catalogue (second pull request).
+- A rejected value returns its rule: `{"error": {"code", "path", "rule", "limit"}}`. When a stored sheet itself breaks a rule, a player's save gets `stored_sheet_invalid` without details, so no hidden path is named.
+- Migration `0003_field_rules` converts stored sheets to schema version 2 with a frozen copy of the rules: removed fields dropped, "11 años" becomes 11, house names upper-cased, consequences get severity `leve`, out-of-range values brought within their rules, invalid entries dropped, and privacy settings for removed paths dropped. Not reversible: restore the pre-migration backup instead.
+- The exported field list (`fieldRegistry.generated.ts`) now includes the limits. The stopgap account screens use them, and new list entries start valid.
+- Existing privacy tests moved from the removed `notas` field to `linaje`. New tests: `test_field_rules.py`.
+- Locally: compile, `check`, `makemigrations --check`, the contract check, `npm test` (34 passed), lint and the account build. The backend suite needs PostgreSQL and runs in CI.
+
+**Next:** the skill catalogue (second R3.2 pull request); staging gets both server changes together, with the owner's go-ahead.
 
 ## Updating this handoff
 

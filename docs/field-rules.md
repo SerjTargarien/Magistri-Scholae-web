@@ -2,7 +2,7 @@
 
 Every stored field of a character and a familiar, screen by screen: what the app does today, and the rule the server will enforce from R3.2. The server stores what the app sends, so these rules are the only protection against values the screens cannot show. Source: a read of `CharacterForm.tsx`, `CharacterDetail.tsx`, `FamiliarDetail.tsx`, `FamiliarEditor.tsx` and `CharacterList.tsx` at `b97d96a`, and the owner's answers of 8 November 2026.
 
-**Status:** all owner decisions recorded (8 November 2026). Changes marked **visible** follow the screenshot approval step when the screen moves to the new model (R3.4).
+**Status:** all owner decisions recorded (8 November 2026). **Server:** the rules, the new and removed fields and the conversion of stored records are implemented (R3.2, first pull request; `backend/domain/fields.py`, migration `0003_field_rules`), except the skill catalogue, which replaces the interim free skill category in the second pull request. Changes marked **visible** follow the screenshot approval step when the screen moves to the new model (R3.4).
 
 ## How to read the rules
 

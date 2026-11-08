@@ -21,7 +21,7 @@ class APICase(TestCase):
         Membership.objects.create(campaign=cls.other, user=cls.gm, role="player")
         Membership.objects.create(campaign=cls.other, user=cls.outsider, role="gm")
         cls.sheet = Sheet.objects.create(campaign=cls.campaign, creator=cls.alice, assigned_player=cls.alice,
-            kind="character", data={"nombre": "Fictional Luna", "notas": "ordinary-gm-visible-journal",
+            kind="character", data={"nombre": "Fictional Luna", "linaje": "ordinary-gm-visible-journal",
                 "characterType": "student", "adultWizardProfile": {"reputation": "gm-secret-reputation", "role": "Apprentice"},
                 "habilidades": [{"id": "skill-a", "nombre": "Magic", "valor": 3, "categoria": "Demo"}],
                 "notasList": [{"id": "note-a", "titulo": "Demo title", "contenido": "secret-item-content", "fecha": 10}]})

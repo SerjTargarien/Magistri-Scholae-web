@@ -5,7 +5,7 @@ import { ApiFailure, RemoteClient } from "../src/remote/client";
 import { SaveQueue } from "../src/remote/saveQueue";
 
 function projection(revision = "r1", fields: any = { nombre: "Original", notas: "Visible" }): ApiSheetProjection {
-  return { kind: "viewer-projection", id: "fixture", entityType: "character", campaignId: "campaign", schemaVersion: 1, revision, fields,
+  return { kind: "viewer-projection", id: "fixture", entityType: "character", campaignId: "campaign", schemaVersion: 2, revision, fields,
     capabilities: { readablePaths: Object.keys(fields), writablePaths: ["nombre", "notas"], collectionPaths: ["notasList"], removablePaths: [], isGM: false, bondWritable: true } };
 }
 function deferred<T>() { let resolve!: (result: T) => void; let reject!: (error: Error) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { resolve, reject, promise }; }

@@ -43,10 +43,10 @@ class RemoteEditingTests(APICase):
         path = f"characters/{self.sheet.pk}"
         body = self.patch_body([{"path": "nombre", "value": "Retry fixture"}])
         self.send(self.alice_client, path, body, "patch")
-        self.policy(self.gm_client, {"overrides": {"notas": "gm", "nombre": "gm"}})
+        self.policy(self.gm_client, {"overrides": {"linaje": "gm", "nombre": "gm"}})
         replay = self.send(self.alice_client, path, body, "patch")
         self.assertNotIn("nombre", replay["fields"])
-        self.assertNotIn("notas", replay["fields"])
+        self.assertNotIn("linaje", replay["fields"])
         self.sheet.assigned_player = self.bob; self.sheet.save()
         self.send(self.alice_client, path, body, "patch", status=404)
 

@@ -195,7 +195,11 @@ Each step below is its own pull request. It keeps the app working under the brow
     - Send new images to the asset upload endpoint, and bond changes to the bond endpoint.
     - Show server rejections as errors; never retry as a whole-record save.
     - Do not show the conflict screen when the refreshed copy is unchanged (M3).
-- **R3.4 Screens on the store,** a few tabs per pull request.
+- **R3.4 Screens on the store** (order approved by the owner, 8 November 2026):
+  1. **Split, with no visible change:** the character sheet into a state hook and one file per tab (done), then the creation form and the familiar sheet; the screenshots prove nothing moved.
+  2. **The switch, one pull request:** the app runs on the account side (the stopgap sign-in and campaign selection until R3.5), the real screens replace the stopgap forms on the new model and the sheet store, images through one helper and the upload endpoint, bonds through the bond endpoint; the screenshot tests move onto the demo mock (same fictional data, same DEMO banner). Unavoidable visible changes (the six skill categories, age as a number) are approved with pictures. The old browser-only mode ends here (owner decision); R3.6 only deletes its code. Staging gets the real screens.
+  3. **The decided visible changes,** one small pull request each (listed below).
+  - Account mode has no delete: the GM archives and restores; players see no delete button (owner decision). Export, import and the typed reset are hidden until account export/import (R7.4); settings keeps language and style (owner decision).
   - `CharacterDetail` is split into per-tab files as each tab moves; the screenshot tests confirm the look is unchanged. This also fixes the bundle-size warning.
   - Edits work by item ID, not by position. The list, the creation form and the familiar screens move too.
   - One image helper shows server assets and newly picked images.
@@ -216,7 +220,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Lists show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
   - Text goes through `localization.ts`. No `window.confirm`.
 - **R3.6 Retire the old app.**
-  - Remove local mode, the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
+  - Remove the code of local mode (it stops working at the R3.4 switch), the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
   - Keep the service worker, which since milestone 3 caches only the app's own files and never `/api` or `/media`. Give its cache a new name so browsers that had the old app drop its cached files after launch.
   - The smoke suite runs against the mock and against a real backend in CI.
 
@@ -251,6 +255,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Enable and disable accounts.
   - Manage members and roles.
 - **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
+- **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days.
 - **Skill catalogue editor (GM, owner decision 8 November 2026):** add and rename categories, mark a category as esoteric, add default skills, move skills between categories and reorder them. Changes apply to every character in the campaign ([field-rules.md](field-rules.md)).
 
 The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).

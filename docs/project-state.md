@@ -420,7 +420,13 @@ The owner decided every field ([field-rules.md](field-rules.md), roadmap decisio
 - Tests: `e2e/demo.spec.ts` (7, project `demo-desktop`). Locally: lint, `npm test` (48), the demo tests (7 passed), and a check that `build:remote` contains no mock code.
 - **R3.3 is complete.**
 
-**Next:** R3.4, the screens on the store, explained before it starts.
+## R3.4 started — 8 November 2026
+
+**Owner decisions:** the old browser-only mode ends at the R3.4 switch (not R3.6); account mode has no delete: the GM archives and restores, and may permanently delete an archived sheet after a confirmation (R4); export, import and the typed reset are hidden until R7.4; order: splits first, then one switch, then the decided visible changes one at a time.
+
+**Split 1 (this pull request):** `CharacterDetail.tsx` (3,838 lines) split mechanically, text moved verbatim: `src/components/sheet/useCharacterSheet.tsx` holds the props, state and handlers (149 names) and returns them; `ProfileTab`, `SessionTab`, `SkillsTab`, `SpellsTab`, `NotesTab` and `GalleryTab` hold each tab's markup; `CharacterDetail.tsx` keeps the header, the tab switch and the dialogs (964 lines). Locally: type check, `npm test` (48), build, and the mock and local browser tests (24 passed). The screenshot check in CI confirms nothing visible changed.
+
+**Next:** split the creation form and the familiar sheet the same way, then the switch.
 
 ## Updating this handoff
 

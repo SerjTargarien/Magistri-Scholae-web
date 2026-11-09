@@ -34,14 +34,14 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R3.5 |
 | R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
 | R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
-| R6 Accounts launch | The public site's data moves from the staging backend to its own production backend | S | R2–R4 |
+| R6 Accounts launch | The public site's data moves from the staging backend to its own production backend | S | R5 (order decided 9 Nov 2026) |
 | R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R6 |
 
 **Critical path:** R0 → R3 → R4 → R6, then R7.1–R7.2 (offline) immediately after launch. R4 can overlap the end of R3. **R3 is the long pole.**
 
 **Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done.
 
-**9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. Proposed order: the rest of R3 → R4 → R4.5 → R5 → R6 → R7; where R6 goes is open question Q7 (product-design.md). Since 8 November the public site already runs the account app on the staging backend (testers' data); R6 gives that data its own production backend.
+**9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. **Order decided by the owner (9 November 2026):** the rest of R3 → R4 → R4.5 → R5 → R6 → R7. R6 comes after the redesigns, which leaves time to test with the testers' data on the staging backend. Since 8 November the public site already runs the account app on the staging backend (testers' data); R6 gives that data its own production backend.
 
 ## Feature checklist
 
@@ -279,15 +279,15 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Enable and disable accounts.
   - Manage members and roles.
 - **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
-- **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days. **9 November:** several confirmation steps; whether an unarchived sheet can be deleted directly is open question Q2.
+- **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days. **9 November:** still only archived sheets (owner), after several confirmation steps.
 - **Skill catalogue editor:** moved to R5 (the Biblioteca del Máster).
 - **Roles of the target design (owner, 9 November 2026):**
-  - **Sheet activation:** the player activates a sheet once and the GM confirms it; what the GM sees before that is open question Q1. A server status on each sheet, enforced in the projection, with its migration (existing sheets count as active).
-  - **Active / inactive** (dead, travelling…): the GM marks it; inactive sheets leave the grimorio without being archived.
+  - **Player drafts (borradores):** a new player sheet starts as a draft in the player's private vault, which **the GM does not see at all** (a scratchpad, or ideas to propose as NPCs). The player proposes it once and the GM confirms it; it then becomes a campaign sheet (whether the GM can take it as an NPC: Q12). A server status on each sheet, enforced in lists, projections and every endpoint (the GM's campaign-wide access excludes drafts), with its migration: existing sheets count as confirmed.
+  - **Active / inactive** (dead, travelling…), a separate status the GM sets on campaign sheets; inactive sheets leave the grimorio without being archived.
   - **The GM creates sheets and assigns them to players** (the assignment the plan already lists, from the sheet and the creation form).
   - **The GM creates campaigns** and sees the campaign chooser; players join by invitation. Today only the administrator creates campaigns.
   - **The GM renames the campaign** he sees.
-  - **Administrator access to campaign data with the GM's explicit permission:** a privacy change (design.md, permissions), designed first; scope is open question Q3. Personal notes stay excluded.
+  - **Administrator access to campaign data with the GM's explicit permission:** a privacy change (design.md, permissions), designed first. The GM grants access to the whole campaign for an issue; it ends after 24 hours, when the GM withdraws it, or when the administrator marks the issue as solved; read and change; every access audited; personal notes excluded (to confirm: Q14).
 
 The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).
 
@@ -301,10 +301,11 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 **Work** (designed in detail in product-design.md first, then one pull request per step):
 
-1. **Data:** the character gets an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia», replacing `characterType` (`student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago). A migration with a backup first; field-rules.md and the registry get the new rules. Age up to 1,000,000 or «desconocida»; stress maxima 1–5 (open question Q5).
+1. **Data:** the character gets an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia», replacing `characterType` (`student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago). A migration with a backup first; field-rules.md and the registry get the new rules. Age up to 1,000,000 or «desconocida»; stress maxima 1–5 (no current sheet is above 5).
 2. **Type selection and creation form:** «Menor», «Adulto», «Criatura mágica», «Familiar»; the switches; «Concepto» moves to «Aspectos y Posesiones»; «Identificación» redesigned for each type.
 3. **Non-magical characters:** the «Mago» switch hides the magic fields (hidden, not deleted); the player sets it at creation and only the GM changes it afterwards; no magic starting skills (the GM may add some by hand); no familiars.
-4. **Criatura mágica:** its own sheet, between a familiar and an adult; contents are open question Q4. A new kind of sheet on the server (like characters and familiars), with its own rules and permissions.
+4. **Criatura mágica:** everything an adult wizard has (it can even be a teacher), plus «Especie», a general «Descripción» and a «Pactos» tab whose entries each link to another character. Built as a character type with those extra fields rather than a separate kind of record, unless the design step finds a reason not to (owner and familiars: Q13).
+5. **Stress tracks and consequences** around the game's rules (product-design.md, Stress and consequences): maxima from «Físico», «Voluntad» and «Empatía» (formula: Q9), pips, the three consequence levels with their durations, and a clear warning when a grave consequence and full pips would lose the character; repeated damage and whether the app applies damage are Q10 and Q11. Kept simple.
 
 **Risks:** every screen that reads `characterType` (list filters, cards, forms, sheet, Magia intuitiva rule, banner themes) changes at once; the demo data and tests move with it.
 
@@ -318,11 +319,11 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 
 **Steps** (one or more pull requests each; server steps back up the testers' data first):
 
-0. **Design** in product-design.md: every screen of the Biblioteca; the data model of institutions, branches and schools; how sheets link to them (house, «Curso Académico», «Institución», subjects taught, clubs) with free text kept as a fallback; answers to Q6 and Q8.
+0. **Design** in product-design.md: every screen of the Biblioteca; the data model of institutions, branches («Casas» in schools, «Secciones» elsewhere, renamable) and schools; how sheets link to them (house, «Curso Académico», «Institución», subjects taught, clubs) with free text kept as a fallback.
 1. **The library shell:** the GM's first screen per campaign, opening the grimorio; the campaign skills move here from «Ajustes».
 2. **Habilidades:** new categories and renaming, reordering categories and skills, «Sólo magos» per skill (the skill catalogue editor that R4 used to list).
 3. **Personajes:** the GM's view of every character and his own, the assigned player at a glance, filters and sorting by any stored value.
-4. **Instituciones and branches:** campaign data with crest, colours, description and members; free characters; today's five houses become branches of Magistri Scholae, keeping their crests and data; the sheet's house becomes a link; the word «Casa» can be renamed per school; the GM creates any number of houses.
+4. **Instituciones and branches:** campaign data with crest, colours, description and members; free characters; today's five houses become «Casas» of Magistri Scholae, keeping their crests and data; the sheet's house becomes a link; branches are «Casas» in schools and «Secciones» in other organizations, and the GM can rename the word; the GM creates any number of branches.
 5. **Schools:** «cursos» (promotion each year, repeating), «asignaturas» (troncal / optativa, teachers, linked skill), «clubes», «clases»; links from sheets (year, subjects taught, clubs).
 
 **Risks:** data migrations of live testers' data (backups and restore drills before each); keeping houses' artwork and filters working; permissions for the new data (GM-owned, readable by players where it shows on their sheets).
@@ -374,7 +375,7 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
    - Scope is decided at the start of this step. Starting suggestion: sheet fields, journal entries and personal notes offline; administration, invitations, sharing, bonds, note promotion and new characters online only.
 3. The visibility editor (GM defaults and overrides, player restrictions) and read-only sharing.
 4. Separate character and familiar export/import for accounts (the owner's decision).
-5. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11). How it relates to the Biblioteca del Máster (R5) is open question Q8.
+5. **Far backlog (owner, 9 November 2026):** a multiverse collection (an archaic Spanish or Latin name; a button near the GM notes) that copies characters between campaigns as independent copies or as linked representations updating on both sides. It replaces the private GM library with one-way sync ([design.md](design.md) section 11) and reverses its "no two-way sync" rule, so it needs its own design. Only one campaign is in use for now.
 6. Clean-up:
    - Remove unused dependencies (L1).
    - ~~Fix the skill-preset key (L3)~~: done in R3.2.
@@ -401,7 +402,7 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
 | 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** first, every screen kept its look unless the owner approved before-and-after screenshots (R3.1 screenshot tests). **Relaxed the same day,** with the transition nearly complete: no aesthetic changes without a reason; any step that has a reason for a visible change may make it. |
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
-| 14 | The owner's target design (9 November 2026) | R3.4–R5 | **Recorded 9 November 2026** in product-design.md: a polish pass ends R3.4; R4 adds sheet activation, active/inactive sheets, GM deletion and assignment, GM-created campaigns and administrator access with the GM's permission; R4.5 adds sheet types and non-magical characters; R5 is the Biblioteca del Máster. Open questions Q1–Q8 in product-design.md. |
+| 14 | The owner's target design (9 November 2026) | R3.4–R5 | **Recorded 9 November 2026** in product-design.md: a polish pass ends R3.4; R4 adds private player drafts (invisible to the GM until confirmed), active/inactive sheets, deletion of archived sheets, assignment, GM-created campaigns and time-limited administrator access granted by the GM; R4.5 adds sheet types, «Criatura mágica», non-magical characters and the stress rules; R5 is the Biblioteca del Máster («Casas» / «Secciones»); R6 after R5; the multiverse collection goes to the far backlog. Follow-up questions Q9–Q14 in product-design.md. |
 
 ## Former milestones
 

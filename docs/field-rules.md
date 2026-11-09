@@ -12,11 +12,12 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 |---|---|---|
 | `characterType` | Replaced by an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia»; `student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago. | R4.5 |
 | `edad` | Whole number 0–1,000,000, or «desconocida». | R4.5 |
-| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | Whole number 1–5 (today 1–10); stored values above 5 (Q5). | R4.5 |
-| «Criatura mágica» | A new kind of sheet, between a familiar and an adult (contents: Q4). | R4.5 |
+| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | Whole number 1–5 (today 1–10; no stored value is above 5), following «Físico», «Voluntad» and «Empatía» (formula: product-design.md Q9). | R4.5 |
+| `consecuencias*/gravedad` | Already stored (leve, moderada, grave); the game's levels minor, major and severe with their durations (product-design.md, Stress and consequences). | R3.4 / R4.5 |
+| «Criatura mágica» | A character type with everything an adult wizard has, plus «Especie», a general «Descripción» and «Pactos» (a list like the journal, each entry linked to another character). | R4.5 |
 | Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |
 | `casa`, `adultWizardProfile/institution`, `curso`, `adultWizardProfile/teachingSubjects`, `clubesList` | Links to the campaign's institutions, branches and school records, with free text kept as a fallback. | R5 |
-| Sheet status | Activation (player activates, GM confirms) and active / inactive, set by the server's rules for each role. | R4 |
+| Sheet status | Draft (private to the player, invisible to the GM) → proposed → confirmed; and, for campaign sheets, active / inactive set by the GM. Existing sheets count as confirmed and active. | R4 |
 
 ## How to read the rules
 

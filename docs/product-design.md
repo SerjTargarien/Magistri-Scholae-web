@@ -2,7 +2,7 @@
 
 The place to design a change before building it (owner request, 8 November 2026): what each screen shows, what each role can do, and the rules behind it. A change starts here; the code follows. Interface terms are the app's Spanish ones.
 
-**Status:** each section describes the app as it is on 9 November 2026 (`main` at `d912a99`, mapped from the code) and then, under **Target**, the owner's intended design (his parallel document of 9 November 2026), with the release that builds it ([implementation-plan.md](implementation-plan.md)). Points still to settle are marked **Q** and listed in [Open questions](#open-questions). Field limits are in [field-rules.md](field-rules.md).
+**Status:** each section describes the app as it is on 9 November 2026 (`main` at `d912a99`, mapped from the code) and then, under **Target**, the owner's intended design (his parallel document of 9 November 2026), with the release that builds it ([implementation-plan.md](implementation-plan.md)). The owner answered the first open questions on 9 November 2026 (recorded below); points still to settle are listed in [Open questions](#open-questions). Field limits are in [field-rules.md](field-rules.md).
 
 ## Principles
 
@@ -12,7 +12,7 @@ The place to design a change before building it (owner request, 8 November 2026)
 - **Touch first:** nothing depends on hover; testers use phones.
 - **Hidden is not deleted:** a field a viewer may not see is not drawn, and hiding something (Magia intuitiva above 14, a switch turned off) keeps its stored value.
 - **Better safe than sorry:** removing something asks for confirmation (target, R3.4 polish pass).
-- **Words:** a **campaña** is the GM's universe; its **partidas** (the tables, decision 9) are labels on sheets.
+- **Words:** a **campaña** is the GM's universe; its **partidas** (the tables, decision 9) are labels on sheets. Only one campaign is in use, with two partidas.
 
 ## Roles
 
@@ -25,16 +25,17 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 **Target** (owner, 9 November 2026):
 
+- **Player's drafts (borradores):** a new player sheet starts as a draft in the player's **private vault**: a scratchpad to learn the tools or imagine characters, possibly to propose to the GM as new NPCs. **The GM does not see drafts at all.** The player proposes a draft once and the GM confirms it; from then on it is a campaign sheet (R4).
 - **GM** (R4):
-  - sees and edits every character and familiar **once it is active**: the player activates a sheet once, and the GM confirms it (**Q1**);
-  - marks sheets **active or inactive** (dead, travelling…): inactive sheets leave the main list («grimorio») without being archived;
-  - archives, and can **delete** a sheet after several confirmation steps (**Q2**);
+  - sees and edits every character and familiar that is **not a draft**;
+  - marks campaign sheets **active or inactive** (dead, travelling…), a separate status: inactive sheets leave the main list («grimorio») without being archived;
+  - archives, and can **delete only an archived sheet**, after several confirmation steps;
   - creates sheets and **assigns them to players**;
   - creates campaigns and sees the campaign chooser; players join a campaign by invitation;
   - chooses which fields a shared reader sees (the visibility editor, R7.3).
-- **Player:** sees and edits the sheets they created or that the GM assigned to them.
+- **Player:** sees and edits the sheets they created or that the GM assigned to them, and their own drafts.
 - **Shared reader:** sees the fields the GM chose for that sheet.
-- **Administrator:** as today, and can see and change campaign data **only with the GM's explicit permission** (**Q3**). Admin screens in R4.
+- **Administrator:** as today, and can see and change **the whole campaign's data** only while the GM allows it: the GM grants access for an issue, and it ends after **24 hours**, when the GM withdraws it, or when the administrator marks the issue as solved, whichever comes first. Admin screens in R4.
 
 ## Screens
 
@@ -77,7 +78,7 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 - «**Menor**», with «Mago» and «Alumno de Escuela de Magia» ticked by default; unticking hides the related values.
 - «**Adulto**», with «Mago» ticked by default; unticking hides the related values.
-- «**Criatura mágica**»: its own sheet type, between a familiar and an adult (**Q4**).
+- «**Criatura mágica**»: everything an adult wizard has (it can even be a teacher), plus «**Especie**», a general «**Descripción**» (as familiars have) and a «**Pactos**» tab, like the notes tab, whose entries each link to another character.
 - «**Familiar**»: as today.
 - Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago.
 
@@ -98,7 +99,7 @@ Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothin
 - **Identificación** carefully redesigned for minors, adults and magical creatures, with fitting values for each, without losing current data (R4.5). «Edad»: up to 1,000,000, or «desconocida» (R4.5).
 - **Concepto** moves to «Aspectos y Posesiones» (R4.5).
 - **Casa y Lema** and a new **Institución y Rol** tab (adults) take their content from the campaign's institutions, or free text (R5).
-- **Estrés:** maxima 1–5 (R4.5; **Q5**).
+- **Estrés:** maxima 1–5 (R4.5); the maxima follow «Físico», «Voluntad» and «Empatía» (see [Stress and consequences](#stress-and-consequences-owner-9-november-2026)).
 - **Familiar:** only for magical human characters; the dialog has no save button: it keeps the values, and the familiar is created and linked only when the character is saved (R3.4 polish pass).
 - **«Cancelar»** asks before discarding any change (polish pass).
 - Portrait fit buttons in Spanish everywhere (polish pass).
@@ -118,10 +119,10 @@ Tabs:
 
 **Target:**
 
-- Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, phase 3).
+- Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, phase 3); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
 - Removing anything asks first (polish pass); generated journal titles are shown, not stored (phase 3, **before the next publish**).
-- Activation and active/inactive status (R4).
+- Drafts, proposal and confirmation, and active/inactive status (R4).
 
 ### 7. Familiar sheet
 
@@ -163,7 +164,7 @@ Tabs:
 The GM's first screen after opening a campaign; the grimorio opens from it. Per campaign (universe). Three sections:
 
 - **Personajes:** every character in the campaign and the GM's own characters; at a glance which player each is assigned to; easy, complete filters and sorting by any stored value (school, house, player, age, magical or not…).
-- **Instituciones:** academies, ministries, guilds… each with a crest, colours, a description and a member list. An institution can have **branches** (name to choose: chapter, faction, division… **Q6**) with their own values; today's houses are branches of Magistri Scholae. A character belongs to a branch, to an institution without a branch, or to none (free characters). A character's institution can also be free text instead of one from the list. The GM creates any number of houses, and the word «Casa» can be renamed per school.
+- **Instituciones:** academies, ministries, guilds… each with a crest, colours, a description and a member list. An institution can have **branches** with their own values: called «**Casas**» in schools and «**Secciones**» in other organizations by default, and the GM can rename the word; today's houses are «Casas» of Magistri Scholae. A character belongs to a branch, to an institution without a branch, or to none (free characters). A character's institution can also be free text instead of one from the list. The GM creates any number of branches.
   - **Schools** are institutions with their own values:
     - «**cursos**» (e.g. 3º): students of the same level, who move up together each school year unless they repeat; matches «Curso Académico» on the sheet;
     - «**asignaturas**» (e.g. Pociones): with their teachers and the skill they improve; «troncal» (every student of the year) or «optativa» (students choose a fixed number from a larger set, per year);
@@ -187,6 +188,18 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 
 ## Design notes
 
+### Stress and consequences (owner, 9 November 2026)
+
+A homebrew of the FATE stress rules with wider values. Each track (physical, mental, social) has a **maximum M from 1 to 5** (usually 3 to 5): how strong the character is there, set by the skills «Físico», «Voluntad» and «Empatía».
+
+- Damage **below M** only marks pips.
+- Damage of **M or more** is absorbed in whole steps of M, each step raising the consequence one level, and the rest marks pips. With M = 3:
+  - 5 damage: 3 absorbed, a **leve** consequence (minor; it can go away during the session if the story allows), 2 pips marked;
+  - 7 damage: 6 absorbed, a **moderada** consequence (major; it goes away after the session, roughly a month of story), 1 pip marked;
+  - 10 damage: 9 absorbed, a **grave** consequence (severe; it never goes away unless measures are taken), 1 pip marked. With a grave consequence, 2 more damage (filling the pips) and the character is lost: dies, becomes an NPC… the GM decides from the story. To be avoided at all costs.
+- The levels match the severities the server already stores: leve, moderada, grave.
+- **Design intent:** the stress tracks and consequences show this clearly without overcomplicating (R3.4 session tab for severity; the tracks in R4.5). Details still open are in [Open questions](#open-questions).
+
 ### Non-magical characters (owner, 8–9 November 2026; R4.5)
 
 - The **same sheet** as a magical one, with a «Mago» switch; off, the sheet hides the magic fields: «Varita / Foco mágico», the categories «Habilidades y conocimientos mágicos», «Magia elemental» and «Magia esotérica» (with knowledge levels), the «Conjuros y Pociones» tab (to confirm field by field in R4.5).
@@ -200,6 +213,8 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 
 ### Recorded for later
 
+- **Far backlog: a multiverse collection.** A collection of everything created in the magical multiverse, with an archaic Spanish or Latin name, opened from a button near the GM notes. It copies characters between campaigns, either as an independent copy or as a **linked representation that updates with changes on both sides**. This reverses today's "no automatic two-way sync" rule (design.md section 11) and will need its own design for edits on both sides. It replaces the older private "GM library" idea (R7.5).
+
 - **Full-screen image viewer** for portraits; the galleries already enlarge a picture on tap.
 - **The GM renames the campaign** name he sees (R4).
 - **Recovery and invitation links** created from the admin screens (R4); decide how long a recovery code lasts (15 minutes today).
@@ -209,13 +224,11 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 
 ## Open questions
 
-Asked on 9 November 2026; answers update this document and the plan.
+Q1–Q8 were answered on 9 November 2026 and folded in above (drafts, deletion of archived sheets only, administrator access, «Criatura mágica», stress maxima, «Casas» / «Secciones», R6 after R5, the multiverse collection in the far backlog). Still open:
 
-- **Q1 — Activation.** Until the player activates a sheet and the GM confirms it, does the GM not see it at all, or see it marked as a draft? Is "active / inactive" (dead, travelling) the same status or a second one?
-- **Q2 — Deletion.** Can the GM delete any sheet directly after several confirmations, or only an archived one (today's plan)?
-- **Q3 — Administrator access.** With the GM's permission: read only, or also change? For the whole campaign or chosen sheets? Until the GM withdraws it, or for a time? Personal notes stay excluded?
-- **Q4 — Criatura mágica.** Which parts of the sheet does it have (skills, stress, spells, gallery, journal…)? Can a player own one? Can it have a familiar or be one?
-- **Q5 — Stress maxima 1–5.** Existing sheets with a maximum above 5 are capped at 5?
-- **Q6 — Branches.** The word for an institution's branch, and whether a school's branches are always called «Casas» by default.
-- **Q7 — Order.** Where the production backend (R6) goes: before the big redesigns (R4.5, R5), so testers' data leaves staging sooner, or after.
-- **Q8 — The older "GM library".** The design also has a private GM library of templates and NPCs copied into campaigns, with one-way sync (R7.5, design.md section 11). Is it part of the Biblioteca del Máster, kept separately for later, or dropped?
+- **Q9 — Stress maximum from skills.** How a skill value (0–5) gives the track's maximum (1–5): for example, the maximum equals the skill with a minimum of 1, or 2 plus half the skill, or a table.
+- **Q10 — Repeated damage.** What happens when pips would overflow without reaching a new step, or when the character already has a consequence of the level a new hit gives (does it move up to the next free level?), and how many consequences of each level a track holds.
+- **Q11 — The app's role in damage.** Should the sheet only record stress and consequences (the GM applies the rules), or offer a «Recibir daño» box that applies them?
+- **Q12 — Confirmed drafts.** When the GM confirms a proposed draft, does it become the player's character, or can the GM take it as an NPC?
+- **Q13 — Criatura mágica, owner and familiars.** Can a player own one, as an adult wizard? Can it have a familiar?
+- **Q14 — Administrator access, personal notes.** Personal notes stay excluded from that access, as from the GM's?

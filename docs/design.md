@@ -131,10 +131,10 @@ Additional current-source responsibilities:
 
 **Owner's target design (9 November 2026; [product-design.md](product-design.md), Roles; built in R4):**
 
-- **Sheet activation:** a player's sheet becomes fully part of the campaign once the player activates it and the GM confirms it (what the GM sees before that is open question Q1). The GM also marks sheets active or inactive (dead, travelling) to keep the main list short without archiving.
-- **Deletion:** the GM can delete a sheet after several confirmations (whether only archived ones: Q2).
+- **Player drafts:** a new player sheet is a draft in the player's private vault; **the GM does not see drafts at all**, an exception to the GM's campaign-wide read access. The player proposes a draft once and the GM confirms it; it is then an ordinary campaign sheet. The GM also marks campaign sheets active or inactive (dead, travelling) to keep the main list short without archiving.
+- **Deletion:** the GM can delete only an archived sheet, after several confirmations.
 - **The GM creates campaigns** and assigns sheets he creates to players.
-- **Administrator access with the GM's permission:** a change to the rule that the site administrator does not read campaign sheet content. The GM grants it explicitly; scope (read or change, which sheets, how long) is Q3. Personal notes stay excluded, and every access is audited.
+- **Administrator access with the GM's permission:** a change to the rule that the site administrator does not read campaign sheet content. The GM grants access to the whole campaign for an issue; it ends after 24 hours, when the GM withdraws it, or when the administrator marks the issue as solved. Read and change; every access is audited; personal notes stay excluded (to confirm, product-design.md Q14).
 - **Campaign data beyond sheets** (R5): institutions, branches and schools (year groups, subjects, clubs, classes) are GM-owned campaign records that sheets link to; players read what appears on their sheets.
 
 A user may be a GM in one campaign and a player in another. Authorization is campaign-scoped even when only one campaign exists initially. Every relationship endpoint must verify that referenced users, characters, and grants belong to the expected scope.
@@ -302,6 +302,8 @@ Show saving, saved, unsaved, offline, and conflict states. Never carry a previou
 Separate note revisions from sheet revisions. Authorization/default-policy changes and asset changes must participate in appropriate version checks. Refresh visible data on return to the tab and revalidate after permission changes.
 
 ## 11. GM library and selective synchronization
+
+**Owner, 9 November 2026:** this section is superseded by a far-backlog idea, a multiverse collection that copies characters between campaigns as independent copies or as linked representations updating on both sides (two-way, unlike below). It needs its own design when it is taken up; only one campaign is in use for now ([product-design.md](product-design.md), Recorded for later). The per-campaign Biblioteca del Máster (R5) is a different thing.
 
 Creating a campaign copy gives it a new ID, independent revision, campaign assignment, and its own asset associations. Include an explicit decision for any linked familiar: copy the needed entity and remap the bond without retaining invalid cross-scope references. Record the source and last-applied baseline in a GM-only link when optional synchronization is enabled. The copy remains usable if the source is archived or the link is disabled.
 

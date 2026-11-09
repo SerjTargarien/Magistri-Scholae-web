@@ -246,6 +246,7 @@ test("esoteric skills keep a knowledge level, set in the form and on the sheet",
   await openCharacter(page, "Esoteric Student");
   await openTab(page, "habilidades");
   await expect(page.locator(`#tag-knowledge-${cabala.id}`)).toContainText("Medio");
+  await expect(page.locator(`#tag-knowledge-${cabala.id}`)).not.toContainText("Destrucción"); // the explanation is only in the menu
   await expect(page.locator('[id^="btn-knowledge-"]')).toHaveCount(0); // only in edit mode
   stored = await storedSheet(page, "Esoteric Student");
   expect(stored!.habilidades.find((s: { id: string }) => s.id === cabala.id)).toMatchObject({ catalogo: "cabala", valor: 1, conocimiento: "medio" });

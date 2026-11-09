@@ -591,7 +591,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - An interactive demo of every control and rule ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page with fictional data) recorded the owner's verdicts: 16 of 20 approved at once, the rest after changes: tapping the current pip does nothing; an empty tag looks like the others, only dashed and quieter, and tags keep their natural width up to a limit; the filter bar's magnifier chooses where to search and sorting takes any number of fields from a searchable list; and **only the Academia style stays** (Classic and its selector go in the R3.4 polish pass).
 - Recorded in product-design.md (Controls, principles, settings), implementation-plan.md (polish pass) and AGENTS.md. Nothing in the app has changed yet. The tag menu is built first, inside PR #41 (D3). Open: D2 (the main list's filter bar now or with R5).
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass (now also removing the Classic style and moving the remaining choices to the shared controls) and images from a web address; then R4.
+## Knowledge labels and no cut words — 9 November 2026
+
+- After the tag menu went live, the owner found the demo better: the knowledge tag now shows only «Básico», «Medio» or «Avanzado»; «Alteración», «Destrucción» and «Creación» are a second line in its menu only. Tags never cut their value with «…»: a long one wraps. The skill rows on the sheet and in the form no longer cut skill names either (they wrap); the hover title that showed the full name is gone with the cut.
+- New design rule (owner): no cut words wherever the layout allows; recorded in product-design.md, AGENTS.md and, for the remaining ~50 places, the polish pass.
+
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass (now also removing the Classic style, moving the remaining choices to the shared controls, and wrapping text instead of cutting it) and images from a web address; then R4.
 
 ## Updating this handoff
 

@@ -239,6 +239,7 @@ Each step below is its own pull request. It keeps the app working under the brow
        - familiar sheet: header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»; the journal tab becomes «Notas del Familiar» with suggestions that fit a familiar;
        - **one visual style** (owner, 9 November 2026): remove the Classic style, its CSS and the «Estilo Visual» card in settings; Academia stays, and a saved Classic choice falls back to it;
        - **the controls** ([product-design.md, Controls](product-design.md#controls), adopted 9 November 2026): the shared components replace the remaining native selectors, checkboxes and number boxes, one component at a time; no browser-drawn selectors.
+       - **no cut words** (owner, 9 November 2026): about 50 places cut text with «…» (`truncate`, `line-clamp`) across the list, form, sheet, familiar and settings screens; each wraps instead, or stays cut only where one line is essential, with the reason noted (the skill rows and tags were done on 9 November).
     5. **Images from a web address,** downloaded by the server (its own security review).
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the academy and classic styles.

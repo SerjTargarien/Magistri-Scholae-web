@@ -72,7 +72,7 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
-                                <span className="text-[11px] font-sans text-neutral-300 font-bold truncate pr-1" title={displaySkillName}>
+                                <span className="text-[11px] font-sans text-neutral-300 font-bold break-words min-w-0 pr-1">
                                   {displaySkillName}
                                 </span>
                               </div>

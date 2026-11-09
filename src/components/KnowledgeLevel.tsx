@@ -8,9 +8,14 @@ import { TagMenu } from "./TagMenu";
 
 export const KNOWLEDGE_LEVELS: readonly EsotericKnowledge[] = ["basico", "medio", "avanzado"];
 
-const TEXT: Record<Language, { label: string; none: string; empty: string } & Record<EsotericKnowledge, string>> = {
-  es: { label: "Conocimiento", none: "Sin conocimiento", empty: "Ninguno", basico: "Básico (alteración)", medio: "Medio (destrucción)", avanzado: "Avanzado (creación)" },
-  en: { label: "Knowledge", none: "No knowledge", empty: "None", basico: "Basic (alteration)", medio: "Medium (destruction)", avanzado: "Advanced (creation)" },
+// The tag shows the level's word; what it allows (alteración, destrucción,
+// creación) is a second line in the menu only (owner, 9 November 2026).
+type Texts = { label: string; none: string; empty: string } & Record<EsotericKnowledge, string> & Record<`${EsotericKnowledge}Hint`, string>;
+const TEXT: Record<Language, Texts> = {
+  es: { label: "Conocimiento", none: "Sin conocimiento", empty: "Ninguno", basico: "Básico", medio: "Medio", avanzado: "Avanzado",
+    basicoHint: "Alteración", medioHint: "Destrucción", avanzadoHint: "Creación" },
+  en: { label: "Knowledge", none: "No knowledge", empty: "None", basico: "Basic", medio: "Medium", avanzado: "Advanced",
+    basicoHint: "Alteration", medioHint: "Destruction", avanzadoHint: "Creation" },
 };
 
 const TONE: Record<EsotericKnowledge, string> = {
@@ -31,7 +36,7 @@ export function KnowledgeLevel({ skillId, value, editable, lang, onChange }: {
       value={value}
       emptyLabel={t.empty}
       editable={editable}
-      options={[{ value: "", label: t.none }, ...KNOWLEDGE_LEVELS.map((level) => ({ value: level, label: t[level], tone: TONE[level] }))]}
+      options={[{ value: "", label: t.none }, ...KNOWLEDGE_LEVELS.map((level) => ({ value: level, label: t[level], hint: t[`${level}Hint`], tone: TONE[level] }))]}
       onChange={(level) => onChange(level || undefined)}
     />
   );

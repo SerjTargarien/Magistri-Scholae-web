@@ -21,8 +21,8 @@ export type TagOption<T extends string> = {
   tone?: string;
 };
 
-/** Tags keep their natural width up to a limit; long values end in «…». */
-const TAG = "inline-flex items-center gap-1 max-w-[min(14rem,100%)] min-h-6 px-2 rounded-full border font-mono text-[10px] font-bold uppercase tracking-wide whitespace-nowrap";
+/** Tags keep their natural width; a value too long for the row wraps to a second line, never cut with «…» (owner, 9 November 2026). */
+const TAG = "inline-flex items-center gap-1 max-w-full min-h-6 px-2 py-0.5 rounded-full border font-mono text-[10px] leading-tight font-bold uppercase tracking-wide text-left break-words";
 /** An empty tag looks like the others, only dashed and quieter (owner, 9 November 2026). */
 const EMPTY = "border-dashed border-neutral-600 bg-neutral-900/60 text-neutral-500";
 const PLAIN = "border-neutral-700 bg-neutral-900/60 text-neutral-300";
@@ -52,7 +52,7 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
     if (!current) return null;
     return (
       <span id={id} title={title} className={`${TAG} ${current.tone ?? PLAIN}`}>
-        <span className="overflow-hidden text-ellipsis">{current.label}</span>
+        <span className="min-w-0">{current.label}</span>
       </span>
     );
   }
@@ -79,7 +79,7 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
         }}
         className={`${TAG} ${HIT} ${current ? current.tone ?? PLAIN : EMPTY} cursor-pointer transition-colors hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950`}
       >
-        <span className="overflow-hidden text-ellipsis">{text}</span>
+        <span className="min-w-0">{text}</span>
         <ChevronDown className="w-3 h-3 shrink-0 opacity-80" aria-hidden="true" />
       </button>
       {open && createPortal(

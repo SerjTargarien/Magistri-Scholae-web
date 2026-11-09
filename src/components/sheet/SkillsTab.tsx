@@ -99,8 +99,8 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               )}
-                              <div className="truncate flex-1">
-                                <span className="text-xs font-semibold text-neutral-200 block truncate" title={displaySkillName}>{displaySkillName}</span>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs font-semibold text-neutral-200 block break-words">{displaySkillName}</span>
                                 {category.esoterica && (
                                   <div className="mt-1">
                                     <KnowledgeLevel skillId={sk.id} value={sk.conocimiento} lang={lang} onChange={level => setSkillKnowledge(sk.id, level)}

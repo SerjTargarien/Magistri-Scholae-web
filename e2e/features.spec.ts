@@ -57,27 +57,55 @@ test("student: identity, house, aspects, complications and custom fields persist
 test("session tracking: destiny, XP, stress, temporary aspects and consequences persist", async ({ page }) => {
   await createCharacter(page, "Session Student");
   await openTab(page, "sesion");
-  await page.getByRole("button", { name: "Puntos de Destino: 5" }).click();
+  // Three gems by default; each point above three adds one, up to 10.
+  const gems = page.locator("#destiny-gems-container button");
+  await expect(gems).toHaveCount(3);
+  for (let i = 0; i < 9; i++) await page.locator("#btn-dest-plus").click();
+  await expect(gems).toHaveCount(10);
+  await page.getByRole("button", { name: "Puntos de Destino: 7" }).click();
+  await expect(gems).toHaveCount(7);
   await page.locator("#btn-exp-plus").click();
   await page.locator("#btn-exp-plus").click();
+  await expect(page.locator("#input-exp")).toHaveCount(0); // typed only in edit mode
   await page.locator("#stress-phys-box-2").click();
   await page.locator("#stress-mental-box-1").click();
   await page.locator("#input-session-new-temp-aspect").fill("Turned into a toad");
   await page.locator("#btn-session-add-temp-aspect").click();
+  // A new consequence starts as «Leve»; another severity is one tap.
   await page.locator("#input-session-new-phys-consequence").fill("Numb arm");
   await page.locator("#btn-session-add-phys-consequence").click();
+  await page.locator("#btn-session-severity-social-grave").click();
   await page.locator("#input-session-new-social-consequence").fill("Whispers behind me");
   await page.locator("#btn-session-add-social-consequence").click();
+  await expect(page.locator("#btn-session-severity-social-leve")).toHaveAttribute("aria-checked", "true");
 
   await reloadApp(page);
   await openCharacter(page, "Session Student");
   await openTab(page, "sesion");
   await expect(page.locator("#detail-tab-sesion")).toContainText("Numb arm");
-  const stored = await storedSheet(page, "Session Student");
-  expect(stored).toMatchObject({ puntosDestino: 5, pxs: 2, estresFisico: 2, estresMental: 1 });
+  let stored = await storedSheet(page, "Session Student");
+  expect(stored).toMatchObject({ puntosDestino: 7, pxs: 2, estresFisico: 2, estresMental: 1 });
   expect(stored!.aspectoTemporal.map((a: { value: string }) => a.value)).toEqual(["Turned into a toad"]);
-  expect(stored!.consecuenciasFisicas).toEqual([expect.objectContaining({ descripcion: "Numb arm" })]);
-  expect(stored!.consecuenciasSociales).toEqual([expect.objectContaining({ descripcion: "Whispers behind me" })]);
+  expect(stored!.consecuenciasFisicas).toEqual([expect.objectContaining({ descripcion: "Numb arm", gravedad: "leve" })]);
+  expect(stored!.consecuenciasSociales).toEqual([expect.objectContaining({ descripcion: "Whispers behind me", gravedad: "grave" })]);
+
+  // The severity tag changes outside edit mode; experience is typed in edit mode.
+  const arm = stored!.consecuenciasFisicas[0].id;
+  await expect(page.locator(`#select-severity-${arm}`)).toHaveValue("leve");
+  await page.locator(`#select-severity-${arm}`).selectOption("moderada");
+  await setEditMode(page, true);
+  await openTab(page, "sesion");
+  await page.locator("#input-exp").fill("250000");
+  await page.locator("#input-exp").press("Enter");
+  await page.locator("#input-exp").fill("");
+  await page.locator("#input-exp").blur(); // an emptied box changes nothing
+  await setEditMode(page, false);
+  await expect(page.locator("#value-exp")).toHaveText("250000");
+  await reloadApp(page);
+  stored = await storedSheet(page, "Session Student");
+  expect(stored).toMatchObject({ pxs: 250000 });
+  await expect(characterCard(page, "Session Student").first()).toContainText("250 mil"); // short on the card
+  expect(stored!.consecuenciasFisicas[0]).toMatchObject({ id: arm, gravedad: "moderada" });
 });
 
 test("skills, spells, potions, clubs, equipment and journal entries persist", async ({ page }) => {

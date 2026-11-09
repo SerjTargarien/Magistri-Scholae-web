@@ -227,7 +227,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - **Later, its own design step:** clicking any portrait or gallery image that does nothing today opens a floating window with the image at full size (owner: important).
   - **Remaining, in order** (owner's target design, 9 November 2026; one pull request each):
     1. **Journal titles shown, not stored** (character «Entrada del …», familiar «Sin Nombre»): before the next publish (owner). **Done 9 November 2026.**
-    2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity.
+    2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity. **Done 9 November 2026.**
     3. **Lists and limits:** subjects taught as a list; a name box that can be emptied while retyping; counters near limits.
     4. **Polish pass** (product-design.md, Known inconsistencies):
        - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved;

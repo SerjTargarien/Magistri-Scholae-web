@@ -81,12 +81,12 @@ Organizations (with their own mottos) get a builder and editor after 1.0.
 
 | Field | Today | Rule |
 |---|---|---|
-| `puntosDestino` | Five gems, 0–5, default 3. | **Whole number 0–10, default 3 (owner decision).** Per-session points: normally spent, can grow during a session. **Visible:** three gems by default; the + button adds points up to 10, with a gem appearing for each point above 3. |
-| `pxs` (experience) | −/+ only, silently stops at 99. | **Whole number 0–1,000,000 (owner decision).** XP is also spent. Proposal (visible): in edit mode the number can also be typed, so a GM can set large values. |
+| `puntosDestino` | Five gems, 0–5, default 3. | **Whole number 0–10, default 3 (owner decision).** Per-session points: normally spent, can grow during a session. **Visible:** three gems by default; the + button adds points up to 10, with a gem appearing for each point above 3 (five a row). **Done 9 November 2026.** |
+| `pxs` (experience) | −/+ only, silently stops at 99. | **Whole number 0–1,000,000 (owner decision).** XP is also spent. **Visible:** in edit mode the number can also be typed (saved on Enter or leaving the box; an emptied box changes nothing); cards show it exact up to 99,999 and short above («250 mil», «1 M»). **Done 9 November 2026.** |
 | `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | 1–10; default 3 (students), 5 (adults). | **Whole number 1–10** |
 | `estresFisico`, `estresMental`, `estresSocial` | 0..maximum (sheet only). | **Whole number 0–10, not above its maximum** |
 | `aspectoTemporal` | Add/remove. | **List ≤ 30**, each **required, text 300** |
-| `consecuenciasFisicas`, `consecuenciasMentales`, `consecuenciasSociales` | Free text lists. | **Owner decision (visible):** each consequence is a **description** (required, **text 1,000**: the important part for role-play) plus a **severity**: **choice** mild / moderate / severe (*leve / moderada / grave*). **List ≤ 30** per track. |
+| `consecuenciasFisicas`, `consecuenciasMentales`, `consecuenciasSociales` | Free text lists. | **Owner decision (visible):** each consequence is a **description** (required, **text 1,000**: the important part for role-play) plus a **severity**: **choice** mild / moderate / severe (*leve / moderada / grave*). **List ≤ 30** per track. **Done 9 November 2026:** a new consequence starts as «Leve» (owner); its coloured tag changes outside edit mode for whoever may edit it; one saved without a severity shows no tag until one is picked. |
 
 ## Skills (form tab Habilidades; sheet tab Habilidades)
 

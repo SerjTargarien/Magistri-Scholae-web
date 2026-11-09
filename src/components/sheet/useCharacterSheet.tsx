@@ -12,15 +12,16 @@ import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
 import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
-import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry, type EsotericKnowledge } from "../../model/sheet";
+import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry, type EsotericKnowledge, type Severity } from "../../model/sheet";
 import type { CharacterDetailProps } from "../../account/screens";
 
 type TextList = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
-type ConsequenceList = "consecuenciasFisicas" | "consecuenciasMentales" | "consecuenciasSociales";
+export type ConsequenceList = "consecuenciasFisicas" | "consecuenciasMentales" | "consecuenciasSociales";
 type StressField = "estresFisico" | "estresMental" | "estresSocial";
 type StressMaxField = "estresFisicoMax" | "estresMentalMax" | "estresSocialMax";
 
 const MAX_PXS = 1_000_000;
+const MAX_DESTINY = 10;
 const MAX_QUANTITY = 9999;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const sameName = (a: string | undefined, b: string) => !!a && a.trim().toLocaleLowerCase() === b.toLocaleLowerCase();
@@ -142,6 +143,12 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const [newPhysicalConsequence, setNewPhysicalConsequence] = useState("");
   const [newMentalConsequence, setNewMentalConsequence] = useState("");
   const [newSocialConsequence, setNewSocialConsequence] = useState("");
+  // The severity a new consequence gets, per track; it starts on «leve» (owner, 9 November 2026).
+  const [newSeverity, setNewSeverityState] = useState<Record<ConsequenceList, Severity>>({
+    consecuenciasFisicas: "leve", consecuenciasMentales: "leve", consecuenciasSociales: "leve",
+  });
+  const setNewSeverity = (list: ConsequenceList, severity: Severity) =>
+    setNewSeverityState((current) => ({ ...current, [list]: severity }));
 
   // Quick Edit Mode states (a viewer who can change nothing never enters it)
   const [quickEditing, setIsQuickEditing] = useState(false);
@@ -189,8 +196,14 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     edit(field, clamp((character[field] ?? 0) + count, 0, MAX_PXS));
   };
 
+  /** Experience typed in edit mode: a whole number, 0 to 1,000,000. */
+  const setPxs = (val: number) => {
+    if (!Number.isFinite(val)) return;
+    edit("pxs", clamp(Math.round(val), 0, MAX_PXS));
+  };
+
   const setDestinyPoints = (val: number) => {
-    edit("puntosDestino", clamp(val, 0, 5));
+    edit("puntosDestino", clamp(val, 0, MAX_DESTINY));
   };
 
   const setStress = (field: StressField, value: number) => edit(field, value);
@@ -267,11 +280,14 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
   const handleRemoveCustomField = (id: string) => removeEntry("camposPersonalizados", id);
 
-  // Consequences: a description (the severity selector comes later).
+  // Consequences: a description and a severity (leve, moderada, grave).
   const addConsequence = (list: ConsequenceList, text: string) => {
     if (!text.trim()) return;
-    addEntry(list, { descripcion: text.trim() });
+    addEntry(list, { descripcion: text.trim(), gravedad: newSeverity[list] });
+    setNewSeverity(list, "leve");
   };
+  const setConsequenceSeverity = (list: ConsequenceList, id: string, severity: Severity) =>
+    edit(`${list}/${id}/gravedad`, severity);
 
   const handleAddPhysicalConsequence = (name: string) => addConsequence("consecuenciasFisicas", name);
   const handleRemovePhysicalConsequence = (id: string) => removeEntry("consecuenciasFisicas", id);
@@ -610,6 +626,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     linkedFamiliar,
     bondFamiliar,
     changeStat,
+    setPxs,
     setDestinyPoints,
     setStress,
     changeMaxStress,
@@ -633,6 +650,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     handleRemoveMentalConsequence,
     handleAddSocialConsequence,
     handleRemoveSocialConsequence,
+    newSeverity,
+    setNewSeverity,
+    setConsequenceSeverity,
     changeSkillValue,
     handleNewSkillNameChange,
     handleAddSkill,

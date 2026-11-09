@@ -576,7 +576,15 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Existing data: before the change, a read-only count on the staging backend (metadata only) found 5 sheets and no journal entries, so no stored generated titles needed cleaning.
 - Merged as PR #39 (`1d16109`; GitHub did not start CI for the PR, so it was run by hand on the branch: frontend, backend and deploy config passed). Published on 9 November 2026: release `20261109-101827-1d16109` on the public site and staging; both serve the new build, `www` redirects to the main domain, and the API answers.
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: the session tab (destiny gems, typeable XP, consequence severity), lists and limits, the polish pass and images from a web address; then R4.
+## Session tab: destiny, experience and severity — 9 November 2026
+
+- **Destiny:** three gems by default and one more for each point above three, up to 10 (the server's rule); at most five a row, so ten show as two rows on a phone.
+- **Experience:** in edit mode the number is a box (saved on Enter or leaving it; Escape restores it; an emptied box changes nothing), 0 to 1,000,000; − and + stay. Character cards show it exact up to 99,999 and short above («250 mil», «1 M»), the full number on hover, because 1,000,000 overflowed a card's third at 1024 px.
+- **Consequences:** the add form has a «Leve / Moderada / Grave» choice, starting on «Leve» (owner); each consequence shows a coloured tag that whoever may edit it changes with a tap, also outside edit mode; readers see a plain tag. The one consequence on staging saved without a severity shows no tag until one is picked; no stored data changes. The three consequence lists share one component (`SessionTab.tsx`).
+- Existing data (read-only count on staging, values only): destiny 2–3, experience up to 16, one consequence without a severity.
+- Checks: type check; 51 unit tests; both builds; 43 browser tests (the session test now covers 3 → 10 gems, typed experience, an emptied box, severity on add and from the tag, and the short card number, at desktop and phone widths). Looked at in the demo build at 375, 1024 and 1280 px.
+
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass and images from a web address; then R4.
 
 ## Updating this handoff
 

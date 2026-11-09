@@ -595,6 +595,7 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - After the tag menu went live, the owner found the demo better: the knowledge tag now shows only «Básico», «Medio» or «Avanzado»; «Alteración», «Destrucción» and «Creación» are a second line in its menu only. Tags never cut their value with «…»: a long one wraps. The skill rows on the sheet and in the form no longer cut skill names either (they wrap); the hover title that showed the full name is gone with the cut.
 - New design rule (owner): no cut words wherever the layout allows; recorded in product-design.md, AGENTS.md and, for the remaining ~50 places, the polish pass.
+- **Knowledge tag under the value** (owner, after seeing it live): on the sheet the tag sits under the skill's number instead of under its name, so the number lines up with the name and the tag with the dots. Tried beside the number first: on a phone in edit mode the name had too little room. The row's name area now takes the free width (the old 130/180 px limit is gone). Checked at 375 and 800 px, in and out of edit mode; type check, 51 unit tests, both builds, 43 browser tests.
 
 **Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass (now also removing the Classic style, moving the remaining choices to the shared controls, and wrapping text instead of cutting it) and images from a web address; then R4.
 

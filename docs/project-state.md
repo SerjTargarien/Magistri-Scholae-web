@@ -666,6 +666,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Owner's report: in edit mode on a phone, a custom field's name box was squeezed to a sliver beside its value. On the sheet and in the creation form, phones now show the name with its remove button on one line and the value under them, full width; wider screens keep the single row (name, value, remove).
 - Checks: type check; 53 unit tests; both builds; 49 browser tests. Measured in the demo build: at 375 px the name box is 203 px and the value 233 px; at 1280 px the row is unchanged.
 
+## No cut words, first pass: shorter wording — 9 November 2026
+
+- Owner's rule: a shorter way to say it is always the first option (example: «Buscar por nombre, jugador o concepto...» → «Buscar»); anything else changes only where text is still cut afterwards.
+- 71 texts in `src/localization.ts` (Spanish, and the English kept for later) are shorter: verbose buttons («Registrar Objeto de Inventario» → «Añadir objeto»), placeholders (one example each, «Título (opcional)» for a journal title), empty-list sentences («Sin equipo.»), confirmations («¿Eliminar este objeto?», which also fixes «este de objeto»), the form's tabs («Aspectos», «Casa») and the familiar slot's «Vincular». New texts use sentence case. «Registro de Familiares» and «Elige un personaje.» fix wording the design document had flagged; the demo banner no longer mentions local sheets.
+- A temporary browser test (not committed) measured every screen at phone and desktop widths, including placeholders: with the demo's data nothing is cut any more. With long names (a 48-character character name, a 36-character familiar name) the list cards' names, player and species, and the familiar sheet's title are still cut: user data, which needs the layout rules (product-design.md, «Text that does not fit», proposal in PR #58).
+- Checks: type check; 53 unit tests; both builds; 49 browser tests (three steps of the student test find the renamed boxes and button).
+
 **Next:** polish pass (c), no cut words (about 50 places wrap instead of ending in «…»), then (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff

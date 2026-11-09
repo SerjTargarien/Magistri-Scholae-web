@@ -31,13 +31,13 @@ test("student: identity, house, aspects, complications and custom fields persist
     },
   });
   await setEditMode(page, true);
-  await page.getByPlaceholder("Añadir nuevo aspecto...").fill("Curious to a fault");
-  await page.getByPlaceholder("Añadir nuevo aspecto...").press("Enter");
-  await page.getByPlaceholder("Añadir complicación...").fill("Owes a debt");
-  await page.getByPlaceholder("Añadir complicación...").press("Enter");
+  await page.getByPlaceholder("Nuevo aspecto").fill("Curious to a fault");
+  await page.getByPlaceholder("Nuevo aspecto").press("Enter");
+  await page.getByPlaceholder("Nueva complicación").fill("Owes a debt");
+  await page.getByPlaceholder("Nueva complicación").press("Enter");
   await page.getByPlaceholder("Nombre del Atributo").last().fill("Patronus");
   await page.getByPlaceholder("Valor", { exact: true }).last().fill("Heron");
-  await page.getByRole("button", { name: "Añadir Atributo Personalizado" }).click();
+  await page.getByRole("button", { name: "Añadir campo" }).click();
   await setEditMode(page, false);
 
   await reloadApp(page);

@@ -44,7 +44,7 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 How a person chooses something, everywhere in the app (study requested by the owner, 9 November 2026). The look stays coherent with the Academia style; what a control can do comes first.
 
-**Status: adopted 9 November 2026.** The owner tried every control in an interactive demo ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page) and recorded a verdict on each: 16 of 20 approved as proposed; the pips, the filter bar and the styles rule were approved after one round of changes and the tag menu after two. The text below includes those changes.
+**Status: adopted 9 November 2026.** The owner tried every control in an interactive demo ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page) and recorded a verdict on each: 16 of 20 approved as proposed; the pips, the filter bar and the styles rule were approved after one round of changes; the tag menu was changed twice after his notes, and the second change waits for his look. The text below includes those changes.
 
 ### Why
 

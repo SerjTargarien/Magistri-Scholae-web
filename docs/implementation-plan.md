@@ -88,7 +88,7 @@ Every release that changes the UI must pass this list, in each mode it affects, 
 - Journals.
 - Portraits and gallery images, with cropping.
 - House crests and ornaments.
-- Academy and classic styles; English and Spanish.
+- The Academia style (the only one since 9 November 2026); Spanish (English kept for later).
 - The mobile profile banner.
 - Local mode only, until R3.6 retires it: backup export and import (full, selected, familiar-only) and the typed-phrase reset. Account export/import returns in R7.4.
 
@@ -270,13 +270,13 @@ Each step below is its own pull request. It keeps the app working under the brow
        - every player-facing text in the translations file; portrait fit buttons in Spanish everywhere;
        - wording: «Seleccionar un personaje para vincular a este familiar», «Registro de Familiares»;
        - familiar sheet: header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»; the journal tab becomes «Notas del Familiar» with suggestions that fit a familiar;
-       - **one visual style** (owner, 9 November 2026): remove the Classic style, its CSS and the «Estilo Visual» card in settings; Academia stays, and a saved Classic choice falls back to it;
+       - **one visual style** (owner, 9 November 2026): remove the Classic style, its CSS and the «Estilo Visual» card in settings; Academia stays, and a saved Classic choice falls back to it (**done 9 November 2026**);
        - **the controls** ([product-design.md, Controls](product-design.md#controls), adopted 9 November 2026): the shared components replace the remaining native selectors, checkboxes and number boxes, one component at a time; no browser-drawn selectors.
        - **no cut words** (owner, 9 November 2026): about 50 places cut text with «…» (`truncate`, `line-clamp`) across the list, form, sheet, familiar and settings screens; each wraps instead, or stays cut only where one line is essential, with the reason noted (the skill rows and tags were done on 9 November).
     5. **Image viewer** (designed first): tapping a portrait or gallery image opens it at full size (owner: important; placed by the revised order).
     - **Images from a web address,** downloaded by the server (its own security review): **moved after R5** by the revised order.
 - **R3.5 App shell.**
-  - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the academy and classic styles.
+  - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the Academia style.
   - The save-status panel speaks plainly, without field names.
   - ~~Lists show and filter by each character's **partida**~~: moved to R4, which creates the table labels (revised order).
   - ~~Text goes through `localization.ts`. No `window.confirm`.~~ Folded into the R3.4 polish pass, which does the same work (revised order).
@@ -315,7 +315,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Issue reset codes, shown as a link to send by text message (`https://magistrischolae.fyi/#recuperacion=CODE`, already understood by the sign-in screen) as well as the bare code; invitations likewise (`#invitacion=CODE`). Owner (8 November 2026): the GM will forget his password, so recovery by link must be easy. Decide the validity: reset codes last 15 minutes today, which may be too short for a text message.
   - Enable and disable accounts.
   - Manage members and roles.
-- **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
+- **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's Academia style with large, clearly labelled controls. Lists must stay readable with 7–12 players.
 - **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days. **9 November:** still only archived sheets (owner), after several confirmation steps.
 - **Skill catalogue editor:** moved to R5 (the Biblioteca del Máster).
 - **Roles of the target design (owner, 9 November 2026):**

@@ -7,7 +7,6 @@ import type { Language } from "../localization";
 import type { SkillCatalogue } from "../model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "../model/sheet";
 import type { SheetStore } from "../store/sheetStore";
-import type { VisualStyle } from "../types";
 
 export type Toast = (type: "success" | "error", text: string) => void;
 
@@ -22,7 +21,6 @@ export type UploadImage = (path: string, dataUrl: string) => Promise<void>;
 
 export interface CharacterDetailProps {
   lang: Language;
-  visualStyle?: VisualStyle;
   /** The open character. Re-rendered by the app whenever the store changes. */
   store: SheetStore;
   catalogue: SkillCatalogue;
@@ -61,7 +59,6 @@ export interface CharacterFormProps {
 
 export interface FamiliarDetailProps {
   lang: Language;
-  visualStyle?: VisualStyle;
   /** The open familiar. Re-rendered by the app whenever the store changes. */
   store: SheetStore;
   /** Characters this viewer can see, for the bonded-master card and the bond picker. */
@@ -78,7 +75,6 @@ export interface FamiliarDetailProps {
 
 export interface FamiliarEditorProps {
   lang: Language;
-  visualStyle?: VisualStyle;
   /** Creates a new familiar (the editor only creates; existing familiars are edited on their sheet); `image` (data URL) is uploaded after creation. Resolves with its id. */
   onCreate: (fields: FamiliarSheet, image?: string) => Promise<string>;
   onUploadImage: UploadImage;
@@ -90,7 +86,6 @@ export interface FamiliarEditorProps {
 
 export interface CharacterListProps {
   lang: Language;
-  visualStyle: VisualStyle;
   characters: ApiSheetProjection[];
   familiars: ApiSheetProjection[];
   onSelectCharacter: (id: string) => void;
@@ -113,8 +108,6 @@ export interface AccountInfo {
 
 export interface SettingsScreenProps {
   lang: Language;
-  visualStyle: VisualStyle;
-  onStyleChange: (style: VisualStyle) => void;
   /** Absent while the interface is Spanish only (the language card is hidden). */
   onLanguageChange?: (lang: Language) => void;
   onBack: () => void;

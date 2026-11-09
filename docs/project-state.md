@@ -624,7 +624,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - **R3.4 step 1, «Lists and limits», is complete** (PRs #47, #48 and this one).
 - Checks: type check; 53 unit tests; both builds; 47 browser tests (new: the counter appears past 90%, a paste stops at 200, the counter disappears when the box is left). Looked at in the demo build at phone width.
 
-**Next:** the polish pass (Classic removal first, then the shared controls, no cut words, the remaining inconsistencies). Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (a): one visual style — 9 November 2026
+
+- The Classic style is gone (owner decision): no «Estilo Visual» card in settings, no style choice in the app or its screen props, no Classic branches in the list cards, sheet, familiar screens, form or sign-in card. The app root keeps `data-style="academy"`, so the Academia CSS applies unchanged; a Classic or English choice saved earlier is ignored. `src/index.css` had no Classic-only rules (its base panel rules are refined by the academy ones), so only a comment changed. About 90 style choices and two whole Classic card layouts were removed.
+- **No visible change in Academia, proved:** the HTML of every screen (list; every sheet tab, in and out of edit mode; the familiar's tabs and edit mode; the type selection; every creation-form tab for a student and an adult; the familiar editor), captured at desktop and phone widths before and after the change, is identical (new blank forms differ only in freshly generated ids). The capture test was temporary and is not committed.
+- Checks: type check; 53 unit tests; both builds; 47 browser tests (the style test now checks there is no style card and that a saved Classic choice falls back to Academia).
+
+**Next:** polish pass (b), the shared controls, then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

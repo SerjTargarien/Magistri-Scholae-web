@@ -8,7 +8,6 @@ import type { ApiUser } from "../contracts/api-v1";
 import { TRANSLATIONS, type Language } from "../localization";
 import { ApiFailure, type RemoteClient } from "../remote/client";
 import { remoteText } from "../remote/text";
-import type { VisualStyle } from "../types";
 import { FiligreeCorner } from "../components/AcademyOrnaments";
 
 type Mode = "login" | "register" | "reset";
@@ -80,25 +79,21 @@ function Brand({ lang }: { lang: Language }) {
   );
 }
 
-/** A centred card in the app's panel style, with corner filigree in the academy style. */
-function Card({ visualStyle, id, children }: { visualStyle: VisualStyle; id: string; children: React.ReactNode }) {
+/** A centred card in the app's panel style, with corner filigree. */
+function Card({ id, children }: { id: string; children: React.ReactNode }) {
   return (
     <div className="glass-panel relative overflow-hidden rounded-xl border border-violet-500/15 p-6 sm:p-8" id={id}>
-      {visualStyle === "academy" && (
-        <>
-          <FiligreeCorner position="tl" className="w-8 h-8" />
-          <FiligreeCorner position="tr" className="w-8 h-8" />
-          <FiligreeCorner position="bl" className="w-8 h-8" />
-          <FiligreeCorner position="br" className="w-8 h-8" />
-        </>
-      )}
+      <FiligreeCorner position="tl" className="w-8 h-8" />
+      <FiligreeCorner position="tr" className="w-8 h-8" />
+      <FiligreeCorner position="bl" className="w-8 h-8" />
+      <FiligreeCorner position="br" className="w-8 h-8" />
       {children}
     </div>
   );
 }
 
-export function SignIn({ client, lang, visualStyle, onSignedIn }: {
-  client: RemoteClient; lang: Language; visualStyle: VisualStyle; onSignedIn: (user: ApiUser) => void;
+export function SignIn({ client, lang, onSignedIn }: {
+  client: RemoteClient; lang: Language; onSignedIn: (user: ApiUser) => void;
 }) {
   const t = remoteText[lang];
   const [link] = useState(takeCodeLink);
@@ -146,7 +141,7 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
   return (
     <div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 sm:py-16" id="sign-in-screen">
       <Brand lang={lang} />
-      <Card visualStyle={visualStyle} id="sign-in-card">
+      <Card id="sign-in-card">
         <div className="grid grid-cols-3 gap-1.5 mb-6" role="tablist">
           {MODES.map(({ mode: m, icon: Icon }) => (
             <button
@@ -210,14 +205,14 @@ export function SignIn({ client, lang, visualStyle, onSignedIn }: {
 }
 
 /** Shown when the account belongs to several campaigns and none is chosen yet. */
-export function CampaignChooser({ lang, visualStyle, campaigns, onChoose, onLogout }: {
-  lang: Language; visualStyle: VisualStyle; campaigns: { id: string; name: string }[]; onChoose: (id: string) => void; onLogout: () => void;
+export function CampaignChooser({ lang, campaigns, onChoose, onLogout }: {
+  lang: Language; campaigns: { id: string; name: string }[]; onChoose: (id: string) => void; onLogout: () => void;
 }) {
   const t = remoteText[lang];
   return (
     <div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 sm:py-16" id="campaign-chooser-screen">
       <Brand lang={lang} />
-      <Card visualStyle={visualStyle} id="campaign-chooser-card">
+      <Card id="campaign-chooser-card">
         <h2 className="font-magic text-sm text-amber-400 uppercase tracking-widest text-center mb-5">{t.choose}</h2>
         {campaigns.length ? (
           <nav className="space-y-2" aria-label={t.campaign}>

@@ -12,11 +12,9 @@ import {
   Database, 
   Sparkles,
   ArrowLeft,
-  CheckCircle,
   CircleUser,
   LogOut,
   ListChecks,
-  Palette
 } from "lucide-react";
 
 // New settings texts (R3.4), kept here until they move into localization.ts.
@@ -43,8 +41,6 @@ const SETTINGS_TEXT: Record<Language, {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   lang,
   onLanguageChange,
-  visualStyle,
-  onStyleChange,
   onBack,
   account,
 }) => {
@@ -74,86 +70,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Main Settings Panel */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Visual Style Selector Card */}
-        <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2 relative overflow-hidden" id="settings-card-style">
-          <div className="flex items-center gap-2 mb-2">
-            <Palette className="w-5 h-5 text-amber-500" />
-            <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">
-              {t.settingsStyleTitle}
-            </h2>
-          </div>
-
-          <p className="text-xs text-neutral-400 mb-4 font-sans leading-relaxed">
-            {t.settingsStyleExplanation}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Option 1: Magic Academy */}
-            <button
-              type="button"
-              id="btn-style-academy"
-              onClick={() => onStyleChange("academy")}
-              className={`relative text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                visualStyle === "academy"
-                  ? "bg-gradient-to-br from-[#231838] to-[#110c1d] border-[#c8a248] shadow-[0_0_20px_rgba(200,162,72,0.2)]"
-                  : "bg-neutral-950/50 border-neutral-800 hover:border-amber-500/40"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2 w-full">
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-[#f3d88c] to-[#9b7424] border border-amber-200 shadow-sm shrink-0" />
-                  <span className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wider">
-                    {t.styleAcademyName}
-                  </span>
-                </div>
-                {visualStyle === "academy" && (
-                  <CheckCircle className="w-4 h-4 text-amber-400 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-                {t.styleAcademyDesc}
-              </p>
-              <div className="flex items-center gap-1.5 pt-1">
-                <span className="w-5 h-2.5 rounded-xs bg-[#161224] border border-[#c8a248]/60" />
-                <span className="w-5 h-2.5 rounded-xs bg-[#e5d6b8] border border-[#8c6722]" />
-                <span className="w-5 h-2.5 rounded-xs bg-[#c8a248]" />
-              </div>
-            </button>
-
-            {/* Option 2: Classic */}
-            <button
-              type="button"
-              id="btn-style-classic"
-              onClick={() => onStyleChange("classic")}
-              className={`relative text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                visualStyle === "classic"
-                  ? "bg-violet-950/60 border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.2)]"
-                  : "bg-neutral-950/50 border-neutral-800 hover:border-violet-500/40"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2 w-full">
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-violet-400 to-indigo-900 border border-violet-300 shadow-sm shrink-0" />
-                  <span className="font-magic text-sm font-bold text-violet-200 uppercase tracking-wider">
-                    {t.styleClassicName}
-                  </span>
-                </div>
-                {visualStyle === "classic" && (
-                  <CheckCircle className="w-4 h-4 text-violet-400 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-neutral-400 font-sans leading-relaxed">
-                {t.styleClassicDesc}
-              </p>
-              <div className="flex items-center gap-1.5 pt-1">
-                <span className="w-5 h-2.5 rounded-xs bg-[#08040f] border border-violet-500/40" />
-                <span className="w-5 h-2.5 rounded-xs bg-[#140d26] border border-violet-500/40" />
-                <span className="w-5 h-2.5 rounded-xs bg-amber-500" />
-              </div>
-            </button>
-          </div>
-        </div>
-
         {/* Localization & Preferences Card: hidden while the interface is Spanish only */}
         {onLanguageChange && (
         <div className="glass-panel p-6 rounded-xl border border-violet-500/15" id="settings-card-lang">

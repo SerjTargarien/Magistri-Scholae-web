@@ -45,7 +45,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
   const ctx = useCharacterSheet(sheetProps);
   const {
     character, familiars, onBack, onArchive, onSelectFamiliar, onOpenCreateFamiliar, t, archiveText, characterType,
-    theme, isAcademy, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
+    theme, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
     setLightboxImage, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
     setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, deleteStudentUnderstood,
     setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget, isSelectFamiliarModalOpen,
@@ -62,33 +62,24 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-4" id="character-detail-screen">
-      <div className={isAcademy ? "academy-outer-frame rounded-2xl p-4 sm:p-6 relative" : ""}>
-        {isAcademy && (
-          <>
-            <FiligreeCorner position="tl" className="w-8 h-8" />
-            <FiligreeCorner position="tr" className="w-8 h-8" />
-            <FiligreeCorner position="bl" className="w-8 h-8" />
-            <FiligreeCorner position="br" className="w-8 h-8" />
-          </>
-        )}
+      <div className="academy-outer-frame rounded-2xl p-4 sm:p-6 relative">
+        <>
+          <FiligreeCorner position="tl" className="w-8 h-8" />
+          <FiligreeCorner position="tr" className="w-8 h-8" />
+          <FiligreeCorner position="bl" className="w-8 h-8" />
+          <FiligreeCorner position="br" className="w-8 h-8" />
+        </>
+        
 
       {/* Top Navigation & Action Bar - Highly Visible with 44px+ touch targets */}
       <div
-        className={
-          isAcademy
-            ? "flex flex-row justify-between items-center mb-5 bg-[#120e1c]/90 border border-[#c8a248]/35 p-2.5 rounded-xl gap-2 z-20 relative shadow-lg"
-            : "flex flex-row justify-between items-center mb-6 bg-white/5 border border-white/10 p-3 rounded-xl gap-2 z-20 relative shadow-sm"
-        }
+        className="flex flex-row justify-between items-center mb-5 bg-[#120e1c]/90 border border-[#c8a248]/35 p-2.5 rounded-xl gap-2 z-20 relative shadow-lg"
         id="detail-top-nav-bar"
       >
         <button
           id="btn-detail-back"
           onClick={onBack}
-          className={
-            isAcademy
-              ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#f3e5c0] bg-gradient-to-b from-[#231c35] to-[#130f1e] border border-[#c8a248]/50 rounded-lg hover:border-[#f3d88c] focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shrink-0 shadow-sm"
-              : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-neutral-100 bg-neutral-900 border border-neutral-700 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 min-h-[44px] transition-all cursor-pointer select-none shrink-0"
-          }
+          className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#f3e5c0] bg-gradient-to-b from-[#231c35] to-[#130f1e] border border-[#c8a248]/50 rounded-lg hover:border-[#f3d88c] focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shrink-0 shadow-sm"
         >
           <ArrowLeft className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{t.back}</span>
@@ -103,9 +94,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none ${
               isQuickEditing 
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400" 
-                : isAcademy
-                  ? "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
-                  : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
+                : "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
             }`}
           >
             {isQuickEditing ? (
@@ -127,11 +116,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           <button
             id="btn-detail-delete"
             onClick={handleDeleteCharacterClick}
-            className={
-              isAcademy
-                ? "flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-rose-200 bg-gradient-to-b from-[#4c1420] to-[#280910] border border-[#c8a248]/40 hover:border-rose-400 hover:text-white rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
-                : "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-300 bg-rose-950/70 border border-rose-500/30 hover:bg-rose-900 hover:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/50 min-h-[44px] transition-all cursor-pointer select-none"
-            }
+            className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-rose-200 bg-gradient-to-b from-[#4c1420] to-[#280910] border border-[#c8a248]/40 hover:border-rose-400 hover:text-white rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
           >
             <Trash2 className="w-4 h-4 shrink-0 text-rose-300" />
             <span className="hidden sm:inline">{archiveText.button}</span>
@@ -143,25 +128,16 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
       {/* Dynamic Profile Cover Banner */}
       <div
         className={
-          isAcademy
-            ? `relative w-full rounded-xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border-2 border-[#c8a248]/65 p-5 md:p-6 mb-5 flex flex-col md:flex-row gap-4 md:gap-6 items-center shadow-[0_10px_30px_rgba(0,0,0,0.8)]`
-            : `relative w-full rounded-2xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border ${theme.borderClass} p-5 md:p-6 mb-6 flex flex-col md:flex-row gap-4 md:gap-6 items-center shadow-lg shadow-neutral-950/40`
+          `relative w-full rounded-xl overflow-hidden bg-gradient-to-r ${theme.bgClass} border-2 border-[#c8a248]/65 p-5 md:p-6 mb-5 flex flex-col md:flex-row gap-4 md:gap-6 items-center shadow-[0_10px_30px_rgba(0,0,0,0.8)]`
         }
       >
-        {isAcademy ? (
-          <>
-            <FiligreeCorner position="tl" className="w-7 h-7 z-10" />
-            <FiligreeCorner position="tr" className="w-7 h-7 z-10" />
-            <FiligreeCorner position="bl" className="w-7 h-7 z-10" />
-            <FiligreeCorner position="br" className="w-7 h-7 z-10" />
-          </>
-        ) : (
-          <>
-            {/* Decorative corner glows */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none"></div>
-          </>
-        )}
+        <>
+          <FiligreeCorner position="tl" className="w-7 h-7 z-10" />
+          <FiligreeCorner position="tr" className="w-7 h-7 z-10" />
+          <FiligreeCorner position="bl" className="w-7 h-7 z-10" />
+          <FiligreeCorner position="br" className="w-7 h-7 z-10" />
+        </>
+        
 
         {/* Left Aspect - Avatar (+ Mobile Corner Familiar & Mobile Compact Crest) */}
         <div className="shrink-0 flex flex-col items-center gap-2.5 relative z-10">
@@ -170,11 +146,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             <div className="relative">
               <div
                 onClick={editAvatar ? () => avatarInputRef.current?.click() : undefined}
-                className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl ${
-                  isAcademy
-                    ? "border-2 border-[#c8a248] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
-                    : "border border-violet-500/30 shadow-md"
-                } overflow-hidden flex items-center justify-center relative ${
+                className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl border-2 border-[#c8a248] shadow-[0_0_20px_rgba(0,0,0,0.85)] overflow-hidden flex items-center justify-center relative ${
                   editAvatar ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
                 }`}
               >
@@ -229,11 +201,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                         }
                       }}
                       title={editBond ? t.familiarChangeBond : t.familiarViewDetail}
-                      className={`group w-14 aspect-[3/4] bg-neutral-950 rounded-lg overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-transform active:scale-95 shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 ${
-                        isAcademy
-                          ? "border-2 border-[#fce8a6]"
-                          : "border-2 border-emerald-400/80"
-                      }`}
+                      className={`group w-14 aspect-[3/4] bg-neutral-950 rounded-lg overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-transform active:scale-95 shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 border-2 border-[#fce8a6]`}
                     >
                       {linkedFamiliar.imagen ? (
                         <img
@@ -253,9 +221,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       {/* Overlaid Familiar Name Scrim */}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-3 pb-0.5 px-1 text-center">
                         <div
-                          className={`font-magic text-[8px] font-bold uppercase tracking-wider truncate ${
-                            isAcademy ? "text-[#fce8a6]" : "text-emerald-200"
-                          }`}
+                          className={`font-magic text-[8px] font-bold uppercase tracking-wider truncate text-[#fce8a6]`}
                         >
                           {linkedFamiliar.nombre || t.noName}
                         </div>
@@ -277,11 +243,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                         setIsSelectFamiliarModalOpen(true);
                       }}
                       title={t.bondExistingFamiliar}
-                      className={`w-14 aspect-[3/4] rounded-lg flex flex-col items-center justify-center p-1 text-center transition-all cursor-pointer select-none shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 ${
-                        isAcademy
-                          ? "bg-[#120d1a]/95 border-2 border-dashed border-[#c8a248] text-[#fce8a6]"
-                          : "bg-neutral-950/95 border-2 border-dashed border-emerald-500/60 text-emerald-300"
-                      }`}
+                      className={`w-14 aspect-[3/4] rounded-lg flex flex-col items-center justify-center p-1 text-center transition-all cursor-pointer select-none shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 bg-[#120d1a]/95 border-2 border-dashed border-[#c8a248] text-[#fce8a6]`}
                     >
                       <PawPrint className="w-4 h-4 mb-0.5 text-emerald-400" />
                       <span className="text-[7px] font-mono uppercase tracking-tighter leading-tight line-clamp-2">
@@ -405,11 +367,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             <>
               <div className="flex flex-col md:flex-row md:items-center gap-2">
                 <h1
-                  className={
-                    isAcademy
-                      ? "font-magic text-2xl md:text-3xl font-bold text-[#fce8a6] uppercase tracking-widest drop-shadow-[0_2px_10px_rgba(212,175,55,0.45)]"
-                      : "font-magic text-xl md:text-2xl font-bold text-neutral-100 uppercase tracking-widest glow-amber"
-                  }
+                  className="font-magic text-2xl md:text-3xl font-bold text-[#fce8a6] uppercase tracking-widest drop-shadow-[0_2px_10px_rgba(212,175,55,0.45)]"
                 >
                   {character.nombre || t.noName}
                 </h1>
@@ -417,11 +375,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
 
               {shown("concepto") && (
               <p
-                className={
-                  isAcademy
-                    ? "text-sm text-[#e6d5b8] mt-1.5 md:mt-2 font-serif italic max-w-xl mx-auto md:mx-0"
-                    : "text-xs text-neutral-400 mt-1.5 md:mt-2 font-mono italic max-w-xl mx-auto md:mx-0"
-                }
+                className="text-sm text-[#e6d5b8] mt-1.5 md:mt-2 font-serif italic max-w-xl mx-auto md:mx-0"
               >
                 {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
               </p>
@@ -446,11 +400,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                     }
                   }}
                   title={editBond ? t.familiarChangeBond : t.familiarViewDetail}
-                  className={`group w-28 aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-all duration-300 ${
-                    isAcademy
-                      ? "border-2 border-[#c8a248] hover:border-[#fce8a6] shadow-[0_0_20px_rgba(0,0,0,0.85)]"
-                      : "border border-emerald-500/40 hover:border-amber-400/70 shadow-md"
-                  } ${editBond ? "hover:ring-2 hover:ring-amber-500" : "hover:-translate-y-0.5"}`}
+                  className={`group w-28 aspect-[3/4] bg-neutral-950 rounded-xl overflow-hidden flex items-center justify-center relative cursor-pointer select-none transition-all duration-300 border-2 border-[#c8a248] hover:border-[#fce8a6] shadow-[0_0_20px_rgba(0,0,0,0.85)] ${editBond ? "hover:ring-2 hover:ring-amber-500" : "hover:-translate-y-0.5"}`}
                 >
                   {linkedFamiliar.imagen ? (
                     <img
@@ -470,11 +420,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   {/* Bottom dark scrim with overlaid Familiar Name */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-6 pb-1.5 px-2 text-center">
                     <div
-                      className={`font-magic text-[11px] font-bold uppercase tracking-wider truncate ${
-                        isAcademy
-                          ? "text-[#fce8a6] drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]"
-                          : "text-emerald-200"
-                      }`}
+                      className={`font-magic text-[11px] font-bold uppercase tracking-wider truncate text-[#fce8a6] drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]`}
                     >
                       {linkedFamiliar.nombre || t.noName}
                     </div>
@@ -494,11 +440,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   type="button"
                   id="header-familiar-bond-btn"
                   onClick={() => setIsSelectFamiliarModalOpen(true)}
-                  className={`w-28 aspect-[3/4] rounded-xl flex flex-col items-center justify-center p-2 text-center transition-all cursor-pointer select-none ${
-                    isAcademy
-                      ? "bg-[#120d1a]/80 border-2 border-dashed border-[#c8a248]/60 hover:border-[#fce8a6] text-[#fce8a6]"
-                      : "bg-neutral-950/70 border-2 border-dashed border-emerald-500/40 hover:border-amber-400 text-emerald-300"
-                  }`}
+                  className={`w-28 aspect-[3/4] rounded-xl flex flex-col items-center justify-center p-2 text-center transition-all cursor-pointer select-none bg-[#120d1a]/80 border-2 border-dashed border-[#c8a248]/60 hover:border-[#fce8a6] text-[#fce8a6]`}
                 >
                   <PawPrint className="w-6 h-6 mb-1.5 text-emerald-400" />
                   <span className="text-[10px] font-mono uppercase tracking-wider leading-tight">
@@ -534,11 +476,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
 
       {/* Tabs Menu Ribbon */}
       <div
-        className={
-          isAcademy
-            ? "flex overflow-x-auto pb-3 border-b border-[#c8a248]/25 mb-6 gap-2.5 snap-x"
-            : "flex overflow-x-auto pb-2 border-b border-violet-500/10 mb-6 gap-2 snap-x"
-        }
+        className="flex overflow-x-auto pb-3 border-b border-[#c8a248]/25 mb-6 gap-2.5 snap-x"
         id="detail-tabs-menu"
       >
         {[
@@ -557,16 +495,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               key={tb.id}
               onClick={() => setActiveTab(tb.id as any)}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all shrink-0 snap-start cursor-pointer select-none ${
-                isAcademy
-                  ? IsActive
+                IsActive
                     ? "bg-gradient-to-b from-[#352158] to-[#1d1133] border-[#c8a248] text-[#fce8a6] shadow-[0_0_15px_rgba(200,162,72,0.3)]"
                     : "bg-[#140f21]/90 border-[#c8a248]/35 text-[#c4b79c] hover:text-[#f3e5c0] hover:border-[#c8a248]/65"
-                  : IsActive
-                    ? "bg-violet-950/70 border-amber-500/50 text-amber-300"
-                    : "bg-neutral-950/40 border-neutral-800 text-neutral-400 hover:text-neutral-200"
               }`}
             >
-              <Icon className={`w-4 h-4 ${isAcademy ? (IsActive ? "text-[#f3d88c]" : "text-[#c8a248]/80") : "text-violet-400"}`} />
+              <Icon className={`w-4 h-4 ${(IsActive ? "text-[#f3d88c]" : "text-[#c8a248]/80")}`} />
               {tb.label}
             </button>
           );

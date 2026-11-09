@@ -341,12 +341,6 @@ export interface TranslationDict {
   noMatchingStudents: string;
   deleteCustomField: string;
   emptyCustomFields: string;
-  settingsStyleTitle: string;
-  settingsStyleExplanation: string;
-  styleAcademyName: string;
-  styleAcademyDesc: string;
-  styleClassicName: string;
-  styleClassicDesc: string;
   familiarEditorCardTitle: string;
   familiarEditorCardDescription: string;
   familiarEditorTitle: string;
@@ -739,12 +733,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     noMatchingStudents: "No se encontraron personajes para esta búsqueda.",
     deleteCustomField: "Eliminar atributo personalizado",
     emptyCustomFields: "Sin atributos personalizados registrados.",
-    settingsStyleTitle: "Estilo Visual",
-    settingsStyleExplanation: "Selecciona la apariencia visual de la aplicación.",
-    styleAcademyName: "Academia Mágica",
-    styleAcademyDesc: "Filigranas doradas, tarjetas en pergamino y escritorio arcano.",
-    styleClassicName: "Clásico",
-    styleClassicDesc: "Tema original en tonos violeta oscuro.",
     familiarEditorCardTitle: "Familiar",
     familiarEditorCardDescription: "Familiares mágicos asignables a los alumnos de la academia.",
     familiarEditorTitle: "Registro y Editor de Familiares",
@@ -1135,12 +1123,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     noMatchingStudents: "No matching characters found.",
     deleteCustomField: "Delete custom attribute",
     emptyCustomFields: "No custom attributes registered.",
-    settingsStyleTitle: "Visual Style",
-    settingsStyleExplanation: "Select the visual appearance of the application.",
-    styleAcademyName: "Magic Academy",
-    styleAcademyDesc: "Golden filigree frames, parchment cards, and arcane study desk.",
-    styleClassicName: "Classic",
-    styleClassicDesc: "Original dark violet theme.",
     familiarEditorCardTitle: "Familiar Editor",
     familiarEditorCardDescription: "Create and manage magical familiars assignable to academy students.",
     familiarEditorTitle: "Familiar Registry & Editor",

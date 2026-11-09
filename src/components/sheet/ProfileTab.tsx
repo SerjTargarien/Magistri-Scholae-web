@@ -18,7 +18,7 @@ import { limitAttrs } from "../LimitHint";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
-    lang, character, t, hInfo, localizedLore, characterType, isAcademy, writable, shown, canAdd, canRemove, edit, profile,
+    lang, character, t, hInfo, localizedLore, characterType, writable, shown, canAdd, canRemove, edit, profile,
     addSubject, removeSubject, updateProfileField, isQuickEditing, newPersonalAspectInput,
     setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
     newCustomFieldValue, setNewCustomFieldValue, handleDeleteAspect, handleAddNewAspect, handleDeleteComplication,
@@ -37,19 +37,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
             {/* Personal Data Panel (Row 1 Left on Desktop; Position 1 on Mobile) */}
             <div className={`glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4 relative overflow-hidden h-full flex flex-col ${characterType === "adult_wizard" ? "md:col-span-2" : ""}`} id="detail-panel-datos-personales">
-              {isAcademy && (
-                <>
-                  <FiligreeCorner position="tl" className="w-6 h-6" />
-                  <FiligreeCorner position="tr" className="w-6 h-6" />
-                  <FiligreeCorner position="bl" className="w-6 h-6" />
-                  <FiligreeCorner position="br" className="w-6 h-6" />
-                </>
-              )}
-              <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2"} flex items-center gap-2`}>
-                <User className={`w-4 h-4 ${isAcademy ? "text-amber-400" : "text-violet-400"}`} />
+              <>
+                <FiligreeCorner position="tl" className="w-6 h-6" />
+                <FiligreeCorner position="tr" className="w-6 h-6" />
+                <FiligreeCorner position="bl" className="w-6 h-6" />
+                <FiligreeCorner position="br" className="w-6 h-6" />
+              </>
+              
+              <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
+                <User className={`w-4 h-4 text-amber-400`} />
                 {characterType === "adult_wizard" ? t.characterTypeAdultWizard : t.secDatosAlumno}
               </h3>
-              {isAcademy && <CompassStarDivider className="-mt-2 mb-3" />}
+              <CompassStarDivider className="-mt-2 mb-3" />
 
               {isQuickEditing ? (
                 <div className="grid grid-cols-2 gap-3 text-xs font-mono">
@@ -386,25 +385,24 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
             {/* House Affiliation & Heraldry Panel (Row 1 Right on Desktop; Position 2 on Mobile) */}
             {characterType !== "adult_wizard" && shown("casa") && (
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-filiacion">
-                {isAcademy && (
-                  <>
-                    <FiligreeCorner position="tl" className="w-6 h-6" />
-                    <FiligreeCorner position="tr" className="w-6 h-6" />
-                    <FiligreeCorner position="bl" className="w-6 h-6" />
-                    <FiligreeCorner position="br" className="w-6 h-6" />
-                  </>
-                )}
+                <>
+                  <FiligreeCorner position="tl" className="w-6 h-6" />
+                  <FiligreeCorner position="tr" className="w-6 h-6" />
+                  <FiligreeCorner position="bl" className="w-6 h-6" />
+                  <FiligreeCorner position="br" className="w-6 h-6" />
+                </>
+                
 
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
-                      <Shield className={`w-4 h-4 ${isAcademy ? "text-amber-400" : "text-violet-400"}`} />
+                    <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
+                      <Shield className={`w-4 h-4 text-amber-400`} />
                       {t.titleHouseHeraldry}
                     </h3>
-                    {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+                    <CompassStarDivider className="-mt-1 mb-3" />
 
                     {/* Upper Area: Crest on upper-left with name underneath, Lema to its right in bigger font */}
-                    <div className={`flex flex-row items-center gap-4 sm:gap-6 my-2 pb-4 ${isAcademy ? "border-b border-amber-500/15" : "border-b border-violet-500/15"}`}>
+                    <div className={`flex flex-row items-center gap-4 sm:gap-6 my-2 pb-4 border-b border-amber-500/15`}>
                       {/* Left: House Crest with House Name Under It */}
                       <div className="flex flex-col items-center justify-center shrink-0 min-w-[90px] sm:min-w-[105px]">
                         <HouseCrest
@@ -426,7 +424,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                             ))}
                           </select>
                         ) : (
-                          <div className={`font-magic text-xs tracking-widest uppercase ${isAcademy ? "text-amber-300" : "text-amber-200"} font-bold mt-2 text-center drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]`}>
+                          <div className={`font-magic text-xs tracking-widest uppercase text-amber-300 font-bold mt-2 text-center drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]`}>
                             {hInfo.nombre}
                           </div>
                         )}
@@ -435,10 +433,10 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       {/* Right: Lema in a bigger font (read-only, linked to the house/organization) */}
                       <div className="flex-1 flex flex-col justify-center min-w-0 pl-1 sm:pl-3">
                         <div className="text-[9px] text-neutral-400 uppercase tracking-widest font-mono mb-1.5 flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full ${isAcademy ? "bg-amber-400/80" : "bg-violet-400/80"} inline-block`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-full bg-amber-400/80 inline-block`}></span>
                           {t.labelMotto}
                         </div>
-                        <blockquote className={`font-serif italic text-base sm:text-lg md:text-xl font-medium ${isAcademy ? "text-amber-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-neutral-100"} leading-snug`}>
+                        <blockquote className={`font-serif italic text-base sm:text-lg md:text-xl font-medium text-amber-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] leading-snug`}>
                           « {translateHouseMotto(hInfo.lema, lang)} »
                         </blockquote>
                       </div>
@@ -503,19 +501,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-aspectos-complicaciones-row">
               {/* Personal Aspects Panel (Left on Desktop; Position 3 on Mobile) */}
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-aspectos">
-                {isAcademy && (
-                  <>
-                    <FiligreeCorner position="tl" className="w-6 h-6" />
-                    <FiligreeCorner position="tr" className="w-6 h-6" />
-                    <FiligreeCorner position="bl" className="w-6 h-6" />
-                    <FiligreeCorner position="br" className="w-6 h-6" />
-                  </>
-                )}
+                <>
+                  <FiligreeCorner position="tl" className="w-6 h-6" />
+                  <FiligreeCorner position="tr" className="w-6 h-6" />
+                  <FiligreeCorner position="bl" className="w-6 h-6" />
+                  <FiligreeCorner position="br" className="w-6 h-6" />
+                </>
+                
                 <div className="flex-1 flex flex-col justify-between">
-                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
                     <span>🌟</span> {t.aspectosPersonales}
                   </h3>
-                  {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+                  <CompassStarDivider className="-mt-1 mb-3" />
 
                   {(() => {
                     const aspectList = character.aspectosPersonales ?? [];
@@ -586,19 +583,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
               {/* Complications Panel (Right on Desktop; Position 4 on Mobile) */}
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-complicaciones">
-                {isAcademy && (
-                  <>
-                    <FiligreeCorner position="tl" className="w-6 h-6" />
-                    <FiligreeCorner position="tr" className="w-6 h-6" />
-                    <FiligreeCorner position="bl" className="w-6 h-6" />
-                    <FiligreeCorner position="br" className="w-6 h-6" />
-                  </>
-                )}
+                <>
+                  <FiligreeCorner position="tl" className="w-6 h-6" />
+                  <FiligreeCorner position="tr" className="w-6 h-6" />
+                  <FiligreeCorner position="bl" className="w-6 h-6" />
+                  <FiligreeCorner position="br" className="w-6 h-6" />
+                </>
+                
                 <div className="flex-1 flex flex-col justify-between">
-                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                  <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
                     <span>⚠️</span> {t.complicaciones}
                   </h3>
-                  {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+                  <CompassStarDivider className="-mt-1 mb-3" />
 
                   {(() => {
                     const compList = character.complicaciones ?? [];
@@ -671,18 +667,17 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
             {/* Full-width Custom Fields Panel in both styles */}
             {(isQuickEditing || customFields.length > 0) && (
               <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2 relative overflow-hidden" id="detail-panel-custom-fields">
-                {isAcademy && (
-                  <>
-                    <FiligreeCorner position="tl" className="w-6 h-6" />
-                    <FiligreeCorner position="tr" className="w-6 h-6" />
-                    <FiligreeCorner position="bl" className="w-6 h-6" />
-                    <FiligreeCorner position="br" className="w-6 h-6" />
-                  </>
-                )}
-                <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest ${isAcademy ? "pb-1" : "border-b border-violet-500/10 pb-2 mb-3"} flex items-center gap-2`}>
+                <>
+                  <FiligreeCorner position="tl" className="w-6 h-6" />
+                  <FiligreeCorner position="tr" className="w-6 h-6" />
+                  <FiligreeCorner position="bl" className="w-6 h-6" />
+                  <FiligreeCorner position="br" className="w-6 h-6" />
+                </>
+                
+                <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
                   <span>🔮</span> {t.customFields}
                 </h3>
-                {isAcademy && <CompassStarDivider className="-mt-1 mb-3" />}
+                <CompassStarDivider className="-mt-1 mb-3" />
                 {customFields.length > 0 && !isQuickEditing ? (
                   // Read like the other values (owner decision, 8 November 2026): label above, value below.
                   <div className="grid grid-cols-2 gap-4 text-xs font-mono">
@@ -698,11 +693,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                     {customFields.map((fd) => (
                       <div
                         key={fd.id}
-                        className={
-                          isAcademy
-                            ? "p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs flex items-center justify-between gap-2"
-                            : "p-3 bg-neutral-950/50 border border-neutral-800 rounded-lg text-xs flex items-center justify-between gap-2"
-                        }
+                        className="p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs flex items-center justify-between gap-2"
                       >
                         <input
                           {...limitAttrs("character", "camposPersonalizados/x/nombre")}
@@ -743,7 +734,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                 )}
 
                 {isQuickEditing && canAdd("camposPersonalizados") && (
-                  <div className={`flex flex-col sm:flex-row gap-2 items-center bg-neutral-950/40 p-2.5 border ${isAcademy ? "border-[#c8a248]/25" : "border-violet-500/10"} rounded-lg mt-3`}>
+                  <div className={`flex flex-col sm:flex-row gap-2 items-center bg-neutral-950/40 p-2.5 border border-[#c8a248]/25 rounded-lg mt-3`}>
                     <input
                       {...limitAttrs("character", "camposPersonalizados/x/nombre", { path: "camposPersonalizados", count: (character.camposPersonalizados ?? []).length })}
                       type="text"

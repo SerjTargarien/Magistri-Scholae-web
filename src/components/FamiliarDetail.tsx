@@ -33,7 +33,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
   const ctx = useFamiliarDetail(screenProps);
   const {
     store, familiar, notes, gallery, characters, onBack, onArchive, t, archiveText,
-    isAcademy, canEditProfile, canAddNote, canAddGalleryImage, canBond, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing,
+    canEditProfile, canAddNote, canAddGalleryImage, canBond, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing,
     lightboxImage, setLightboxImage,
     cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, setCroppedAreaPixels,
     isDeleteOpen, setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, isBondedTo,
@@ -49,18 +49,15 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
     >
       {/* Top Banner Navigation & Actions */}
       <div
-        className={`p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-950/85 to-[#120924] ${
-          isAcademy ? "border border-amber-500/30" : "border border-emerald-500/25"
-        } mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-2xl`}
+        className={`p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-950/85 to-[#120924] border border-amber-500/30 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-2xl`}
       >
-        {isAcademy && (
-          <>
-            <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/40" />
-          </>
-        )}
+        <>
+          <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/40" />
+        </>
+        
 
         <div className="z-10 flex items-center gap-3">
           <button
@@ -101,9 +98,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
             className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none ${
               isQuickEditing
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400"
-                : isAcademy
-                  ? "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
-                  : "text-neutral-950 bg-amber-500 hover:bg-amber-400 focus:ring-amber-500/50"
+                : "text-[#1a1105] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] hover:brightness-110 border border-[#fce8a6] shadow-md"
             }`}
           >
             {isQuickEditing ? (

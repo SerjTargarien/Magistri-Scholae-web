@@ -57,7 +57,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     onOpenCreateFamiliar,
     onUploadImage,
     onAddCatalogueSkill,
-    visualStyle = "academy",
   } = sheetProps;
   const character = store.fields as CharacterSheet;
   const capabilities = store.sheet.capabilities;
@@ -68,7 +67,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const localizedLore = getLocalizedHouseLore(casa, lang);
   const characterType = character.characterType ?? "student";
   const theme = getCharacterVisualTheme({ characterType, casa });
-  const isAcademy = visualStyle === "academy";
 
   // What this viewer may see and change.
   const writable = (path: string) => store.allowed(path);
@@ -513,14 +511,12 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     onArchive,
     onSelectFamiliar,
     onOpenCreateFamiliar,
-    visualStyle,
     t,
     archiveText,
     hInfo,
     localizedLore,
     characterType,
     theme,
-    isAcademy,
     writable,
     shown,
     canAdd,

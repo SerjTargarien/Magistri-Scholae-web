@@ -35,7 +35,6 @@ const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarShee
 
 export const CharacterList: React.FC<CharacterListProps> = ({
   lang,
-  visualStyle = "academy",
   characters,
   familiars = [],
   onSelectCharacter,
@@ -44,7 +43,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onOpenSettings,
 }) => {
   const t = TRANSLATIONS[lang];
-  const isAcademy = visualStyle === "academy";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedHouseFilter, setSelectedHouseFilter] = useState<string>("ALL");
@@ -121,9 +119,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     <div className="w-full max-w-7xl mx-auto px-4 py-6" id="character-list-container">
       {/* Top Header with App Branding and global controllers */}
       <div
-        className={`flex flex-col md:flex-row justify-between items-center gap-4 mb-6 ${
-          isAcademy ? "pb-2" : "mb-8 border-b border-violet-500/15 pb-6"
-        }`}
+        className={`flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-2`}
       >
         <div className="flex items-center gap-3.5 text-center md:text-left">
           {/* School Crest */}
@@ -148,11 +144,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           <button
             id="btn-settings"
             onClick={onOpenSettings}
-            className={
-              isAcademy
-                ? "academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-amber-300 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
-                : "flex items-center justify-center p-2 rounded-lg bg-neutral-900/60 hover:bg-neutral-800 border border-violet-500/25 text-violet-400 hover:text-amber-400 transition-all font-mono text-xs cursor-pointer min-h-[36px]"
-            }
+            className="academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-amber-300 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
             title={t.settings}
           >
             <Settings className="w-4 h-4 mr-1 md:mr-2 text-violet-400" />
@@ -162,11 +154,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           <button
             id="btn-add-character-header"
             onClick={onAddCharacter}
-            className={
-              isAcademy
-                ? "academy-header-btn flex items-center gap-1.5 px-4 py-2 text-amber-300 hover:text-amber-200 font-bold rounded-lg text-xs md:text-sm transition-all cursor-pointer min-h-[38px]"
-                : "flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-violet-700 to-indigo-700 hover:from-violet-600 hover:to-indigo-600 text-neutral-100 font-extrabold rounded-lg text-xs md:text-sm border border-violet-500/40 shadow-lg shadow-violet-950/40 hover:scale-[1.03] transition-all cursor-pointer"
-            }
+            className="academy-header-btn flex items-center gap-1.5 px-4 py-2 text-amber-300 hover:text-amber-200 font-bold rounded-lg text-xs md:text-sm transition-all cursor-pointer min-h-[38px]"
           >
             <Plus className="w-4 h-4 text-amber-400" />
             <span>{t.addCharacter}</span>
@@ -175,29 +163,27 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       </div>
 
       {/* Main Content Container (Ornate Filigree Frame in Academy Style) */}
-      <div className={isAcademy ? "academy-outer-frame rounded-2xl p-4 sm:p-6 min-h-[620px]" : ""}>
-        {isAcademy && (
-          <>
-            <FiligreeCorner position="tl" size="lg" />
-            <FiligreeCorner position="tr" size="lg" />
-            <FiligreeCorner position="bl" size="lg" />
-            <FiligreeCorner position="br" size="lg" />
-          </>
-        )}
+      <div className="academy-outer-frame rounded-2xl p-4 sm:p-6 min-h-[620px]">
+        <>
+          <FiligreeCorner position="tl" size="lg" />
+          <FiligreeCorner position="tr" size="lg" />
+          <FiligreeCorner position="bl" size="lg" />
+          <FiligreeCorner position="br" size="lg" />
+        </>
+        
 
         {/* Query Bar and House filters */}
         <div className="mb-6 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search box */}
-            <div className={`relative flex-1 ${isAcademy ? "academy-search-frame rounded-xl" : ""}`}>
-              {isAcademy && (
-                <>
-                  <FiligreeCorner position="tl" size="sm" />
-                  <FiligreeCorner position="tr" size="sm" />
-                  <FiligreeCorner position="bl" size="sm" />
-                  <FiligreeCorner position="br" size="sm" />
-                </>
-              )}
+            <div className={`relative flex-1 academy-search-frame rounded-xl`}>
+              <>
+                <FiligreeCorner position="tl" size="sm" />
+                <FiligreeCorner position="tr" size="sm" />
+                <FiligreeCorner position="bl" size="sm" />
+                <FiligreeCorner position="br" size="sm" />
+              </>
+              
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-neutral-400" />
               <input
                 id="search-input"
@@ -205,11 +191,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={
-                  isAcademy
-                    ? "w-full pl-10 pr-4 py-3 bg-transparent border-none focus:ring-0 rounded-xl text-sm text-neutral-200 placeholder:text-neutral-400"
-                    : "w-full pl-10 pr-4 py-3 bg-neutral-950/40 border border-violet-500/15 focus:border-amber-500/60 rounded-xl text-sm"
-                }
+                className="w-full pl-10 pr-4 py-3 bg-transparent border-none focus:ring-0 rounded-xl text-sm text-neutral-200 placeholder:text-neutral-400"
               />
             </div>
           </div>
@@ -221,12 +203,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               onClick={() => setSelectedHouseFilter("ALL")}
               className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all border cursor-pointer ${
                 selectedHouseFilter === "ALL"
-                  ? isAcademy
-                    ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                    : "bg-amber-500/20 border-amber-500 text-amber-300"
-                  : isAcademy
-                    ? "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-                    : "bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
+                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
               }`}
             >
               {t.filterAllHouses}
@@ -241,12 +219,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   onClick={() => setSelectedHouseFilter(hKey)}
                   className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
                     isSelected
-                      ? isAcademy
-                        ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                        : "bg-violet-950 border-amber-500 text-amber-300"
-                      : isAcademy
-                        ? "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-                        : "bg-neutral-900/60 border-neutral-700/20 text-neutral-400 hover:text-neutral-200"
+                      ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
+                      : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
                   }`}
                 >
                   <HouseCrest house={hKey} variant="medallion" className="w-4 h-4" />
@@ -259,12 +233,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               onClick={() => setSelectedHouseFilter("ADULT_WIZARD")}
               className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
                 selectedHouseFilter === "ADULT_WIZARD"
-                  ? isAcademy
-                    ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                    : "bg-violet-950 border-amber-500 text-amber-300"
-                  : isAcademy
-                    ? "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-                    : "bg-neutral-900/60 border-neutral-700/20 text-neutral-400 hover:text-neutral-200"
+                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
+                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
               }`}
             >
               <HouseCrest house="ADULT_WIZARD" isAdultWizard variant="medallion" className="w-4 h-4" />
@@ -275,12 +245,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               onClick={() => setSelectedHouseFilter("FAMILIARS")}
               className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
                 selectedHouseFilter === "FAMILIARS"
-                  ? isAcademy
-                    ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                    : "bg-emerald-950 border-amber-500 text-amber-300"
-                  : isAcademy
-                    ? "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-                    : "bg-neutral-900/60 border-neutral-700/20 text-neutral-400 hover:text-neutral-200"
+                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
+                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
               }`}
             >
               <PawPrint className="w-3.5 h-3.5 text-emerald-400" />
@@ -300,139 +266,27 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               const theme = getCharacterVisualTheme({ characterType, casa });
               const avatarSrc = imageSrc(c.avatarImage);
 
-              if (isAcademy) {
-                return (
-                  <div
-                    id={`character-card-${item.id}`}
-                    key={item.id}
-                    onClick={() => onSelectCharacter(item.id)}
-                    className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
-                  >
-                    <CardCornerOrnament position="tl" />
-                    <CardCornerOrnament position="tr" />
-                    <CardCornerOrnament position="bl" />
-                    <CardCornerOrnament position="br" />
-
-                    {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
-                    <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
-                      {avatarSrc ? (
-                        <img
-                          src={avatarSrc}
-                          alt={c.nombre}
-                          className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
-                            c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
-                          }`}
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className={`w-full h-full bg-gradient-to-b ${theme.bgClass} transition-colors flex flex-col justify-center items-center text-neutral-300 select-none p-4`}>
-                          <HouseCrest
-                            house={casa}
-                            isAdultWizard={characterType === "adult_wizard"}
-                            className="w-20 h-24 mb-2.5 group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span className="text-[9px] font-mono uppercase tracking-widest text-center text-[#f3d88c]/90">
-                            {characterType === "adult_wizard"
-                              ? t.characterTypeAdultWizard
-                              : `${t.studentPrefix} • ${hInfo.nombre.toUpperCase()}`}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Subtle bottom vignette inside portrait so overlapping shield pops */}
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
-
-                      {/* Year Tag / Adult Label */}
-                      <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 text-[#fce8a6] border border-[#d4af37]/70 rounded-md flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
-                        {characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : c.curso}
-                      </div>
-                    </div>
-
-                    {/* Overlapping Heraldic House Crest Medallion */}
-                    <div className="relative z-20 -mt-7 -mb-4 h-13 flex items-center justify-center pointer-events-none">
-                      <HouseCrest
-                        house={casa}
-                        isAdultWizard={characterType === "adult_wizard"}
-                        className="w-11 h-13 group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-
-                    {/* Parchment Mid-Plate for Name & Concept Quote */}
-                    <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
-                      <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
-                        {c.nombre || t.noName}
-                      </h3>
-
-                      {/* Subtle Gold Filigree Divider */}
-                      <div className="flex items-center justify-center gap-1.5 my-1 opacity-75">
-                        <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#8c6218]" />
-                        <span className="w-1.5 h-1.5 rotate-45 bg-[#8c6218]" />
-                        <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#8c6218]" />
-                      </div>
-
-                      {c.concepto ? (
-                        <p className="font-serif italic text-[13px] leading-snug text-[#362415] line-clamp-2 min-h-[2.25rem]">
-                          “{c.concepto}”
-                        </p>
-                      ) : (
-                        <p className="font-serif italic text-xs text-[#6e553b] min-h-[2.25rem] flex items-center justify-center">
-                          {t.noConceptDefined}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Dark Inset Bottom Footer Bar */}
-                    <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-3 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
-                      <div>
-                        <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblDestino}</div>
-                        <div className="text-xs text-amber-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4">
-                          <Coins className="w-3 h-3 text-amber-400 shrink-0" />
-                          {c.puntosDestino}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblExp}</div>
-                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4" title={String(c.pxs ?? 0)}>
-                          <Award className="w-3 h-3 text-violet-400 shrink-0" />
-                          {cardCount(c.pxs, lang)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.jugador}</div>
-                        <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                          <span className="truncate">{c.jugador || "—"}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Classic Mode Card (Untouched)
               return (
                 <div
                   id={`character-card-${item.id}`}
                   key={item.id}
                   onClick={() => onSelectCharacter(item.id)}
-                  className="group relative cursor-pointer rounded-2xl overflow-hidden glass-panel border border-violet-500/15 flex flex-col hover:border-amber-500/50 hover:-translate-y-1 transition-all duration-300 select-none shadow-xl shadow-neutral-950/50"
+                  className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
                 >
-                  {/* Colored Top Crest-Accent Strip */}
-                  <div className={`h-1.5 w-full bg-gradient-to-r ${
-                    theme.key === "IRATI" ? "from-emerald-500 to-neutral-950" :
-                    theme.key === "URANIA" ? "from-amber-500 to-blue-600" :
-                    theme.key === "AL-KHWARIZMI" ? "from-violet-500 to-amber-400" :
-                    theme.key === "CALANTES" ? "from-indigo-500 to-slate-200" :
-                    theme.key === "adult_wizard" ? "from-violet-500 to-violet-950" :
-                    "from-rose-700 to-zinc-300"
-                  }`}></div>
+                  <CardCornerOrnament position="tl" />
+                  <CardCornerOrnament position="tr" />
+                  <CardCornerOrnament position="bl" />
+                  <CardCornerOrnament position="br" />
 
-                  {/* Card Top - Image and Badge */}
-                  <div className="relative aspect-[3/4] w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
+                  {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
+                  <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
                     {avatarSrc ? (
-                      <img 
-                        src={avatarSrc} 
-                        alt={c.nombre} 
-                        className={`w-full h-full transition-all duration-500 group-hover:scale-105 ${c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"}`}
+                      <img
+                        src={avatarSrc}
+                        alt={c.nombre}
+                        className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
+                          c.avatarFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
+                        }`}
                         referrerPolicy="no-referrer"
                       />
                     ) : (
@@ -442,9 +296,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                           isAdultWizard={characterType === "adult_wizard"}
                           className="w-20 h-24 mb-2.5 group-hover:scale-105 transition-transform duration-300"
                         />
-                        <span className="text-[9px] font-mono uppercase tracking-widest text-center text-neutral-300/90">
-                          {characterType === "adult_wizard" 
-                            ? t.characterTypeAdultWizard 
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-center text-[#f3d88c]/90">
+                          {characterType === "adult_wizard"
+                            ? t.characterTypeAdultWizard
                             : `${t.studentPrefix} • ${hInfo.nombre.toUpperCase()}`}
                         </span>
                       </div>
@@ -454,13 +308,13 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
 
                     {/* Year Tag / Adult Label */}
-                    <div className="absolute top-2 right-2 px-2 py-0.5 text-[9px] font-mono font-bold bg-neutral-900/90 text-neutral-300 border border-neutral-700/50 rounded flex items-center justify-center">
+                    <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 text-[#fce8a6] border border-[#d4af37]/70 rounded-md flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
                       {characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : c.curso}
                     </div>
                   </div>
 
                   {/* Overlapping Heraldic House Crest Medallion */}
-                  <div className="relative z-20 -mt-7 -mb-3 h-13 flex items-center justify-center pointer-events-none">
+                  <div className="relative z-20 -mt-7 -mb-4 h-13 flex items-center justify-center pointer-events-none">
                     <HouseCrest
                       house={casa}
                       isAdultWizard={characterType === "adult_wizard"}
@@ -468,45 +322,50 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                     />
                   </div>
 
-                  {/* Card Body - Bio Details */}
-                  <div className="p-4 pt-3 flex-1 flex flex-col justify-between text-center">
-                    <div>
-                      <h3 className="font-magic text-sm font-bold text-neutral-100 uppercase tracking-wider group-hover:text-amber-400 transition-colors truncate">
-                        {c.nombre || t.noName}
-                      </h3>
+                  {/* Parchment Mid-Plate for Name & Concept Quote */}
+                  <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
+                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
+                      {c.nombre || t.noName}
+                    </h3>
 
-                      {c.concepto ? (
-                        <p className="text-xs text-neutral-400 mt-1 italic line-clamp-2 min-h-[2rem]">
-                          “{c.concepto}”
-                        </p>
-                      ) : (
-                        <p className="text-xs text-neutral-600 mt-1 font-mono min-h-[2rem] flex items-center justify-center">
-                          {t.noConceptDefined}
-                        </p>
-                      )}
+                    {/* Subtle Gold Filigree Divider */}
+                    <div className="flex items-center justify-center gap-1.5 my-1 opacity-75">
+                      <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#8c6218]" />
+                      <span className="w-1.5 h-1.5 rotate-45 bg-[#8c6218]" />
+                      <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#8c6218]" />
                     </div>
 
-                    {/* Summary row */}
-                    <div className="mt-4 pt-3 border-t border-violet-500/10 grid grid-cols-3 gap-1 text-center font-mono">
-                      <div>
-                        <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.lblDestino}</div>
-                        <div className="text-xs text-amber-500 font-bold flex items-center justify-center gap-0.5 h-4">
-                          <Coins className="w-3 h-3 text-amber-500 shrink-0" />
-                          {c.puntosDestino}
-                        </div>
+                    {c.concepto ? (
+                      <p className="font-serif italic text-[13px] leading-snug text-[#362415] line-clamp-2 min-h-[2.25rem]">
+                        “{c.concepto}”
+                      </p>
+                    ) : (
+                      <p className="font-serif italic text-xs text-[#6e553b] min-h-[2.25rem] flex items-center justify-center">
+                        {t.noConceptDefined}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Dark Inset Bottom Footer Bar */}
+                  <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-3 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
+                    <div>
+                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblDestino}</div>
+                      <div className="text-xs text-amber-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4">
+                        <Coins className="w-3 h-3 text-amber-400 shrink-0" />
+                        {c.puntosDestino}
                       </div>
-                      <div>
-                        <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.lblExp}</div>
-                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-0.5 h-4" title={String(c.pxs ?? 0)}>
-                          <Award className="w-3 h-3 text-violet-400 shrink-0" />
-                          {cardCount(c.pxs, lang)}
-                        </div>
+                    </div>
+                    <div>
+                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblExp}</div>
+                      <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4" title={String(c.pxs ?? 0)}>
+                        <Award className="w-3 h-3 text-violet-400 shrink-0" />
+                        {cardCount(c.pxs, lang)}
                       </div>
-                      <div>
-                        <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.jugador}</div>
-                        <div className="text-[10px] text-neutral-300 font-semibold flex items-center justify-center truncate max-w-full px-1 h-4">
-                          <span className="truncate">{c.jugador || "—"}</span>
-                        </div>
+                    </div>
+                    <div>
+                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.jugador}</div>
+                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
+                        <span className="truncate">{c.jugador || "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -521,170 +380,87 @@ export const CharacterList: React.FC<CharacterListProps> = ({
               const linkedStudent = linked ? characterFields(linked) : undefined;
               const familiarSrc = imageSrc(f.imagen);
 
-              if (isAcademy) {
-                return (
-                  <div
-                    id={`familiar-card-${item.id}`}
-                    key={item.id}
-                    onClick={() => onSelectFamiliar(item.id)}
-                    className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
-                  >
-                    <CardCornerOrnament position="tl" />
-                    <CardCornerOrnament position="tr" />
-                    <CardCornerOrnament position="bl" />
-                    <CardCornerOrnament position="br" />
-
-                    {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
-                    <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
-                      {familiarSrc ? (
-                        <img
-                          src={familiarSrc}
-                          alt={f.nombre}
-                          className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
-                            f.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
-                          }`}
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-b from-emerald-950/90 via-[#0e1f18] to-[#0a0612] transition-colors flex flex-col justify-center items-center text-neutral-300 select-none p-4">
-                          <div className="w-20 h-20 rounded-full border-2 border-[#d4af37]/60 bg-emerald-950/60 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:scale-105 transition-transform duration-300">
-                            <PawPrint className="w-10 h-10 text-emerald-400" />
-                          </div>
-                          <span className="text-[9px] font-mono uppercase tracking-widest text-center text-[#f3d88c]/90">
-                            {`${t.familiarEditorCardTitle.toUpperCase()} • ${(f.especie || "—").toUpperCase()}`}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Subtle bottom vignette inside portrait so overlapping medallion pops */}
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
-                    </div>
-
-                    {/* Overlapping Heraldic Familiar Medallion */}
-                    <div className="relative z-20 -mt-7 -mb-4 h-13 flex items-center justify-center pointer-events-none">
-                      <div className="w-11 h-11 rounded-full border-2 border-[#d4af37] bg-gradient-to-b from-emerald-900 via-emerald-950 to-[#0b1510] shadow-[0_4px_10px_rgba(0,0,0,0.85)] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <PawPrint className="w-5 h-5 text-[#f5d061]" />
-                      </div>
-                    </div>
-
-                    {/* Parchment Mid-Plate for Name & Description Quote */}
-                    <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
-                      <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
-                        {f.nombre || t.noName}
-                      </h3>
-
-                      {/* Subtle Gold Filigree Divider */}
-                      <div className="flex items-center justify-center gap-1.5 my-1 opacity-75">
-                        <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#8c6218]" />
-                        <span className="w-1.5 h-1.5 rotate-45 bg-[#8c6218]" />
-                        <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#8c6218]" />
-                      </div>
-
-                      {f.descripcion ? (
-                        <p className="font-serif italic text-[13px] leading-snug text-[#362415] line-clamp-2 min-h-[2.25rem]">
-                          “{f.descripcion}”
-                        </p>
-                      ) : (
-                        <p className="font-serif italic text-xs text-[#6e553b] min-h-[2.25rem] flex items-center justify-center">
-                          {t.noDescriptionDefined}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Dark Inset Bottom Footer Bar */}
-                    <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-2 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
-                      <div>
-                        <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarSpeciesShort}</div>
-                        <div className="text-xs text-emerald-400 font-bold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                          <span className="truncate">{f.especie || "—"}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarBondLabel}</div>
-                        <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                          <span className="truncate">{linkedStudent ? linkedStudent.nombre : t.familiarUnbound}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Classic Mode Familiar Card
               return (
                 <div
                   id={`familiar-card-${item.id}`}
                   key={item.id}
                   onClick={() => onSelectFamiliar(item.id)}
-                  className="group relative cursor-pointer rounded-2xl overflow-hidden glass-panel border border-violet-500/15 flex flex-col hover:border-emerald-500/50 hover:-translate-y-1 transition-all duration-300 select-none shadow-xl shadow-neutral-950/50"
+                  className="group academy-card rounded-2xl p-2.5 flex flex-col cursor-pointer select-none"
                 >
-                  {/* Colored Top Crest-Accent Strip */}
-                  <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-amber-400"></div>
+                  <CardCornerOrnament position="tl" />
+                  <CardCornerOrnament position="tr" />
+                  <CardCornerOrnament position="bl" />
+                  <CardCornerOrnament position="br" />
 
-                  {/* Card Top - Image and Badge */}
-                  <div className="relative aspect-[3/4] w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
+                  {/* Card Top - 3:4 Portrait inside Beveled Gold Inner Frame */}
+                  <div className="relative aspect-[3/4] w-full bg-[#120d1a] rounded-t-xl border-2 border-[#c89d3c] shadow-[inset_0_0_18px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
                     {familiarSrc ? (
                       <img
                         src={familiarSrc}
                         alt={f.nombre}
-                        className={`w-full h-full transition-all duration-500 group-hover:scale-105 ${
+                        className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
                           f.imageFit === "contain" ? "object-contain bg-[#11091f]" : "object-cover"
                         }`}
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-b from-emerald-950/90 via-[#0e1f18] to-[#0a0612] transition-colors flex flex-col justify-center items-center text-neutral-300 select-none p-4">
-                        <div className="w-20 h-20 rounded-full border border-emerald-500/40 bg-emerald-950/60 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
+                        <div className="w-20 h-20 rounded-full border-2 border-[#d4af37]/60 bg-emerald-950/60 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:scale-105 transition-transform duration-300">
                           <PawPrint className="w-10 h-10 text-emerald-400" />
                         </div>
-                        <span className="text-[9px] font-mono uppercase tracking-widest text-center text-neutral-300/90">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-center text-[#f3d88c]/90">
                           {`${t.familiarEditorCardTitle.toUpperCase()} • ${(f.especie || "—").toUpperCase()}`}
                         </span>
                       </div>
                     )}
 
-                    {/* Subtle bottom vignette inside portrait */}
+                    {/* Subtle bottom vignette inside portrait so overlapping medallion pops */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
                   </div>
 
-                  {/* Overlapping Familiar Medallion */}
-                  <div className="relative z-20 -mt-7 -mb-3 h-13 flex items-center justify-center pointer-events-none">
-                    <div className="w-11 h-11 rounded-full border-2 border-emerald-400/70 bg-gradient-to-b from-emerald-900 to-neutral-950 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <PawPrint className="w-5 h-5 text-emerald-300" />
+                  {/* Overlapping Heraldic Familiar Medallion */}
+                  <div className="relative z-20 -mt-7 -mb-4 h-13 flex items-center justify-center pointer-events-none">
+                    <div className="w-11 h-11 rounded-full border-2 border-[#d4af37] bg-gradient-to-b from-emerald-900 via-emerald-950 to-[#0b1510] shadow-[0_4px_10px_rgba(0,0,0,0.85)] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <PawPrint className="w-5 h-5 text-[#f5d061]" />
                     </div>
                   </div>
 
-                  {/* Card Body - Bio Details */}
-                  <div className="p-4 pt-3 flex-1 flex flex-col justify-between text-center">
-                    <div>
-                      <h3 className="font-magic text-sm font-bold text-neutral-100 uppercase tracking-wider group-hover:text-emerald-400 transition-colors truncate">
-                        {f.nombre || t.noName}
-                      </h3>
+                  {/* Parchment Mid-Plate for Name & Description Quote */}
+                  <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
+                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
+                      {f.nombre || t.noName}
+                    </h3>
 
-                      {f.descripcion ? (
-                        <p className="text-xs text-neutral-400 mt-1 italic line-clamp-2 min-h-[2rem]">
-                          “{f.descripcion}”
-                        </p>
-                      ) : (
-                        <p className="text-xs text-neutral-600 mt-1 font-mono min-h-[2rem] flex items-center justify-center">
-                          {t.noDescriptionDefined}
-                        </p>
-                      )}
+                    {/* Subtle Gold Filigree Divider */}
+                    <div className="flex items-center justify-center gap-1.5 my-1 opacity-75">
+                      <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#8c6218]" />
+                      <span className="w-1.5 h-1.5 rotate-45 bg-[#8c6218]" />
+                      <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#8c6218]" />
                     </div>
 
-                    {/* Summary row */}
-                    <div className="mt-4 pt-3 border-t border-violet-500/10 grid grid-cols-2 gap-1 text-center font-mono">
-                      <div>
-                        <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.familiarSpeciesShort}</div>
-                        <div className="text-xs text-emerald-400 font-bold flex items-center justify-center truncate max-w-full px-1 h-4">
-                          <span className="truncate">{f.especie || "—"}</span>
-                        </div>
+                    {f.descripcion ? (
+                      <p className="font-serif italic text-[13px] leading-snug text-[#362415] line-clamp-2 min-h-[2.25rem]">
+                        “{f.descripcion}”
+                      </p>
+                    ) : (
+                      <p className="font-serif italic text-xs text-[#6e553b] min-h-[2.25rem] flex items-center justify-center">
+                        {t.noDescriptionDefined}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Dark Inset Bottom Footer Bar */}
+                  <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-2 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
+                    <div>
+                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarSpeciesShort}</div>
+                      <div className="text-xs text-emerald-400 font-bold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
+                        <span className="truncate">{f.especie || "—"}</span>
                       </div>
-                      <div>
-                        <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.familiarBondLabel}</div>
-                        <div className="text-[10px] text-neutral-300 font-semibold flex items-center justify-center truncate max-w-full px-1 h-4">
-                          <span className="truncate">{linkedStudent ? linkedStudent.nombre : t.familiarUnbound}</span>
-                        </div>
+                    </div>
+                    <div>
+                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarBondLabel}</div>
+                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
+                        <span className="truncate">{linkedStudent ? linkedStudent.nombre : t.familiarUnbound}</span>
                       </div>
                     </div>
                   </div>

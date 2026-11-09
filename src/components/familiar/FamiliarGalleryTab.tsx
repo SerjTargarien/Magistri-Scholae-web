@@ -13,7 +13,7 @@ import { ListCounter } from "../LimitHint";
 
 export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    gallery, t, isAcademy, setLightboxImage, galleryError, handleAddGalleryImage, handleDeleteGalleryImage,
+    gallery, t, setLightboxImage, galleryError, handleAddGalleryImage, handleDeleteGalleryImage,
     canAddGalleryImage, canDeleteGalleryImage, isQuickEditing,
   } = ctx;
   return (
@@ -21,9 +21,7 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
           {/* Gallery upload header: in edit mode, as on the character sheet */}
           {isQuickEditing && canAddGalleryImage && (
           <div
-            className={`glass-panel p-5 sm:p-6 rounded-2xl ${
-              isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
-            }`}
+            className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25`}
           >
             <h2 className="font-magic text-sm uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />

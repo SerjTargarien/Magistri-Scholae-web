@@ -32,7 +32,6 @@ const isNameRule = (path?: string, rule?: string) => (path === "nombre" || path 
 
 export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   lang,
-  visualStyle = "academy",
   onCreate,
   onUploadImage,
   onBack,
@@ -40,7 +39,6 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   isModal = false,
 }) => {
   const t = TRANSLATIONS[lang];
-  const isAcademy = visualStyle === "academy";
   // Creation only (owner decision, 8 November 2026): an existing familiar is edited on its
   // own sheet, like a character, and familiars are listed on the main card view.
   // Form fields. `imagen` is the cropped picture (data URL), uploaded after creation.
@@ -167,18 +165,15 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
     >
       {/* Top Banner Header */}
       <div
-        className={`p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-950/85 to-[#120924] ${
-          isAcademy ? "border border-amber-500/30" : "border border-emerald-500/25"
-        } mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-2xl`}
+        className={`p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-950/85 to-[#120924] border border-amber-500/30 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-2xl`}
       >
-        {isAcademy && (
-          <>
-            <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/40" />
-            <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/40" />
-          </>
-        )}
+        <>
+          <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/40" />
+          <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/40" />
+        </>
+        
 
         <div className="z-10 space-y-1">
           <div className="flex items-center gap-2.5">
@@ -232,19 +227,16 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
         {/* Left Panel: Familiar Creation / Edition Form */}
         <form
           onSubmit={handleSaveFamiliar}
-          className={`glass-panel p-5 sm:p-7 rounded-2xl relative overflow-hidden flex flex-col justify-between ${
-            isAcademy ? "border border-amber-500/20" : "border border-violet-500/15"
-          }`}
+          className={`glass-panel p-5 sm:p-7 rounded-2xl relative overflow-hidden flex flex-col justify-between border border-amber-500/20`}
           id="familiar-editor-form"
         >
-          {isAcademy && (
-            <>
-              <FiligreeCorner position="tl" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="tr" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="bl" className="w-5 h-5 text-amber-500/30" />
-              <FiligreeCorner position="br" className="w-5 h-5 text-amber-500/30" />
-            </>
-          )}
+          <>
+            <FiligreeCorner position="tl" className="w-5 h-5 text-amber-500/30" />
+            <FiligreeCorner position="tr" className="w-5 h-5 text-amber-500/30" />
+            <FiligreeCorner position="bl" className="w-5 h-5 text-amber-500/30" />
+            <FiligreeCorner position="br" className="w-5 h-5 text-amber-500/30" />
+          </>
+          
 
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-violet-500/15 pb-3">
@@ -261,11 +253,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
               {/* Portrait Column (same capabilities as Student Avatar) */}
               <div className="flex flex-col items-center md:items-stretch space-y-3.5">
                 <div
-                  className={`w-44 md:w-full aspect-[3/4] bg-neutral-950 rounded-2xl border-2 flex items-center justify-center overflow-hidden relative shadow-inner mx-auto ${
-                    isAcademy
-                      ? "border-amber-500/35 text-amber-400"
-                      : "border-emerald-500/35 text-emerald-400"
-                  }`}
+                  className={`w-44 md:w-full aspect-[3/4] bg-neutral-950 rounded-2xl border-2 flex items-center justify-center overflow-hidden relative shadow-inner mx-auto border-amber-500/35 text-amber-400`}
                   id="familiar-avatar-box"
                 >
                   {imagen ? (

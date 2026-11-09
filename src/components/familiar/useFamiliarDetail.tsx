@@ -36,7 +36,6 @@ const ARCHIVE_TEXT = {
 export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const {
     lang,
-    visualStyle = "academy",
     store,
     characters,
     onBack,
@@ -48,7 +47,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   } = screenProps;
   const t = TRANSLATIONS[lang];
   const archiveText = ARCHIVE_TEXT[lang === "en" ? "en" : "es"];
-  const isAcademy = visualStyle === "academy";
   const familiar = store.fields as FamiliarSheet;
   const familiarId = store.sheet.id;
   const { collectionPaths, bondWritable } = store.sheet.capabilities;
@@ -241,7 +239,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
 
   return {
     lang,
-    visualStyle,
     store,
     familiar,
     familiarId,
@@ -254,7 +251,6 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     onShowToast,
     t,
     archiveText,
-    isAcademy,
     canEditName,
     canEditSpecies,
     canEditDescription,

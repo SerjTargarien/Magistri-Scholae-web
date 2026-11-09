@@ -158,6 +158,5 @@ export interface BackupData {
   familiars?: Familiar[];
 }
 
-export type VisualStyle = "academy" | "classic";
 
 

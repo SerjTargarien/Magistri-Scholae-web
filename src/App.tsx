@@ -14,7 +14,6 @@ import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./mode
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
 import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/client";
 import { SheetStore } from "./store/sheetStore";
-import type { VisualStyle } from "./types";
 import { CampaignChooser, SignIn } from "./account/SignIn";
 import { SaveStatus } from "./account/SaveStatus";
 import { CharacterList } from "./components/CharacterList";
@@ -73,10 +72,6 @@ export default function App() {
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem("magistri_scholae_lang");
     return LANGUAGE_CHOICE && (saved === "es" || saved === "en") ? saved : "es";
-  });
-  const [visualStyle, setVisualStyle] = useState<VisualStyle>(() => {
-    const saved = localStorage.getItem("magistri_scholae_style");
-    return saved === "academy" || saved === "classic" ? saved : "academy";
   });
   const t = TRANSLATIONS[lang];
   const showToast = useCallback((type: "success" | "error", text: string) => setToastMessage({ type, text }), []);
@@ -307,15 +302,14 @@ export default function App() {
   };
 
   const handleLanguageChange = (newLang: Language) => { setLang(newLang); localStorage.setItem("magistri_scholae_lang", newLang); };
-  const handleStyleChange = (newStyle: VisualStyle) => { setVisualStyle(newStyle); localStorage.setItem("magistri_scholae_style", newStyle); };
   const panel = DemoPanel && localStorage.getItem("magistri_demo_panel") !== "off"
     ? <Suspense fallback={null}><DemoPanel lang={lang} /></Suspense> : null;
 
   // Signed out, or not yet in a campaign: these screens share the app's frame.
   const gate = boot ? null
-    : !user ? <SignIn client={client} lang={lang} visualStyle={visualStyle} onSignedIn={account => setUser(account)} />
+    : !user ? <SignIn client={client} lang={lang} onSignedIn={account => setUser(account)} />
     : campaigns.length !== 1 && !campaignId
-      ? <CampaignChooser lang={lang} visualStyle={visualStyle} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} />
+      ? <CampaignChooser lang={lang} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} />
       : null;
 
   const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
@@ -324,7 +318,7 @@ export default function App() {
     <div
       className="min-h-screen bg-[#0a0514] text-neutral-200 font-sans selection:bg-violet-900/50 selection:text-amber-300 pb-12"
       id="academy-app-root"
-      data-style={visualStyle}
+      data-style="academy"
     >
       {DEMO && (
         <div id="mock-mode-banner" role="status" className="relative z-40 bg-amber-950 text-amber-100 border-b border-amber-500/40 px-4 py-2 text-center text-sm">
@@ -332,14 +326,7 @@ export default function App() {
         </div>
       )}
       {panel}
-      {visualStyle === "academy" ? (
-        <AcademyBackground />
-      ) : (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#0a0514]">
-          <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-indigo-900/30 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-100px] right-[-100px] w-[500px] h-[500px] bg-violet-900/30 rounded-full blur-[120px]"></div>
-        </div>
-      )}
+      <AcademyBackground />
 
       {gate ?? (boot || loading ? (
         <div className="flex flex-col justify-center items-center h-screen gap-4" id="app-loading-screen">
@@ -353,7 +340,6 @@ export default function App() {
           {screen === "LIST" && (
             <CharacterList
               lang={lang}
-              visualStyle={visualStyle}
               characters={characters}
               familiars={familiars}
               onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
@@ -368,7 +354,6 @@ export default function App() {
             <CharacterDetail
               key={characterStore.sheet.id}
               lang={lang}
-              visualStyle={visualStyle}
               store={characterStore}
               catalogue={catalogue}
               familiars={familiars}
@@ -386,7 +371,6 @@ export default function App() {
             <FamiliarDetail
               key={familiarStore.sheet.id}
               lang={lang}
-              visualStyle={visualStyle}
               store={familiarStore}
               characters={characters}
               onBack={() => { setSelectedFamiliarId(null); setScreen("LIST"); void loadLists(); }}
@@ -411,7 +395,6 @@ export default function App() {
             <FamiliarEditor
               key="new"
               lang={lang}
-              visualStyle={visualStyle}
               // Creation only; afterwards back to the character's sheet it was opened from,
               // or to the new familiar's own sheet (as creating a character does).
               onCreate={async (fields, image) => {
@@ -454,8 +437,6 @@ export default function App() {
           {screen === "SETTINGS" && user && (
             <SettingsScreen
               lang={lang}
-              visualStyle={visualStyle}
-              onStyleChange={handleStyleChange}
               onLanguageChange={LANGUAGE_CHOICE ? handleLanguageChange : undefined}
               onBack={() => setScreen("LIST")}
               account={{

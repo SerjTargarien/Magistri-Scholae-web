@@ -485,25 +485,21 @@ test("portrait upload with crop and a gallery image persist", async ({ page }) =
   expect(stored!.galleryImages).toEqual([{ id: expect.any(String), value: expect.stringMatching(asset) }]);
 });
 
-test("visual style switches and persists; the interface is Spanish only", async ({ page }, testInfo) => {
+test("one visual style (Academia) and a Spanish-only interface", async ({ page }) => {
   const root = page.locator("#academy-app-root");
   const addButton = page.locator("#btn-add-character-header");
   await expect(root).toHaveAttribute("data-style", "academy");
   await expect(addButton).toContainText("Nuevo Personaje");
-  await testInfo.attach("list-academy", { body: await page.screenshot(), contentType: "image/png" });
   await page.locator("#btn-settings").click();
   await expect(page.locator("#settings-card-lang")).toHaveCount(0); // owner decision: Spanish only for now
-  await page.locator("#btn-style-classic").click();
-  await expect(root).toHaveAttribute("data-style", "classic");
+  await expect(page.locator("#settings-card-style")).toHaveCount(0); // owner decision: Academia only for now
   await page.locator("#btn-settings-back").click();
 
-  // An English choice saved before the selector was hidden is ignored.
-  await page.evaluate(() => localStorage.setItem("magistri_scholae_lang", "en"));
+  // A Classic style or an English language saved before either choice was removed is ignored.
+  await page.evaluate(() => { localStorage.setItem("magistri_scholae_style", "classic"); localStorage.setItem("magistri_scholae_lang", "en"); });
   await reloadApp(page);
-  await expect(root).toHaveAttribute("data-style", "classic");
+  await expect(root).toHaveAttribute("data-style", "academy");
   await expect(addButton).toContainText("Nuevo Personaje");
-  await openCharacter(page, "Luna de Bruma");
-  await testInfo.attach("detail-classic", { body: await page.screenshot(), contentType: "image/png" });
 });
 
 test("settings: account card with sign-out; signing out shows the sign-in screen", async ({ page }) => {

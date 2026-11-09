@@ -13,7 +13,7 @@ import { limitAttrs } from "../LimitHint";
 
 export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    lang, notes, t, isAcademy, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
+    lang, notes, t, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
     setEditingNoteId, editingNoteTitle, setEditingNoteTitle, editingNoteContent, setEditingNoteContent, handleAddNote,
     handleSaveEditedNote, handleDeleteNote, canAddNote, canEditNote, canDeleteNote, isQuickEditing,
   } = ctx;
@@ -23,9 +23,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
           {canAddNote && (
           <form
             onSubmit={handleAddNote}
-            className={`glass-panel p-5 sm:p-6 rounded-2xl ${
-              isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
-            }`}
+            className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25`}
           >
             <h2 className="font-magic text-sm uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" />

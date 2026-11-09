@@ -8,7 +8,7 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 - **Spanish only** for the first version; the English texts stay in the code (`LANGUAGE_CHOICE` in `src/App.tsx`). No one is asked for words in the other language; all interface texts live in `src/localization.ts`.
 - **No aesthetic change without a reason**; new screens follow the Academia style.
-- **One visual style for now** (owner, 9 November 2026): Academia stays; Classic and its selector in settings are removed (R3.4 polish pass). Later styles may be made from Academia by changing the design tokens, not the components.
+- **One visual style for now** (owner, 9 November 2026): Academia stays; Classic and its selector in settings were removed (R3.4 polish pass, **done 9 November 2026**). Later styles may be made from Academia by changing the design tokens, not the components.
 - **One way to edit a sheet:** «Editar» / «Finalizar Edición», and each field saves as it is typed (no «Guardar» on a sheet). Character and familiar sheets behave alike.
 - **Touch first:** nothing depends on hover; testers use phones.
 - **No cut words** (owner, 9 November 2026): text wraps to another line rather than ending in «…» wherever the layout allows. Cutting stays only where one line is essential, and each such place is listed in the polish pass. A tag or label shows its short word; any explanation goes in a second line where the choice is made (the knowledge level's «Alteración», «Destrucción», «Creación» appear only in its menu).
@@ -105,7 +105,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | New sheet type | Option cards | Stays (8) | — |
 | House, creation form | Option cards | Stays (8) | — |
 | House, sheet edit mode | Native selector | Tag menu with crests (7) | Polish pass |
-| Visual style, settings | Option cards | Removed with Classic (owner) | Polish pass |
+| Visual style, settings | Option cards | Removed with Classic (owner) | Done (9 November 2026) |
 | Campaign, settings | Native selector | Picker (9) | Polish pass |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |
 | Image fit | Two buttons | Segmented (5) | Polish pass |
@@ -142,7 +142,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 ### 1. App frame
 
-- Every screen sits in the same frame: academy or classic background (the viewer's choice, kept in this browser), crest and title on the entry screens.
+- Every screen sits in the same frame: the Academia background (the only style since 9 November 2026), crest and title on the entry screens.
 - **Start:** the session is restored; with no session, the sign-in screen. The campaign is the one used last, or the only one; with several and none chosen, the campaign chooser.
 - **Loading:** «Abriendo grimorio de la escuela...».
 - **Messages (toasts):** bottom right, green or red, close by themselves after 4 seconds or with «×». An expired session or a failed load: «No se pudieron cargar los datos. Recarga para volver a intentarlo.»
@@ -249,7 +249,7 @@ Tabs:
 
 - «Estilo Visual», «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; GM only: «Habilidades de la campaña» → «Abrir la lista». Language card hidden.
 
-**Target:** «Estilo Visual» goes with the Classic style (owner, 9 November 2026; R3.4 polish pass). The campaign skills move to the Biblioteca del Máster (R5).
+«Estilo Visual» went with the Classic style (owner, 9 November 2026; done in the R3.4 polish pass). **Target:** The campaign skills move to the Biblioteca del Máster (R5).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

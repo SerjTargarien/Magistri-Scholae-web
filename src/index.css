@@ -27,7 +27,7 @@
   background: rgba(124, 58, 237, 0.7);
 }
 
-/* Glassmorphism Classes for Magical Academy theme (Classic) */
+/* Shared panel base; the academy rules below refine it (the Classic style was removed on 9 November 2026). */
 .glass-panel {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px);

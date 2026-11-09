@@ -16,7 +16,7 @@ import { limitAttrs, maxLengthOf } from "../LimitHint";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    familiar, onSelectCharacter, t, isAcademy, isQuickEditing, edit, setImageFit, removeImage, avatarInputRef,
+    familiar, onSelectCharacter, t, isQuickEditing, edit, setImageFit, removeImage, avatarInputRef,
     setIsSelectMasterOpen, linkedMaster, handleAvatarChange, handleBondMaster, canEditName, canEditSpecies,
     canEditDescription, canEditImage, canEditImageFit, canBond,
   } = ctx;
@@ -28,18 +28,15 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
           {/* Left Column: Portrait Card (4 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div
-              className={`glass-panel p-4 sm:p-6 rounded-2xl ${
-                isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
-              } relative overflow-hidden shadow-xl`}
+              className={`glass-panel p-4 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
             >
-              {isAcademy && (
-                <>
-                  <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/30" />
-                  <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/30" />
-                  <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/30" />
-                  <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/30" />
-                </>
-              )}
+              <>
+                <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/30" />
+                <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/30" />
+                <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/30" />
+                <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/30" />
+              </>
+              
 
               {/* Portrait container */}
               <div
@@ -127,15 +124,13 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Identity Card */}
             <div
-              className={`glass-panel p-5 sm:p-6 rounded-2xl ${
-                isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
-              } relative overflow-hidden shadow-xl`}
+              className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
             >
               <h2 className="font-magic text-sm uppercase tracking-widest text-emerald-400 mb-2 flex items-center gap-2">
                 <PawPrint className="w-4 h-4" />
                 {t.titleBasicRegistry}
               </h2>
-              {isAcademy && <CompassStarDivider className="mb-4" />}
+              <CompassStarDivider className="mb-4" />
 
               {isQuickEditing ? (
                 <div className="space-y-4 text-xs font-mono">
@@ -217,9 +212,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
 
             {/* Interactive Master / Wizard Bond Section (Mini-card) */}
             <div
-              className={`glass-panel p-5 sm:p-6 rounded-2xl ${
-                isAcademy ? "border border-amber-500/25" : "border border-emerald-500/20"
-              } relative overflow-hidden shadow-xl`}
+              className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
               id="familiar-bond-card"
             >
               <div className="flex items-center justify-between mb-2">
@@ -240,7 +233,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 </button>
                 )}
               </div>
-              {isAcademy && <CompassStarDivider className="mb-4" />}
+              <CompassStarDivider className="mb-4" />
 
               {linkedMaster ? (
                 <div className="p-4 rounded-xl bg-gradient-to-r from-neutral-950/90 to-[#181126] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

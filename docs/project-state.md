@@ -690,7 +690,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The creation form compares the whole sheet with the blank one it started from, so any change (age, wand, house, skills, stress, anything) makes «Cancelar» ask first; so do a portrait, a confirmed familiar, and text typed in an «add» box but not added yet. A form left untouched closes at once, as before (known inconsistency 2).
 - Checks: type check; 53 unit tests; both builds; 53 browser tests (new: an untouched form closes at once; a changed age or wand asks, «Cancelar» in the dialog keeps editing).
 
-**Next:** polish pass (d), the remaining inconsistencies (product-design.md, Known inconsistencies 3–5, and the familiar sheet's header and notes tab), then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (d), part 3: one crop dialog, with zoom — 9 November 2026
+
+- The creation form, the character sheet and the familiar sheet share one crop dialog (`src/components/CropDialog.tsx`): the character sheet's, with its title, 3:4 frame, zoom slider, «Cancelar» and «Confirmar Recorte». The familiar sheet's dialog had no zoom and looked different (known inconsistency 4).
+- Checks: type check; 53 unit tests; both builds; 53 browser tests (the familiar portrait test now zooms to 200% before confirming).
+
+**Next:** polish pass (d), the remaining inconsistencies (product-design.md, Known inconsistencies 3 and 5, and the familiar sheet's header and notes tab), then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

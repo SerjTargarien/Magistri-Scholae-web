@@ -266,7 +266,7 @@ Each step below is its own pull request. It keeps the app working under the brow
        - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved (**done 9 November 2026**);
        - «Cancelar» on the form asks before discarding any change (**done 9 November 2026**);
        - consistent removal confirmations (confirm in most cases);
-       - zoom slider on the familiar sheet's crop dialog;
+       - zoom slider on the familiar sheet's crop dialog (**done 9 November 2026**);
        - every player-facing text in the translations file; portrait fit buttons in Spanish everywhere (**done 9 November 2026**: «Recortar» / «Completa»);
        - wording: «Seleccionar un personaje para vincular a este familiar», «Registro de Familiares»;
        - familiar sheet: header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»; the journal tab becomes «Notas del Familiar» with suggestions that fit a familiar;

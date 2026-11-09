@@ -334,7 +334,7 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 1. **Familiar created in the creation form survives a cancelled character.** Decision: the dialog loses its save button and gets a confirm one that keeps the values; the familiar is created only when the character is saved. **Done 9 November 2026.**
 2. **Discard-draft check misses fields.** Decision: «Cancelar» asks before discarding any change. **Done 9 November 2026.**
 3. **Different confirmations.** Decision: consistent rules; in most cases confirmation is preferred (better safe than sorry).
-4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider.
+4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider. **Done 9 November 2026:** one crop dialog everywhere.
 5. **Texts outside the translations file or in English** ("Cover" / "Contain", "Delete picture", archive texts, the unlinked-familiar sentence, "Subir Imagen Local"). Decision: every player-facing text moves to the translations file; the fit buttons read in Spanish everywhere (they may go if nothing is lost).
 6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares». **Done 9 November 2026** with shorter wording (rule 1 of «Text that does not fit»): the picker «Vincular personaje» says «Elige un personaje.»; «Registro de Familiares».
 7. **Journal titles stored.** Decision: shown, not stored. **Done** (9 November 2026): characters and familiars.

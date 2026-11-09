@@ -410,6 +410,9 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   const chooser = page.waitForEvent("filechooser");
   await page.locator("#familiar-portrait").click();
   await (await chooser).setFiles(pngFile());
+  // The same crop dialog as a character's, with its zoom slider.
+  await page.locator("#crop-avatar-modal #crop-zoom").fill("2");
+  await expect(page.locator("#crop-avatar-modal")).toContainText("200%");
   await page.getByRole("button", { name: "Confirmar Recorte" }).click();
   await expect(page.locator("#familiar-portrait img")).toBeVisible();
   await page.locator("#btn-familiar-fit-contain").click();

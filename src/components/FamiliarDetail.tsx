@@ -8,7 +8,7 @@ import type { FamiliarDetailProps } from "../account/screens";
 import type { CharacterSheet } from "../model/sheet";
 import { imageSrc } from "../remote/assets";
 import { FiligreeCorner } from "./AcademyOrnaments";
-import Cropper from "react-easy-crop";
+import { CropDialog } from "./CropDialog";
 import {
   ArrowLeft,
   Edit,
@@ -286,38 +286,17 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
 
       {/* Avatar Cropper Modal */}
       {isCropperOpen && cropImageSrc && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div className="relative w-full max-w-lg aspect-square bg-neutral-950 rounded-2xl overflow-hidden border border-amber-500/40">
-            <Cropper
-              image={cropImageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={3 / 4}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={(_area, pixels) => setCroppedAreaPixels(pixels)}
-            />
-          </div>
-          <div className="mt-4 flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setIsCropperOpen(false);
-                setCropImageSrc(null);
-              }}
-              className="px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl text-xs font-mono uppercase cursor-pointer"
-            >
-              {t.cancel}
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmCrop}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs font-mono uppercase cursor-pointer"
-            >
-              {t.cropConfirm}
-            </button>
-          </div>
-        </div>
+        <CropDialog
+          t={t}
+          image={cropImageSrc}
+          crop={crop}
+          zoom={zoom}
+          onCropChange={setCrop}
+          onZoomChange={setZoom}
+          onCropComplete={(_area, pixels) => setCroppedAreaPixels(pixels)}
+          onCancel={() => { setIsCropperOpen(false); setCropImageSrc(null); }}
+          onConfirm={handleConfirmCrop}
+        />
       )}
     </div>
   );

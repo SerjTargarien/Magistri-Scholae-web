@@ -597,6 +597,11 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - New design rule (owner): no cut words wherever the layout allows; recorded in product-design.md, AGENTS.md and, for the remaining ~50 places, the polish pass.
 - **Where the knowledge tag sits** (owner, after seeing it live): an esoteric skill with a level chosen shows two aligned lines, the name with its level tag, then the dots with the value. Other skills keep the name and dots beside a centred value; in edit mode an esoteric skill without a level offers «Ninguno» under its value. Tried beside the value first: on a phone in edit mode the name had too little room. The row's name area now takes the free width (the old 130/180 px limit is gone). Checked at 375 and 1280 px, in and out of edit mode; type check, 51 unit tests, both builds, 43 browser tests.
 
+## Release and a faster workflow — 9 November 2026
+
+- PRs #41–#44 merged and published: release `20261109-123631-206d290` on the public site and staging (both serve the new build; the API answers). The owner considers this version stable enough for testers.
+- **Workflow from now on (owner):** one pull request per change, merged into `main` once its CI passes without a separate ask; nothing published to magistrischolae.fyi until an important milestone the owner approves; staging.magistrischolae.fyi gets a frontend release only when the owner asks to try something. Recorded in AGENTS.md.
+
 **Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass (now also removing the Classic style, moving the remaining choices to the shared controls, and wrapping text instead of cutting it) and images from a web address; then R4.
 
 ## Updating this handoff

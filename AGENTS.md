@@ -57,6 +57,7 @@
 
 - Commits are made in the owner's name, using the repository's configured Git user. Add no `Co-Authored-By`, tool or model attribution, or other trailers to commit messages or pull-request descriptions, and do not override the author.
 - Check remotes, branch, and working-tree status before edits. Use a development branch/worktree for implementation; do not reset or stash someone else's work.
+- **Workflow (owner decision, 9 November 2026):** each change is its own pull request. Once its CI passes, merge it into `main` (fast-forward) without asking each time, and say so in the summary. Nothing is published to magistrischolae.fyi (`deploy/release.sh`) until an important milestone the owner approves; between milestones, release to staging.magistrischolae.fyi only when the owner asks to try something (it shares the testers' backend and database).
 - Code changes do not themselves authorize production deployments, changes to DNS/Vercel, pushes to a live branch, destructive migrations, or force-pushes. Perform those only when the user requests the relevant action.
 - Do not expose credentials, personal-note bodies, or full secret-bearing environment/configuration dumps in logs or documentation.
 - VPS, registrar, DNS and hosting-account specifics (IP addresses, resources, existing containers, access methods) belong only in the git-ignored `docs/infrastructure.local.md`. Read it locally when needed; never copy its contents into tracked files, commit messages or pull requests. Refer to it by path instead.

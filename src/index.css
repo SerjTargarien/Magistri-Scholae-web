@@ -186,3 +186,13 @@ body {
   color: #d1d5db;
 }
 
+/* The app's slider (crop zoom): fully drawn here, never the browser's look (Controls rule). */
+.ms-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 40px; margin: 0; padding: 0; background: transparent; border: 0; cursor: pointer; }
+.ms-slider:focus { outline: none; box-shadow: none; background: transparent; }
+.ms-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; border: 1px solid rgba(200, 162, 72, 0.5); background: linear-gradient(to right, #e5a93c var(--fill, 0%), #262626 var(--fill, 0%)); }
+.ms-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; border: 1px solid #1a1105; background: radial-gradient(circle at 35% 35%, #fce8a6, #d4af37 60%, #9b7424); box-shadow: 0 0 10px rgba(229, 169, 60, 0.45); }
+.ms-slider::-moz-range-track { height: 6px; border-radius: 999px; border: 1px solid rgba(200, 162, 72, 0.5); background: #262626; }
+.ms-slider::-moz-range-progress { height: 6px; border-radius: 999px; background: #e5a93c; }
+.ms-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #1a1105; background: radial-gradient(circle at 35% 35%, #fce8a6, #d4af37 60%, #9b7424); box-shadow: 0 0 10px rgba(229, 169, 60, 0.45); }
+.ms-slider:focus-visible::-webkit-slider-thumb { outline: 2px solid #f59e0b; outline-offset: 2px; }
+.ms-slider:focus-visible::-moz-range-thumb { outline: 2px solid #f59e0b; outline-offset: 2px; }

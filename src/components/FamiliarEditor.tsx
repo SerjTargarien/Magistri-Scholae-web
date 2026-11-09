@@ -16,6 +16,7 @@ import { FiligreeCorner } from "./AcademyOrnaments";
 import { IMAGE_FROM_URL } from "./imageFromUrl";
 import { limitAttrs } from "./LimitHint";
 import { Segmented } from "./Segmented";
+import { Slider } from "./Slider";
 import {
   Save,
   X,
@@ -476,15 +477,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                 <span>🔍 {t.cropZoom}</span>
                 <span>{Math.round(zoom * 100)}%</span>
               </div>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.05}
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
+              <Slider label={t.cropZoom} min={1} max={3} step={0.05} value={zoom} onChange={setZoom} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">

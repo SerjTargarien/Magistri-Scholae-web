@@ -40,6 +40,7 @@ import { RequiredTextInput } from "./RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Check as CheckBox } from "./Toggle";
 import { Segmented } from "./Segmented";
+import { Slider } from "./Slider";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -667,15 +668,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 <span>🔍 {t.cropZoom}</span>
                 <span>{Math.round(zoom * 100)}%</span>
               </div>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.05}
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-violet-500"
-              />
+              <Slider label={t.cropZoom} min={1} max={3} step={0.05} value={zoom} onChange={setZoom} />
             </div>
 
             {/* Confirm & Cancel Buttons */}

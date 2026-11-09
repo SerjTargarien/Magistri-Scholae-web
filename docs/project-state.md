@@ -645,7 +645,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - `src/components/Segmented.tsx`: one row of 2–4 options, the chosen one lit gold; arrow keys move and choose. It replaces the four portrait fit button pairs (character sheet, familiar sheet, familiar editor, creation form), whose labels were English («Cover / Contain») on the sheet and long elsewhere («Ajustar / Lienzo Completo», cut on phones). All now read «Recortar» / «Completa», as in the approved demo. The sheet's portrait column is 144 px wide at every width (it was 112 px on desktop, too narrow for the two options).
 - Checks: type check; 53 unit tests; both builds; 47 browser tests. Looked at in the demo build at 375 and 1280 px (no option cut or overflowing).
 
-**Next:** polish pass (b), part 4: the restyled zoom sliders, then the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (b), part 4: the slider — 9 November 2026
+
+- `src/components/Slider.tsx` with `.ms-slider` in `src/index.css`: the crop dialogs' zoom (character sheet, creation form, familiar editor) is drawn by the app (a gold-filled track, a gold thumb, a focus ring, a 40 px touch area), as the controls rule requires of any slider.
+- Checks: type check; 53 unit tests; both builds; 47 browser tests. A picture of the crop dialog taken by a temporary test (not committed) at phone and desktop widths.
+
+**Next:** polish pass (b), part 5: the house tag menu, then the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

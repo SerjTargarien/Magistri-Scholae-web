@@ -11,6 +11,7 @@ import { Plus, X } from "lucide-react";
 
 import type { TextEntry } from "../model/sheet";
 import { HIT } from "./TagMenu";
+import { limitAttrs } from "./LimitHint";
 
 export function SubjectList({ id, items, editable, canRemove = () => editable, onAdd, onRemove, texts }: {
   /** Prefix of the element ids: `${id}-input`, `${id}-add`, `${id}-remove-${entry id}`. */
@@ -59,6 +60,7 @@ export function SubjectList({ id, items, editable, canRemove = () => editable, o
         <div className="flex gap-2 items-center">
           <input
             id={`${id}-input`}
+            {...limitAttrs("character", "adultWizardProfile/teachingSubjects/x/value", { path: "adultWizardProfile/teachingSubjects", count: items.length })}
             type="text"
             placeholder={texts.placeholder}
             value={draft}

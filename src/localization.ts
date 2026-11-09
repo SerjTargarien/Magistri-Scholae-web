@@ -62,6 +62,9 @@ export interface TranslationDict {
   // 4. Input Field Placeholders
   placeholderNombre: string;
   requiredKeepsSaved: string;
+  limitEntries: string;
+  limitImages: string;
+  limitReached: string;
   placeholderJugador: string;
   placeholderPuestoClase: string;
   placeholderConcepto: string;
@@ -454,6 +457,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 4. Input Field Placeholders
     placeholderNombre: "p. ej. Leonora Vance",
     requiredKeepsSaved: "No puede quedar vacío: si lo dejas así, se mantiene el valor guardado.",
+    limitEntries: "entradas",
+    limitImages: "imágenes",
+    limitReached: "límite alcanzado",
     placeholderJugador: "p. ej. Miguel Ángel",
     placeholderPuestoClase: "p. ej. Prefecta, Monitor",
     placeholderConcepto: "p. ej. Alquimista rebelde con un secreto familiar",
@@ -847,6 +853,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 4. Input Field Placeholders
     placeholderNombre: "e.g., Leonora Vance",
     requiredKeepsSaved: "It cannot be empty: if you leave it like this, the saved value stays.",
+    limitEntries: "entries",
+    limitImages: "images",
+    limitReached: "limit reached",
     placeholderJugador: "e.g., Michael Angel",
     placeholderPuestoClase: "e.g., Prefect, Monitor",
     placeholderConcepto: "e.g., Rebel alchemist with a family secret",

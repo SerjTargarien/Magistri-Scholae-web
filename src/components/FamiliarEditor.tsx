@@ -14,6 +14,7 @@ import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../utils/imageCompressor";
 import { FiligreeCorner } from "./AcademyOrnaments";
 import { IMAGE_FROM_URL } from "./imageFromUrl";
+import { limitAttrs } from "./LimitHint";
 import {
   Save,
   X,
@@ -402,6 +403,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     </span>
                   </label>
                   <input
+                    {...limitAttrs("familiar", "nombre")}
                     id="input-familiar-nombre"
                     type="text"
                     required
@@ -421,6 +423,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     {t.familiarSpecies} <span className="text-rose-400">*</span>
                   </label>
                   <input
+                    {...limitAttrs("familiar", "especie")}
                     id="input-familiar-especie"
                     type="text"
                     required
@@ -440,6 +443,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     {t.familiarDescription}
                   </label>
                   <textarea
+                    {...limitAttrs("familiar", "descripcion")}
                     id="input-familiar-descripcion"
                     rows={6}
                     placeholder={t.familiarDescriptionPlaceholder}

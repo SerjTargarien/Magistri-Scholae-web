@@ -617,7 +617,14 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The demo test of a refused edit now empties a custom field's name (still refused with its rule in the save panel), since the name box no longer sends an empty name.
 - Checks: type check; 51 unit tests; both builds; 45 browser tests (new: emptying and retyping a character's name, and a familiar's species).
 
-**Next:** lists and limits, part 3 (counters near limits), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Lists and limits, part 3: counters near limits — 9 November 2026
+
+- Every text box on the sheet, the creation form, the familiar sheet and the familiar editor carries its field's limit from the server's rules (`limitAttrs` / `maxLengthOf` in `src/components/LimitHint.tsx`); a paste over the limit stops at it. One `LimitHint` in the app watches the focused box: past 90% of its text limit, or of the list it adds to, a small counter appears under it («185 / 200», «28 / 30 entradas», «límite alcanzado» at the limit). The galleries, added to without a text box, show `ListCounter` in place («46 / 50 imágenes»).
+- A unit test reads every `limitAttrs` / `maxLengthOf` use in `src/` and checks each field path resolves to a real limit, so a typo cannot leave a box unlimited.
+- **R3.4 step 1, «Lists and limits», is complete** (PRs #47, #48 and this one).
+- Checks: type check; 53 unit tests; both builds; 47 browser tests (new: the counter appears past 90%, a paste stops at 200, the counter disappears when the box is left). Looked at in the demo build at phone width.
+
+**Next:** the polish pass (Classic removal first, then the shared controls, no cut words, the remaining inconsistencies). Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

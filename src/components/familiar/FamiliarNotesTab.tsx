@@ -9,6 +9,7 @@ import { Edit, FileText, Plus, Trash } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
 import { journalTitle } from "../../model/journal";
+import { limitAttrs } from "../LimitHint";
 
 export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
   const {
@@ -33,6 +34,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
 
             <div className="space-y-3">
               <input
+                {...limitAttrs("familiar", "notasList/x/titulo", { path: "notasList", count: notes.length })}
                 id="input-familiar-note-title"
                 type="text"
                 placeholder={t.placeholderNoteTitle}
@@ -41,6 +43,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                 className="w-full bg-neutral-950/80 border border-neutral-800 rounded-lg p-2.5 text-xs font-mono text-neutral-100 focus:border-amber-500 focus:outline-none"
               />
               <textarea
+                {...limitAttrs("familiar", "notasList/x/contenido", { path: "notasList", count: notes.length })}
                 id="input-familiar-note-content"
                 rows={3}
                 placeholder={t.placeholderNoteContent}
@@ -78,6 +81,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                   {editingNoteId === note.id ? (
                     <div className="space-y-3">
                       <input
+                        {...limitAttrs("familiar", "notasList/x/titulo")}
                         type="text"
                         value={editingNoteTitle}
                         placeholder={journalTitle({ fecha: note.fecha }, t.entryFrom, lang)}
@@ -85,6 +89,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                         className="w-full bg-neutral-950 border border-amber-500/50 rounded p-2 text-xs font-mono text-neutral-100"
                       />
                       <textarea
+                        {...limitAttrs("familiar", "notasList/x/contenido")}
                         rows={3}
                         value={editingNoteContent}
                         onChange={(e) => setEditingNoteContent(e.target.value)}

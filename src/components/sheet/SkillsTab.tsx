@@ -11,6 +11,7 @@ import { SkillPicker } from "../SkillPicker";
 import { KnowledgeLevel } from "../KnowledgeLevel";
 
 import type { SheetContext } from "./useCharacterSheet";
+import { limitAttrs } from "../LimitHint";
 
 export function SkillsTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -39,6 +40,7 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                       {isGM && (<>
                       <div className="bg-neutral-950/40 p-3 rounded-xl border border-violet-500/10 flex gap-2 items-center" id={`add-skill-form-${catKey}`}>
                         <input
+                          {...limitAttrs("character", "habilidades/x/nombre", { path: "habilidades", count: (character.habilidades ?? []).length })}
                           id={`input-new-skill-name-${catKey}`}
                           type="text"
                           placeholder={t.placeholderNewSkillName}

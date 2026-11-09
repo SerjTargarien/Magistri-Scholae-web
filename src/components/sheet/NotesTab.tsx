@@ -9,6 +9,7 @@ import { Edit, Plus, Minus, Trash, Check } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
 import { journalTitle } from "../../model/journal";
+import { limitAttrs } from "../LimitHint";
 
 export function NotesTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -60,6 +61,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 {isQuickEditing && canAdd("clubesList") && (
                   <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
                     <input
+                      {...limitAttrs("character", "clubesList/x/nombre", { path: "clubesList", count: (character.clubesList ?? []).length })}
                       id="input-new-club"
                       type="text"
                       placeholder={t.placeholderClubes}
@@ -148,6 +150,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 {isQuickEditing && canAdd("equipoList") && (
                   <div className="bg-neutral-950/20 p-2.5 border border-neutral-900/50 rounded-lg space-y-2 mt-2 animate-fade-in">
                     <input
+                      {...limitAttrs("character", "equipoList/x/nombre", { path: "equipoList", count: (character.equipoList ?? []).length })}
                       id="input-new-item"
                       type="text"
                       placeholder={t.placeholderEquipo}
@@ -221,6 +224,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                         {isEditingThisNote ? (
                           <div className="space-y-2">
                             <input
+                              {...limitAttrs("character", "notasList/x/titulo")}
                               type="text"
                               value={editingNoteTitle}
                               onChange={(e) => setEditingNoteTitle(e.target.value)}
@@ -228,6 +232,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                               className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                             />
                             <textarea
+                              {...limitAttrs("character", "notasList/x/contenido")}
                               rows={4}
                               value={editingNoteContent}
                               onChange={(e) => setEditingNoteContent(e.target.value)}
@@ -317,6 +322,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                 </h4>
                 <div className="space-y-2">
                   <input
+                    {...limitAttrs("character", "notasList/x/titulo", { path: "notasList", count: (character.notasList ?? []).length })}
                     id="input-new-note-title"
                     type="text"
                     placeholder={t.placeholderNoteTitle}
@@ -325,6 +331,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                     className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2.5 text-neutral-200 focus:outline-none"
                   />
                   <textarea
+                    {...limitAttrs("character", "notasList/x/contenido", { path: "notasList", count: (character.notasList ?? []).length })}
                     id="input-new-note-content"
                     rows={4}
                     placeholder={t.placeholderNoteContent}

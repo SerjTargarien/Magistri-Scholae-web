@@ -11,6 +11,7 @@ import { SkillPicker } from "../SkillPicker";
 import { KnowledgeLevel } from "../KnowledgeLevel";
 
 import type { FormContext } from "./useCharacterForm";
+import { limitAttrs } from "../LimitHint";
 
 /** The emoji before each category heading (the old app's, for the categories it had). */
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -123,6 +124,7 @@ export function FormSkillsTab({ ctx }: { ctx: FormContext }) {
                       {isGM && (
                       <div className="flex-1 flex gap-2">
                         <input
+                          {...limitAttrs("character", "habilidades/x/nombre", { path: "habilidades", count: (characterState.habilidades ?? []).length })}
                           type="text"
                           placeholder={t.placeholderNewSkillCategory}
                           value={inlineSkillNames[category.id] || ""}

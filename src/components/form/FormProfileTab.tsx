@@ -11,6 +11,7 @@ import { imageSrc } from "../../remote/assets";
 import type { FormContext } from "./useCharacterForm";
 import { IMAGE_FROM_URL } from "../imageFromUrl";
 import { SubjectList } from "../SubjectList";
+import { limitAttrs } from "../LimitHint";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -156,6 +157,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       <span className="text-[9px] text-neutral-500 normal-case font-normal leading-none">{t.minOneChar}</span>
                     </label>
                     <input
+                      {...limitAttrs("character", "nombre")}
                       id="input-nombre"
                       type="text"
                       required
@@ -175,6 +177,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       {t.concepto}
                     </label>
                     <input
+                      {...limitAttrs("character", "concepto")}
                       id="input-concepto"
                       type="text"
                       placeholder={t.placeholderConcepto}
@@ -190,6 +193,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       {t.jugador}
                     </label>
                     <input
+                      {...limitAttrs("character", "jugador")}
                       id="input-jugador"
                       type="text"
                       placeholder={t.placeholderJugador}
@@ -222,6 +226,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                           {t.curso}
                         </label>
                         <input
+                          {...limitAttrs("character", "curso")}
                           id="input-curso"
                           type="text"
                           value={characterState.curso ?? ""}
@@ -236,6 +241,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                           {t.puestoClase}
                         </label>
                         <input
+                          {...limitAttrs("character", "puestoClase")}
                           id="input-puesto-clase"
                           type="text"
                           placeholder={t.placeholderPuestoClase}
@@ -253,6 +259,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       {t.linaje}
                     </label>
                     <input
+                      {...limitAttrs("character", "linaje")}
                       id="input-linaje"
                       type="text"
                       placeholder={t.placeholderLinaje}
@@ -268,6 +275,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       {t.economia}
                     </label>
                     <input
+                      {...limitAttrs("character", "economia")}
                       id="input-economia"
                       type="text"
                       placeholder={t.placeholderEconomia}
@@ -283,6 +291,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       {t.varitaSintonia}
                     </label>
                     <input
+                      {...limitAttrs("character", "varitaSintonia")}
                       id="input-varita-sintonia"
                       type="text"
                       placeholder={t.placeholderVaritaSintonia}
@@ -309,6 +318,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                             {t.adultWizardRole}
                           </label>
                           <input
+                            {...limitAttrs("character", "adultWizardProfile/role")}
                             id="input-aw-role"
                             type="text"
                             placeholder={t.adultWizardRolePlaceholder}
@@ -324,6 +334,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                             {t.adultWizardInstitution}
                           </label>
                           <input
+                            {...limitAttrs("character", "adultWizardProfile/institution")}
                             id="input-aw-institution"
                             type="text"
                             placeholder={t.adultWizardInstitutionPlaceholder}
@@ -339,6 +350,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                             {t.adultWizardFormerHouse}
                           </label>
                           <input
+                            {...limitAttrs("character", "adultWizardProfile/formerHouse")}
                             id="input-aw-former-house"
                             type="text"
                             placeholder={t.adultWizardFormerHousePlaceholder}
@@ -354,6 +366,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                             {t.adultWizardReputation}
                           </label>
                           <input
+                            {...limitAttrs("character", "adultWizardProfile/reputation")}
                             id="input-aw-reputation"
                             type="text"
                             placeholder={t.adultWizardReputationPlaceholder}

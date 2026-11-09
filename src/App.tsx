@@ -27,6 +27,7 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { CAMPAIGN_SKILLS_TEXT, CampaignSkills } from "./account/CampaignSkills";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
+import { LimitHint } from "./components/LimitHint";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
 // Demo builds only; the condition is replaced at build time.
@@ -484,6 +485,7 @@ export default function App() {
         </main>
       ))}
 
+      <LimitHint entriesWord={t.limitEntries} fullWord={t.limitReached} />
       <SaveStatus lang={lang} store={screen === "DETAIL" ? characterStore : screen === "FAMILIAR_DETAIL" || screen === "FAMILIAR_EDITOR" ? familiarStore : undefined} />
 
       {toastMessage && (

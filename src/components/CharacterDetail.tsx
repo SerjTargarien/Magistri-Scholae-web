@@ -37,6 +37,7 @@ import { SpellsTab } from "./sheet/SpellsTab";
 import { NotesTab } from "./sheet/NotesTab";
 import { GalleryTab } from "./sheet/GalleryTab";
 import { RequiredTextInput } from "./RequiredTextInput";
+import { limitAttrs, maxLengthOf } from "./LimitHint";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -371,6 +372,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   {t.nombre}
                 </label>
                 <RequiredTextInput
+                  maxLength={maxLengthOf("character", "nombre")}
                   id="input-sheet-nombre"
                   value={character.nombre || ""}
                   disabled={!writable("nombre")}
@@ -388,6 +390,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   {t.concepto}
                 </label>
                 <input
+                  {...limitAttrs("character", "concepto")}
                   type="text"
                   value={character.concepto || ""}
                   disabled={!writable("concepto")}

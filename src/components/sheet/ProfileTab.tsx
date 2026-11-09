@@ -14,6 +14,7 @@ import type { House } from "../../model/sheet";
 
 import type { SheetContext } from "./useCharacterSheet";
 import { SubjectList } from "../SubjectList";
+import { limitAttrs } from "../LimitHint";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -56,6 +57,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.jugador}</label>
                     <input
+                      {...limitAttrs("character", "jugador")}
                       type="text"
                       value={character.jugador || ""}
                       disabled={!writable("jugador")}
@@ -84,6 +86,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
                         <input
+                          {...limitAttrs("character", "curso")}
                           type="text"
                           value={character.curso || ""}
                           disabled={!writable("curso")}
@@ -97,6 +100,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
                         <input
+                          {...limitAttrs("character", "puestoClase")}
                           type="text"
                           value={character.puestoClase || ""}
                           disabled={!writable("puestoClase")}
@@ -112,6 +116,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.linaje}</label>
                     <input
+                      {...limitAttrs("character", "linaje")}
                       type="text"
                       value={character.linaje || ""}
                       disabled={!writable("linaje")}
@@ -125,6 +130,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.economia}</label>
                     <input
+                      {...limitAttrs("character", "economia")}
                       type="text"
                       value={character.economia || ""}
                       disabled={!writable("economia")}
@@ -140,6 +146,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1 col-span-2">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
                         <input
+                          {...limitAttrs("character", "varitaSintonia")}
                           type="text"
                           value={character.varitaSintonia || ""}
                           disabled={!writable("varitaSintonia")}
@@ -157,6 +164,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardRole}</label>
                         <input
+                          {...limitAttrs("character", "adultWizardProfile/role")}
                           type="text"
                           value={profile.role || ""}
                           disabled={!writable("adultWizardProfile/role")}
@@ -170,6 +178,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardInstitution}</label>
                         <input
+                          {...limitAttrs("character", "adultWizardProfile/institution")}
                           type="text"
                           value={profile.institution || ""}
                           disabled={!writable("adultWizardProfile/institution")}
@@ -183,6 +192,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardFormerHouse}</label>
                         <input
+                          {...limitAttrs("character", "adultWizardProfile/formerHouse")}
                           type="text"
                           value={profile.formerHouse || ""}
                           disabled={!writable("adultWizardProfile/formerHouse")}
@@ -197,6 +207,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
                         <input
+                          {...limitAttrs("character", "varitaSintonia")}
                           type="text"
                           value={character.varitaSintonia || ""}
                           disabled={!writable("varitaSintonia")}
@@ -210,6 +221,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       <div className="flex flex-col gap-1 col-span-2">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardReputation}</label>
                         <input
+                          {...limitAttrs("character", "adultWizardProfile/reputation")}
                           type="text"
                           value={profile.reputation || ""}
                           disabled={!writable("adultWizardProfile/reputation")}
@@ -540,6 +552,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                         {isQuickEditing && canAdd("aspectosPersonales") && (
                           <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                             <input
+                              {...limitAttrs("character", "aspectosPersonales/x/value", { path: "aspectosPersonales", count: (character.aspectosPersonales ?? []).length })}
                               type="text"
                               placeholder={t.placeholderAddAspect}
                               value={newPersonalAspectInput}
@@ -622,6 +635,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                         {isQuickEditing && canAdd("complicaciones") && (
                           <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-lg mt-2">
                             <input
+                              {...limitAttrs("character", "complicaciones/x/value", { path: "complicaciones", count: (character.complicaciones ?? []).length })}
                               type="text"
                               placeholder={t.placeholderAddComplication}
                               value={newComplicationInput}
@@ -691,6 +705,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                         }
                       >
                         <input
+                          {...limitAttrs("character", "camposPersonalizados/x/nombre")}
                           type="text"
                           id={`input-custom-name-${fd.id}`}
                           value={fd.nombre ?? ""}
@@ -700,6 +715,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
                         />
                         <input
+                          {...limitAttrs("character", "camposPersonalizados/x/valor")}
                           type="text"
                           value={fd.valor ?? ""}
                           disabled={!writable(`camposPersonalizados/${fd.id}/valor`)}
@@ -729,6 +745,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                 {isQuickEditing && canAdd("camposPersonalizados") && (
                   <div className={`flex flex-col sm:flex-row gap-2 items-center bg-neutral-950/40 p-2.5 border ${isAcademy ? "border-[#c8a248]/25" : "border-violet-500/10"} rounded-lg mt-3`}>
                     <input
+                      {...limitAttrs("character", "camposPersonalizados/x/nombre", { path: "camposPersonalizados", count: (character.camposPersonalizados ?? []).length })}
                       type="text"
                       placeholder={t.fieldName}
                       value={newCustomFieldName}
@@ -737,6 +754,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                     />
                     <div className="flex gap-2 w-full sm:flex-1">
                       <input
+                        {...limitAttrs("character", "camposPersonalizados/x/valor")}
                         type="text"
                         placeholder={t.fieldValue}
                         value={newCustomFieldValue}

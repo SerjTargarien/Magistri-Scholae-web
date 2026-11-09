@@ -9,6 +9,7 @@ import { Image as ImageIcon, Trash, Upload } from "lucide-react";
 import { imageSrc } from "../../remote/assets";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
+import { ListCounter } from "../LimitHint";
 
 export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
   const {
@@ -28,6 +29,7 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
               <ImageIcon className="w-4 h-4" />
               {t.uploadGallery}
             </h2>
+            <ListCounter id="familiar-gallery-count" kind="familiar" path="galleryImages" count={gallery.length} word={t.limitImages} fullWord={t.limitReached} />
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <label className="w-full sm:w-auto px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors">

@@ -12,6 +12,7 @@ import { PawPrint, Image as ImageIcon, Link as LinkIcon, Unlink, ExternalLink } 
 
 import type { FamiliarContext } from "./useFamiliarDetail";
 import { RequiredTextInput } from "../RequiredTextInput";
+import { limitAttrs, maxLengthOf } from "../LimitHint";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
@@ -143,6 +144,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarName}
                     </label>
                     <RequiredTextInput
+                      maxLength={maxLengthOf("familiar", "nombre")}
                       id="input-familiar-nombre"
                       value={familiar.nombre ?? ""}
                       disabled={!canEditName}
@@ -157,6 +159,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarSpecies}
                     </label>
                     <RequiredTextInput
+                      maxLength={maxLengthOf("familiar", "especie")}
                       id="input-familiar-especie"
                       value={familiar.especie ?? ""}
                       disabled={!canEditSpecies}
@@ -171,6 +174,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       {t.familiarDescription}
                     </label>
                     <textarea
+                      {...limitAttrs("familiar", "descripcion")}
                       id="input-familiar-descripcion"
                       rows={4}
                       value={familiar.descripcion ?? ""}

@@ -118,6 +118,24 @@ test("session tracking: destiny, XP, stress, temporary aspects and consequences 
   expect(stored!.consecuenciasFisicas[0]).toMatchObject({ id: arm, gravedad: "moderada" });
 });
 
+test("a text box shows a counter near its limit and stops at it", async ({ page }) => {
+  await createCharacter(page, "Counted Student", {
+    fill: async () => {
+      const concept = page.locator("#input-concepto");
+      await expect(concept).toHaveAttribute("maxlength", "200");
+      await concept.fill("x".repeat(150));
+      await expect(page.locator("#limit-hint")).toHaveCount(0); // quiet below 90%
+      await concept.fill("x".repeat(185));
+      await expect(page.locator("#limit-hint")).toHaveText("185 / 200");
+      await concept.fill("y".repeat(250)); // a paste over the limit stops at it
+      await expect(concept).toHaveValue("y".repeat(200));
+      await expect(page.locator("#limit-hint")).toContainText("200 / 200 · límite alcanzado");
+    },
+  });
+  expect((await storedSheet(page, "Counted Student"))!.concepto).toBe("y".repeat(200));
+  await expect(page.locator("#limit-hint")).toHaveCount(0); // gone once the box is left
+});
+
 test("a name can be emptied while retyping; an empty name is never saved", async ({ page }) => {
   await createCharacter(page, "Retyped Student");
   await setEditMode(page, true);

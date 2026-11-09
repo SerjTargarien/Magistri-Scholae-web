@@ -8,6 +8,7 @@ import React from "react";
 import { Sparkles, Plus, Trash2, X, Minus } from "lucide-react";
 
 import type { FormContext } from "./useCharacterForm";
+import { limitAttrs } from "../LimitHint";
 
 export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -62,6 +63,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
 
                     <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-xl mt-3">
                       <input
+                        {...limitAttrs("character", "aspectosPersonales/x/value", { path: "aspectosPersonales", count: (characterState.aspectosPersonales ?? []).length })}
                         type="text"
                         placeholder={t.placeholderAspectExample}
                         value={newAspectName}
@@ -118,6 +120,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
 
                     <div className="flex gap-2 items-center bg-neutral-950/40 p-2 border border-violet-500/10 rounded-xl mt-3">
                       <input
+                        {...limitAttrs("character", "complicaciones/x/value", { path: "complicaciones", count: (characterState.complicaciones ?? []).length })}
                         type="text"
                         placeholder={t.placeholderComplicaciones}
                         value={newComplicationName}
@@ -183,6 +186,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                     {/* Add Inventory Item Input Form */}
                     <div className="bg-neutral-950/40 p-3 border border-violet-500/10 rounded-xl space-y-3 mt-3">
                       <input
+                        {...limitAttrs("character", "equipoList/x/nombre", { path: "equipoList", count: (characterState.equipoList ?? []).length })}
                         type="text"
                         placeholder={t.placeholderEquipmentExample}
                         value={newItemName}
@@ -248,6 +252,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                             className="flex items-center gap-2 bg-neutral-900/40 px-2.5 py-1.5 border border-neutral-800 rounded-lg"
                           >
                             <input
+                              {...limitAttrs("character", "camposPersonalizados/x/nombre")}
                               type="text"
                               value={cf.nombre ?? ""}
                               onChange={(e) => updateCustomField(cf.id, "nombre", e.target.value)}
@@ -255,6 +260,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                               className="w-1/3 text-[10px] font-mono text-amber-400 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
                             />
                             <input
+                              {...limitAttrs("character", "camposPersonalizados/x/valor")}
                               type="text"
                               value={cf.valor ?? ""}
                               onChange={(e) => updateCustomField(cf.id, "valor", e.target.value)}
@@ -281,6 +287,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                     <div className="bg-neutral-950/40 p-2.5 border border-violet-500/10 rounded-xl space-y-2 mt-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input
+                          {...limitAttrs("character", "camposPersonalizados/x/nombre", { path: "camposPersonalizados", count: (characterState.camposPersonalizados ?? []).length })}
                           id="input-form-custom-field-name"
                           type="text"
                           placeholder={t.fieldName}
@@ -289,6 +296,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                           className="text-[11px] font-mono bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-neutral-200"
                         />
                         <input
+                          {...limitAttrs("character", "camposPersonalizados/x/valor")}
                           id="input-form-custom-field-value"
                           type="text"
                           placeholder={t.fieldValue}

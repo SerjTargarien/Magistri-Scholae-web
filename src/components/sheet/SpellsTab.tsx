@@ -8,6 +8,7 @@ import React from "react";
 import { Trash } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
+import { limitAttrs } from "../LimitHint";
 
 export function SpellsTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -71,6 +72,7 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
+                      {...limitAttrs("character", "conjuros/x/nombre", { path: "conjuros", count: (character.conjuros ?? []).length })}
                       id="input-spell-name"
                       type="text"
                       placeholder={t.placeholderConjuroName}
@@ -165,6 +167,7 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
+                      {...limitAttrs("character", "pociones/x/nombre", { path: "pociones", count: (character.pociones ?? []).length })}
                       id="input-potion-name"
                       type="text"
                       placeholder={t.placeholderPocionName}

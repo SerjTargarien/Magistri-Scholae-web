@@ -11,6 +11,7 @@ import { Plus, Minus, Sparkles, Coins, X } from "lucide-react";
 import type { ConsequenceList, SheetContext } from "./useCharacterSheet";
 import type { ConsequenceEntry, Severity } from "../../model/sheet";
 import { HIT, TagMenu } from "../TagMenu";
+import { limitAttrs } from "../LimitHint";
 
 const SEVERITIES: Severity[] = ["leve", "moderada", "grave"];
 const MIN_GEMS = 3;
@@ -133,6 +134,7 @@ function Consequences({ ctx, list, short, title, empty, placeholder, inputClass,
         <div className="space-y-2">
           <div className="flex gap-2">
             <input
+              {...limitAttrs("character", `${list}/x/descripcion`, { path: list, count: entries.length })}
               id={`input-session-new-${short}-consequence`}
               type="text"
               placeholder={placeholder}
@@ -342,6 +344,7 @@ export function SessionTab({ ctx }: { ctx: SheetContext }) {
                   {canAdd("aspectoTemporal") && (
                   <div className="flex gap-2">
                     <input
+                      {...limitAttrs("character", "aspectoTemporal/x/value", { path: "aspectoTemporal", count: (character.aspectoTemporal ?? []).length })}
                       id="input-session-new-temp-aspect"
                       type="text"
                       placeholder={t.placeholderAspectoTemporal}

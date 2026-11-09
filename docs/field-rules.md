@@ -26,8 +26,8 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 - **Required:** must not be empty after trimming.
 - **Whole number a–b:** an integer in that range; decimals are rejected.
 - **Choice:** one of a fixed list. **List ≤ N:** at most N entries; each entry has a permanent ID and a position, so it can be reordered.
-- **Warnings (owner decision):** limits are set well above normal use, and the app warns clearly before one is reached: a counter appears on a text box or list once it passes 90% of its limit, and a save over the limit explains which limit was hit.
-- Today no input has a length limit, and the server allows 64,000 characters per text, any number up to a trillion, and 500 entries per list.
+- **Warnings (owner decision):** limits are set well above normal use, and the app warns clearly before one is reached: a counter appears on a text box or list once it passes 90% of its limit, and a save over the limit explains which limit was hit. **Done 9 November 2026:** every text box carries its field's limit; while typing, a counter appears under the box past 90% of the text limit, or of the list it adds to («28 / 30 entradas»), and says «límite alcanzado» at the limit; the galleries show their counter in place («46 / 50 imágenes»). A refused list addition still shows its rule in the save panel (plain words: R3.5).
+- Before R3.2 no input had a length limit, and the server allowed 64,000 characters per text, any number up to a trillion, and 500 entries per list.
 
 ## Character list (cards)
 

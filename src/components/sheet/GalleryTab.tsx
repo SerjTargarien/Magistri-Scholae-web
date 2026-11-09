@@ -9,6 +9,7 @@ import { imageSrc } from "../../remote/assets";
 import { Image as ImageIcon, Plus, Trash, X } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
+import { ListCounter } from "../LimitHint";
 
 export function GalleryTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -26,6 +27,7 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                   {t.galeria}
                 </h3>
                 <p className="text-[10px] text-neutral-400 mt-1 font-mono">{t.galleryInstructions}</p>
+                <ListCounter id="gallery-count" kind="character" path="galleryImages" count={galleryImages.length} word={t.limitImages} fullWord={t.limitReached} />
               </div>
 
               {isQuickEditing && canAdd("galleryImages") && (

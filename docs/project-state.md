@@ -573,8 +573,10 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - A journal entry without a title (character or familiar) stores none; the sheet shows «Entrada del …» from the entry's own date (`src/model/journal.ts`), also as the placeholder when editing. Emptying a title while editing brings the generated one back. Familiar entries no longer store «Sin Nombre». Entries saved earlier keep their stored titles.
 - Tests: a unit test for the generated title; a feature test adding untitled entries to a character and a familiar (nothing stored in the title, «Entrada del» shown), on desktop and phone.
+- Existing data: before the change, a read-only count on the staging backend (metadata only) found 5 sheets and no journal entries, so no stored generated titles needed cleaning.
+- Merged as PR #39 (`1d16109`; GitHub did not start CI for the PR, so it was run by hand on the branch: frontend, backend and deploy config passed). Published on 9 November 2026: release `20261109-101827-1d16109` on the public site and staging; both serve the new build, `www` redirects to the main domain, and the API answers.
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the remaining phase 3 changes after the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: the session tab (destiny gems, typeable XP, consequence severity), lists and limits, the polish pass and images from a web address; then R4.
 
 ## Updating this handoff
 

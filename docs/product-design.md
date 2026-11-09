@@ -140,7 +140,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 ## Text that does not fit
 
-The ground rules for «no cut words» (owner, 9 November 2026). **Status: proposal**, waiting for the owner's decisions (end of this section); rule 1 is the owner's own and already applied. They apply to every screen and to every new one.
+The ground rules for «no cut words» (owner, 9 November 2026). **Status: adopted 9 November 2026** (rule 1 is the owner's own; rules 2–11 as proposed, with D2 and D3 as recommended). They apply to every screen and to every new one.
 
 ### Rules
 
@@ -180,16 +180,16 @@ Measured on 9 November 2026 after the wording pass (rule 1), on every screen at 
 | Creation form | «Familiar» tab | No | 7 | The cut is removed |
 | Creation form, equipment list | Item name (full name only on hover) | Long names would | 3, 10 | Wraps |
 | Creation form, familiar editor | Image error message | No (shortened) | 3 | The cut is removed; it wraps |
-| Familiar sheet | Bonded character's concept | Long concepts would | 4? | Decision D2 |
+| Familiar sheet | Bonded character's concept | Long concepts would | 4 | Two lines and «…» (D2): the full text is on the character's sheet |
 | Familiar sheet, «elegir mago» dialog | Character names | Long names would | 3 | Wraps; the dialog becomes the shared picker (missed in polish pass (b)) |
 | Settings, account card | Display name, username | Long ones would | 2, 3 | Wraps; a username breaks inside the word if needed |
 | Campaign skills | Age limit note (one line) | Long ages would | 11 | Wraps (a sentence) |
 
-### Decisions for the owner
+### Decisions
 
-- **D1.** Adopt rules 2–11 (rule 1 is the owner's and applied).
-- **D2.** The bonded character's concept on the familiar sheet: two lines and «…» (a summary, like the cards), or the whole text.
-- **D3.** The minimum text size of 9 px (rule 9).
+- **D1. Adopted:** rules 2–11 (rule 1 is the owner's and applied).
+- **D2. Decided:** the bonded character's concept on the familiar sheet keeps two lines and «…», a summary like the cards.
+- **D3. Decided:** no text smaller than 9 px (rule 9).
 
 ## Screens
 

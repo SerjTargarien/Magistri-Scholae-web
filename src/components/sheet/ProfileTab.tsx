@@ -692,6 +692,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       >
                         <input
                           type="text"
+                          id={`input-custom-name-${fd.id}`}
                           value={fd.nombre ?? ""}
                           disabled={!writable(`camposPersonalizados/${fd.id}/nombre`)}
                           onChange={(e) => handleUpdateCustomField(fd.id, "nombre", e.target.value)}

@@ -611,7 +611,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - An adult wizard's subjects taught are a list like the aspects (`src/components/SubjectList.tsx`), in the creation form and on the sheet: one entry per subject, added with a box and «+» (or Enter), removed with «×» in edit mode; readers see one row per subject, or «Sin asignaturas registradas». A comma is now just part of a name; the old comma-separated box lost commas and spaces while typing, so a second subject could not be typed in the form. Stored entries are unchanged.
 - Checks: type check; 51 unit tests; both builds; 43 browser tests (the adult-wizard test adds two subjects in the form, one with a comma, then adds and removes one on the sheet by entry). Looked at in the demo build at phone width, in and out of edit mode.
 
-**Next:** lists and limits, part 2 (a name box that can be emptied while retyping) and part 3 (counters near limits), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Lists and limits, part 2: required boxes can be emptied while retyping — 9 November 2026
+
+- A character's name, and a familiar's name and species, on a saved sheet use `src/components/RequiredTextInput.tsx`: the box can be emptied while retyping, an empty value is never saved, a note says so («No puede quedar vacío: si lo dejas así, se mantiene el valor guardado.»), and leaving it empty brings the saved value back. Before, the empty edit was refused by the store's rule check and the box snapped back while typing.
+- The demo test of a refused edit now empties a custom field's name (still refused with its rule in the save panel), since the name box no longer sends an empty name.
+- Checks: type check; 51 unit tests; both builds; 45 browser tests (new: emptying and retyping a character's name, and a familiar's species).
+
+**Next:** lists and limits, part 3 (counters near limits), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

@@ -261,7 +261,7 @@ Each step below is its own pull request. It keeps the app working under the brow
   - **Remaining, in order** (owner's target design, 9 November 2026; one pull request each):
     1. **Journal titles shown, not stored** (character «Entrada del …», familiar «Sin Nombre»): before the next publish (owner). **Done 9 November 2026.**
     2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity. **Done 9 November 2026.**
-    3. **Lists and limits:** subjects taught as a list (**done 9 November 2026**); a name box that can be emptied while retyping; counters near limits.
+    3. **Lists and limits:** subjects taught as a list (**done 9 November 2026**); a name box that can be emptied while retyping (**done 9 November 2026**); counters near limits.
     4. **Polish pass** (product-design.md, Known inconsistencies):
        - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved;
        - «Cancelar» on the form asks before discarding any change;

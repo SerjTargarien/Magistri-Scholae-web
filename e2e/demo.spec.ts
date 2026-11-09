@@ -28,11 +28,14 @@ test("player: the GM-only field is absent, own fields save and survive a reload"
 test("an edit that breaks a rule is refused with its rule and never saved", async ({ page }) => {
   await openLuna(page);
   await setEditMode(page, true);
-  await expect(nameInput(page)).toHaveValue("Luna de Bruma");
-  await nameInput(page).fill("");
-  await expect(status(page)).toContainText("nombre (required)");
+  // A custom field's name is required: emptying it is refused with its rule.
+  // (The sheet's own name box never sends an empty name: see the features tests.)
+  const customName = page.locator("#input-custom-name-custom-1");
+  await expect(customName).toHaveValue("Patronus");
+  await customName.fill("");
+  await expect(status(page)).toContainText("camposPersonalizados/custom-1/nombre (required)");
   await reloadApp(page);
-  expect((await storedSheet(page, "Luna de Bruma"))!.nombre).toBe("Luna de Bruma");
+  expect((await storedSheet(page, "Luna de Bruma"))!.camposPersonalizados[0]).toMatchObject({ id: "custom-1", nombre: "Patronus" });
 });
 
 test("someone else's change to another field merges without a conflict", async ({ page }) => {

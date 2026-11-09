@@ -11,6 +11,7 @@ import { imageSrc } from "../../remote/assets";
 import { PawPrint, Image as ImageIcon, Link as LinkIcon, Unlink, ExternalLink } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
+import { RequiredTextInput } from "../RequiredTextInput";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
@@ -141,12 +142,12 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
                       {t.familiarName}
                     </label>
-                    <input
+                    <RequiredTextInput
                       id="input-familiar-nombre"
-                      type="text"
                       value={familiar.nombre ?? ""}
                       disabled={!canEditName}
-                      onChange={(e) => edit("nombre", e.target.value)}
+                      onSave={(text) => edit("nombre", text)}
+                      emptyHint={t.requiredKeepsSaved}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
                   </div>
@@ -155,12 +156,12 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
                       {t.familiarSpecies}
                     </label>
-                    <input
+                    <RequiredTextInput
                       id="input-familiar-especie"
-                      type="text"
                       value={familiar.especie ?? ""}
                       disabled={!canEditSpecies}
-                      onChange={(e) => edit("especie", e.target.value)}
+                      onSave={(text) => edit("especie", text)}
+                      emptyHint={t.requiredKeepsSaved}
                       className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
                     />
                   </div>

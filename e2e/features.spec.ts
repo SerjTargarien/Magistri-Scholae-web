@@ -118,6 +118,32 @@ test("session tracking: destiny, XP, stress, temporary aspects and consequences 
   expect(stored!.consecuenciasFisicas[0]).toMatchObject({ id: arm, gravedad: "moderada" });
 });
 
+test("a name can be emptied while retyping; an empty name is never saved", async ({ page }) => {
+  await createCharacter(page, "Retyped Student");
+  await setEditMode(page, true);
+  const name = page.locator("#input-sheet-nombre");
+  await name.fill("");
+  await expect(page.locator("#input-sheet-nombre-hint")).toBeVisible();
+  await flushWrites(page);
+  expect(await storedSheet(page, "Retyped Student")).toMatchObject({ nombre: "Retyped Student" });
+  await name.fill("Renamed Student");
+  await expect(page.locator("#input-sheet-nombre-hint")).toHaveCount(0);
+  await name.fill("");
+  await name.blur(); // leaving it empty brings the saved name back
+  await expect(name).toHaveValue("Renamed Student");
+  await setEditMode(page, false);
+  await reloadApp(page);
+  expect(await storedSheet(page, "Renamed Student")).toMatchObject({ nombre: "Renamed Student" });
+
+  // The same for a familiar's name and species.
+  await openFamiliar(page, "Chispa");
+  await page.locator("#btn-familiar-edit").click();
+  await page.locator("#input-familiar-especie").fill("");
+  await expect(page.locator("#input-familiar-especie-hint")).toBeVisible();
+  await page.locator("#input-familiar-especie").blur();
+  await expect(page.locator("#input-familiar-especie")).toHaveValue("Zorro");
+});
+
 test("skills, spells, potions, clubs, equipment and journal entries persist", async ({ page }) => {
   await createCharacter(page, "Studious Student");
   await setEditMode(page, true);

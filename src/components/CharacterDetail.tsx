@@ -36,6 +36,7 @@ import { SkillsTab } from "./sheet/SkillsTab";
 import { SpellsTab } from "./sheet/SpellsTab";
 import { NotesTab } from "./sheet/NotesTab";
 import { GalleryTab } from "./sheet/GalleryTab";
+import { RequiredTextInput } from "./RequiredTextInput";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -369,11 +370,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold mb-0.5">
                   {t.nombre}
                 </label>
-                <input
-                  type="text"
+                <RequiredTextInput
+                  id="input-sheet-nombre"
                   value={character.nombre || ""}
                   disabled={!writable("nombre")}
-                  onChange={(e) => edit("nombre", e.target.value)}
+                  onSave={(text) => edit("nombre", text)}
+                  emptyHint={t.requiredKeepsSaved}
                   className="w-full text-sm font-magic bg-neutral-950 text-neutral-100 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
                   placeholder={t.placeholderNombre}
                 />

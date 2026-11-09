@@ -661,6 +661,11 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - **Polish pass (b) is complete:** the app has no browser-drawn selector, checkbox, number spinner or unstyled slider left, except the language selector, hidden until the language choice returns (then a segmented control).
 - Checks: type check; 53 unit tests; both builds; 49 browser tests (the skill tests pick from the list and confirm with «Hecho»). Looked at in the demo build at phone width.
 
+## Custom fields on phones — 9 November 2026
+
+- Owner's report: in edit mode on a phone, a custom field's name box was squeezed to a sliver beside its value. On the sheet and in the creation form, phones now show the name with its remove button on one line and the value under them, full width; wider screens keep the single row (name, value, remove).
+- Checks: type check; 53 unit tests; both builds; 49 browser tests. Measured in the demo build: at 375 px the name box is 203 px and the value 233 px; at 1280 px the row is unchanged.
+
 **Next:** polish pass (c), no cut words (about 50 places wrap instead of ending in «…»), then (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff

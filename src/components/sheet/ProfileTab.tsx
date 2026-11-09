@@ -694,7 +694,8 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                     {customFields.map((fd) => (
                       <div
                         key={fd.id}
-                        className="p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs flex items-center justify-between gap-2"
+                        // Phones: the name and «×» on one line, the value under them, full width; wider screens: one row.
+                        className="p-3 bg-[#110c1c]/80 border border-[#c8a248]/35 rounded-lg text-xs grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:justify-between"
                       >
                         <input
                           {...limitAttrs("character", "camposPersonalizados/x/nombre")}
@@ -704,8 +705,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           disabled={!writable(`camposPersonalizados/${fd.id}/nombre`)}
                           onChange={(e) => handleUpdateCustomField(fd.id, "nombre", e.target.value)}
                           placeholder={t.fieldName}
-                          className="w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                          className="min-w-0 w-full sm:w-1/3 bg-neutral-900 text-amber-400 font-mono text-[10px] uppercase px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
                         />
+                        {canRemove("camposPersonalizados", fd.id) && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomField(fd.id)}
+                          className="sm:order-last text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+                          title={t.deleteCustomField}
+                        >
+                          <X className="w-3.5 h-3.5 shrink-0" />
+                        </button>
+                        )}
                         <input
                           {...limitAttrs("character", "camposPersonalizados/x/valor")}
                           type="text"
@@ -713,18 +724,8 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           disabled={!writable(`camposPersonalizados/${fd.id}/valor`)}
                           onChange={(e) => handleUpdateCustomField(fd.id, "valor", e.target.value)}
                           placeholder={t.fieldValue}
-                          className="flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
+                          className="col-span-2 min-w-0 w-full sm:flex-1 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded border border-neutral-800 focus:outline-none focus:border-amber-500"
                         />
-                        {canRemove("camposPersonalizados", fd.id) && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCustomField(fd.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer"
-                          title={t.deleteCustomField}
-                        >
-                          <X className="w-3.5 h-3.5 shrink-0" />
-                        </button>
-                        )}
                       </div>
                     ))}
                   </div>

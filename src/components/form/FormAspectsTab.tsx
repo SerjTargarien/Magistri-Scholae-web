@@ -229,7 +229,8 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                         characterState.camposPersonalizados.map((cf) => (
                           <div
                             key={cf.id}
-                            className="flex items-center gap-2 bg-neutral-900/40 px-2.5 py-1.5 border border-neutral-800 rounded-lg"
+                            // Phones: the name and the bin on one line, the value under them, full width; wider screens: one row.
+                            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-neutral-900/40 px-2.5 py-1.5 border border-neutral-800 rounded-lg sm:flex"
                           >
                             <input
                               {...limitAttrs("character", "camposPersonalizados/x/nombre")}
@@ -237,24 +238,24 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                               value={cf.nombre ?? ""}
                               onChange={(e) => updateCustomField(cf.id, "nombre", e.target.value)}
                               placeholder={t.fieldName}
-                              className="w-1/3 text-[10px] font-mono text-amber-400 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
+                              className="min-w-0 w-full sm:w-1/3 text-[10px] font-mono text-amber-400 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
                             />
+                            <button
+                              type="button"
+                              onClick={() => removeCustomField(cf.id)}
+                              className="sm:order-last text-neutral-500 hover:text-rose-400 p-1 cursor-pointer transition-colors shrink-0"
+                              title={t.deleteCustomField}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                             <input
                               {...limitAttrs("character", "camposPersonalizados/x/valor")}
                               type="text"
                               value={cf.valor ?? ""}
                               onChange={(e) => updateCustomField(cf.id, "valor", e.target.value)}
                               placeholder={t.fieldValue}
-                              className="flex-1 text-[11px] font-sans text-neutral-200 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
+                              className="col-span-2 min-w-0 w-full sm:flex-1 text-[11px] font-sans text-neutral-200 bg-neutral-950 border border-neutral-800 rounded px-2 py-1"
                             />
-                            <button
-                              type="button"
-                              onClick={() => removeCustomField(cf.id)}
-                              className="text-neutral-500 hover:text-rose-400 p-1 cursor-pointer transition-colors shrink-0"
-                              title={t.deleteCustomField}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
                           </div>
                         ))
                       ) : (

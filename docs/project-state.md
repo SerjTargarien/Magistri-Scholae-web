@@ -715,6 +715,7 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The familiar sheet's header becomes the character sheet's top bar: «Volver a Personajes» («Volver» on phones), «Editar» / «Finalizar Edición» and, for the GM, «Archivar», in the same button styles. The species, bonded character and name left the header; they are on the profile. The journal tab is «Notas del Familiar», its text box suggests «p. ej. Encontró una llave en el jardín», and an empty list says «Sin notas.». The profile's unlinked sentence («No está vinculado a ningún personaje.») moved into the translations file (missed by part 6).
 - Checks: type check; 53 unit tests; both builds; 55 browser tests (the familiar test reads the species from the profile). Screenshots at phone and desktop widths, in reading and edit mode.
 - **Polish pass (d) is complete** (Known inconsistencies 1–6 done; 7–9 were already settled).
+- Released to staging at the owner's request for a trial (frontend release `20261109-164125-ef420c8`; backend untouched; the API answers). The public site stays on `206d290` until milestone 1.
 
 **Next:** the image viewer (designed first): tapping a portrait or gallery image opens it at full size. Then R3.5, R3.6, and R6 with milestone 1. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 

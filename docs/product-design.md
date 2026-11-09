@@ -7,7 +7,8 @@ The place to design a change before building it (owner request, 8 November 2026)
 ## Principles
 
 - **Spanish only** for the first version; the English texts stay in the code (`LANGUAGE_CHOICE` in `src/App.tsx`). No one is asked for words in the other language; all interface texts live in `src/localization.ts`.
-- **No aesthetic change without a reason**; new screens follow the academy and classic styles.
+- **No aesthetic change without a reason**; new screens follow the Academia style.
+- **One visual style for now** (owner, 9 November 2026): Academia stays; Classic and its selector in settings are removed (R3.4 polish pass). Later styles may be made from Academia by changing the design tokens, not the components.
 - **One way to edit a sheet:** «Editar» / «Finalizar Edición», and each field saves as it is typed (no «Guardar» on a sheet). Character and familiar sheets behave alike.
 - **Touch first:** nothing depends on hover; testers use phones.
 - **One control per situation:** choices use the shared controls and rules in [Controls](#controls), never browser-drawn selectors.
@@ -41,7 +42,9 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 ## Controls
 
-How a person chooses something, everywhere in the app (study requested by the owner, 9 November 2026). The look stays coherent with the academy and classic styles; what a control can do comes first. **Status: proposal**, waiting for the owner's decisions (end of this section).
+How a person chooses something, everywhere in the app (study requested by the owner, 9 November 2026). The look stays coherent with the Academia style; what a control can do comes first.
+
+**Status: adopted 9 November 2026.** The owner tried every control in an interactive demo ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page) and recorded a verdict on each: 16 of 20 approved as proposed; the pips, the tag menu, the filter bar and the styles rule were changed after his notes, and the text below includes those changes.
 
 ### Why
 
@@ -56,16 +59,16 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | # | Control | Looks like | Use it for | Limits |
 |---|---|---|---|---|
 | 1 | **Stepper** | «−» value «+» | An ordered number where the exact value matters: skill, spell and potion values, quantities, stress maximum, experience. | In edit mode the value becomes a box when the range is above 20 (experience). |
-| 2 | **Pips** | A row of boxes or gems, tap to set | A small ordered range read at a glance during play: stress, destiny. | Up to 10; tapping the highest marked one lowers it by one. |
+| 2 | **Pips** | A row of boxes or gems, tap to set | A small ordered range read at a glance during play: stress, destiny. | Up to 10. Tapping the current one does nothing (owner); stress clears with «0», destiny with «−». |
 | 3 | **Switch** | A sliding toggle beside its label; the whole row is tappable | One on/off property that takes effect at once: specialized, «inicial», «Es profesor», and later Mago, Alumno, active. | Never for a choice between two named options (that is a segmented control). |
 | 4 | **Check** | A drawn check box | Acknowledging something («Entiendo que…») and multiple choice inside a picker. | Not for settings that take effect at once (switch). |
-| 5 | **Segmented control** | One fixed row of 2–4 joined buttons, the chosen one lit | A mode of the whole sheet or screen, always visible: Menor / Adulto, image fit, and the language when it returns. | 2–4 short labels that fit one row at 320 px; otherwise a tag menu. |
+| 5 | **Segmented control** | One fixed row of 2–4 joined buttons, the chosen one lit | A mode of the whole sheet or screen, always visible: Menor / Adulto, image fit, a sort direction, and the language when it returns. | 2–4 short labels that fit one row at 320 px; otherwise a tag menu. |
 | 6 | **Option chips** | Round chips under an input | Choosing a value **while adding a new item**: a consequence's severity. | 2–5 short options, at most two rows; never for filters or for a value already on a row. |
-| 7 | **Tag menu** | The value as a coloured tag; tapping it opens a small menu in the app's style next to it (a bottom sheet on phones) | **Changing a value already on a row**, where there is no room for chips: severity, knowledge level, house in sheet edit mode, a skill's category (R4). | 2–8 options; includes «none» where empty is allowed. Readers see the plain tag. |
-| 8 | **Option cards** | Large cards with a picture or explanation | A choice made once, at a setup step, that needs explaining: sheet type, house in the creation form, visual style, the GM's «PJ o PNJ» when confirming a draft (R4), a type change (R4.5). | 2–6 options. Never in a row or during play. |
+| 7 | **Tag menu** | The value as a coloured tag; tapping it opens a small menu in the app's style next to it (a bottom sheet on phones) | **Changing a value already on a row**, where there is no room for chips: severity, knowledge level, house in sheet edit mode, a skill's category (R4). | 2–8 options; includes «none» where empty is allowed. Every tag of a kind has the same size; an empty one is dashed and quieter, with a short word («Elegir», «Ninguno») (owner). Readers see the plain tag. |
+| 8 | **Option cards** | Large cards with a picture or explanation | A choice made once, at a setup step, that needs explaining: sheet type, house in the creation form, the GM's «PJ o PNJ» when confirming a draft (R4), a type change (R4.5). | 2–6 options. Never in a row or during play. |
 | 9 | **Picker** | A dialog (a full-height sheet on phones) with a list of rows, each with picture or crest, name and a second line; search on top when there are more than 8 | **Choosing an entity or one of many**, or a list that grows: the bonded familiar, the campaign, a skill from the campaign's list, a player to assign (R4), the other side of a pact (R4.5), an institution, branch, course, subjects and clubs (R5). | Single choice closes on tap; multiple choice uses checks and «Hecho». |
 | 10 | **Text with suggestions** | A text box whose suggestions appear in the app's own list as you type | Free text that may link to a known item, with free text kept as a fallback (R5: institution, house, course). | Suggestions never come from the browser (no `datalist`). |
-| 11 | **Filter bar** | Search box plus a «Filtros» button with the number of active filters; active ones show as small removable chips under the search | **Filtering and sorting a list**: the main list, the Biblioteca (R5). The button opens a sheet with one section per filter (houses as crest medallions, type, player, active / inactive, archived) and the sort order. | Takes one row however many filters exist. |
+| 11 | **Filter bar** | Search box whose magnifier chooses where to search (everything by default: name, player, concept, house, course, type), plus a «Filtros» button with the number of active filters; active ones show as small removable chips under the search | **Filtering and sorting a list**: the main list, the Biblioteca (R5). The button opens a sheet with one section per filter (houses as crest medallions, type, player, active / inactive, archived, each a list with checks) and the sort order: any number of fields, chosen from a searchable list, with a direction (owner). | Takes one row however many filters exist. |
 
 ### Which one to use
 
@@ -85,12 +88,12 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 - **No browser-drawn controls:** no native `select`, checkbox, radio, number spinner, date box or `datalist`. Text boxes and text areas styled with the tokens stay; a slider (the cropper's zoom) is allowed only fully restyled, since the browser then draws nothing outside the page. The system file chooser stays, as the only way to pick a file.
 - **The current value is always visible** without opening anything.
-- **Touch:** the tappable area is at least 40 px (academy) or 44 px (classic), even when the visible tag or pip is smaller. Nothing depends on hover.
+- **Touch:** the tappable area is at least 40 px, even when the visible tag or pip is smaller. Where items sit closer (destiny gems, a tag beside its «×»), the spacing or size grows when the control is built. Nothing depends on hover.
 - **Closing:** menus, pickers and sheets close on a choice (single choice), a tap outside, Escape, and Android's back button; focus returns to what opened them.
 - **Keyboard and screen readers:** reachable with Tab; arrows move inside a group or list; Enter or Space chooses; each control has its role (switch, radiogroup, menu or listbox, dialog) and a label.
 - **Readers** see the value as plain text, never a disabled control.
 - **Saving** is unchanged: a choice on a sheet saves its one path at once; session controls keep working outside edit mode.
-- **Both styles** come from the same component through the tokens; no control has its own colours except value colours (severity, knowledge level, houses), which are listed in the design system.
+- **One style, from tokens:** each control is one shared component drawn with the design system's tokens; no control has its own colours except value colours (severity, knowledge level, houses), which are listed in the design system. A later style changes tokens, not components.
 
 ### Every choice, today and planned
 
@@ -101,7 +104,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | New sheet type | Option cards | Stays (8) | — |
 | House, creation form | Option cards | Stays (8) | — |
 | House, sheet edit mode | Native selector | Tag menu with crests (7) | Polish pass |
-| Visual style, settings | Option cards | Stays (8) | — |
+| Visual style, settings | Option cards | Removed with Classic (owner) | Polish pass |
 | Campaign, settings | Native selector | Picker (9) | Polish pass |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |
 | Image fit | Two buttons | Segmented (5) | Polish pass |
@@ -129,10 +132,10 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 ### Decisions for the owner
 
-- **D1.** Adopt these eleven controls and the rules above as the app's rule (then also recorded in AGENTS.md).
-- **D2.** The main list's filter bar: in the polish pass, or with R5 when institutions arrive. The chip strip works for today's five houses.
-- **D3.** Build order: the tag menu first, in PR #41 (severity) together with the knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
-- **D4.** A visual check before building: a page showing every control in both styles at phone and desktop widths.
+- **D1. Adopted** (9 November 2026) with the owner's four changes; recorded in AGENTS.md.
+- **D4. Done:** the interactive demo above.
+- **D2 (open).** The main list's filter bar: in the polish pass, or with R5 when institutions arrive. The chip strip works for today's five houses.
+- **D3 (open).** Build order: the tag menu first, in PR #41 (severity) together with the knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
 
 ## Screens
 
@@ -245,7 +248,7 @@ Tabs:
 
 - «Estilo Visual», «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; GM only: «Habilidades de la campaña» → «Abrir la lista». Language card hidden.
 
-**Target:** the campaign skills move to the Biblioteca del Máster (R5).
+**Target:** «Estilo Visual» goes with the Classic style (owner, 9 November 2026; R3.4 polish pass). The campaign skills move to the Biblioteca del Máster (R5).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

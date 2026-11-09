@@ -551,7 +551,12 @@ Owner, after testing on his phone: familiars had two ways to edit (quick edit an
 
 Released to both sites (release `20261108-182351-4a11cca`), with #34 (usernames and codes trimmed; display names keep capitals).
 
-- Owner decision (same day): a familiar created from a character's sheet is linked to that character on saving. The sheet only offers «Crear Familiar» while the character has no familiar, so no existing link is replaced.
+- Owner decision (same day): a familiar created from a character's sheet is linked to that character on saving. **Corrected 9 November:** the link picker offers «Crear Familiar» also when the character already has a familiar, so the new link replaces the old one (the old familiar stays, unlinked), as picking another familiar there would; the earlier note said the opposite.
+
+## Screen-by-screen design document — 9 November 2026
+
+- `docs/product-design.md` now describes every screen as it is (mapped from the code), with principles, roles, a list of known inconsistencies and the design notes. Changes are designed there first.
+- State checked the same morning: the GM (`faifolk`) registered on 8 November; seven player invitations stay open until 15 November 17:56 Spanish time; nightly backups and maintenance ran; no server errors.
 
 **Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 

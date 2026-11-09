@@ -416,8 +416,8 @@ export default function App() {
               onCreate={async (fields, image) => {
                 const store = await createFamiliar(fields, image);
                 if (familiarEditorOrigin === "DETAIL" && selectedCharId) {
-                  // Created from a character's sheet (whose link picker is only offered while the
-                  // character has no familiar): linked to that character (owner decision, 8 November 2026).
+                  // Created from a character's link picker: linked to that character (owner decision,
+                  // 8 November 2026), replacing its previous link if it had one, as picking it would.
                   const character = stores.current.get(selectedCharId);
                   if (character) await bond(character, store.sheet.id).catch(() => showToast("error", t.errorStoringStudent));
                   setScreen("DETAIL");

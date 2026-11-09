@@ -140,53 +140,56 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 ## Text that does not fit
 
-The ground rules for «no cut words» (owner, 9 November 2026). **Status: proposal**, waiting for the owner's decisions (end of this section). They apply to every screen and to every new one.
+The ground rules for «no cut words» (owner, 9 November 2026). **Status: proposal**, waiting for the owner's decisions (end of this section); rule 1 is the owner's own and already applied. They apply to every screen and to every new one.
 
 ### Rules
 
-1. **Wrap by default.** Text that does not fit continues on the next line, breaking between words. A single word longer than its space (a long username, a name without spaces) breaks inside the word rather than spilling out of its box.
-2. **Never cut:**
+1. **Say it shorter first** (owner, 9 November 2026). A text from the translations file that is longer than it needs to be is replaced by a shorter way to say the same («Buscar por nombre, jugador o concepto...» → «Buscar»). Only text still cut afterwards gets the layout rules below. Done for 71 texts on 9 November 2026 (PR #59).
+2. **Wrap by default.** Text that does not fit continues on the next line, breaking between words. A single word longer than its space (a long username, a name without spaces) breaks inside the word rather than spilling out of its box.
+3. **Never cut:**
    - names: characters, familiars, players, accounts, skills, campaigns, institutions;
    - the app's own words: buttons, tabs, labels, menu items;
    - messages: errors, warnings, confirmations, empty-list sentences;
    - anything the viewer typed, on the sheet, in the form or in a list row.
-3. **The only cut allowed: a summary with the full text one tap away.** On the list cards a character's concept and a familiar's description keep their two lines and end in «…»; the sheet shows the whole text. No other place cuts, and no new one may without being added here with its reason.
-4. **Make room before anything else.** When a row is too narrow, its parts stack (as the custom fields do on phones) instead of squeezing a box until its text disappears. Boxes that hold a name get a minimum width.
-5. **Our own words are written to fit.** A label for a narrow place is short by design (as «Recortar» / «Completa»). If it still does not fit at 320 px, it wraps or the control changes (Controls, segmented control → tag menu); it is never cut.
-6. **A row of controls that cannot wrap scrolls instead.** Tab bars scroll sideways; an item at the edge may be partly hidden by the scroll, which shows there is more, but each item's own text is whole.
-7. **No fixed heights around text.** Where text can wrap, its container grows; cards in the same row of a grid grow together, so the grid stays even.
-8. **Text is not shrunk to fit.** No text smaller than 9 px; the few at 7–8 px today go to 9 px, and their space is made instead.
-9. **A hover title is not a substitute.** Phones have no hover, so `title` holding the full text does not count as showing it.
-10. **Short tokens may stay on one line** (`whitespace-nowrap`): numbers, «+2», «3/5», a stepper, a tag's single word. Never a sentence or a name.
+4. **The only cut allowed: a summary with the full text one tap away.** On the list cards a character's concept and a familiar's description keep their two lines and end in «…»; the sheet shows the whole text. No other place cuts, and no new one may without being added here with its reason.
+5. **Make room before anything else.** When a row is too narrow, its parts stack (as the custom fields do on phones) instead of squeezing a box until its text disappears. Boxes that hold a name get a minimum width.
+6. **Our own words are written to fit.** A label for a narrow place is short by design (as «Recortar» / «Completa»). If it still does not fit at 320 px, it wraps or the control changes (Controls, segmented control → tag menu); it is never cut.
+7. **A row of controls that cannot wrap scrolls instead.** Tab bars scroll sideways; an item at the edge may be partly hidden by the scroll, which shows there is more, but each item's own text is whole.
+8. **No fixed heights around text.** Where text can wrap, its container grows; cards in the same row of a grid grow together, so the grid stays even.
+9. **Text is not shrunk to fit.** No text smaller than 9 px; the few at 7–8 px today go to 9 px, and their space is made instead.
+10. **A hover title is not a substitute.** Phones have no hover, so `title` holding the full text does not count as showing it.
+11. **Short tokens may stay on one line** (`whitespace-nowrap`): numbers, «+2», «3/5», a stepper, a tag's single word. Never a sentence or a name.
 
 ### Every place that cuts today
 
-| Where | Text | Rule | Becomes |
-|---|---|---|---|
-| List card, character | Name | 2 | Wraps; the row's cards grow together |
-| List card, character | Concept (two lines) | 3 | Stays: two lines and «…» |
-| List card, character | Player | 2 | Wraps |
-| List card, familiar | Name | 2 | Wraps |
-| List card, familiar | Description (two lines) | 3 | Stays: two lines and «…» |
-| List card, familiar | Species, bonded character | 2 | Wraps |
-| Character sheet banner | Linked familiar's name (8 px on phones, 11 px on desktop) | 2, 8 | Wraps, at least 9 px |
-| Character sheet banner | «Vincular familiar» on the empty familiar slot (7 px, two lines) | 5, 8 | 9 px; shorter words if needed |
-| Character sheet, edit mode | «Desvincular» (twice) | 5 | Whole word; the button widens |
-| Creation form | Tab labels | 6 | Whole labels; the tab bar scrolls |
-| Creation form | «Crear familiar» tab | 6 | Whole label |
-| Creation form, equipment list | Item name (full name only on hover) | 2, 9 | Wraps |
-| Creation form, familiar editor | Image error message | 2 | Wraps |
-| Familiar sheet | Title (the familiar's name) | 2 | Wraps |
-| Familiar sheet | Bonded character's concept | 3? | Two lines and «…» like the cards, the full text one tap away on the character's sheet (decision D2) |
-| Familiar sheet, «elegir mago» dialog | Character names | 2 | Wraps; the dialog becomes the shared picker (it was missed in polish pass (b)) |
-| Settings, account card | Display name, username | 1, 2 | Wraps; a username breaks inside the word if needed |
-| Campaign skills | Age limit note (one line) | 10 | Wraps (a sentence) |
+Measured on 9 November 2026 after the wording pass (rule 1), on every screen at phone and desktop widths, with the demo's data and with long names (a 48-character character name, a 36-character familiar name). The code still cuts in these places; «cut now» marks where text is actually lost today.
+
+| Where | Text | Cut now? | Rule | Becomes |
+|---|---|---|---|---|
+| List card, character | Name | Yes, long names | 3 | Wraps; the row's cards grow together |
+| List card, character | Concept (two lines) | — | 4 | Stays: two lines and «…» |
+| List card, character | Player | Yes, long names | 3 | Wraps |
+| List card, familiar | Name | Yes, long names | 3 | Wraps |
+| List card, familiar | Description (two lines) | — | 4 | Stays: two lines and «…» |
+| List card, familiar | Species, bonded character | Yes, long species | 3 | Wraps |
+| Familiar sheet | Title (the familiar's name) | Yes, long names | 3 | Wraps |
+| Character sheet banner | Linked familiar's name (8 px on phones, 11 px on desktop) | Long names would | 3, 9 | Wraps, at least 9 px |
+| Character sheet banner | «Vincular» on the empty familiar slot (7 px) | No (shortened) | 9 | 9 px |
+| Character sheet, edit mode | «Desvincular» (twice) | No | 3 | The cut is removed; it wraps if ever needed |
+| Creation form | Tab labels | No (shortened: «Aspectos», «Casa») | 7 | The cut is removed; the tab bar scrolls |
+| Creation form | «Familiar» tab | No | 7 | The cut is removed |
+| Creation form, equipment list | Item name (full name only on hover) | Long names would | 3, 10 | Wraps |
+| Creation form, familiar editor | Image error message | No (shortened) | 3 | The cut is removed; it wraps |
+| Familiar sheet | Bonded character's concept | Long concepts would | 4? | Decision D2 |
+| Familiar sheet, «elegir mago» dialog | Character names | Long names would | 3 | Wraps; the dialog becomes the shared picker (missed in polish pass (b)) |
+| Settings, account card | Display name, username | Long ones would | 2, 3 | Wraps; a username breaks inside the word if needed |
+| Campaign skills | Age limit note (one line) | Long ages would | 11 | Wraps (a sentence) |
 
 ### Decisions for the owner
 
-- **D1.** Adopt the ten rules.
+- **D1.** Adopt rules 2–11 (rule 1 is the owner's and applied).
 - **D2.** The bonded character's concept on the familiar sheet: two lines and «…» (a summary, like the cards), or the whole text.
-- **D3.** The minimum text size of 9 px (rule 8).
+- **D3.** The minimum text size of 9 px (rule 9).
 
 ## Screens
 

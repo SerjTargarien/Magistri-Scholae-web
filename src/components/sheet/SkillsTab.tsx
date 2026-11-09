@@ -87,7 +87,7 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                             key={sk.id}
                             className="bg-neutral-950/30 border border-neutral-900 px-3 py-2.5 rounded-xl flex items-center justify-between shadow-inner"
                           >
-                            <div className="max-w-[130px] sm:max-w-[180px] flex items-center gap-1.5">
+                            <div className="min-w-0 flex-1 flex items-center gap-1.5">
                               {/* Removal button shown when edit mode is toggled */}
                               {isQuickEditing && canRemove("habilidades", sk.id) && (
                                 <button
@@ -101,12 +101,6 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                               )}
                               <div className="min-w-0 flex-1">
                                 <span className="text-xs font-semibold text-neutral-200 block break-words">{displaySkillName}</span>
-                                {category.esoterica && (
-                                  <div className="mt-1">
-                                    <KnowledgeLevel skillId={sk.id} value={sk.conocimiento} lang={lang} onChange={level => setSkillKnowledge(sk.id, level)}
-                                      editable={isQuickEditing && writable(`habilidades/${sk.id}/conocimiento`)} />
-                                  </div>
-                                )}
                                 <div className="flex gap-1 mt-1">
                                   {/* Small glowing pips indicating score weights */}
                                   {Array.from({ length: 5 }).map((_, i) => (
@@ -119,6 +113,9 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                               </div>
                             </div>
 
+                            {/* The knowledge level sits under the value (owner, 9 November 2026): the value lines up
+                                with the name, the level with the dots, and the row never needs more width. */}
+                            <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
                             <div className="flex items-center gap-2">
                               {/* Decrement Key */}
                               {canChangeValue && (
@@ -151,6 +148,11 @@ export function SkillsTab({ ctx }: { ctx: SheetContext }) {
                                   +
                                 </button>
                               )}
+                            </div>
+                            {category.esoterica && (
+                              <KnowledgeLevel skillId={sk.id} value={sk.conocimiento} lang={lang} onChange={level => setSkillKnowledge(sk.id, level)}
+                                editable={isQuickEditing && writable(`habilidades/${sk.id}/conocimiento`)} />
+                            )}
                             </div>
                           </div>
                         );

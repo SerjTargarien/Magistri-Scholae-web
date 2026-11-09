@@ -10,6 +10,7 @@ import { Plus, Minus, Sparkles, Coins, X } from "lucide-react";
 
 import type { ConsequenceList, SheetContext } from "./useCharacterSheet";
 import type { ConsequenceEntry, Severity } from "../../model/sheet";
+import { HIT, TagMenu } from "../TagMenu";
 
 const SEVERITIES: Severity[] = ["leve", "moderada", "grave"];
 const MIN_GEMS = 3;
@@ -56,29 +57,21 @@ function ExperienceBox({ value, label, onCommit }: { value: number; label: strin
   );
 }
 
-/** A consequence's severity: a tag, which whoever may change it can open as a choice. */
+/** A consequence's severity: a tag menu (Controls, control 7) for whoever may change it, a plain tag for readers. */
 function SeverityTag({ id, value, editable, t, onChange }: {
   id: string; value: Severity | undefined; editable: boolean; t: Texts; onChange: (severity: Severity) => void;
 }) {
-  const style = value ? SEVERITY_STYLE[value] : "bg-neutral-900 border-neutral-700 text-neutral-500";
-  const tag = `shrink-0 text-[10px] font-mono font-bold uppercase tracking-wide border rounded-full px-2 py-0.5 ${style}`;
-  if (!editable) return value ? <span className={tag}>{severityLabel(t, value)}</span> : null;
+  const hint = { leve: t.severityLeveHint, moderada: t.severityModeradaHint, grave: t.severityGraveHint };
   return (
-    <select
-      id={`select-severity-${id}`}
-      aria-label={t.severity}
+    <TagMenu
+      id={`tag-severity-${id}`}
       title={t.severity}
-      value={value ?? ""}
-      onChange={(e) => onChange(e.target.value as Severity)}
-      className={`${tag} appearance-none cursor-pointer text-center focus:outline-none focus:ring-1 focus:ring-violet-500`}
-    >
-      {!value && <option value="" disabled hidden>—</option>}
-      {SEVERITIES.map((severity) => (
-        <option key={severity} value={severity} className="bg-neutral-900 text-neutral-200 normal-case">
-          {severityLabel(t, severity)}
-        </option>
-      ))}
-    </select>
+      value={value}
+      emptyLabel={t.severityChoose}
+      editable={editable}
+      options={SEVERITIES.map((severity) => ({ value: severity, label: severityLabel(t, severity), hint: hint[severity], tone: SEVERITY_STYLE[severity] }))}
+      onChange={onChange}
+    />
   );
 }
 
@@ -108,7 +101,7 @@ function Consequences({ ctx, list, short, title, empty, placeholder, inputClass,
               className="flex items-center justify-between gap-2 p-2 md:p-2.5 bg-neutral-950/20 border border-violet-900/20 rounded-lg text-xs font-serif italic text-neutral-300"
             >
               <span className="break-words min-w-0 flex-1">“ {conseq.descripcion} ”</span>
-              <div className="flex items-center gap-1 shrink-0 not-italic">
+              <div className="flex items-center gap-1.5 shrink-0 not-italic">
                 <SeverityTag
                   id={conseq.id}
                   value={conseq.gravedad}
@@ -120,7 +113,7 @@ function Consequences({ ctx, list, short, title, empty, placeholder, inputClass,
                   <button
                     type="button"
                     onClick={() => onRemove(conseq.id)}
-                    className="text-neutral-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                    className={`${HIT} w-8 h-8 flex items-center justify-center rounded-md text-neutral-500 hover:text-rose-400 transition-colors cursor-pointer`}
                     title={t.removeConsequence}
                   >
                     <X className="w-3.5 h-3.5" />
@@ -173,7 +166,7 @@ function Consequences({ ctx, list, short, title, empty, placeholder, inputClass,
                   role="radio"
                   aria-checked={chosen}
                   onClick={() => setNewSeverity(list, severity)}
-                  className={`text-[10px] font-mono font-bold uppercase tracking-wide border rounded-full px-2 py-0.5 transition-colors cursor-pointer ${chosen
+                  className={`${HIT} min-h-7 text-[10px] font-mono font-bold uppercase tracking-wide border rounded-full px-3 transition-colors cursor-pointer ${chosen
                       ? SEVERITY_STYLE[severity]
                       : "bg-neutral-900 border-neutral-800 text-neutral-500 hover:border-neutral-700"
                     }`}

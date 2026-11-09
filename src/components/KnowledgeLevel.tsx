@@ -4,42 +4,35 @@
 // value. Shared by the creation form and the character sheet.
 import type { Language } from "../localization";
 import type { EsotericKnowledge } from "../model/sheet";
+import { TagMenu } from "./TagMenu";
 
 export const KNOWLEDGE_LEVELS: readonly EsotericKnowledge[] = ["basico", "medio", "avanzado"];
 
-const TEXT: Record<Language, { label: string; none: string } & Record<EsotericKnowledge, string>> = {
-  es: { label: "Conocimiento", none: "Sin conocimiento", basico: "Básico (alteración)", medio: "Medio (destrucción)", avanzado: "Avanzado (creación)" },
-  en: { label: "Knowledge", none: "No knowledge", basico: "Basic (alteration)", medio: "Medium (destruction)", avanzado: "Advanced (creation)" },
+const TEXT: Record<Language, { label: string; none: string; empty: string } & Record<EsotericKnowledge, string>> = {
+  es: { label: "Conocimiento", none: "Sin conocimiento", empty: "Ninguno", basico: "Básico (alteración)", medio: "Medio (destrucción)", avanzado: "Avanzado (creación)" },
+  en: { label: "Knowledge", none: "No knowledge", empty: "None", basico: "Basic (alteration)", medio: "Medium (destruction)", avanzado: "Advanced (creation)" },
 };
 
-const TAG: Record<EsotericKnowledge, string> = {
+const TONE: Record<EsotericKnowledge, string> = {
   basico: "border-sky-500/30 text-sky-300 bg-sky-950/40",
   medio: "border-amber-500/30 text-amber-300 bg-amber-950/40",
   avanzado: "border-fuchsia-500/30 text-fuchsia-300 bg-fuchsia-950/40",
 };
 
+/** A tag menu (product-design.md, Controls) for whoever may edit, a plain tag for readers. */
 export function KnowledgeLevel({ skillId, value, editable, lang, onChange }: {
   skillId: string; value?: EsotericKnowledge; editable: boolean; lang: Language; onChange: (level: EsotericKnowledge | undefined) => void;
 }) {
   const t = TEXT[lang];
-  if (editable)
-    return (
-      <select
-        id={`select-knowledge-${skillId}`}
-        aria-label={t.label}
-        value={value ?? ""}
-        onChange={e => onChange((e.target.value || undefined) as EsotericKnowledge | undefined)}
-        className="w-full text-[10px] font-mono bg-neutral-950 border border-neutral-800 text-neutral-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-violet-500 cursor-pointer"
-      >
-        <option value="">{t.none}</option>
-        {KNOWLEDGE_LEVELS.map(level => <option key={level} value={level}>{t[level]}</option>)}
-      </select>
-    );
-  if (!value) return null;
   return (
-    <span id={`tag-knowledge-${skillId}`} title={t.label}
-      className={`inline-block text-[9px] font-mono uppercase tracking-wider border rounded px-1.5 py-0.5 ${TAG[value]}`}>
-      {t[value]}
-    </span>
+    <TagMenu<EsotericKnowledge | "">
+      id={editable ? `btn-knowledge-${skillId}` : `tag-knowledge-${skillId}`}
+      title={t.label}
+      value={value}
+      emptyLabel={t.empty}
+      editable={editable}
+      options={[{ value: "", label: t.none }, ...KNOWLEDGE_LEVELS.map((level) => ({ value: level, label: t[level], tone: TONE[level] }))]}
+      onChange={(level) => onChange(level || undefined)}
+    />
   );
 }

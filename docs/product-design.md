@@ -113,8 +113,8 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Experience | Stepper, typed in edit mode | Stays (1) | Done (PR #41) |
 | Stress, destiny | Pips | Stay (2) | — |
 | Spell and potion difficulty when adding | Native selector | Stepper (1), like the value on existing rows | Polish pass |
-| Specialized, «Es profesor», «inicial» | Native checkboxes | Switch (3) | Polish pass |
-| «Entiendo que…» before deleting | Native checkbox | Check (4) | Polish pass |
+| Specialized, «Es profesor», «inicial» | Native checkboxes | Switch (3) | Done (9 November 2026) |
+| «Entiendo que…» before deleting | Native checkbox | Check (4) | Done (9 November 2026) |
 | Severity when adding | Option chips | Stays (6) | Done (PR #41) |
 | Severity on a consequence | Native selector as a tag | Tag menu (7) | Done (PR #41) |
 | Knowledge level, sheet and form | Native selector | Tag menu (7) | Done (PR #41) |

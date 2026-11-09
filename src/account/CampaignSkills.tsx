@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ListChecks, Plus, Save, Undo2 } from "lucide-react";
 import { TRANSLATIONS, type Language } from "../localization";
 import { catalogueName, nameClash, newSkillId, type SkillCatalogue } from "../model/catalogue";
+import { Switch } from "../components/Toggle";
 
 export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
   title: string; intro: string; initial: string; initialHint: string; newSkill: string; add: string;
@@ -124,16 +125,11 @@ export function CampaignSkills({ lang, catalogue, onSave, onBack }: CampaignSkil
               {draft.habilidades.filter(skill => skill.categoria === category.id && !skill.archivada).map(skill => (
                 <div key={skill.id} id={`catalogue-skill-${skill.id}`}
                   className="grid grid-cols-[auto_1fr] gap-3 items-center bg-neutral-950/30 border border-neutral-900 rounded-lg px-3 py-2">
-                  <label className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-300 cursor-pointer select-none" title={s.initialHint}>
-                    <input
-                      id={`chk-initial-${skill.id}`}
-                      type="checkbox"
-                      checked={skill.inicial !== false}
-                      onChange={e => setInitial(skill.id, e.target.checked)}
-                      className="rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
-                    />
-                    {s.initial}
-                  </label>
+                  <span title={s.initialHint}>
+                    <Switch id={`chk-initial-${skill.id}`} inline checked={skill.inicial !== false}
+                      onChange={on => setInitial(skill.id, on)}
+                      label={s.initial} labelClassName="text-[10px] font-mono uppercase tracking-wider text-neutral-300" />
+                  </span>
                   <div className="flex items-center gap-2 min-w-0">
                     <input
                       id={`input-skill-name-${skill.id}`}

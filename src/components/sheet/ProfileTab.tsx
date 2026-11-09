@@ -15,6 +15,7 @@ import type { House } from "../../model/sheet";
 import type { SheetContext } from "./useCharacterSheet";
 import { SubjectList } from "../SubjectList";
 import { limitAttrs } from "../LimitHint";
+import { Switch } from "../Toggle";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -231,18 +232,12 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       )}
 
                       {shown("adultWizardProfile/isTeacher") && (
-                      <div className="flex items-center gap-2 col-span-2 py-1">
-                        <input
-                          id="edit-aw-is-teacher"
-                          type="checkbox"
-                          checked={profile.isTeacher || false}
+                      <div className="col-span-2">
+                        <Switch id="edit-aw-is-teacher" checked={profile.isTeacher || false}
                           disabled={!writable("adultWizardProfile/isTeacher")}
-                          onChange={(e) => updateProfileField("isTeacher", e.target.checked)}
-                          className="rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
-                        />
-                        <label htmlFor="edit-aw-is-teacher" className="text-[10px] text-neutral-300 font-sans cursor-pointer select-none font-bold uppercase tracking-wider">
-                          {t.adultWizardIsTeacher}
-                        </label>
+                          onChange={(on) => updateProfileField("isTeacher", on)}
+                          label={t.adultWizardIsTeacher}
+                          labelClassName="text-[10px] text-neutral-300 font-sans font-bold uppercase tracking-wider" />
                       </div>
                       )}
 

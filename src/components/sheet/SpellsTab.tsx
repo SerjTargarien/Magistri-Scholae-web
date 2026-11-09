@@ -9,6 +9,7 @@ import { Trash } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
 import { limitAttrs } from "../LimitHint";
+import { Switch } from "../Toggle";
 
 export function SpellsTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -92,16 +93,8 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                       <option value="4">{t.labelDificultad} IV</option>
                       <option value="5">{t.labelDificultad} V</option>
                     </select>
-                    <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
-                      <input
-                        id="checkbox-spell-spec"
-                        type="checkbox"
-                        checked={newSpellSpec}
-                        onChange={(e) => setNewSpellSpec(e.target.checked)}
-                        className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
-                      />
-                      {t.specialized}?
-                    </label>
+                    <Switch id="checkbox-spell-spec" inline checked={newSpellSpec} onChange={setNewSpellSpec}
+                      label={t.specialized} labelClassName="text-xs text-neutral-300" />
                   </div>
                   <button
                     id="btn-add-spell"
@@ -187,16 +180,8 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                       <option value="4">{t.labelDificultad} IV</option>
                       <option value="5">{t.labelDificultad} V</option>
                     </select>
-                    <label className="flex items-center gap-2 hover:text-neutral-200 text-xs text-neutral-400 ml-1 select-none">
-                      <input
-                        id="checkbox-potion-spec"
-                        type="checkbox"
-                        checked={newPotionSpec}
-                        onChange={(e) => setNewPotionSpec(e.target.checked)}
-                        className="rounded text-violet-600 bg-neutral-900 focus:ring-violet-500/50"
-                      />
-                      {t.specialized}?
-                    </label>
+                    <Switch id="checkbox-potion-spec" inline checked={newPotionSpec} onChange={setNewPotionSpec}
+                      label={t.specialized} labelClassName="text-xs text-neutral-300" />
                   </div>
                   <button
                     id="btn-add-potion"

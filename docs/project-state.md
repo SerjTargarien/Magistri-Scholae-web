@@ -630,7 +630,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - **No visible change in Academia, proved:** the HTML of every screen (list; every sheet tab, in and out of edit mode; the familiar's tabs and edit mode; the type selection; every creation-form tab for a student and an adult; the familiar editor), captured at desktop and phone widths before and after the change, is identical (new blank forms differ only in freshly generated ids). The capture test was temporary and is not committed.
 - Checks: type check; 53 unit tests; both builds; 47 browser tests (the style test now checks there is no style card and that a saved Classic choice falls back to Academia).
 
-**Next:** polish pass (b), the shared controls, then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (b), part 1: Switch and Check — 9 November 2026
+
+- `src/components/Toggle.tsx`: `Switch` (a row with a toggle, the whole row tappable) and `Check` (a drawn box), as in the approved controls demo. They replace every native checkbox: «Especializado» when adding a spell or potion, «Es profesor» in the form and on the sheet, «Inicial» in the campaign skills, and «Entiendo que…» in the archive dialog. The app has no browser-drawn checkbox left.
+- Checks: type check; 53 unit tests; both builds; 47 browser tests (the tests click the switches and check `aria-checked`; the spells test now also stores a specialized spell).
+
+**Next:** polish pass (b), part 2: the stepper (number boxes and difficulty selectors), then the segmented image fit, the restyled zoom sliders, the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

@@ -12,6 +12,7 @@ import type { FormContext } from "./useCharacterForm";
 import { IMAGE_FROM_URL } from "../imageFromUrl";
 import { SubjectList } from "../SubjectList";
 import { limitAttrs } from "../LimitHint";
+import { Switch } from "../Toggle";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -377,17 +378,10 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         </div>
 
                         {/* Es Profesor (Checkbox) */}
-                        <div className="flex items-center gap-2 sm:col-span-2 py-1">
-                          <input
-                            id="checkbox-aw-is-teacher"
-                            type="checkbox"
-                            checked={profile.isTeacher}
-                            onChange={(e) => updateProfileField("isTeacher", e.target.checked)}
-                            className="w-4 h-4 rounded border-violet-500/20 text-amber-500 focus:ring-amber-500 bg-neutral-950 cursor-pointer"
-                          />
-                          <label htmlFor="checkbox-aw-is-teacher" className="text-xs text-neutral-300 font-sans cursor-pointer select-none">
-                            {t.adultWizardIsTeacher}
-                          </label>
+                        <div className="sm:col-span-2">
+                          <Switch id="checkbox-aw-is-teacher" checked={profile.isTeacher}
+                            onChange={(on) => updateProfileField("isTeacher", on)}
+                            label={t.adultWizardIsTeacher} labelClassName="text-xs text-neutral-300 font-sans" />
                         </div>
 
                         {/* Asignaturas que imparte */}

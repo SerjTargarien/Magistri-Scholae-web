@@ -176,6 +176,7 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
   await openTab(page, "hechizos");
   await page.locator("#input-spell-name").fill("Revelio");
+  await page.locator("#checkbox-spell-spec").click(); // «Especializado»: a switch
   await page.locator("#btn-add-spell").click();
   await page.locator("#input-potion-name").fill("Draught of Calm");
   await page.locator("#btn-add-potion").click();
@@ -199,7 +200,7 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   expect(stored!.habilidades.find((s: { catalogo?: string }) => s.catalogo === "atletismo").valor).toBe(1);
   expect(stored!.habilidades.filter((s: { catalogo?: string }) => s.catalogo === "sigilo")).toEqual([expect.objectContaining({ valor: 0 })]);
   expect(stored!.habilidades.filter((s: { catalogo?: string }) => !s.catalogo)).toEqual([]);
-  expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio" })]);
+  expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio", specialized: true })]);
   expect(stored!.pociones).toEqual([expect.objectContaining({ nombre: "Draught of Calm" })]);
   expect(stored!.clubesList).toEqual([expect.objectContaining({ nombre: "Duelling Club" })]);
   expect(stored!.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron" })]);
@@ -241,7 +242,8 @@ test("the GM's campaign skill list: starting skills, names and new skills", asyn
   await page.locator("#btn-settings").click();
   await page.locator("#btn-settings-campaign-skills").click();
   await expect(page.locator("#campaign-skills-screen")).toBeVisible();
-  await page.locator("#chk-initial-sigilo").uncheck();
+  await page.locator("#chk-initial-sigilo").click(); // a switch, drawn by the app
+  await expect(page.locator("#chk-initial-sigilo")).toHaveAttribute("aria-checked", "false");
   await page.locator("#input-skill-name-duelo").fill("Duelo mágico");
   await page.locator("#input-new-catalogue-skill-fisicas").fill("Cetrería");
   await page.locator("#btn-add-catalogue-skill-fisicas").click();
@@ -338,7 +340,8 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
       await page.locator("#input-aw-role").fill("Potions master");
       await page.locator("#input-aw-institution").fill("Academy");
       await page.locator("#input-varita-sintonia").fill("Elder staff");
-      await page.locator("#checkbox-aw-is-teacher").check();
+      await page.locator("#checkbox-aw-is-teacher").click(); // a switch, drawn by the app
+      await expect(page.locator("#checkbox-aw-is-teacher")).toHaveAttribute("aria-checked", "true");
       // Subjects are a list: one per entry, a comma is just part of a name.
       await page.locator("#form-subjects-input").fill("Runas, antiguas");
       await page.locator("#form-subjects-add").click();
@@ -435,7 +438,8 @@ test("bonds: link from the character, navigate both ways; archiving the characte
   await viewAs(page, "gm");
   await openCharacter(page, "Bonded Student");
   await page.locator("#btn-detail-delete").click();
-  await page.locator("#checkbox-confirm-student-delete").check();
+  await page.locator("#checkbox-confirm-student-delete").click(); // a check, drawn by the app
+  await expect(page.locator("#checkbox-confirm-student-delete")).toHaveAttribute("aria-checked", "true");
   await page.locator("#btn-confirm-delete-student-action").click();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await expect(characterCard(page, "Bonded Student")).toHaveCount(0);

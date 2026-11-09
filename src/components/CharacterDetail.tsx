@@ -38,6 +38,7 @@ import { NotesTab } from "./sheet/NotesTab";
 import { GalleryTab } from "./sheet/GalleryTab";
 import { RequiredTextInput } from "./RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "./LimitHint";
+import { Check as CheckBox } from "./Toggle";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -567,20 +568,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             </p>
 
             {/* Double check checkbox */}
-            <div className="bg-neutral-950/40 p-3 rounded-lg border border-neutral-900 flex items-start gap-3 mt-2">
-              <input
-                id="checkbox-confirm-student-delete"
-                type="checkbox"
-                checked={deleteStudentUnderstood}
-                onChange={(e) => setDeleteStudentUnderstood(e.target.checked)}
-                className="mt-0.5 rounded text-rose-600 bg-neutral-900 border-rose-500/20 focus:ring-rose-500/50"
-              />
-              <label
-                htmlFor="checkbox-confirm-student-delete"
-                className="text-xs text-neutral-400 hover:text-neutral-200 cursor-pointer select-none leading-relaxed"
-              >
-                {archiveText.checkbox}
-              </label>
+            <div className="bg-neutral-950/40 p-1.5 rounded-lg border border-neutral-900 mt-2">
+              <CheckBox id="checkbox-confirm-student-delete" checked={deleteStudentUnderstood} onChange={setDeleteStudentUnderstood}>
+                <span className="text-xs text-neutral-300 leading-relaxed">{archiveText.checkbox}</span>
+              </CheckBox>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">

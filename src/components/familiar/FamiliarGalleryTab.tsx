@@ -32,7 +32,7 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <label className="w-full sm:w-auto px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors">
                 <Upload className="w-4 h-4 text-emerald-400" />
-                <span>Subir Imagen Local</span>
+                <span>{t.chooseImage}</span>
                 <input
                   id="input-familiar-gallery-picker"
                   type="file"

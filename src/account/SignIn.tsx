@@ -5,9 +5,8 @@
 import { useEffect, useState } from "react";
 import { KeyRound, LogIn, LogOut, Ticket } from "lucide-react";
 import type { ApiUser } from "../contracts/api-v1";
-import { TRANSLATIONS, type Language } from "../localization";
+import { type Language, remoteText, SIGN_IN_ERRORS, TRANSLATIONS } from "../localization";
 import { ApiFailure, type RemoteClient } from "../remote/client";
-import { remoteText } from "../remote/text";
 import { FiligreeCorner } from "../components/AcademyOrnaments";
 
 type Mode = "login" | "register" | "reset";
@@ -30,37 +29,9 @@ function takeCodeLink(): { mode: Mode; code: string } | undefined {
   return link;
 }
 
-/** Plain-language messages for the server's account errors. */
-const ERRORS: Record<Language, Record<string, string>> = {
-  es: {
-    invalid_credentials: "Usuario o contraseña incorrectos.",
-    rate_limited: "Demasiados intentos. Espera unos minutos y vuelve a probar.",
-    invalid_invitation: "El código de invitación no es válido, ya se usó o ha caducado.",
-    invalid_reset_code: "El código de recuperación no es válido, ya se usó o ha caducado.",
-    username_unavailable: "Ese nombre de usuario ya está en uso. Elige otro.",
-    invalid_password: "La contraseña es demasiado débil o se parece a tu usuario. Usa al menos 12 caracteres variados.",
-    invalid_account_state: "Esta cuenta está desactivada. Habla con la administración.",
-    network_error: "No hay conexión con el servidor. Comprueba tu conexión y vuelve a intentarlo.",
-    password_mismatch: "Las dos contraseñas no coinciden. Escríbelas de nuevo.",
-  },
-  en: {
-    invalid_credentials: "Wrong username or password.",
-    rate_limited: "Too many attempts. Wait a few minutes and try again.",
-    invalid_invitation: "The invitation code is not valid, was already used or has expired.",
-    invalid_reset_code: "The reset code is not valid, was already used or has expired.",
-    username_unavailable: "That username is taken. Choose another.",
-    invalid_password: "The password is too weak or too close to your username. Use at least 12 varied characters.",
-    invalid_account_state: "This account is disabled. Contact the administrator.",
-    network_error: "The server cannot be reached. Check your connection and try again.",
-    password_mismatch: "The two passwords do not match. Type them again.",
-  },
-};
-
 const MODES: { mode: Mode; icon: typeof LogIn }[] = [
   { mode: "login", icon: LogIn }, { mode: "register", icon: Ticket }, { mode: "reset", icon: KeyRound },
 ];
-
-const REPEAT_LABEL: Record<Language, string> = { es: "Repite la contraseña", en: "Repeat the password" };
 
 const inputClass = "w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 focus:outline-none";
 const labelClass = "flex flex-col gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold";
@@ -136,7 +107,7 @@ export function SignIn({ client, lang, onSignedIn }: {
     } finally { setBusy(false); }
   };
 
-  const errorText = error ? ERRORS[lang][error] ?? `${t.failed} (${error})` : "";
+  const errorText = error ? SIGN_IN_ERRORS[lang][error] ?? `${t.failed} (${error})` : "";
 
   return (
     <div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 sm:py-16" id="sign-in-screen">
@@ -181,7 +152,7 @@ export function SignIn({ client, lang, onSignedIn }: {
                 autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={e => setPassword(e.target.value)} className={inputClass} />
             </label>
             {mode !== "login" && (
-              <label className={labelClass}>{REPEAT_LABEL[lang]}
+              <label className={labelClass}>{remoteText[lang].repeatPassword}
                 <input id="input-sign-in-password-repeat" required minLength={12} type="password" autoComplete="new-password"
                   value={repeat} onChange={e => setRepeat(e.target.value)} className={inputClass} />
               </label>

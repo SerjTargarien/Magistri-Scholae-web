@@ -2,21 +2,12 @@
 // none, básico (alteración), medio (destrucción) or avanzado (creación),
 // independent of the skill's value. Set by whoever can edit the sheet, like the
 // value. Shared by the creation form and the character sheet.
-import type { Language } from "../localization";
+import { KNOWLEDGE_TEXT, type Language } from "../localization";
 import type { EsotericKnowledge } from "../model/sheet";
 import { TagMenu } from "./TagMenu";
 
 export const KNOWLEDGE_LEVELS: readonly EsotericKnowledge[] = ["basico", "medio", "avanzado"];
 
-// The tag shows the level's word; what it allows (alteración, destrucción,
-// creación) is a second line in the menu only (owner, 9 November 2026).
-type Texts = { label: string; none: string; empty: string } & Record<EsotericKnowledge, string> & Record<`${EsotericKnowledge}Hint`, string>;
-const TEXT: Record<Language, Texts> = {
-  es: { label: "Conocimiento", none: "Sin conocimiento", empty: "Ninguno", basico: "Básico", medio: "Medio", avanzado: "Avanzado",
-    basicoHint: "Alteración", medioHint: "Destrucción", avanzadoHint: "Creación" },
-  en: { label: "Knowledge", none: "No knowledge", empty: "None", basico: "Basic", medio: "Medium", avanzado: "Advanced",
-    basicoHint: "Alteration", medioHint: "Destruction", avanzadoHint: "Creation" },
-};
 
 const TONE: Record<EsotericKnowledge, string> = {
   basico: "border-sky-500/30 text-sky-300 bg-sky-950/40",
@@ -28,7 +19,7 @@ const TONE: Record<EsotericKnowledge, string> = {
 export function KnowledgeLevel({ skillId, value, editable, lang, onChange }: {
   skillId: string; value?: EsotericKnowledge; editable: boolean; lang: Language; onChange: (level: EsotericKnowledge | undefined) => void;
 }) {
-  const t = TEXT[lang];
+  const t = KNOWLEDGE_TEXT[lang];
   return (
     <TagMenu<EsotericKnowledge | "">
       id={editable ? `btn-knowledge-${skillId}` : `tag-knowledge-${skillId}`}

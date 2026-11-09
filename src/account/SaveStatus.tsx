@@ -3,29 +3,14 @@
 // (keep mine or theirs), a change the server refused, and drafts discarded
 // because the field became read-only. Hidden while everything is saved, so it
 // never covers the screens. R3.5 gives it its final design.
-import type { Language } from "../localization";
+import { SAVE_STATUS_TEXT, type Language } from "../localization";
 import type { SheetStore } from "../store/sheetStore";
-
-const TEXT = {
-  es: {
-    offline: "Sin conexión: tus cambios se guardan aquí y se enviarán al volver la conexión.",
-    saving: "Guardando…", conflict: "Otra persona cambió el mismo campo mientras lo editabas:",
-    mine: "Tu valor", theirs: "Su valor", keepMine: "Mantener el mío", keepTheirs: "Mantener el suyo",
-    refused: "No se pudo guardar", notAccepted: "No aceptado", dropped: "Descartado (ya no es editable)", retry: "Reintentar",
-  },
-  en: {
-    offline: "Offline: your changes are kept here and sent when the connection returns.",
-    saving: "Saving…", conflict: "Someone else changed the same field while you were editing it:",
-    mine: "Yours", theirs: "Theirs", keepMine: "Keep mine", keepTheirs: "Keep theirs",
-    refused: "Could not save", notAccepted: "Not accepted", dropped: "Discarded (no longer editable)", retry: "Retry",
-  },
-};
 
 const show = (value: unknown) => (typeof value === "string" ? value : JSON.stringify(value));
 
 export function SaveStatus({ store, lang }: { store?: SheetStore; lang: Language }) {
   if (!store) return null;
-  const t = TEXT[lang];
+  const t = SAVE_STATUS_TEXT[lang];
   const { state, conflicts, error, problems, dropped } = store;
   if (state !== "offline" && state !== "conflict" && state !== "error" && !problems.length && !dropped.length) return null;
   return <aside id="save-status" role="status" aria-live="polite"

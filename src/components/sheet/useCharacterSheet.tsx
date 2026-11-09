@@ -11,7 +11,7 @@ import React, { useState, useRef } from "react";
 import { useAskFirst } from "../ConfirmDialog";
 import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
+import { CHARACTER_ARCHIVE_TEXT, TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
 import { compressImage, getCroppedImg } from "../../utils/imageCompressor";
 import { newItemId, type CharacterSheet, type FamiliarSheet, type JournalEntry, type EsotericKnowledge, type Severity } from "../../model/sheet";
 import type { CharacterDetailProps } from "../../account/screens";
@@ -26,24 +26,6 @@ const MAX_DESTINY = 10;
 const MAX_QUANTITY = 9999;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const sameName = (a: string | undefined, b: string) => !!a && a.trim().toLocaleLowerCase() === b.toLocaleLowerCase();
-
-/** Archiving replaces deleting (owner decision); local texts so the shared localization stays untouched. */
-const ARCHIVE_TEXT = {
-  es: {
-    button: "Archivar",
-    title: "Archivar personaje",
-    text: "¿Seguro que quieres archivar a este personaje? Dejará de aparecer en la campaña; su ficha, bitácora, galería, conjuros, pociones y equipo se conservan.",
-    checkbox: "Entiendo que el personaje dejará de estar visible en la campaña.",
-    confirm: "Archivar",
-  },
-  en: {
-    button: "Archive",
-    title: "Archive character",
-    text: "Are you sure you want to archive this character? It will no longer appear in the campaign; its sheet, journal, gallery, spells, potions and belongings are kept.",
-    checkbox: "I understand the character will no longer be visible in the campaign.",
-    confirm: "Archive",
-  },
-} as const;
 
 export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const {
@@ -64,7 +46,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const t = TRANSLATIONS[lang];
   // Removing anything from a saved sheet asks first (product-design.md, Confirmations).
   const asking = useAskFirst();
-  const archiveText = ARCHIVE_TEXT[lang];
+  const archiveText = CHARACTER_ARCHIVE_TEXT[lang];
   const casa = character.casa ?? "";
   const hInfo = HOUSES[casa.toUpperCase()] || HOUSES.IRATI;
   const localizedLore = getLocalizedHouseLore(casa, lang);

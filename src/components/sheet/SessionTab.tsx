@@ -400,7 +400,7 @@ export function SessionTab({ ctx }: { ctx: SheetContext }) {
                           >
                             -
                           </button>
-                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <span className="text-[10px] text-neutral-300">{t.labelMax}</span>
                           <button
                             type="button"
                             onClick={() => changeMaxStress("estresFisicoMax", "estresFisico", 1)}
@@ -485,7 +485,7 @@ export function SessionTab({ ctx }: { ctx: SheetContext }) {
                           >
                             -
                           </button>
-                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <span className="text-[10px] text-neutral-300">{t.labelMax}</span>
                           <button
                             type="button"
                             onClick={() => changeMaxStress("estresMentalMax", "estresMental", 1)}
@@ -573,7 +573,7 @@ export function SessionTab({ ctx }: { ctx: SheetContext }) {
                           >
                             -
                           </button>
-                          <span className="text-[10px] text-neutral-300">Max</span>
+                          <span className="text-[10px] text-neutral-300">{t.labelMax}</span>
                           <button
                             type="button"
                             onClick={() => changeMaxStress("estresSocialMax", "estresSocial", 1)}

@@ -267,7 +267,7 @@ Each step below is its own pull request. It keeps the app working under the brow
        - «Cancelar» on the form asks before discarding any change (**done 9 November 2026**);
        - consistent removal confirmations (confirm in most cases) (**done 9 November 2026**: product-design.md, Confirmations);
        - zoom slider on the familiar sheet's crop dialog (**done 9 November 2026**);
-       - every player-facing text in the translations file; portrait fit buttons in Spanish everywhere (**done 9 November 2026**: «Recortar» / «Completa»);
+       - every player-facing text in the translations file (**done 9 November 2026**); portrait fit buttons in Spanish everywhere (**done 9 November 2026**: «Recortar» / «Completa»);
        - wording: «Seleccionar un personaje para vincular a este familiar», «Registro de Familiares»;
        - familiar sheet: header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»; the journal tab becomes «Notas del Familiar» with suggestions that fit a familiar;
        - **one visual style** (owner, 9 November 2026): remove the Classic style, its CSS and the «Estilo Visual» card in settings; Academia stays, and a saved Classic choice falls back to it (**done 9 November 2026**);

@@ -123,6 +123,10 @@ export interface TranslationDict {
   placeholderConsecuenciaSocial: string;
   labelActual: string;
   labelMaximo: string;
+  labelMax: string;
+  chooseImage: string;
+  imageExpandedAlt: string;
+  crestAlt: string;
   labelSalud: string;
   labelHerido: string;
   labelSereno: string;
@@ -525,6 +529,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderConsecuenciaSocial: "p. ej. Mala fama",
     labelActual: "ACTUAL",
     labelMaximo: "MÁXIMO",
+    labelMax: "Máx.",
+    chooseImage: "Elegir imagen",
+    imageExpandedAlt: "Imagen ampliada",
+    crestAlt: "Escudo de la academia",
     labelSalud: "SANO",
     labelHerido: "HERIDO",
     labelSereno: "INTEGRADO",
@@ -928,6 +936,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderConsecuenciaSocial: "e.g. Bad name",
     labelActual: "CURRENT",
     labelMaximo: "MAXIMUM",
+    labelMax: "Max",
+    chooseImage: "Choose image",
+    imageExpandedAlt: "Enlarged image",
+    crestAlt: "Academy crest",
     labelSalud: "HEALTH",
     labelHerido: "HURT",
     labelSereno: "SERENE",
@@ -1393,4 +1405,211 @@ export const areSameSkill = (a: string, b: string): boolean => {
   return canonicalizeSkillName(a).toLowerCase() === canonicalizeSkillName(b).toLowerCase();
 };
 
+// Screen texts kept as their own tables (polish pass, 9 November 2026): every
+// player-facing text lives in this file.
 
+/** The GM's «Habilidades de la campaña» screen. */
+export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
+  title: string; intro: string; initial: string; initialHint: string; newSkill: string; add: string;
+  save: string; discard: string; unsaved: string; duplicate: string; blank: string; ageLimit: string;
+  saved: string; conflict: string; failed: string; open: string; openHint: string;
+}> = {
+  es: {
+    title: "Habilidades de la campaña",
+    intro: "La lista de habilidades de este universo, compartida por todas sus mesas. Las marcadas como «Inicial» aparecen en los personajes nuevos; los jugadores añaden las demás con «+ Añadir de la lista». Solo tú puedes cambiar esta lista.",
+    initial: "Inicial",
+    initialHint: "Los personajes nuevos empiezan con esta habilidad",
+    newSkill: "Nueva habilidad en esta categoría…",
+    add: "Añadir",
+    save: "Guardar cambios",
+    discard: "Descartar",
+    unsaved: "Hay cambios sin guardar.",
+    duplicate: "Hay dos habilidades con el mismo nombre: «{name}».",
+    blank: "Cada habilidad necesita un nombre.",
+    ageLimit: "hasta {age} años",
+    saved: "Lista de habilidades guardada.",
+    conflict: "Otra persona cambió la lista de habilidades; se ha vuelto a cargar. Repite el cambio.",
+    failed: "No se pudo guardar la lista de habilidades.",
+    open: "Abrir la lista",
+    openHint: "Qué habilidades tiene este universo y con cuáles empiezan los personajes nuevos.",
+  },
+  en: {
+    title: "Campaign skills",
+    intro: "This universe's skill list, shared by all its tables. Skills marked «Starting» appear on new characters; players add the rest with «+ Add from the list». Only you can change this list.",
+    initial: "Starting",
+    initialHint: "New characters start with this skill",
+    newSkill: "New skill in this category…",
+    add: "Add",
+    save: "Save changes",
+    discard: "Discard",
+    unsaved: "There are unsaved changes.",
+    duplicate: "Two skills share the name «{name}».",
+    blank: "Every skill needs a name.",
+    ageLimit: "up to age {age}",
+    saved: "Skill list saved.",
+    conflict: "Someone else changed the skill list; it has been reloaded. Please repeat your change.",
+    failed: "The skill list could not be saved.",
+    open: "Open the list",
+    openHint: "Which skills this universe has, and which ones new characters start with.",
+  },
+};
+
+/** The save-status panel. */
+export const SAVE_STATUS_TEXT = {
+  es: {
+    offline: "Sin conexión: tus cambios se guardan aquí y se enviarán al volver la conexión.",
+    saving: "Guardando…", conflict: "Otra persona cambió el mismo campo mientras lo editabas:",
+    mine: "Tu valor", theirs: "Su valor", keepMine: "Mantener el mío", keepTheirs: "Mantener el suyo",
+    refused: "No se pudo guardar", notAccepted: "No aceptado", dropped: "Descartado (ya no es editable)", retry: "Reintentar",
+  },
+  en: {
+    offline: "Offline: your changes are kept here and sent when the connection returns.",
+    saving: "Saving…", conflict: "Someone else changed the same field while you were editing it:",
+    mine: "Yours", theirs: "Theirs", keepMine: "Keep mine", keepTheirs: "Keep theirs",
+    refused: "Could not save", notAccepted: "Not accepted", dropped: "Discarded (no longer editable)", retry: "Retry",
+  },
+};
+
+/** Plain-language messages for the server's account errors. */
+export const SIGN_IN_ERRORS: Record<Language, Record<string, string>> = {
+  es: {
+    invalid_credentials: "Usuario o contraseña incorrectos.",
+    rate_limited: "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+    invalid_invitation: "El código de invitación no es válido, ya se usó o ha caducado.",
+    invalid_reset_code: "El código de recuperación no es válido, ya se usó o ha caducado.",
+    username_unavailable: "Ese nombre de usuario ya está en uso. Elige otro.",
+    invalid_password: "La contraseña es demasiado débil o se parece a tu usuario. Usa al menos 12 caracteres variados.",
+    invalid_account_state: "Esta cuenta está desactivada. Habla con la administración.",
+    network_error: "No hay conexión con el servidor. Comprueba tu conexión y vuelve a intentarlo.",
+    password_mismatch: "Las dos contraseñas no coinciden. Escríbelas de nuevo.",
+  },
+  en: {
+    invalid_credentials: "Wrong username or password.",
+    rate_limited: "Too many attempts. Wait a few minutes and try again.",
+    invalid_invitation: "The invitation code is not valid, was already used or has expired.",
+    invalid_reset_code: "The reset code is not valid, was already used or has expired.",
+    username_unavailable: "That username is taken. Choose another.",
+    invalid_password: "The password is too weak or too close to your username. Use at least 12 varied characters.",
+    invalid_account_state: "This account is disabled. Contact the administrator.",
+    network_error: "The server cannot be reached. Check your connection and try again.",
+    password_mismatch: "The two passwords do not match. Type them again.",
+  },
+};
+
+/** Account screens (sign-in, invitations, reset) and texts kept for R3.5's personal notes. */
+export const remoteText = {
+  en: {
+    remote: "Account storage", login: "Sign in", logout: "Sign out", username: "Username", password: "Password", repeatPassword: "Repeat the password",
+    register: "Accept invitation", invitation: "Invitation token", reset: "Reset password", code: "Reset code",
+    campaign: "Campaign", choose: "Choose a campaign", characters: "Characters", familiars: "Familiars", create: "Create",
+    personal: "My personal notes", private: "Only you can read these notes. They stay yours after reassignment.",
+    title: "Title", content: "Content", label: "Personal label", newNote: "New personal note", notesEmpty: "No personal notes.",
+    promote: "Move to this sheet's journal", promotion: "This will delete the personal note and publish it in the selected journal.",
+    audience: "Audience", confirm: "Confirm move", cancel: "Cancel", save: "Save", back: "Back", delete: "Delete",
+    saved: "Saved", saving: "Saving…", unsaved: "Unsaved", offline: "Offline — changes are kept and sent when the connection returns", conflict: "Someone else changed the same field", error: "Save failed",
+    keepMine: "Keep mine", keepTheirs: "Keep theirs", demoBanner: "DEMO — Fictional data and a simulated server in your browser. Nothing reaches a real server.", notAccepted: "Not accepted", dropped: "Discarded (no longer editable)",
+    retry: "Retry the same operation", reload: "Discard draft and reload", reapply: "Reapply these visible changes", mine: "Your draft", current: "Current value",
+    reconcile: "These fields were changed by someone else while you edited them. Choose which value to keep; your other changes were saved.",
+    failed: "Request failed", network_error: "Connection interrupted. Your draft is retained in this tab. Retry when online.",
+    empty: "No accessible records.", hidden: "Not available in your current view", readonly: "Read only", add: "Add", remove: "Remove",
+    bond: "Bond", unbond: "Unlink", link: "Link", noBond: "No visible bond", viewBond: "Open linked sheet", upload: "Upload image", crop: "Crop and upload",
+    cropHelp: "Drag to position the image and adjust zoom.", imageTooLarge: "Choose an image under 4 MiB.",
+    archive: "Archive", restore: "Restore", confirmDelete: "Delete this personal note?", unsavedLeave: "Resolve unsaved changes before leaving this sheet.",
+    registered: "Account created. Sign in to continue.", resetDone: "Password updated. Sign in again.",
+    loadMore: "Load more", noCampaign: "No campaign memberships yet. Ask the administrator for an invitation.",
+    gm: "Campaign GMs", assigned: "Campaign GMs and assigned player", shared: "Campaign GMs, assigned player and explicit shared readers",
+    sessionExpired: "Your session ended. Sign in again.", gmNotes: "GM notes",
+  },
+  es: {
+    remote: "Datos de cuenta", login: "Iniciar sesión", logout: "Cerrar sesión", username: "Usuario", password: "Contraseña", repeatPassword: "Repite la contraseña",
+    register: "Aceptar invitación", invitation: "Código de invitación", reset: "Restablecer contraseña", code: "Código de recuperación",
+    campaign: "Campaña", choose: "Elige una campaña", characters: "Personajes", familiars: "Familiares", create: "Crear",
+    personal: "Mis notas personales", private: "Solo tú puedes leer estas notas. Siguen siendo tuyas tras una reasignación.",
+    title: "Título", content: "Contenido", label: "Etiqueta personal", newNote: "Nueva nota personal", notesEmpty: "No hay notas personales.",
+    promote: "Mover al diario de esta ficha", promotion: "Se eliminará la nota personal y se publicará en el diario seleccionado.",
+    audience: "Audiencia", confirm: "Confirmar traslado", cancel: "Cancelar", save: "Guardar", back: "Volver", delete: "Eliminar",
+    saved: "Guardado", saving: "Guardando…", unsaved: "Sin guardar", offline: "Sin conexión — los cambios se guardan y se enviarán al volver la conexión", conflict: "Otra persona cambió el mismo campo", error: "Error al guardar",
+    keepMine: "Mantener el mío", keepTheirs: "Mantener el suyo", demoBanner: "DEMO — Datos ficticios y un servidor simulado en tu navegador. Nada llega a un servidor real.", notAccepted: "No aceptado", dropped: "Descartado (ya no es editable)",
+    retry: "Reintentar la misma operación", reload: "Descartar borrador y recargar", reapply: "Volver a aplicar estos cambios visibles", mine: "Tu borrador", current: "Valor actual",
+    reconcile: "Otra persona cambió estos campos mientras los editabas. Elige qué valor conservar; tus otros cambios ya se guardaron.",
+    failed: "La solicitud ha fallado", network_error: "Conexión interrumpida. El borrador permanece en esta pestaña. Reintenta al recuperar la conexión.",
+    empty: "No hay fichas accesibles.", hidden: "No disponible en tu vista actual", readonly: "Solo lectura", add: "Añadir", remove: "Quitar",
+    bond: "Vínculo", unbond: "Desvincular", link: "Vincular", noBond: "Sin vínculo visible", viewBond: "Abrir ficha vinculada", upload: "Subir imagen", crop: "Recortar y subir",
+    cropHelp: "Arrastra para colocar la imagen y ajusta el zoom.", imageTooLarge: "Elige una imagen de menos de 4 MiB.",
+    archive: "Archivar", restore: "Restaurar", confirmDelete: "¿Eliminar esta nota personal?", unsavedLeave: "Resuelve los cambios sin guardar antes de salir de esta ficha.",
+    registered: "Cuenta creada. Inicia sesión para continuar.", resetDone: "Contraseña actualizada. Vuelve a iniciar sesión.",
+    loadMore: "Cargar más", noCampaign: "Aún no perteneces a ninguna campaña. Pide una invitación al administrador.",
+    gm: "GM de la campaña", assigned: "GM y jugador asignado", shared: "GM, jugador asignado y lectores con acceso explícito",
+    sessionExpired: "Tu sesión ha terminado. Vuelve a iniciar sesión.", gmNotes: "Notas del GM",
+  },
+};
+
+/** Esoteric knowledge levels: the tag shows the level; what it allows is a second line in the menu only. */
+export const KNOWLEDGE_TEXT: Record<Language, { label: string; none: string; empty: string } & Record<"basico" | "medio" | "avanzado", string> & Record<"basicoHint" | "medioHint" | "avanzadoHint", string>> = {
+  es: { label: "Conocimiento", none: "Sin conocimiento", empty: "Ninguno", basico: "Básico", medio: "Medio", avanzado: "Avanzado",
+    basicoHint: "Alteración", medioHint: "Destrucción", avanzadoHint: "Creación" },
+  en: { label: "Knowledge", none: "No knowledge", empty: "None", basico: "Basic", medio: "Medium", avanzado: "Advanced",
+    basicoHint: "Alteration", medioHint: "Destruction", avanzadoHint: "Creation" },
+};
+
+/** The settings screen. */
+export const SETTINGS_TEXT: Record<Language, {
+  storageNote: string;
+  accountTitle: string;
+  campaignLabel: string;
+  logout: string;
+}> = {
+  es: {
+    storageNote: "Tus fichas se guardan en el servidor de la campaña. Este navegador solo guarda tus preferencias.",
+    accountTitle: "Cuenta",
+    campaignLabel: "Campaña",
+    logout: "Cerrar sesión",
+  },
+  en: {
+    storageNote: "Your sheets are stored on the campaign's server. This browser only keeps your preferences.",
+    accountTitle: "Account",
+    campaignLabel: "Campaign",
+    logout: "Sign out",
+  },
+};
+
+/** Archiving a character (the GM's replacement for deleting). */
+export const CHARACTER_ARCHIVE_TEXT = {
+  es: {
+    button: "Archivar",
+    title: "Archivar personaje",
+    text: "¿Seguro que quieres archivar a este personaje? Dejará de aparecer en la campaña; su ficha, bitácora, galería, conjuros, pociones y equipo se conservan.",
+    checkbox: "Entiendo que el personaje dejará de estar visible en la campaña.",
+    confirm: "Archivar",
+  },
+  en: {
+    button: "Archive",
+    title: "Archive character",
+    text: "Are you sure you want to archive this character? It will no longer appear in the campaign; its sheet, journal, gallery, spells, potions and belongings are kept.",
+    checkbox: "I understand the character will no longer be visible in the campaign.",
+    confirm: "Archive",
+  },
+} as const;
+
+/** Archiving a familiar, and its bond error. */
+export const FAMILIAR_ARCHIVE_TEXT = {
+  es: {
+    button: "Archivar",
+    title: "Archivar familiar",
+    prompt: "¿Seguro que quieres archivar a este familiar? Dejará de aparecer en la campaña; su ficha, notas y galería se conservan.",
+    checkbox: "Entiendo que el familiar dejará de estar visible en la campaña.",
+    confirm: "Archivar",
+    bondError: "No se pudo cambiar el vínculo.",
+  },
+  en: {
+    button: "Archive",
+    title: "Archive familiar",
+    prompt: "Are you sure you want to archive this familiar? It will no longer appear in the campaign; its sheet, notes and gallery are kept.",
+    checkbox: "I understand the familiar will no longer be visible in the campaign.",
+    confirm: "Archive",
+    bondError: "Could not change the bond.",
+  },
+};
+
+/** Creating a character failed. */
+export const SAVE_FAILED_TEXT = { es: "No se pudo guardar el personaje", en: "Could not save the character" } as const;

@@ -125,7 +125,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           {/* School Crest */}
           <img
             src="/icon.svg"
-            alt="Crest"
+            alt={t.crestAlt}
             className="w-14 h-14 object-contain drop-shadow-lg"
             referrerPolicy="no-referrer"
           />

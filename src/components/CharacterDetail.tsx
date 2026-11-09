@@ -527,7 +527,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             <img
               id="lightbox-img"
               src={imageSrc(lightboxEntry.value)}
-              alt="Expanded"
+              alt={t.imageExpandedAlt}
               className="max-w-full max-h-[85vh] object-contain"
               referrerPolicy="no-referrer"
             />

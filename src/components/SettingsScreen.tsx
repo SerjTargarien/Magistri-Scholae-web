@@ -4,9 +4,8 @@
  */
 
 import React, { useState } from "react";
-import { Language, TRANSLATIONS } from "../localization";
+import { CAMPAIGN_SKILLS_TEXT, Language, SETTINGS_TEXT, TRANSLATIONS } from "../localization";
 import type { SettingsScreenProps } from "../account/screens";
-import { CAMPAIGN_SKILLS_TEXT } from "../account/CampaignSkills";
 import { Picker, pickerTexts } from "./Picker";
 import { 
   Languages, 
@@ -18,27 +17,6 @@ import {
   LogOut,
   ListChecks,
 } from "lucide-react";
-
-// New settings texts (R3.4), kept here until they move into localization.ts.
-const SETTINGS_TEXT: Record<Language, {
-  storageNote: string;
-  accountTitle: string;
-  campaignLabel: string;
-  logout: string;
-}> = {
-  es: {
-    storageNote: "Tus fichas se guardan en el servidor de la campaña. Este navegador solo guarda tus preferencias, como el estilo visual.",
-    accountTitle: "Cuenta",
-    campaignLabel: "Campaña",
-    logout: "Cerrar sesión",
-  },
-  en: {
-    storageNote: "Your sheets are stored on the campaign's server. This browser only keeps your preferences, such as the visual style.",
-    accountTitle: "Account",
-    campaignLabel: "Campaign",
-    logout: "Sign out",
-  },
-};
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   lang,

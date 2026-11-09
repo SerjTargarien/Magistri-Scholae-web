@@ -8,7 +8,7 @@
 // (src/model/sheet.ts) and hands it to onSave, with the cropped portrait and
 // a familiar created from the form passed alongside.
 import React, { useEffect, useRef, useState } from "react";
-import { TRANSLATIONS, getLocalizedHouseLore, translateHouseMotto } from "../../localization";
+import { SAVE_FAILED_TEXT, TRANSLATIONS, getLocalizedHouseLore, translateHouseMotto } from "../../localization";
 import { getCroppedImg } from "../../utils/imageCompressor";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import type { CharacterFormProps, PendingFamiliar } from "../../account/screens";
@@ -20,7 +20,6 @@ import { ApiFailure } from "../../remote/client";
 
 type TextListKey = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
 
-const SAVE_FAILED = { es: "No se pudo guardar el personaje", en: "Could not save the character" } as const;
 
 /** A short readable message for a refused or failed save. */
 function describeSaveFailure(err: unknown, lang: "es" | "en"): string {
@@ -28,9 +27,9 @@ function describeSaveFailure(err: unknown, lang: "es" | "en"): string {
     const { path, rule, limit } = err.details ?? {};
     const limitText = limit === undefined || limit === null ? undefined : typeof limit === "object" ? JSON.stringify(limit) : String(limit);
     const parts = [err.code, path, rule, limitText].filter(p => p !== undefined && p !== "");
-    return `${SAVE_FAILED[lang]} (${parts.join(" · ")})`;
+    return `${SAVE_FAILED_TEXT[lang]} (${parts.join(" · ")})`;
   }
-  return err instanceof Error && err.message ? `${SAVE_FAILED[lang]} (${err.message})` : SAVE_FAILED[lang];
+  return err instanceof Error && err.message ? `${SAVE_FAILED_TEXT[lang]} (${err.message})` : SAVE_FAILED_TEXT[lang];
 }
 
 const EMPTY_PROFILE: AdultWizardProfile = {
@@ -148,7 +147,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
       reader.readAsDataURL(file);
     } catch (err: any) {
       console.error("Image upload processing error:", err);
-      setImageError(t.imageUploadError || "Error processing image.");
+      setImageError(t.imageUploadError);
     } finally {
       e.target.value = ""; // refresh picker
     }
@@ -177,7 +176,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
       setCropImageSrc(null);
     } catch (err: any) {
       console.error("Cropping confirm error:", err);
-      setImageError(t.imageUploadError || "Failed to crop image.");
+      setImageError(t.imageUploadError);
     }
   };
 
@@ -306,7 +305,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     if (saving.current) return;
     const nombre = (characterState.nombre ?? "").trim();
     if (!nombre) {
-      setFormError(t.validationErrorName || "Character name is required.");
+      setFormError(t.validationErrorName);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }

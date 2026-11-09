@@ -10,31 +10,11 @@
 // «Editar» / «Finalizar Edición», each field saved as it is typed.
 import React, { useState, useRef } from "react";
 import { useAskFirst } from "../ConfirmDialog";
-import { TRANSLATIONS } from "../../localization";
+import { FAMILIAR_ARCHIVE_TEXT, TRANSLATIONS } from "../../localization";
 import type { FamiliarDetailProps } from "../../account/screens";
 import type { CharacterSheet, FamiliarSheet } from "../../model/sheet";
 import { newItemId } from "../../model/sheet";
 import { getCroppedImg, compressImage } from "../../utils/imageCompressor";
-
-/** Texts for archiving (the GM's replacement for deleting); bilingual here until they move to localization. */
-const ARCHIVE_TEXT = {
-  es: {
-    button: "Archivar",
-    title: "Archivar familiar",
-    prompt: "¿Seguro que quieres archivar a este familiar? Dejará de aparecer en la campaña; su ficha, notas y galería se conservan.",
-    checkbox: "Entiendo que el familiar dejará de estar visible en la campaña.",
-    confirm: "Archivar",
-    bondError: "No se pudo cambiar el vínculo.",
-  },
-  en: {
-    button: "Archive",
-    title: "Archive familiar",
-    prompt: "Are you sure you want to archive this familiar? It will no longer appear in the campaign; its sheet, notes and gallery are kept.",
-    checkbox: "I understand the familiar will no longer be visible in the campaign.",
-    confirm: "Archive",
-    bondError: "Could not change the bond.",
-  },
-};
 
 export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const {
@@ -51,7 +31,7 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const t = TRANSLATIONS[lang];
   // Removing anything from a saved sheet asks first (product-design.md, Confirmations).
   const asking = useAskFirst();
-  const archiveText = ARCHIVE_TEXT[lang === "en" ? "en" : "es"];
+  const archiveText = FAMILIAR_ARCHIVE_TEXT[lang];
   const familiar = store.fields as FamiliarSheet;
   const familiarId = store.sheet.id;
   const { collectionPaths, bondWritable } = store.sheet.capabilities;

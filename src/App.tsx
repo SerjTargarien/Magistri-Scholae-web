@@ -9,7 +9,7 @@
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ApiSheetProjection, ApiUser, EntityKind } from "./contracts/api-v1";
-import { Language, TRANSLATIONS } from "./localization";
+import { CAMPAIGN_SKILLS_TEXT, Language, TRANSLATIONS } from "./localization";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
 import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/client";
@@ -23,7 +23,7 @@ import { CharacterTypeSelect } from "./components/CharacterTypeSelect";
 import { FamiliarEditor } from "./components/FamiliarEditor";
 import { FamiliarDetail } from "./components/FamiliarDetail";
 import { SettingsScreen } from "./components/SettingsScreen";
-import { CAMPAIGN_SKILLS_TEXT, CampaignSkills } from "./account/CampaignSkills";
+import { CampaignSkills } from "./account/CampaignSkills";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";

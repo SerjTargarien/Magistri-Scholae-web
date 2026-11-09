@@ -6,54 +6,9 @@
 // between categories, reordering, archiving and new categories stay in R4.
 import { useEffect, useState } from "react";
 import { ArrowLeft, ListChecks, Plus, Save, Undo2 } from "lucide-react";
-import { TRANSLATIONS, type Language } from "../localization";
+import { CAMPAIGN_SKILLS_TEXT, TRANSLATIONS, type Language } from "../localization";
 import { catalogueName, nameClash, newSkillId, type SkillCatalogue } from "../model/catalogue";
 import { Switch } from "../components/Toggle";
-
-export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
-  title: string; intro: string; initial: string; initialHint: string; newSkill: string; add: string;
-  save: string; discard: string; unsaved: string; duplicate: string; blank: string; ageLimit: string;
-  saved: string; conflict: string; failed: string; open: string; openHint: string;
-}> = {
-  es: {
-    title: "Habilidades de la campaña",
-    intro: "La lista de habilidades de este universo, compartida por todas sus mesas. Las marcadas como «Inicial» aparecen en los personajes nuevos; los jugadores añaden las demás con «+ Añadir de la lista». Solo tú puedes cambiar esta lista.",
-    initial: "Inicial",
-    initialHint: "Los personajes nuevos empiezan con esta habilidad",
-    newSkill: "Nueva habilidad en esta categoría…",
-    add: "Añadir",
-    save: "Guardar cambios",
-    discard: "Descartar",
-    unsaved: "Hay cambios sin guardar.",
-    duplicate: "Hay dos habilidades con el mismo nombre: «{name}».",
-    blank: "Cada habilidad necesita un nombre.",
-    ageLimit: "hasta {age} años",
-    saved: "Lista de habilidades guardada.",
-    conflict: "Otra persona cambió la lista de habilidades; se ha vuelto a cargar. Repite el cambio.",
-    failed: "No se pudo guardar la lista de habilidades.",
-    open: "Abrir la lista",
-    openHint: "Qué habilidades tiene este universo y con cuáles empiezan los personajes nuevos.",
-  },
-  en: {
-    title: "Campaign skills",
-    intro: "This universe's skill list, shared by all its tables. Skills marked «Starting» appear on new characters; players add the rest with «+ Add from the list». Only you can change this list.",
-    initial: "Starting",
-    initialHint: "New characters start with this skill",
-    newSkill: "New skill in this category…",
-    add: "Add",
-    save: "Save changes",
-    discard: "Discard",
-    unsaved: "There are unsaved changes.",
-    duplicate: "Two skills share the name «{name}».",
-    blank: "Every skill needs a name.",
-    ageLimit: "up to age {age}",
-    saved: "Skill list saved.",
-    conflict: "Someone else changed the skill list; it has been reloaded. Please repeat your change.",
-    failed: "The skill list could not be saved.",
-    open: "Open the list",
-    openHint: "Which skills this universe has, and which ones new characters start with.",
-  },
-};
 
 export interface CampaignSkillsProps {
   lang: Language;

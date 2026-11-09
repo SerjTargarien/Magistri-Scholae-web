@@ -209,7 +209,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
           <div className="relative max-w-4xl max-h-[90vh]">
             <img
               src={lightboxImage}
-              alt="Ampliada"
+              alt={t.imageExpandedAlt}
               className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-neutral-800"
               referrerPolicy="no-referrer"
             />

@@ -87,7 +87,8 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                         id={`btn-del-gal-pic-${idx}`}
                         onClick={(e) => removeGalleryImage(pic.id, e)}
                         className="absolute top-2 right-2 bg-rose-950/90 border border-rose-500/30 p-1.5 rounded-lg text-rose-300 hover:text-rose-200 transition-colors cursor-pointer shadow"
-                        title="Delete picture"
+                        title={t.delete}
+                        aria-label={t.delete}
                       >
                         <Trash className="w-3.5 h-3.5" />
                       </button>

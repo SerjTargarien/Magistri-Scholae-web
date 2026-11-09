@@ -705,7 +705,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - The familiar editor (standalone, and the creation form's familiar dialog) now uses the shared crop dialog too, so there is one crop dialog everywhere. Checks: type check; 53 unit tests; both builds; 55 browser tests (the editor test now crops a portrait at 150%).
 
-**Next:** polish pass (d): Known inconsistency 5 (texts in the translations file), and the familiar sheet's header and notes tab; then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (d), part 6: every text in the translations file — 9 November 2026
+
+- The per-screen text tables (campaign skills, save status, sign-in errors and account texts, knowledge levels, settings, both archive dialogs, the form's save failure) moved into `src/localization.ts` as named tables; `src/remote/text.ts` is gone. Loose texts got keys: the familiar gallery's «Subir Imagen Local» is now «Elegir imagen», the stress «Max» is «Máx.», the gallery's English «Delete picture» uses «Eliminar», and the image alt texts are Spanish. English fallbacks in the form were dropped (the keys exist). The settings note no longer mentions the removed visual style. Only the demo's test panel keeps its own texts, as a development tool (known inconsistency 5).
+- Checks: type check; 53 unit tests; both builds; 55 browser tests (the familiar gallery shows «Elegir imagen»).
+
+**Next:** polish pass (d), the familiar sheet's header and notes tab; then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

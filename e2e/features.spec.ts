@@ -425,6 +425,7 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   await expect(page.locator("#familiar-portrait img")).toBeVisible();
   await page.locator("#btn-familiar-fit-contain").click();
   await page.locator("#familiar-tab-galeria").click();
+  await expect(page.locator("#familiar-detail-container")).toContainText("Elegir imagen"); // from the translations file
   await page.locator("#input-familiar-gallery-picker").setInputFiles(pngFile("gallery.png"));
   await expect(page.locator("#btn-familiar-del-gal-pic-0")).toBeVisible();
   await page.locator("#btn-familiar-del-gal-pic-0").click(); // asks first; «Cancelar» keeps it

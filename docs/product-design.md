@@ -48,7 +48,7 @@ How a person chooses something, everywhere in the app (study requested by the ow
 
 ### Why
 
-- The browser draws a native selector's open list itself (on Android, a white system sheet in the system font), outside the app's styles. The app has seven native selectors (house in sheet edit mode, spell and potion difficulty, campaign and language in settings, knowledge level, consequence severity in PR #41), six native checkboxes and five native number boxes with spinners (quantities, and stress maxima in the form).
+- The browser draws a native selector's open list itself (on Android, a white system sheet in the system font), outside the app's styles. The app had seven native selectors (house in sheet edit mode, spell and potion difficulty, campaign and language in settings, knowledge level, consequence severity; the last two became tag menus in PR #41), six native checkboxes and five native number boxes with spinners (quantities, and stress maxima in the form).
 - The house filter chips on the main list show every option at once. That is fine for five houses but does not grow: R4 adds active/inactive sheets, R5 adds institutions and their branches, and the GM's Personajes view filters and sorts by any stored value. Chips also take a lot of room on a phone before the first card.
 - So no single control fits every case; each situation gets one control, always the same one.
 
@@ -114,9 +114,9 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Spell and potion difficulty when adding | Native selector | Stepper (1), like the value on existing rows | Polish pass |
 | Specialized, «Es profesor», «inicial» | Native checkboxes | Switch (3) | Polish pass |
 | «Entiendo que…» before deleting | Native checkbox | Check (4) | Polish pass |
-| Severity when adding | Option chips | Stays (6) | PR #41 |
-| Severity on a consequence | Native selector as a tag | Tag menu (7) | PR #41 |
-| Knowledge level, sheet and form | Native selector | Tag menu (7) | PR #41 |
+| Severity when adding | Option chips | Stays (6) | Done (PR #41) |
+| Severity on a consequence | Native selector as a tag | Tag menu (7) | Done (PR #41) |
+| Knowledge level, sheet and form | Native selector | Tag menu (7) | Done (PR #41) |
 | Skill from the campaign's list | Inline list of chips | Picker with search (9) | Polish pass |
 | Bonded familiar | Dialog with a list | Picker (9), the same component | Polish pass |
 | Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | R4 |
@@ -135,7 +135,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 - **D1. Adopted** (9 November 2026) with the owner's four changes; recorded in AGENTS.md.
 - **D4. Done:** the interactive demo above.
 - **D2 (open).** The main list's filter bar: in the polish pass, or with R5 when institutions arrive. The chip strip works for today's five houses.
-- **D3. Decided:** the tag menu is built first, in PR #41, for severity and knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
+- **D3. Done:** the tag menu was built first, in PR #41, for severity and knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
 
 ## Screens
 

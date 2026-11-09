@@ -44,7 +44,7 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 How a person chooses something, everywhere in the app (study requested by the owner, 9 November 2026). The look stays coherent with the Academia style; what a control can do comes first.
 
-**Status: adopted 9 November 2026.** The owner tried every control in an interactive demo ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page) and recorded a verdict on each: 16 of 20 approved as proposed; the pips, the tag menu, the filter bar and the styles rule were changed after his notes, and the text below includes those changes.
+**Status: adopted 9 November 2026.** The owner tried every control in an interactive demo ([Magistri Scholae controls](https://claude.ai/artifact/6aTMfP3K42R2z1rzGUHRtJ), a private claude.ai page) and recorded a verdict on each: 16 of 20 approved as proposed; the pips, the filter bar and the styles rule were approved after one round of changes and the tag menu after two. The text below includes those changes.
 
 ### Why
 
@@ -64,7 +64,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | 4 | **Check** | A drawn check box | Acknowledging something («Entiendo que…») and multiple choice inside a picker. | Not for settings that take effect at once (switch). |
 | 5 | **Segmented control** | One fixed row of 2–4 joined buttons, the chosen one lit | A mode of the whole sheet or screen, always visible: Menor / Adulto, image fit, a sort direction, and the language when it returns. | 2–4 short labels that fit one row at 320 px; otherwise a tag menu. |
 | 6 | **Option chips** | Round chips under an input | Choosing a value **while adding a new item**: a consequence's severity. | 2–5 short options, at most two rows; never for filters or for a value already on a row. |
-| 7 | **Tag menu** | The value as a coloured tag; tapping it opens a small menu in the app's style next to it (a bottom sheet on phones) | **Changing a value already on a row**, where there is no room for chips: severity, knowledge level, house in sheet edit mode, a skill's category (R4). | 2–8 options; includes «none» where empty is allowed. Every tag of a kind has the same size; an empty one is dashed and quieter, with a short word («Elegir», «Ninguno») (owner). Readers see the plain tag. |
+| 7 | **Tag menu** | The value as a coloured tag; tapping it opens a small menu in the app's style next to it (a bottom sheet on phones) | **Changing a value already on a row**, where there is no room for chips: severity, knowledge level, house in sheet edit mode, a skill's category (R4). | 2–8 options; includes «none» where empty is allowed. Tags take their natural width up to a limit (long values end in «…»). An empty tag looks like the others, same height, type and padding, only with a dashed border and quieter colours: «Elegir», «Ninguno» (owner). Readers see the plain tag. |
 | 8 | **Option cards** | Large cards with a picture or explanation | A choice made once, at a setup step, that needs explaining: sheet type, house in the creation form, the GM's «PJ o PNJ» when confirming a draft (R4), a type change (R4.5). | 2–6 options. Never in a row or during play. |
 | 9 | **Picker** | A dialog (a full-height sheet on phones) with a list of rows, each with picture or crest, name and a second line; search on top when there are more than 8 | **Choosing an entity or one of many**, or a list that grows: the bonded familiar, the campaign, a skill from the campaign's list, a player to assign (R4), the other side of a pact (R4.5), an institution, branch, course, subjects and clubs (R5). | Single choice closes on tap; multiple choice uses checks and «Hecho». |
 | 10 | **Text with suggestions** | A text box whose suggestions appear in the app's own list as you type | Free text that may link to a known item, with free text kept as a fallback (R5: institution, house, course). | Suggestions never come from the browser (no `datalist`). |
@@ -135,7 +135,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 - **D1. Adopted** (9 November 2026) with the owner's four changes; recorded in AGENTS.md.
 - **D4. Done:** the interactive demo above.
 - **D2 (open).** The main list's filter bar: in the polish pass, or with R5 when institutions arrive. The chip strip works for today's five houses.
-- **D3 (open).** Build order: the tag menu first, in PR #41 (severity) together with the knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
+- **D3. Decided:** the tag menu is built first, in PR #41, for severity and knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
 
 ## Screens
 

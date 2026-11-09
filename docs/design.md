@@ -129,6 +129,14 @@ Additional current-source responsibilities:
 - **Player:** Creates and edits own/assigned characters and reads explicitly shared character projections.
 - **Read-only recipient:** A campaign member with an explicit share grant for a character; can only read the projected fields allowed to them.
 
+**Owner's target design (9 November 2026; [product-design.md](product-design.md), Roles; built in R4):**
+
+- **Sheet activation:** a player's sheet becomes fully part of the campaign once the player activates it and the GM confirms it (what the GM sees before that is open question Q1). The GM also marks sheets active or inactive (dead, travelling) to keep the main list short without archiving.
+- **Deletion:** the GM can delete a sheet after several confirmations (whether only archived ones: Q2).
+- **The GM creates campaigns** and assigns sheets he creates to players.
+- **Administrator access with the GM's permission:** a change to the rule that the site administrator does not read campaign sheet content. The GM grants it explicitly; scope (read or change, which sheets, how long) is Q3. Personal notes stay excluded, and every access is audited.
+- **Campaign data beyond sheets** (R5): institutions, branches and schools (year groups, subjects, clubs, classes) are GM-owned campaign records that sheets link to; players read what appears on their sheets.
+
 A user may be a GM in one campaign and a player in another. Authorization is campaign-scoped even when only one campaign exists initially. Every relationship endpoint must verify that referenced users, characters, and grants belong to the expected scope.
 
 ### Logical records

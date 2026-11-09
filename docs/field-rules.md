@@ -4,6 +4,20 @@ Every stored field of a character and a familiar, screen by screen: what the app
 
 **Status:** all owner decisions recorded (8 November 2026). **Server:** the rules, the new and removed fields and the conversion of stored records are implemented (R3.2; `backend/domain/fields.py`, migration `0003_field_rules`), and so is the skill catalogue (`backend/domain/catalogue.py`, migration `0004_skill_catalogue`; read by members at `GET /api/v1/campaigns/<id>/skill-catalogue`; the GM editor comes in R4). Changes marked **visible** follow the screenshot approval step when the screen moves to the new model (R3.4).
 
+## Planned changes (owner's target design, 9 November 2026)
+
+Not enforced yet; each gets its rule here and in the backend registry when its release builds it ([product-design.md](product-design.md), [implementation-plan.md](implementation-plan.md)).
+
+| Field | Change | Release |
+|---|---|---|
+| `characterType` | Replaced by an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia»; `student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago. | R4.5 |
+| `edad` | Whole number 0–1,000,000, or «desconocida». | R4.5 |
+| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | Whole number 1–5 (today 1–10); stored values above 5 (Q5). | R4.5 |
+| «Criatura mágica» | A new kind of sheet, between a familiar and an adult (contents: Q4). | R4.5 |
+| Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |
+| `casa`, `adultWizardProfile/institution`, `curso`, `adultWizardProfile/teachingSubjects`, `clubesList` | Links to the campaign's institutions, branches and school records, with free text kept as a fallback. | R5 |
+| Sheet status | Activation (player activates, GM confirms) and active / inactive, set by the server's rules for each role. | R4 |
+
 ## How to read the rules
 
 - **Text N:** at most N characters. The input box gets the same limit, and the app trims spaces at both ends before saving.

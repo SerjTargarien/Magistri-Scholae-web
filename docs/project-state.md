@@ -558,7 +558,14 @@ Released to both sites (release `20261108-182351-4a11cca`), with #34 (usernames 
 - `docs/product-design.md` now describes every screen as it is (mapped from the code), with principles, roles, a list of known inconsistencies and the design notes. Changes are designed there first.
 - State checked the same morning: the GM (`faifolk`) registered on 8 November; seven player invitations stay open until 15 November 17:56 Spanish time; nightly backups and maintenance ran; no server errors.
 
-**Next:** the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
+## The owner's target design in the roadmap — 9 November 2026
+
+The owner wrote a parallel version of the design document with his intended changes (`docs/product-design-owner.md`, kept locally, not committed). Folded into the plan:
+- product-design.md: each section now has the current state and a **Target**; new section 11, the Biblioteca del Máster; the inconsistencies with the owner's decisions; non-magical characters decided; open questions Q1–Q8.
+- implementation-plan.md: the rest of R3.4 in order (journal titles first, before the next publish; session tab; lists and limits; a polish pass; images from a web address); R4 extended with roles (activation, active/inactive, GM deletion and assignment, GM-created campaigns, administrator access with the GM's permission); new **R4.5 Sheet types** and **R5 Biblioteca del Máster** (the dropped R5 number reused; a design step and five build steps); R6 now moves the testers' data to its own production backend; decision 14.
+- field-rules.md: planned changes table. design.md: the target roles and campaign data.
+
+**Next:** the owner answers Q1–Q8; then the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff
 

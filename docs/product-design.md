@@ -2,7 +2,7 @@
 
 The place to design a change before building it (owner request, 8 November 2026): what each screen shows, what each role can do, and the rules behind it. A change starts here; the code follows. Interface terms are the app's Spanish ones.
 
-**Status:** the screens below describe the app as it is on 9 November 2026 (`main` at `d912a99`), mapped from the code. [Known inconsistencies](#known-inconsistencies) lists what the mapping found; [Design notes](#design-notes) holds decisions and ideas not built yet. Field limits are in [field-rules.md](field-rules.md); the release plan in [implementation-plan.md](implementation-plan.md).
+**Status:** each section describes the app as it is on 9 November 2026 (`main` at `d912a99`, mapped from the code) and then, under **Target**, the owner's intended design (his parallel document of 9 November 2026), with the release that builds it ([implementation-plan.md](implementation-plan.md)). Points still to settle are marked **Q** and listed in [Open questions](#open-questions). Field limits are in [field-rules.md](field-rules.md).
 
 ## Principles
 
@@ -10,15 +10,31 @@ The place to design a change before building it (owner request, 8 November 2026)
 - **No aesthetic change without a reason**; new screens follow the academy and classic styles.
 - **One way to edit a sheet:** «Editar» / «Finalizar Edición», and each field saves as it is typed (no «Guardar» on a sheet). Character and familiar sheets behave alike.
 - **Touch first:** nothing depends on hover; testers use phones.
-- **Hidden is not deleted:** a field a viewer may not see is not drawn, and hiding something (Magia intuitiva above 14) keeps its stored value.
+- **Hidden is not deleted:** a field a viewer may not see is not drawn, and hiding something (Magia intuitiva above 14, a switch turned off) keeps its stored value.
+- **Better safe than sorry:** removing something asks for confirmation (target, R3.4 polish pass).
+- **Words:** a **campaña** is the GM's universe; its **partidas** (the tables, decision 9) are labels on sheets.
 
-## Roles (today)
+## Roles
+
+**Today:**
 
 - **GM:** sees and edits every character and familiar in the campaign, whoever created them and whenever they registered. Owns the campaign's skill list («Habilidades de la campaña»). Archives sheets (no one deletes).
 - **Player:** sees and edits only the sheets they created (assigned to them). Picks skills from the campaign's list.
 - **Shared reader:** read-only access to a sheet shared with them; there is no screen to share yet.
-- **Administrator** (the owner's separate account): creates campaigns, invitations and recovery codes on the server; no admin screens yet (R4).
-- The campaign is the GM's universe; its tables (mesas) are labels on sheets (decision 9, R4). The full permission system (sharing, GM restrictions, personal notes) comes later.
+- **Administrator** (the owner's separate account): creates campaigns, invitations and recovery codes on the server; no admin screens yet.
+
+**Target** (owner, 9 November 2026):
+
+- **GM** (R4):
+  - sees and edits every character and familiar **once it is active**: the player activates a sheet once, and the GM confirms it (**Q1**);
+  - marks sheets **active or inactive** (dead, travelling…): inactive sheets leave the main list («grimorio») without being archived;
+  - archives, and can **delete** a sheet after several confirmation steps (**Q2**);
+  - creates sheets and **assigns them to players**;
+  - creates campaigns and sees the campaign chooser; players join a campaign by invitation;
+  - chooses which fields a shared reader sees (the visibility editor, R7.3).
+- **Player:** sees and edits the sheets they created or that the GM assigned to them.
+- **Shared reader:** sees the fields the GM chose for that sheet.
+- **Administrator:** as today, and can see and change campaign data **only with the GM's explicit permission** (**Q3**). Admin screens in R4.
 
 ## Screens
 
@@ -28,150 +44,178 @@ The place to design a change before building it (owner request, 8 November 2026)
 - **Start:** the session is restored; with no session, the sign-in screen. The campaign is the one used last, or the only one; with several and none chosen, the campaign chooser.
 - **Loading:** «Abriendo grimorio de la escuela...».
 - **Messages (toasts):** bottom right, green or red, close by themselves after 4 seconds or with «×». An expired session or a failed load: «No se pudieron cargar los datos. Recarga para volver a intentarlo.»
-- **Save status** (bottom left, on character and familiar sheets): hidden while everything is saved. It appears for:
-  - working offline: «Sin conexión: tus cambios se guardan aquí y se enviarán al volver la conexión.»;
-  - someone else changing the same field: «Mantener el mío» / «Mantener el suyo»;
-  - a refused save: «No se pudo guardar … Reintentar»;
-  - a value not accepted: «No aceptado: …» (raw field names: R3.5 redesigns this panel).
+- **Save status** (bottom left, on character and familiar sheets): hidden while everything is saved. It appears for working offline, someone else changing the same field («Mantener el mío» / «Mantener el suyo»), a refused save («No se pudo guardar … Reintentar») and a value not accepted («No aceptado: …», with raw field names).
 - Coming back to the tab re-reads the lists and open sheets; leaving the page while a save is pending asks first.
-- Demo builds only: the «DEMO» banner and the test panel («Ver como» GM, player, reader; connection and failure simulations).
+- Demo builds only: the «DEMO» banner and the test panel.
+
+**Target:** the save-status panel speaks plainly, without field names (R3.5). **For a GM, the first screen after opening a campaign is the Biblioteca del Máster** (R5); the grimorio opens from there.
 
 ### 2. Sign-in («Iniciar sesión» / «Aceptar invitación» / «Restablecer contraseña»)
 
 - Three tabs in a card. **Iniciar sesión:** «Usuario», «Contraseña». **Aceptar invitación:** «Usuario», «Código de invitación», «Contraseña», «Repite la contraseña» (at least 12 characters). **Restablecer contraseña:** «Código de recuperación», the new password twice.
 - **Links:** `https://magistrischolae.fyi/#invitacion=CÓDIGO` and `#recuperacion=CÓDIGO` open the right tab with the code filled in; the code is never sent to the server in the address and is removed from the address bar.
 - The username and code ignore surrounding spaces; usernames are stored in lowercase, and the name as typed becomes the display name.
-- Errors are plain messages (wrong username or password, used or expired code, username taken, weak password, too many attempts, disabled account, no connection, passwords that do not match).
+- Errors are plain messages.
 - **Campaign chooser** («Elige una campaña»): one button per campaign, «Cerrar sesión». Only the administrator sees it today.
 
-### 3. Character list (home)
+**Target:** the GM also sees the chooser and **creates new campaigns** there; players join new campaigns by invitation (R4).
+
+### 3. Character list (the grimorio)
 
 - Header: crest, «Magistri Scholae», «Ajustes», «Nuevo Personaje».
-- **Search** «Buscar por nombre, jugador o concepto...»: characters by name, player, concept, adult role or institution; familiars by name, species, description or their character's name.
-- **Filters:** «Todas las Casas», the five houses (Irati, Urania, Al-Khwarizmi, Calantes, Aleixis; adults by former house), «Magos Adultos», «Familiares».
-- **Character card:** portrait or house crest, year («1º») or «Adulto», name, concept, «Destino», «Exp», «Jugador». **Familiar card:** picture, name, description, «Especie», «Vínculo» (its character, or «Sin asignar»).
-- Newest first; characters, then familiars. Archived sheets never appear. GM and player see the same screen with different sheets.
-- Empty: «Bóveda Vacía», with «Nuevo Personaje».
+- **Search** «Buscar por nombre, jugador o concepto...»; **filters** «Todas las Casas», the five houses, «Magos Adultos», «Familiares».
+- **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador». **Familiar card:** picture, name, description, «Especie», «Vínculo».
+- Newest first; characters, then familiars. Archived sheets never appear.
+
+**Target:** inactive sheets leave this list (R4); filters follow the new sheet types and the campaign's institutions (R4.5, R5). The GM's complete view with filters and sorting by any value lives in the Biblioteca (R5).
 
 ### 4. New sheet type («Elegir Sendero Mágico»)
 
-- «Alumno», «Mago adulto» (both open the creation form) and «Familiar» (opens familiar creation). «Volver» returns to the list.
+- Today: «Alumno», «Mago adulto» (both open the creation form) and «Familiar» (familiar creation); «Volver».
+
+**Target** (R4.5):
+
+- «**Menor**», with «Mago» and «Alumno de Escuela de Magia» ticked by default; unticking hides the related values.
+- «**Adulto**», with «Mago» ticked by default; unticking hides the related values.
+- «**Criatura mágica**»: its own sheet type, between a familiar and an adult (**Q4**).
+- «**Familiar**»: as today.
+- Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago.
 
 ### 5. Character creation form («Registro de Personaje» / «Registro de Mago Adulto»)
 
-Side tabs; «Cancelar» and «Guardar» at the top and bottom. Nothing is saved until «Guardar».
+Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothing is saved until «Guardar».
 
-- **Identificación:** portrait (file, then crop 3:4 with zoom; fit «Recortar / Llenar» or «Ajustar / Lienzo Completo»; «Quitar retrato»), «Nombre del Personaje» (required), «Concepto», «Jugador», «Edad» (digits, up to 999), «Linaje Familiar», «Economía», «Varita / Foco mágico».
-  - Students also: «Curso Académico» (default «1º»), «Puesto en la Clase».
-  - Adults also, «Perfil de Mago Adulto»: «Rol / Título», «Institución», «Antigua casa», «Reputación / Estatus», «Profesor de la Academia», and when ticked «Asignaturas que imparte» (comma-separated).
-- **Aspectos y Posesiones:** «Aspectos Personales», «Complicaciones», «Equipamiento» (with quantity), «Campos Personalizados» (name and value). Add with the button or Enter.
-- **Casa y Lema** (students): five house cards with their origin, colours, element, totem and motto; Irati by default.
-- **Habilidades:** one block per category of the campaign's list, values 0–5. New characters start with the skills marked «Inicial» (Magia intuitiva only up to age 14, never for adults). «+ Añadir de la lista» adds missing ones; any skill can be removed. «Magia esotérica» skills have a knowledge level. **GM only:** a box to type a new skill, which joins the campaign's list.
-- **Estrés:** the three maxima, 1–10 (3 for students, 5 for adults).
-- **Familiar** (students): creates a familiar in a dialog; it is linked to the character when the character is saved.
-- Saving opens the new character's sheet. «Cancelar» asks to discard a draft with a name, concept, player, portrait, aspects, complications, equipment or custom fields.
-- Not in the form (only on the sheet): destiny, experience, current stress, consequences, temporary aspects, spells, potions, clubs, journal, gallery.
+- **Identificación:** portrait (crop 3:4 with zoom, fit, «Quitar retrato»), «Nombre del Personaje» (required), «Concepto», «Jugador», «Edad» (up to 999), «Linaje Familiar», «Economía», «Varita / Foco mágico». Students: «Curso Académico», «Puesto en la Clase». Adults: «Perfil de Mago Adulto» (role, institution, former house, reputation, teacher, subjects as a comma list).
+- **Aspectos y Posesiones:** aspects, complications, equipment, custom fields.
+- **Casa y Lema** (students): the five houses; Irati by default.
+- **Habilidades:** the campaign's list; starting skills marked «Inicial»; «+ Añadir de la lista»; knowledge levels; GM-only typed box.
+- **Estrés:** the three maxima, 1–10.
+- **Familiar** (students): a dialog that saves the familiar at once; linked when the character is saved.
+- Saving opens the sheet; «Cancelar» asks only for some fields.
+
+**Target:**
+
+- **Identificación** carefully redesigned for minors, adults and magical creatures, with fitting values for each, without losing current data (R4.5). «Edad»: up to 1,000,000, or «desconocida» (R4.5).
+- **Concepto** moves to «Aspectos y Posesiones» (R4.5).
+- **Casa y Lema** and a new **Institución y Rol** tab (adults) take their content from the campaign's institutions, or free text (R5).
+- **Estrés:** maxima 1–5 (R4.5; **Q5**).
+- **Familiar:** only for magical human characters; the dialog has no save button: it keeps the values, and the familiar is created and linked only when the character is saved (R3.4 polish pass).
+- **«Cancelar»** asks before discarding any change (polish pass).
+- Portrait fit buttons in Spanish everywhere (polish pass).
 
 ### 6. Character sheet
 
-**Banner:** portrait, name, concept, house crest, the linked familiar (card, or a «Vincular Familiar» slot in edit mode), «Volver», «Editar» / «Finalizar Edición» (for anyone who can change something), and «Archivar» for the GM (with a confirmation box to tick).
-
-**Edit mode:** name and concept become boxes; tapping the portrait changes it («Cambiar foto», crop, upload), with fit and «Quitar retrato» below; the familiar card opens the link picker («Sin Mago Asignado (Familiar Libre)», the familiars, «+ Crear Familiar»).
+**Banner:** portrait, name, concept, house crest, the linked familiar, «Volver», «Editar» / «Finalizar Edición», «Archivar» for the GM (with a box to tick). **Edit mode:** name and concept boxes; tap the portrait to change it, fit and «Quitar retrato» below; the familiar card opens the link picker («Sin Mago Asignado (Familiar Libre)», the familiars, «+ Crear Familiar»).
 
 Tabs:
 
-- **Perfil:** «Datos Personales» (students: player, age, year, class post, lineage, economy, wand; adults: player, age, lineage, economy, role, institution, former house, wand, reputation, teacher and subjects), «Filiación de la Casa y Heráldica» (students; house chosen in edit mode), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
-- **Sesión** (usable outside edit mode by whoever may write): «Puntos de Destino» (gems), «Experiencia Acumulada» (− and +), «Aspecto Temporal», the three stress tracks (tap a box; maxima in edit mode), «Consecuencias» physical, mental and social (text only).
-- **Habilidades:** values 0–5 and removal in edit mode; «+ Añadir de la lista»; knowledge level for esoteric skills; GM-only typed box; players cannot remove or rename skills that are not on the campaign's list.
-- **Conjuros y Pociones:** «Grimorio de Conjuros» and «Catálogo de Pociones» (difficulty I–V, «Especialista»); add and remove in edit mode; entries cannot be edited.
-- **Inventario y Notas:** «Clubes Escolares», «Equipamiento» (quantity ± at any time), «Bitácora Celestial» (journal: add and edit at any time, remove in edit mode).
-- **Galería:** tap a picture to enlarge; add and remove in edit mode.
+- **Perfil:** «Datos Personales», «Filiación de la Casa y Heráldica» (students), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
+- **Sesión** (usable outside edit mode, on purpose: convenience during play): destiny gems, experience (− +), «Aspecto Temporal», three stress tracks, three consequence lists.
+- **Habilidades:** values, removal, «+ Añadir de la lista», knowledge levels, GM-only typed box.
+- **Conjuros y Pociones:** add and remove in edit mode; entries not editable.
+- **Inventario y Notas:** clubs, equipment (quantity ± at any time), journal (add and edit at any time, remove in edit mode).
+- **Galería:** tap to enlarge; add and remove in edit mode.
 
-A viewer who may not change anything has no «Editar» and sees only what they may read.
+**Target:**
+
+- Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, phase 3).
+- Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
+- Removing anything asks first (polish pass); generated journal titles are shown, not stored (phase 3, **before the next publish**).
+- Activation and active/inactive status (R4).
 
 ### 7. Familiar sheet
 
 - **Header:** «Volver a Personajes», species and character, name, «Editar» / «Finalizar Edición», «Archivar» for the GM.
-- **Perfil y Vínculo:** portrait (tap in edit mode to change; fit and «Quitar retrato» below), «Nombre del Familiar», «Especie / Criatura», «Descripción» (boxes in edit mode, saved as typed), and «Vínculo Mágico» (the character with «Ver Ficha del Mago»; «Cambiar Vínculo» or «Vincular a Alumno o Mago» and unlinking in edit mode).
-- **Diario del Familiar:** add and edit entries at any time, remove in edit mode.
-- **Galería de Recuerdos:** tap to enlarge; add and remove in edit mode.
+- **Perfil y Vínculo:** portrait, name, species, description, «Vínculo Mágico».
+- **Diario del Familiar**, **Galería de Recuerdos**.
 
-### 8. Familiar creation («Registro y Editor de Familiares»)
+**Target** (R3.4 polish pass):
 
-- Creation only: portrait (file, crop with zoom, fit), «Nombre del Familiar» and «Especie / Criatura» (required), «Descripción», «Guardar Familiar».
-- From a character's link picker: saving links the familiar to that character (replacing the link it had, if any) and returns to the character's sheet. From «Nuevo Personaje»: saving opens the familiar's sheet.
+- The header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»: species, character and name go (they are on the profile).
+- The journal tab is called «**Notas del Familiar**», and its box suggestions fit a familiar.
+- The crop dialog gets a zoom slider like the others.
+- The link picker says «Seleccionar un personaje para vincular a este familiar».
+
+### 8. Familiar creation
+
+- Today «Registro y Editor de Familiares», creation only; from a character's link picker it links the new familiar (replacing a previous link), otherwise it opens the familiar's sheet.
+
+**Target:** the title is «**Registro de Familiares**» (polish pass). Familiars belong to magical human characters only (R4.5).
 
 ### 9. Settings («Ajustes»)
 
-- «Estilo Visual» («Academia Mágica» or «Clásico», kept in this browser), «Información de Almacenamiento», «Cuenta» (name, username, campaign choice if several, «Cerrar sesión»), «Acerca de Magistri Scholae».
-- GM only: «Habilidades de la campaña» → «Abrir la lista».
-- The language card is hidden (Spanish only).
+- «Estilo Visual», «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; GM only: «Habilidades de la campaña» → «Abrir la lista». Language card hidden.
+
+**Target:** the campaign skills move to the Biblioteca del Máster (R5).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 
-- Every category with its skills: «Inicial» (new characters start with it), the name, and «hasta N años» where a skill has an age limit. Add a skill per category.
-- Changes are kept as a draft: «Guardar cambios» or «Descartar» in a bar at the bottom; leaving with unsaved changes is held back. Blank or repeated names cannot be saved; if someone else changed the list meanwhile, it reloads.
-- Not here yet: deleting, archiving, moving or reordering skills, new categories (R4).
+- Today: every category with its skills: «Inicial», the name, «hasta N años». Add a skill per category. Draft with «Guardar cambios» / «Descartar»; blank or repeated names cannot be saved; reloads if changed meanwhile.
+
+**Target** (R5, inside the Biblioteca):
+
+- «**Sólo magos**» per skill: left off non-magical characters, unless added to one by hand (by the GM).
+- New categories; rename current ones.
+- Reorder everything (categories and skills).
+
+### 11. Biblioteca del Máster (new, R5)
+
+The GM's first screen after opening a campaign; the grimorio opens from it. Per campaign (universe). Three sections:
+
+- **Personajes:** every character in the campaign and the GM's own characters; at a glance which player each is assigned to; easy, complete filters and sorting by any stored value (school, house, player, age, magical or not…).
+- **Instituciones:** academies, ministries, guilds… each with a crest, colours, a description and a member list. An institution can have **branches** (name to choose: chapter, faction, division… **Q6**) with their own values; today's houses are branches of Magistri Scholae. A character belongs to a branch, to an institution without a branch, or to none (free characters). A character's institution can also be free text instead of one from the list. The GM creates any number of houses, and the word «Casa» can be renamed per school.
+  - **Schools** are institutions with their own values:
+    - «**cursos**» (e.g. 3º): students of the same level, who move up together each school year unless they repeat; matches «Curso Académico» on the sheet;
+    - «**asignaturas**» (e.g. Pociones): with their teachers and the skill they improve; «troncal» (every student of the year) or «optativa» (students choose a fixed number from a larger set, per year);
+    - «**clubes**» (e.g. Duelo): students practising an activity together in a place in the school;
+    - «**clases**» (e.g. Pociones 3º): part of a year group and a teacher meeting in a classroom, linking the teacher and each student.
+- **Habilidades:** section 10, moved here.
 
 ## Known inconsistencies
 
-Found while mapping the screens on 9 November 2026; to fix when their screen is next worked on, or together in a small pass.
+Found while mapping the screens on 9 November 2026, with the owner's decisions. They are fixed in the **R3.4 polish pass** unless noted.
 
-1. **Familiar created in the creation form survives a cancelled character:** the dialog saves the familiar at once; cancelling the character leaves it on the list, unlinked. The dialog also gives no confirmation message, and only the last familiar created there is linked.
-2. **Discard-draft check misses fields:** changing only skills, stress, house, age, year, lineage, economy, wand or the adult profile lets «Cancelar» leave without asking.
-3. **Different confirmations:** archiving a character needs a ticked box, a familiar does not; spells, potions, gallery pictures, clubs, items and journal entries ask before removal, while aspects, complications, consequences, custom fields, skills and familiar journal entries are removed at once.
-4. **Crop dialog:** the familiar sheet's crop has no zoom slider; the character sheet's and the creation screens' have one.
-5. **Texts outside the translations file or in English:** the character portrait fit buttons read "Cover" / "Contain"; the gallery's delete tooltip is "Delete picture"; the archive texts, the unlinked-familiar sentence and the familiar gallery's "Subir Imagen Local" are written in the code.
-6. **Wrong wording:** the familiar's link picker says «Seleccionar un familiar para vincular a este personaje» (it lists characters); the familiar creation title says «Registro y Editor de Familiares» although it only creates.
-7. **Journal titles:** an untitled character entry stores «Entrada del …» with the date, an untitled familiar entry stores «Sin Nombre» (to be shown, not stored: remaining phase 3).
-8. **Edit-mode gaps:** the session tab, equipment quantities and journal entries change outside edit mode, unlike the rest of the sheet (a deliberate convenience during play, or to align: to decide).
-9. **Known limits already planned:** destiny shows 5 gems and stops at 5 (the server allows 10); experience only with − and +; consequences without severity; subjects as a comma box; the name box cannot be emptied while retyping; the save-status panel shows raw field names.
+1. **Familiar created in the creation form survives a cancelled character.** Decision: the dialog loses its save button and gets a confirm one that keeps the values; the familiar is created only when the character is saved.
+2. **Discard-draft check misses fields.** Decision: «Cancelar» asks before discarding any change.
+3. **Different confirmations.** Decision: consistent rules; in most cases confirmation is preferred (better safe than sorry).
+4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider.
+5. **Texts outside the translations file or in English** ("Cover" / "Contain", "Delete picture", archive texts, the unlinked-familiar sentence, "Subir Imagen Local"). Decision: every player-facing text moves to the translations file; the fit buttons read in Spanish everywhere (they may go if nothing is lost).
+6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares».
+7. **Journal titles stored.** Decision: shown, not stored; **fix before the next publish** (phase 3).
+8. **Edit-mode gaps** in the session tab, equipment quantities and journal. Decision: kept on purpose, for convenience during play.
+9. **Known limits already planned:** destiny, experience, severity, subjects as a list, the name box, the save-status panel (phase 3 and R3.5).
 
 ## Design notes
 
-Recorded decisions and ideas that are not designed in detail or built yet.
+### Non-magical characters (owner, 8–9 November 2026; R4.5)
 
-### The GM's tools: characters, institutions and skills (owner, 8 November 2026)
-
-For now the GM needs three things, each **per campaign (universe)**, and not much more:
-
-- **Characters:** the GM's view of every character in the campaign, and the GM's own (non-player) characters.
-- **Institutions:** a campaign list of institutions (academies, ministries, guilds…). Today «Institución» is free text on the adult wizard profile, and a house or organization motto is planned for after 1.0. To decide:
-  - what an institution holds (name, description, motto, crest?);
-  - whether characters pick their institution from the list, as players pick skills;
-  - how institutions relate to the houses.
-- **Skills:** the campaign's skill list. Started in C2 («Habilidades de la campaña»: rename, «Inicial», add); moving skills between categories, reordering and new categories are R4.
-
-Everything else in the GM screens of the plan (members, tables, assignment, archive and restore, GM notes) waits unless the owner brings it forward.
-
-### Non-magical characters (owner, 8 November 2026)
-
-- A non-magical character uses **the same sheet** as a magical one, with a switch saying whether the character has magical abilities.
-- **Switch off:** the sheet hides the fields related to magic. Candidates, to be confirmed field by field:
-  - «Varita / Foco mágico»;
-  - the skill categories «Habilidades y conocimientos mágicos», «Magia elemental» and «Magia esotérica» (with the knowledge levels);
-  - the «Conjuros y Pociones» tab.
-- **Hidden, not deleted:** the values stay stored, as Magia intuitiva does above age 14, and turning the switch back on shows them again.
-- **To decide:**
-  - who can change the switch (the player at creation, the GM afterwards?);
-  - whether it is chosen in the type selection or is a switch on any character, and whether it applies to students;
-  - whether a non-magical character's starting skills leave out the magic categories;
-  - whether non-magical characters can have familiars.
-- Data: one new boolean field on the character (absent meaning magical, so existing sheets need no change), with its rule in field-rules.md.
+- The **same sheet** as a magical one, with a «Mago» switch; off, the sheet hides the magic fields: «Varita / Foco mágico», the categories «Habilidades y conocimientos mágicos», «Magia elemental» and «Magia esotérica» (with knowledge levels), the «Conjuros y Pociones» tab (to confirm field by field in R4.5).
+- **Hidden, not deleted:** values stay stored and come back when the switch is turned on.
+- **Decided (9 November):**
+  - the player sets the switch at creation; afterwards only the GM changes it;
+  - it applies to any human character, chosen when starting character creation;
+  - a non-magical character starts without the magic skills; the GM can add some to a specific character («Sólo magos» skills included);
+  - non-magical characters cannot have familiars.
+- Data: one new field on the character (absent meaning magical, so existing sheets need no change), with its rule in field-rules.md.
 
 ### Recorded for later
 
-- **Full-screen image viewer** for portraits; the character and familiar galleries already enlarge a picture on tap.
+- **Full-screen image viewer** for portraits; the galleries already enlarge a picture on tap.
 - **The GM renames the campaign** name he sees (R4).
 - **Recovery and invitation links** created from the admin screens (R4); decide how long a recovery code lasts (15 minutes today).
-- **Remaining phase 3** (implementation-plan.md, R3.4):
-  - destiny gems up to 10;
-  - typeable experience;
-  - consequence severity;
-  - taught subjects as a list;
-  - generated journal titles shown, not stored;
-  - a name box that can be emptied while typing;
-  - counters near limits;
-  - images from a web address (downloaded by the server; needs its own security review).
-- **Testing on a real phone** before each release: a short checklist, since some bugs only appear with a real keyboard or without hover.
-- **A development copy of the testers' data:** staging now holds their real data (the public site uses the staging backend), so development needs a separate copy.
+- **Images from a web address** (downloaded by the server; its own security review).
+- **Testing on a real phone** before each release: a short checklist.
+- **A development copy of the testers' data:** staging now holds their real data, so development needs a separate copy (before or with R6).
+
+## Open questions
+
+Asked on 9 November 2026; answers update this document and the plan.
+
+- **Q1 — Activation.** Until the player activates a sheet and the GM confirms it, does the GM not see it at all, or see it marked as a draft? Is "active / inactive" (dead, travelling) the same status or a second one?
+- **Q2 — Deletion.** Can the GM delete any sheet directly after several confirmations, or only an archived one (today's plan)?
+- **Q3 — Administrator access.** With the GM's permission: read only, or also change? For the whole campaign or chosen sheets? Until the GM withdraws it, or for a time? Personal notes stay excluded?
+- **Q4 — Criatura mágica.** Which parts of the sheet does it have (skills, stress, spells, gallery, journal…)? Can a player own one? Can it have a familiar or be one?
+- **Q5 — Stress maxima 1–5.** Existing sheets with a maximum above 5 are capped at 5?
+- **Q6 — Branches.** The word for an institution's branch, and whether a school's branches are always called «Casas» by default.
+- **Q7 — Order.** Where the production backend (R6) goes: before the big redesigns (R4.5, R5), so testers' data leaves staging sooner, or after.
+- **Q8 — The older "GM library".** The design also has a private GM library of templates and NPCs copied into campaigns, with one-way sync (R7.5, design.md section 11). Is it part of the Biblioteca del Máster, kept separately for later, or dropped?

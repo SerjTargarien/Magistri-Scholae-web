@@ -31,14 +31,17 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
-| R4 Admin essentials | Owner runs the group without API calls or the shell | M | R3.5 |
-| R5 Data carry-over (**dropped 8 Nov 2026**) | Not needed: the old-format records are test data only | — | — |
-| R6 Accounts launch | Account-backed app live at `magistrischolae.fyi` | S | R2–R4 |
+| R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R3.5 |
+| R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
+| R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
+| R6 Accounts launch | The public site's data moves from the staging backend to its own production backend | S | R2–R4 |
 | R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R6 |
 
 **Critical path:** R0 → R3 → R4 → R6, then R7.1–R7.2 (offline) immediately after launch. R4 can overlap the end of R3. **R3 is the long pole.**
 
 **Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done.
+
+**9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. Proposed order: the rest of R3 → R4 → R4.5 → R5 → R6 → R7; where R6 goes is open question Q7 (product-design.md). Since 8 November the public site already runs the account app on the staging backend (testers' data); R6 gives that data its own production backend.
 
 ## Feature checklist
 
@@ -222,9 +225,23 @@ Each step below is its own pull request. It keeps the app working under the brow
       - **C1** (**done**): the server refuses own skills from players (create, rename, move, remove: `gm_only_skill`) and stops offering those controls; players get «+ Añadir de la lista» (catalogue skills they lack, applicable by age) in the form and on the sheet, and may remove catalogue skills; the GM keeps the typed box; the per-device preset is removed; the campaign list tells the viewer their role;
       - **C2** (**done**): a GM-only catalogue write endpoint (validated, raises the revision, archive never delete) with an «inicial» flag per skill (all 48 on to begin with); new characters start from the flagged skills; a GM-only «Habilidades de la campaña» screen in settings (add, rename, tick «inicial»), in the GM's interface language only (a name in either language passes; automatic translation may come later); a skill the GM types on a sheet or in the form joins the campaign list without «inicial» (others pick it with +). The list belongs to the campaign, which is the GM's universe (decision 9), so both tables share it. Moving between categories, reordering, archiving from the screen and new categories stay in R4.
   - **Later, its own design step:** clicking any portrait or gallery image that does nothing today opens a floating window with the image at full size (owner: important).
+  - **Remaining, in order** (owner's target design, 9 November 2026; one pull request each):
+    1. **Journal titles shown, not stored** (character «Entrada del …», familiar «Sin Nombre»): before the next publish (owner).
+    2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity.
+    3. **Lists and limits:** subjects taught as a list; a name box that can be emptied while retyping; counters near limits.
+    4. **Polish pass** (product-design.md, Known inconsistencies):
+       - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved;
+       - «Cancelar» on the form asks before discarding any change;
+       - consistent removal confirmations (confirm in most cases);
+       - zoom slider on the familiar sheet's crop dialog;
+       - every player-facing text in the translations file; portrait fit buttons in Spanish everywhere;
+       - wording: «Seleccionar un personaje para vincular a este familiar», «Registro de Familiares»;
+       - familiar sheet: header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»; the journal tab becomes «Notas del Familiar» with suggestions that fit a familiar.
+    5. **Images from a web address,** downloaded by the server (its own security review).
 - **R3.5 App shell.**
-  - Login, invitation registration, reset-code redemption, campaign selection, personal notes with promotion, and GM notes, in the academy and classic styles.
-  - Lists show and filter by each character's **table** (decision 9), so the two stories stay easy to tell apart.
+  - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the academy and classic styles.
+  - The save-status panel speaks plainly, without field names.
+  - Lists show and filter by each character's **partida** (the table, decision 9), so the two stories stay easy to tell apart.
   - Text goes through `localization.ts`. No `window.confirm`.
 - **R3.6 Retire the old app.**
   - Remove the code of local mode (it stops working at the R3.4 switch), the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
@@ -242,9 +259,9 @@ Each step below is its own pull request. It keeps the app working under the brow
 
 **Rollback:** revert the step's pull request. The live site is unaffected until R6.
 
-## R4 — Admin essentials (M)
+## R4 — Admin essentials and roles (M–L)
 
-**Goal:** the owner runs the group without API calls or the Django shell, and the GM manages his campaign through clear, visual screens.
+**Goal:** the owner runs the group without API calls or the Django shell, and the GM manages his campaign through clear, visual screens. Extended on 9 November 2026 with the roles of the owner's target design (product-design.md, Roles).
 
 **Who does what (decision 10):** the owner is the site administrator and a player at one table, not a GM. One GM runs both tables, with 7–12 players in total. The GM prefers simple, visual screens, and the owner handles setup when a screen is unclear. Administrator tasks therefore must never require the GM role, which would expose every sheet to the owner as a player.
 
@@ -262,8 +279,15 @@ Each step below is its own pull request. It keeps the app working under the brow
   - Enable and disable accounts.
   - Manage members and roles.
 - **GM screens:** members, table names, a sheet's table, assignment, archive and restore, and GM notes, in the app's academy and classic styles with large, clearly labelled controls. Lists must stay readable with 7–12 players.
-- **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days.
-- **Skill catalogue editor (GM, owner decision 8 November 2026):** add and rename categories, mark a category as esoteric, add default skills, move skills between categories and reorder them. Changes apply to every character in the campaign ([field-rules.md](field-rules.md)).
+- **Permanent delete (GM, owner decision 8 November 2026):** only for an archived character or familiar, after a confirmation, to free space. A small server endpoint plus its button; backups keep the deleted data for their 30 days. **9 November:** several confirmation steps; whether an unarchived sheet can be deleted directly is open question Q2.
+- **Skill catalogue editor:** moved to R5 (the Biblioteca del Máster).
+- **Roles of the target design (owner, 9 November 2026):**
+  - **Sheet activation:** the player activates a sheet once and the GM confirms it; what the GM sees before that is open question Q1. A server status on each sheet, enforced in the projection, with its migration (existing sheets count as active).
+  - **Active / inactive** (dead, travelling…): the GM marks it; inactive sheets leave the grimorio without being archived.
+  - **The GM creates sheets and assigns them to players** (the assignment the plan already lists, from the sheet and the creation form).
+  - **The GM creates campaigns** and sees the campaign chooser; players join by invitation. Today only the administrator creates campaigns.
+  - **The GM renames the campaign** he sees.
+  - **Administrator access to campaign data with the GM's explicit permission:** a privacy change (design.md, permissions), designed first; scope is open question Q3. Personal notes stay excluded.
 
 The visibility editor and read-only sharing wait until R7. That is safe because the default audience is `assigned`: each player sees only their own sheets, the GM sees all of them, and nothing is hidden from an assigned player. The UI therefore promises no field privacy it cannot show ([design.md](design.md) section 16).
 
@@ -271,9 +295,39 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 **Rollback:** revert.
 
-## R5 — Data carry-over (dropped)
+## R4.5 — Sheet types (M; added 9 November 2026)
 
-**Dropped on 8 November 2026.** The owner confirmed that the only records in the old local format are their own test data, so nothing is carried over and no importer for the old backup format is built. A test character worth keeping is quicker to retype on staging. Separate character and familiar export/import for accounts remains planned (R7.4).
+**Goal:** the sheet types of the owner's target design (product-design.md, sections 4–6 and Non-magical characters), without losing any stored data.
+
+**Work** (designed in detail in product-design.md first, then one pull request per step):
+
+1. **Data:** the character gets an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia», replacing `characterType` (`student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago). A migration with a backup first; field-rules.md and the registry get the new rules. Age up to 1,000,000 or «desconocida»; stress maxima 1–5 (open question Q5).
+2. **Type selection and creation form:** «Menor», «Adulto», «Criatura mágica», «Familiar»; the switches; «Concepto» moves to «Aspectos y Posesiones»; «Identificación» redesigned for each type.
+3. **Non-magical characters:** the «Mago» switch hides the magic fields (hidden, not deleted); the player sets it at creation and only the GM changes it afterwards; no magic starting skills (the GM may add some by hand); no familiars.
+4. **Criatura mágica:** its own sheet, between a familiar and an adult; contents are open question Q4. A new kind of sheet on the server (like characters and familiars), with its own rules and permissions.
+
+**Risks:** every screen that reads `characterType` (list filters, cards, forms, sheet, Magia intuitiva rule, banner themes) changes at once; the demo data and tests move with it.
+
+**Exit criteria:** existing sheets show exactly as before under their new type; each type and switch combination can be created, edited and reloaded on desktop and phone.
+
+## R5 — Biblioteca del Máster (L; added 9 November 2026)
+
+The number of the dropped data carry-over (old R5, not needed: the old-format records were test data only) is reused. Separate character and familiar export/import for accounts remains planned (R7.4).
+
+**Goal:** the GM's first screen after opening a campaign, with three sections: characters, institutions and skills (product-design.md, section 11). The owner flagged it as much more work than a simple step: it adds new kinds of campaign data (institutions, branches, schools and their year groups, subjects, clubs and classes) and turns several free-text sheet fields into links, so it is designed and built in steps.
+
+**Steps** (one or more pull requests each; server steps back up the testers' data first):
+
+0. **Design** in product-design.md: every screen of the Biblioteca; the data model of institutions, branches and schools; how sheets link to them (house, «Curso Académico», «Institución», subjects taught, clubs) with free text kept as a fallback; answers to Q6 and Q8.
+1. **The library shell:** the GM's first screen per campaign, opening the grimorio; the campaign skills move here from «Ajustes».
+2. **Habilidades:** new categories and renaming, reordering categories and skills, «Sólo magos» per skill (the skill catalogue editor that R4 used to list).
+3. **Personajes:** the GM's view of every character and his own, the assigned player at a glance, filters and sorting by any stored value.
+4. **Instituciones and branches:** campaign data with crest, colours, description and members; free characters; today's five houses become branches of Magistri Scholae, keeping their crests and data; the sheet's house becomes a link; the word «Casa» can be renamed per school; the GM creates any number of houses.
+5. **Schools:** «cursos» (promotion each year, repeating), «asignaturas» (troncal / optativa, teachers, linked skill), «clubes», «clases»; links from sheets (year, subjects taught, clubs).
+
+**Risks:** data migrations of live testers' data (backups and restore drills before each); keeping houses' artwork and filters working; permissions for the new data (GM-owned, readable by players where it shows on their sheets).
+
+**Exit criteria (per step):** the step works on staging with the testers' data intact; no sheet loses a value; the GM's existing workflow keeps working.
 
 ## R6 — Accounts launch (S)
 
@@ -281,6 +335,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 **Work:**
 
+- Since 8 November 2026 the public site already serves the account app on the staging backend (owner decision): this release gives it its own production backend and moves the testers' data there from the latest staging backup, then points the public site's `/api` at it (deploy/README.md section 9). Staging then gets a development copy of that data.
 - Run the production stack on the VPS, with its database and media separate from staging.
 - Generate production secrets and bootstrap the administrator.
 - Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him).
@@ -319,7 +374,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
    - Scope is decided at the start of this step. Starting suggestion: sheet fields, journal entries and personal notes offline; administration, invitations, sharing, bonds, note promotion and new characters online only.
 3. The visibility editor (GM defaults and overrides, player restrictions) and read-only sharing.
 4. Separate character and familiar export/import for accounts (the owner's decision).
-5. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11).
+5. The GM library, independent copies and selective one-way sync ([design.md](design.md) section 11). How it relates to the Biblioteca del Máster (R5) is open question Q8.
 6. Clean-up:
    - Remove unused dependencies (L1).
    - ~~Fix the skill-preset key (L3)~~: done in R3.2.
@@ -346,6 +401,7 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 | 11 | What happens to the old local mode? | R3 | **Decided 8 November 2026:** retired in R3.6, with no converter and no migration. The screens use the server's model directly (no translation layer). The live site stays on its current release until launch. |
 | 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** first, every screen kept its look unless the owner approved before-and-after screenshots (R3.1 screenshot tests). **Relaxed the same day,** with the transition nearly complete: no aesthetic changes without a reason; any step that has a reason for a visible change may make it. |
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
+| 14 | The owner's target design (9 November 2026) | R3.4–R5 | **Recorded 9 November 2026** in product-design.md: a polish pass ends R3.4; R4 adds sheet activation, active/inactive sheets, GM deletion and assignment, GM-created campaigns and administrator access with the GM's permission; R4.5 adds sheet types and non-magical characters; R5 is the Biblioteca del Máster. Open questions Q1–Q8 in product-design.md. |
 
 ## Former milestones
 

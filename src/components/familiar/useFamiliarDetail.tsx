@@ -9,6 +9,7 @@
 // Like the character sheet (owner decision, 8 November 2026): one edit mode,
 // «Editar» / «Finalizar Edición», each field saved as it is typed.
 import React, { useState, useRef } from "react";
+import { useAskFirst } from "../ConfirmDialog";
 import { TRANSLATIONS } from "../../localization";
 import type { FamiliarDetailProps } from "../../account/screens";
 import type { CharacterSheet, FamiliarSheet } from "../../model/sheet";
@@ -19,16 +20,18 @@ import { getCroppedImg, compressImage } from "../../utils/imageCompressor";
 const ARCHIVE_TEXT = {
   es: {
     button: "Archivar",
-    title: "Archivar Familiar",
-    prompt: "¿Deseas archivar la ficha de este familiar? La ficha no se elimina: se conservan sus notas y su galería.",
-    confirm: "Sí, Archivar Familiar",
+    title: "Archivar familiar",
+    prompt: "¿Seguro que quieres archivar a este familiar? Dejará de aparecer en la campaña; su ficha, notas y galería se conservan.",
+    checkbox: "Entiendo que el familiar dejará de estar visible en la campaña.",
+    confirm: "Archivar",
     bondError: "No se pudo cambiar el vínculo.",
   },
   en: {
     button: "Archive",
-    title: "Archive Familiar",
-    prompt: "Do you want to archive this familiar's sheet? The sheet is not deleted: its notes and gallery are kept.",
-    confirm: "Yes, Archive Familiar",
+    title: "Archive familiar",
+    prompt: "Are you sure you want to archive this familiar? It will no longer appear in the campaign; its sheet, notes and gallery are kept.",
+    checkbox: "I understand the familiar will no longer be visible in the campaign.",
+    confirm: "Archive",
     bondError: "Could not change the bond.",
   },
 };
@@ -46,6 +49,8 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     onShowToast,
   } = screenProps;
   const t = TRANSLATIONS[lang];
+  // Removing anything from a saved sheet asks first (product-design.md, Confirmations).
+  const asking = useAskFirst();
   const archiveText = ARCHIVE_TEXT[lang === "en" ? "en" : "es"];
   const familiar = store.fields as FamiliarSheet;
   const familiarId = store.sheet.id;
@@ -77,7 +82,7 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const [isQuickEditing, setIsQuickEditing] = useState(false);
   const edit = (path: string, value: unknown) => store.edit(path, value);
   const setImageFit = (fit: "cover" | "contain") => edit("imageFit", fit);
-  const removeImage = () => edit("imagen", "");
+  const removeImage = () => asking.ask(t.confirmRemovePortrait, () => edit("imagen", ""), t.remove);
 
   // Notes state
   const [newNoteTitle, setNewNoteTitle] = useState("");
@@ -190,9 +195,8 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     setEditingNoteId(null);
   };
 
-  const handleDeleteNote = async (noteId: string) => {
-    store.edit(`notasList/${noteId}`, null);
-  };
+  const handleDeleteNote = (noteId: string) =>
+    asking.ask(t.confirmDeleteNote, () => store.edit(`notasList/${noteId}`, null));
 
   // Gallery management
   const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,9 +228,8 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     }
   };
 
-  const handleDeleteGalleryImage = async (entryId: string) => {
-    store.edit(`galleryImages/${entryId}`, null);
-  };
+  const handleDeleteGalleryImage = (entryId: string) =>
+    asking.ask(t.confirmDeleteGalleryImage, () => store.edit(`galleryImages/${entryId}`, null));
 
   const handleBondMaster = async (characterId: string | null) => {
     try {
@@ -251,6 +254,7 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     onShowToast,
     t,
     archiveText,
+    asking,
     canEditName,
     canEditSpecies,
     canEditDescription,

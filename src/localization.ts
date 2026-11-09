@@ -222,6 +222,14 @@ export interface TranslationDict {
   emptyNotes: string;
   addNote: string;
   confirmDeleteNote: string;
+  remove: string;
+  confirmDeleteAspect: string;
+  confirmDeleteComplication: string;
+  confirmDeleteCustomField: string;
+  confirmRemoveConsequence: string;
+  confirmRemoveSkill: string;
+  confirmRemoveSubject: string;
+  confirmRemovePortrait: string;
   placeholderNoteTitle: string;
   placeholderNoteContent: string;
   labelNotesChronicleTitle: string;
@@ -616,6 +624,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     emptyNotes: "Bitácora vacía.",
     addNote: "Añadir nota",
     confirmDeleteNote: "¿Eliminar esta nota?",
+    remove: "Quitar",
+    confirmDeleteAspect: "¿Eliminar este aspecto?",
+    confirmDeleteComplication: "¿Eliminar esta complicación?",
+    confirmDeleteCustomField: "¿Eliminar este campo?",
+    confirmRemoveConsequence: "¿Eliminar esta consecuencia?",
+    confirmRemoveSkill: "¿Quitar esta habilidad de la ficha?",
+    confirmRemoveSubject: "¿Quitar esta asignatura?",
+    confirmRemovePortrait: "¿Quitar el retrato?",
     placeholderNoteTitle: "Título (opcional)",
     placeholderNoteContent: "Texto de la nota",
     labelNotesChronicleTitle: "Bitácora Celestial",
@@ -1011,6 +1027,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     emptyNotes: "Empty journal.",
     addNote: "Add note",
     confirmDeleteNote: "Delete this note?",
+    remove: "Remove",
+    confirmDeleteAspect: "Delete this aspect?",
+    confirmDeleteComplication: "Delete this complication?",
+    confirmDeleteCustomField: "Delete this field?",
+    confirmRemoveConsequence: "Delete this consequence?",
+    confirmRemoveSkill: "Remove this skill from the sheet?",
+    confirmRemoveSubject: "Remove this subject?",
+    confirmRemovePortrait: "Remove the portrait?",
     placeholderNoteTitle: "Title (optional)",
     placeholderNoteContent: "Note text",
     labelNotesChronicleTitle: "Celestial Journal",

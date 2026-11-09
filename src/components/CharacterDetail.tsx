@@ -7,6 +7,7 @@ import React from "react";
 import { FiligreeCorner } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import { CropDialog } from "./CropDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { imageSrc } from "../remote/assets";
 import type { FamiliarSheet } from "../model/sheet";
 import type { CharacterDetailProps } from "../account/screens";
@@ -21,7 +22,6 @@ import {
   Image as ImageIcon,
   Plus,
   Activity,
-  Trash,
   X,
   Check,
   PawPrint,
@@ -38,7 +38,6 @@ import { NotesTab } from "./sheet/NotesTab";
 import { GalleryTab } from "./sheet/GalleryTab";
 import { RequiredTextInput } from "./RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "./LimitHint";
-import { Check as CheckBox } from "./Toggle";
 import { Segmented } from "./Segmented";
 import { Picker, pickerTexts } from "./Picker";
 
@@ -53,11 +52,11 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
     character, familiars, onBack, onArchive, onSelectFamiliar, onOpenCreateFamiliar, t, archiveText, characterType,
     theme, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
     setLightboxImage, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, deleteStudentUnderstood,
-    setDeleteStudentUnderstood, minorDeleteTarget, setMinorDeleteTarget, isSelectFamiliarModalOpen,
+    setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, asking, 
+       isSelectFamiliarModalOpen,
     setIsSelectFamiliarModalOpen, bondId, linkedFamiliar, bondFamiliar, handleAvatarChange, onCropComplete,
-    handleConfirmCrop, setAvatarFit, removeAvatar, confirmRemoveSpell, confirmRemovePotion, galleryImages,
-    confirmRemoveGalleryImage, confirmRemoveClub, confirmRemoveInventoryItem, confirmRemoveNote,
+    handleConfirmCrop, setAvatarFit, removeAvatar,   galleryImages,
+       
     handleDeleteCharacterClick, confirmDeleteCharacter,
   } = ctx;
   const casa = character.casa ?? "";
@@ -536,98 +535,31 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         </div>
       )}
 
-      {/* Student Delete Double-Check Modal */}
+      {/* Archiving (GM only): the shared dialog, with its tick box */}
       {isDeleteStudentOpen && (
-        <div id="modal-delete-student" className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-rose-500/30 bg-[#0e0a16] shadow-2xl space-y-4">
-            <h3 className="font-magic text-base text-rose-400 font-bold border-b border-rose-500/10 pb-2 flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-rose-400" />
-              {archiveText.title}
-            </h3>
-            <p className="text-neutral-300 text-sm">
-              {archiveText.text}
-            </p>
-
-            {/* Double check checkbox */}
-            <div className="bg-neutral-950/40 p-1.5 rounded-lg border border-neutral-900 mt-2">
-              <CheckBox id="checkbox-confirm-student-delete" checked={deleteStudentUnderstood} onChange={setDeleteStudentUnderstood}>
-                <span className="text-xs text-neutral-300 leading-relaxed">{archiveText.checkbox}</span>
-              </CheckBox>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                id="btn-confirm-delete-student-cancel"
-                onClick={() => setIsDeleteStudentOpen(false)}
-                className="px-4 py-2 border border-neutral-700/60 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-              <button
-                id="btn-confirm-delete-student-action"
-                disabled={!deleteStudentUnderstood}
-                onClick={confirmDeleteCharacter}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${deleteStudentUnderstood
-                    ? "bg-rose-600 text-white hover:bg-rose-500 shadow-md shadow-rose-600/25"
-                    : "bg-neutral-900 text-neutral-600 border border-neutral-950 cursor-not-allowed"
-                  }`}
-              >
-                <Trash2 className="w-4 h-4" />
-                {archiveText.confirm}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          id="archive"
+          title={archiveText.title}
+          message={archiveText.text}
+          understood={archiveText.checkbox}
+          confirmLabel={archiveText.confirm}
+          cancelLabel={t.cancel}
+          onConfirm={confirmDeleteCharacter}
+          onCancel={() => setIsDeleteStudentOpen(false)}
+        />
       )}
 
-      {/* Minor Deletions Modal Overlay */}
-      {minorDeleteTarget && (
-        <div id="modal-minor-delete" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="glass-panel max-w-sm w-full p-5 rounded-xl border border-violet-500/20 bg-[#0c0814] shadow-xl space-y-4">
-            <h4 className="font-sans text-xs font-mono text-neutral-400 uppercase tracking-widest flex items-center gap-1.5 border-b border-violet-500/10 pb-2">
-              <Trash className="w-3.5 h-3.5 text-rose-400" />
-              {t.confirmDeleteTitle}
-            </h4>
-            <p className="text-neutral-200 text-xs">
-              {minorDeleteTarget.type === "spell" && t.confirmDeleteSpell}
-              {minorDeleteTarget.type === "potion" && t.confirmDeletePotion}
-              {minorDeleteTarget.type === "gallery" && t.confirmDeleteGalleryImage}
-              {minorDeleteTarget.type === "club" && t.confirmDeleteClub}
-              {minorDeleteTarget.type === "item" && t.confirmDeleteItem}
-              {minorDeleteTarget.type === "note" && t.confirmDeleteNote}
-            </p>
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                id="btn-minor-delete-cancel"
-                onClick={() => setMinorDeleteTarget(null)}
-                className="px-3 py-1.5 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-md text-[11px] font-bold transition-all cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-              <button
-                id="btn-minor-delete-confirm"
-                onClick={() => {
-                  if (minorDeleteTarget.type === "spell") {
-                    confirmRemoveSpell(minorDeleteTarget.id);
-                  } else if (minorDeleteTarget.type === "potion") {
-                    confirmRemovePotion(minorDeleteTarget.id);
-                  } else if (minorDeleteTarget.type === "gallery") {
-                    confirmRemoveGalleryImage(minorDeleteTarget.id);
-                  } else if (minorDeleteTarget.type === "club") {
-                    confirmRemoveClub(minorDeleteTarget.id);
-                  } else if (minorDeleteTarget.type === "item") {
-                    confirmRemoveInventoryItem(minorDeleteTarget.id);
-                  } else if (minorDeleteTarget.type === "note") {
-                    confirmRemoveNote(minorDeleteTarget.id);
-                  }
-                }}
-                className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-400 hover:text-rose-200 rounded-md text-[11px] font-bold transition-all cursor-pointer border border-rose-500/10"
-              >
-                {t.delete}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Removing anything from the sheet asks first */}
+      {asking.request && (
+        <ConfirmDialog
+          id="remove"
+          title={t.confirmDeleteTitle}
+          message={asking.request.message}
+          confirmLabel={asking.request.confirmLabel ?? t.delete}
+          cancelLabel={t.cancel}
+          onConfirm={() => { asking.request?.run(); asking.close(); }}
+          onCancel={asking.close}
+        />
       )}
 
       {/* Dynamic Interactive Crop Wizard Modal */}

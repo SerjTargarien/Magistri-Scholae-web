@@ -9,6 +9,7 @@ import type { CharacterSheet } from "../model/sheet";
 import { imageSrc } from "../remote/assets";
 import { FiligreeCorner } from "./AcademyOrnaments";
 import { CropDialog } from "./CropDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   ArrowLeft,
   Edit,
@@ -37,7 +38,7 @@ export type { FamiliarDetailProps };
 export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
   const ctx = useFamiliarDetail(screenProps);
   const {
-    store, familiar, notes, gallery, characters, onBack, onArchive, t, archiveText,
+    store, familiar, notes, gallery, characters, onBack, onArchive, t, archiveText, asking,
     canEditProfile, canAddNote, canAddGalleryImage, canBond, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing,
     lightboxImage, setLightboxImage,
     cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, setCroppedAreaPixels,
@@ -251,37 +252,31 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         />
       )}
 
-      {/* Archive Confirmation Modal (no window.confirm) */}
+      {/* Archiving (GM only): the shared dialog, with its tick box, as a character's */}
       {isDeleteOpen && onArchive && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border-2 border-rose-600/40 shadow-2xl space-y-4">
-            <h3 className="font-magic text-base font-bold text-rose-400 uppercase tracking-wide">
-              {archiveText.title}
-            </h3>
-            <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-              {archiveText.prompt}
-            </p>
-            <div className="flex justify-end gap-3 pt-3 border-t border-neutral-800">
-              <button
-                type="button"
-                onClick={() => setIsDeleteOpen(false)}
-                className="px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl text-xs font-mono uppercase cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsDeleteOpen(false);
-                  onArchive();
-                }}
-                className="px-4 py-2 bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold rounded-xl text-xs font-mono uppercase cursor-pointer"
-              >
-                {archiveText.confirm}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          id="archive"
+          title={archiveText.title}
+          message={archiveText.prompt}
+          understood={archiveText.checkbox}
+          confirmLabel={archiveText.confirm}
+          cancelLabel={t.cancel}
+          onConfirm={() => { setIsDeleteOpen(false); onArchive(); }}
+          onCancel={() => setIsDeleteOpen(false)}
+        />
+      )}
+
+      {/* Removing anything from the sheet asks first */}
+      {asking.request && (
+        <ConfirmDialog
+          id="remove"
+          title={t.confirmDeleteTitle}
+          message={asking.request.message}
+          confirmLabel={asking.request.confirmLabel ?? t.delete}
+          cancelLabel={t.cancel}
+          onConfirm={() => { asking.request?.run(); asking.close(); }}
+          onCancel={asking.close}
+        />
       )}
 
       {/* Avatar Cropper Modal */}

@@ -17,6 +17,7 @@ import { IMAGE_FROM_URL } from "./imageFromUrl";
 import { limitAttrs } from "./LimitHint";
 import { Segmented } from "./Segmented";
 import { Slider } from "./Slider";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   Save,
   X,
@@ -63,6 +64,17 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  // «Volver» asks before discarding typed values, as the creation form's «Cancelar» does.
+  const [askDiscard, setAskDiscard] = useState(false);
+  const isDirty = () =>
+    nombre !== (initial?.fields.nombre ?? "") ||
+    especie !== (initial?.fields.especie ?? "") ||
+    descripcion !== (initial?.fields.descripcion ?? "") ||
+    imagen !== (initial?.image ?? "") ||
+    imageFit !== (initial?.fields.imageFit ?? "cover") ||
+    pastedUrl.trim() !== "";
+  const handleBack = () => (isDirty() ? setAskDiscard(true) : onBack());
 
   const resetForm = () => {
     setNombre("");
@@ -200,7 +212,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
           <button
             id="btn-familiar-back"
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-1.5 px-4 py-2 border border-neutral-700 bg-neutral-950/80 hover:bg-neutral-900 rounded-xl text-xs font-semibold font-mono text-neutral-300 transition-all hover:border-neutral-500 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -506,6 +518,18 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
             </div>
           </div>
         </div>
+      )}
+      {askDiscard && (
+        <ConfirmDialog
+          id="discard-familiar"
+          kind="discard"
+          title={t.discardDraftTitle}
+          message={t.draftDiscardConfirm}
+          confirmLabel={t.discardDraftConfirmBtn}
+          cancelLabel={t.cancel}
+          onConfirm={() => { setAskDiscard(false); onBack(); }}
+          onCancel={() => setAskDiscard(false)}
+        />
       )}
     </div>
   );

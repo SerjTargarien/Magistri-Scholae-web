@@ -5,6 +5,7 @@
 
 import React from "react";
 import { CropDialog } from "./CropDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   Save,
   Sparkles,
@@ -174,43 +175,18 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
         </button>
       </div>
 
-      {/* Discard Draft Confirmation Modal (replaces window.confirm) */}
+      {/* Discarding the draft: the shared dialog */}
       {showDiscardModal && (
-        <div
-          id="modal-discard-draft"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
-        >
-          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-amber-500/30 bg-[#0e0a16] shadow-2xl space-y-4">
-            <h3 className="font-magic text-base text-amber-400 font-bold border-b border-amber-500/10 pb-2 flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-amber-400" />
-              {t.discardDraftTitle}
-            </h3>
-            <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed">
-              {t.draftDiscardConfirm}
-            </p>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                id="btn-discard-draft-cancel"
-                type="button"
-                onClick={() => setShowDiscardModal(false)}
-                className="px-4 py-2 border border-neutral-700 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-              <button
-                id="btn-discard-draft-confirm"
-                type="button"
-                onClick={() => {
-                  setShowDiscardModal(false);
-                  onCancel();
-                }}
-                className="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {t.discardDraftConfirmBtn}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          id="discard-draft"
+          kind="discard"
+          title={t.discardDraftTitle}
+          message={t.draftDiscardConfirm}
+          confirmLabel={t.discardDraftConfirmBtn}
+          cancelLabel={t.cancel}
+          onConfirm={() => { setShowDiscardModal(false); onCancel(); }}
+          onCancel={() => setShowDiscardModal(false)}
+        />
       )}
 
       {/* Full cropped portrait modal display */}

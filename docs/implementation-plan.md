@@ -265,7 +265,7 @@ Each step below is its own pull request. It keeps the app working under the brow
     4. **Polish pass** (product-design.md, Known inconsistencies):
        - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved (**done 9 November 2026**);
        - «Cancelar» on the form asks before discarding any change (**done 9 November 2026**);
-       - consistent removal confirmations (confirm in most cases);
+       - consistent removal confirmations (confirm in most cases) (**done 9 November 2026**: product-design.md, Confirmations);
        - zoom slider on the familiar sheet's crop dialog (**done 9 November 2026**);
        - every player-facing text in the translations file; portrait fit buttons in Spanish everywhere (**done 9 November 2026**: «Recortar» / «Completa»);
        - wording: «Seleccionar un personaje para vincular a este familiar», «Registro de Familiares»;

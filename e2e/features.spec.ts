@@ -182,7 +182,14 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   // Players pick from the campaign's list; only the GM types new skills.
   await expect(page.locator("#input-new-skill-name-fisicas")).toHaveCount(0);
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0); // every physical skill is already there
-  await page.locator("#skill-row-Sigilo button").first().click(); // remove it
+  // Removing from a saved sheet asks first; «Cancelar» keeps it.
+  await page.locator("#skill-row-Sigilo button").first().click();
+  await expect(page.locator("#modal-remove")).toContainText("¿Quitar esta habilidad de la ficha?");
+  await page.locator("#btn-remove-cancel").click();
+  await expect(page.locator("#skill-row-Sigilo")).toBeVisible();
+  await page.locator("#skill-row-Sigilo button").first().click();
+  await page.locator("#btn-remove-confirm").click(); // removed
+  await expect(page.locator("#skill-row-Sigilo")).toHaveCount(0);
   await page.locator("#btn-open-skill-list-fisicas").click();
   await page.locator("#skill-list-fisicas-item-sigilo").click(); // and pick it again
   await page.locator("#skill-list-fisicas-done").click();
@@ -390,6 +397,7 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   await page.locator("#sheet-subjects-add").click();
   const pociones = stored!.adultWizardProfile.teachingSubjects[1].id;
   await page.locator(`#sheet-subjects-remove-${pociones}`).click();
+  await page.locator("#btn-remove-confirm").click();
   await setEditMode(page, false);
   await expect(page.locator("#sheet-subjects-read")).toContainText("Alquimia");
   await reloadApp(page);
@@ -419,6 +427,10 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   await page.locator("#familiar-tab-galeria").click();
   await page.locator("#input-familiar-gallery-picker").setInputFiles(pngFile("gallery.png"));
   await expect(page.locator("#btn-familiar-del-gal-pic-0")).toBeVisible();
+  await page.locator("#btn-familiar-del-gal-pic-0").click(); // asks first; «Cancelar» keeps it
+  await expect(page.locator("#modal-remove")).toContainText("¿Eliminar esta imagen?");
+  await page.locator("#btn-remove-cancel").click();
+  await expect(page.locator("#btn-familiar-del-gal-pic-0")).toBeVisible();
   await page.locator("#btn-familiar-edit").click(); // «Finalizar Edición»
   await expect(page.locator("#input-familiar-gallery-picker")).toHaveCount(0);
   await expect(page.locator("#btn-familiar-del-gal-pic-0")).toHaveCount(0);
@@ -432,7 +444,10 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   await viewAs(page, "gm");
   await openFamiliar(page, "Smoke Toad");
   await page.locator("#btn-familiar-delete").click();
-  await page.getByRole("button", { name: "Sí, Archivar Familiar" }).click();
+  // The same archive dialog as a character's: the button waits for the tick box.
+  await expect(page.locator("#btn-archive-confirm")).toBeDisabled();
+  await page.locator("#check-archive").click();
+  await page.locator("#btn-archive-confirm").click();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await expect(familiarCard(page, "Smoke Toad")).toHaveCount(0);
   await reloadApp(page);
@@ -460,12 +475,34 @@ test("bonds: link from the character, navigate both ways; archiving the characte
   await viewAs(page, "gm");
   await openCharacter(page, "Bonded Student");
   await page.locator("#btn-detail-delete").click();
-  await page.locator("#checkbox-confirm-student-delete").click(); // a check, drawn by the app
-  await expect(page.locator("#checkbox-confirm-student-delete")).toHaveAttribute("aria-checked", "true");
-  await page.locator("#btn-confirm-delete-student-action").click();
+  await page.locator("#check-archive").click(); // a check, drawn by the app
+  await expect(page.locator("#check-archive")).toHaveAttribute("aria-checked", "true");
+  await page.locator("#btn-archive-confirm").click();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await expect(characterCard(page, "Bonded Student")).toHaveCount(0);
   await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
+});
+
+test("the familiar editor's «Volver» asks before discarding typed values", async ({ page }) => {
+  // «Volver» goes back to the choice of sheet type.
+  const openEditor = async () => {
+    await page.locator("#type-select-familiar-editor").click();
+    await expect(page.locator("#input-familiar-nombre")).toBeVisible();
+  };
+  await page.locator("#btn-add-character-header").click();
+  await openEditor(); // nothing typed: it leaves at once
+  await page.locator("#btn-familiar-back").click();
+  await expect(page.locator("#modal-discard-familiar")).toHaveCount(0);
+  await expect(page.locator("#input-familiar-nombre")).toHaveCount(0);
+
+  await openEditor();
+  await page.locator("#input-familiar-especie").fill("Ferret");
+  await page.locator("#btn-familiar-back").click();
+  await page.locator("#btn-discard-familiar-cancel").click(); // keeps editing
+  await expect(page.locator("#input-familiar-especie")).toHaveValue("Ferret");
+  await page.locator("#btn-familiar-back").click();
+  await page.locator("#btn-discard-familiar-confirm").click();
+  await expect(page.locator("#input-familiar-nombre")).toHaveCount(0);
 });
 
 test("«Cancelar» on the creation form asks before discarding any change", async ({ page }) => {

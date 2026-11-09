@@ -191,6 +191,17 @@ Measured on 9 November 2026 after the wording pass (rule 1), on every screen at 
 - **D2. Decided:** the bonded character's concept on the familiar sheet keeps two lines and «…», a summary like the cards.
 - **D3. Decided:** no text smaller than 9 px (rule 9).
 
+## Confirmations
+
+Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases confirmation is preferred»). One dialog for all of them, `src/components/ConfirmDialog.tsx`: a title, the question, «Cancelar» and the action button; Escape or a tap outside cancels.
+
+1. **A saved sheet asks before removing anything:** character and familiar sheets, in edit mode and in the session tab (aspects, complications, custom fields, skills, subjects, temporary aspects, consequences, spells, potions, clubs, equipment, notes, gallery images, portraits). The question names the kind of thing («¿Eliminar este aspecto?»); the button says «Eliminar», or «Quitar» for a skill, subject or portrait.
+2. **The creation form does not ask** when removing inside it: nothing is saved yet, and «Cancelar» already asks before discarding the draft.
+3. **Discarding typed values asks:** the creation form's «Cancelar» and the familiar editor's «Volver», only when something changed.
+4. **Archiving** a character or a familiar uses the same dialog with a tick box («Entiendo que…»); the button works only once it is ticked.
+5. **Unlinking** a familiar from its character does not ask (owner): relinking is easy.
+6. **Changing a value is not a removal** and never asks (a knowledge level, a severity, «Sin conocimiento»).
+
 ## Screens
 
 ### 1. App frame
@@ -333,7 +344,7 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 
 1. **Familiar created in the creation form survives a cancelled character.** Decision: the dialog loses its save button and gets a confirm one that keeps the values; the familiar is created only when the character is saved. **Done 9 November 2026.**
 2. **Discard-draft check misses fields.** Decision: «Cancelar» asks before discarding any change. **Done 9 November 2026.**
-3. **Different confirmations.** Decision: consistent rules; in most cases confirmation is preferred (better safe than sorry).
+3. **Different confirmations.** Decision: consistent rules; in most cases confirmation is preferred (better safe than sorry). **Done 9 November 2026:** [Confirmations](#confirmations).
 4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider. **Done 9 November 2026:** one crop dialog everywhere.
 5. **Texts outside the translations file or in English** ("Cover" / "Contain", "Delete picture", archive texts, the unlinked-familiar sentence, "Subir Imagen Local"). Decision: every player-facing text moves to the translations file; the fit buttons read in Spanish everywhere (they may go if nothing is lost).
 6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares». **Done 9 November 2026** with shorter wording (rule 1 of «Text that does not fit»): the picker «Vincular personaje» says «Elige un personaje.»; «Registro de Familiares».

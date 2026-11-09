@@ -8,6 +8,7 @@
 // path edit through store.edit, list entries are addressed by their ID, and a
 // field the viewer may not see is absent (never blank).
 import React, { useState, useRef } from "react";
+import { useAskFirst } from "../ConfirmDialog";
 import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import { TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
@@ -61,6 +62,8 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const character = store.fields as CharacterSheet;
   const capabilities = store.sheet.capabilities;
   const t = TRANSLATIONS[lang];
+  // Removing anything from a saved sheet asks first (product-design.md, Confirmations).
+  const asking = useAskFirst();
   const archiveText = ARCHIVE_TEXT[lang];
   const casa = character.casa ?? "";
   const hInfo = HOUSES[casa.toUpperCase()] || HOUSES.IRATI;
@@ -91,7 +94,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   // Subjects taught: a list, one entry per subject (R3.4).
   const SUBJECTS = "adultWizardProfile/teachingSubjects";
   const addSubject = (value: string) => addEntry(SUBJECTS, { value });
-  const removeSubject = (id: string) => removeEntry(SUBJECTS, id);
+  const removeSubject = (id: string) => asking.ask(t.confirmRemoveSubject, () => removeEntry(SUBJECTS, id), t.remove);
 
   // Tabs: perfil, sesion, habilidades, hechizos, notas, galeria
   const [activeTab, setActiveTab] = useState<"perfil" | "sesion" | "habilidades" | "hechizos" | "notas" | "galeria">("perfil");
@@ -157,8 +160,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
   // Confirmation states to avoid window.confirm (blocked/unreliable in sandboxed iframes)
   const [isDeleteStudentOpen, setIsDeleteStudentOpen] = useState(false);
-  const [deleteStudentUnderstood, setDeleteStudentUnderstood] = useState(false);
-  const [minorDeleteTarget, setMinorDeleteTarget] = useState<{ id: string; type: "spell" | "potion" | "gallery" | "club" | "item" | "note" } | null>(null);
   const [isSelectFamiliarModalOpen, setIsSelectFamiliarModalOpen] = useState(false);
 
   // The bonded familiar, as this viewer sees it.
@@ -232,7 +233,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   };
 
   const setAvatarFit = (fit: "cover" | "contain") => edit("avatarFit", fit);
-  const removeAvatar = () => edit("avatarImage", "");
+  const removeAvatar = () => asking.ask(t.confirmRemovePortrait, () => edit("avatarImage", ""), t.remove);
 
   // Aspects, complications and temporary aspects: one text per entry.
   const addText = (list: TextList, text: string) => {
@@ -240,12 +241,12 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     addEntry(list, { value: text.trim() });
   };
 
-  const handleDeleteAspect = (id: string) => removeEntry("aspectosPersonales", id);
+  const handleDeleteAspect = (id: string) => asking.ask(t.confirmDeleteAspect, () => removeEntry("aspectosPersonales", id));
   const handleAddNewAspect = (name: string) => addText("aspectosPersonales", name);
-  const handleDeleteComplication = (id: string) => removeEntry("complicaciones", id);
+  const handleDeleteComplication = (id: string) => asking.ask(t.confirmDeleteComplication, () => removeEntry("complicaciones", id));
   const handleAddNewComplication = (name: string) => addText("complicaciones", name);
   const handleAddTempAspect = (aspectName: string) => addText("aspectoTemporal", aspectName);
-  const handleRemoveTempAspect = (id: string) => removeEntry("aspectoTemporal", id);
+  const handleRemoveTempAspect = (id: string) => asking.ask(t.confirmDeleteAspect, () => removeEntry("aspectoTemporal", id));
 
   const handleAddCustomField = () => {
     if (!newCustomFieldName.trim()) return;
@@ -258,7 +259,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     edit(`camposPersonalizados/${id}/${field}`, val);
   };
 
-  const handleRemoveCustomField = (id: string) => removeEntry("camposPersonalizados", id);
+  const handleRemoveCustomField = (id: string) => asking.ask(t.confirmDeleteCustomField, () => removeEntry("camposPersonalizados", id));
 
   // Consequences: a description and a severity (leve, moderada, grave).
   const addConsequence = (list: ConsequenceList, text: string) => {
@@ -270,11 +271,11 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     edit(`${list}/${id}/gravedad`, severity);
 
   const handleAddPhysicalConsequence = (name: string) => addConsequence("consecuenciasFisicas", name);
-  const handleRemovePhysicalConsequence = (id: string) => removeEntry("consecuenciasFisicas", id);
+  const handleRemovePhysicalConsequence = (id: string) => asking.ask(t.confirmRemoveConsequence, () => removeEntry("consecuenciasFisicas", id));
   const handleAddMentalConsequence = (name: string) => addConsequence("consecuenciasMentales", name);
-  const handleRemoveMentalConsequence = (id: string) => removeEntry("consecuenciasMentales", id);
+  const handleRemoveMentalConsequence = (id: string) => asking.ask(t.confirmRemoveConsequence, () => removeEntry("consecuenciasMentales", id));
   const handleAddSocialConsequence = (name: string) => addConsequence("consecuenciasSociales", name);
-  const handleRemoveSocialConsequence = (id: string) => removeEntry("consecuenciasSociales", id);
+  const handleRemoveSocialConsequence = (id: string) => asking.ask(t.confirmRemoveConsequence, () => removeEntry("consecuenciasSociales", id));
 
   // 2. Skill Modifiers
   const changeSkillValue = (skillId: string, val: number) => {
@@ -314,7 +315,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setNewSkillNames(prev => ({ ...prev, [categoryId]: "" }));
   };
 
-  const handleRemoveSkill = (skillId: string) => removeEntry("habilidades", skillId);
+  const handleRemoveSkill = (skillId: string) => asking.ask(t.confirmRemoveSkill, () => removeEntry("habilidades", skillId), t.remove);
 
   // The knowledge level of an esoteric skill. Clearing it rewrites the entry without
   // the field (the server has no "empty" level); the current value is kept.
@@ -342,14 +343,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setNewSpellSpec(false);
   };
 
-  const removeSpell = (id: string) => {
-    setMinorDeleteTarget({ id, type: "spell" });
-  };
-
-  const confirmRemoveSpell = (id: string) => {
-    removeEntry("conjuros", id);
-    setMinorDeleteTarget(null);
-  };
+  const removeSpell = (id: string) => asking.ask(t.confirmDeleteSpell, () => removeEntry("conjuros", id));
 
   // 4. Potions ACTIONS
   const addPotion = () => {
@@ -362,14 +356,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setNewPotionSpec(false);
   };
 
-  const removePotion = (id: string) => {
-    setMinorDeleteTarget({ id, type: "potion" });
-  };
-
-  const confirmRemovePotion = (id: string) => {
-    removeEntry("pociones", id);
-    setMinorDeleteTarget(null);
-  };
+  const removePotion = (id: string) => asking.ask(t.confirmDeletePotion, () => removeEntry("pociones", id));
 
   // 6. Gallery: compressed on the device, then uploaded into a new entry.
   const galleryImages = (character.galleryImages ?? []).filter(pic => !!pic.value);
@@ -401,12 +388,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
   const removeGalleryImage = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid triggering click expansion
-    setMinorDeleteTarget({ id, type: "gallery" });
-  };
-
-  const confirmRemoveGalleryImage = (id: string) => {
-    removeEntry("galleryImages", id);
-    setMinorDeleteTarget(null);
+    asking.ask(t.confirmDeleteGalleryImage, () => removeEntry("galleryImages", id));
   };
 
   // 5b. Clubs Actions
@@ -416,14 +398,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setNewClubName("");
   };
 
-  const handleRemoveClub = (id: string) => {
-    setMinorDeleteTarget({ id, type: "club" });
-  };
-
-  const confirmRemoveClub = (id: string) => {
-    removeEntry("clubesList", id);
-    setMinorDeleteTarget(null);
-  };
+  const handleRemoveClub = (id: string) => asking.ask(t.confirmDeleteClub, () => removeEntry("clubesList", id));
 
   // 5c. Equipment / Inventory Actions
   const handleAddInventoryItem = () => {
@@ -439,14 +414,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     edit(`equipoList/${id}/cantidad`, clamp((item.cantidad ?? 1) + delta, 1, MAX_QUANTITY));
   };
 
-  const handleRemoveInventoryItem = (id: string) => {
-    setMinorDeleteTarget({ id, type: "item" });
-  };
-
-  const confirmRemoveInventoryItem = (id: string) => {
-    removeEntry("equipoList", id);
-    setMinorDeleteTarget(null);
-  };
+  const handleRemoveInventoryItem = (id: string) => asking.ask(t.confirmDeleteItem, () => removeEntry("equipoList", id));
 
   // 5d. Individual Diary Notes Actions
   const handleAddNote = () => {
@@ -479,30 +447,19 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setEditingNoteContent("");
   };
 
-  const handleRemoveNote = (id: string) => {
-    setMinorDeleteTarget({ id, type: "note" });
-  };
-
-  const confirmRemoveNote = (id: string) => {
-    removeEntry("notasList", id);
-    setMinorDeleteTarget(null);
-  };
+  const handleRemoveNote = (id: string) => asking.ask(t.confirmDeleteNote, () => removeEntry("notasList", id));
 
   // Archiving (GM only) with the strong double check
-  const handleDeleteCharacterClick = () => {
-    setDeleteStudentUnderstood(false);
-    setIsDeleteStudentOpen(true);
-  };
+  const handleDeleteCharacterClick = () => setIsDeleteStudentOpen(true);
 
   const confirmDeleteCharacter = () => {
-    if (deleteStudentUnderstood && onArchive) {
-      setIsDeleteStudentOpen(false);
-      onArchive();
-    }
+    setIsDeleteStudentOpen(false);
+    onArchive?.();
   };
 
   return {
     lang,
+    asking,
     store,
     catalogue,
     character,
@@ -594,10 +551,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     isGM,
     isDeleteStudentOpen,
     setIsDeleteStudentOpen,
-    deleteStudentUnderstood,
-    setDeleteStudentUnderstood,
-    minorDeleteTarget,
-    setMinorDeleteTarget,
     isSelectFamiliarModalOpen,
     setIsSelectFamiliarModalOpen,
     bondId,
@@ -639,26 +592,20 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setSkillKnowledge,
     addSpell,
     removeSpell,
-    confirmRemoveSpell,
     addPotion,
     removePotion,
-    confirmRemovePotion,
     galleryImages,
     handleGalleryAdd,
     removeGalleryImage,
-    confirmRemoveGalleryImage,
     handleAddClub,
     handleRemoveClub,
-    confirmRemoveClub,
     handleAddInventoryItem,
     handleChangeInventoryQty,
     handleRemoveInventoryItem,
-    confirmRemoveInventoryItem,
     handleAddNote,
     handleStartEditNote,
     handleSaveEditedNote,
     handleRemoveNote,
-    confirmRemoveNote,
     handleDeleteCharacterClick,
     confirmDeleteCharacter,
   };

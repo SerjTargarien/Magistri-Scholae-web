@@ -31,17 +31,49 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
-| R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R3.5 |
+| R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R6 (revised order) |
 | R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
 | R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
-| R6 Accounts launch | The public site's data moves from the staging backend to its own production backend | S | R5 (order decided 9 Nov 2026) |
-| R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R6 |
+| R6 Own backend for the testers (was «Accounts launch») | The public site's data moves from the staging backend to its own production backend | S–M | R3.6 (revised order: before R4) |
+| R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R5 (revised order: offline after the model settles) |
 
-**Critical path:** R0 → R3 → R4 → R6, then R7.1–R7.2 (offline) immediately after launch. R4 can overlap the end of R3. **R3 is the long pole.**
+**Critical path** (revised order, proposal): the rest of R3 → R6 → R4 → R4.5 → R5, then offline (R7.1–R7.2) once the data model has settled.
 
 **Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done.
 
-**9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. **Order decided by the owner (9 November 2026):** the rest of R3 → R4 → R4.5 → R5 → R6 → R7. R6 comes after the redesigns, which leaves time to test with the testers' data on the staging backend. Since 8 November the public site already runs the account app on the staging backend (testers' data); R6 gives that data its own production backend.
+**9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. Order decided by the owner the same morning: the rest of R3 → R4 → R4.5 → R5 → R6 → R7. **Revised the same day** after the owner's new workflow (publish only at milestones): see [Order and reasons](#order-and-reasons-revised-9-november-2026-proposal-for-the-owner) below.
+
+## Order and reasons (revised 9 November 2026; proposal for the owner)
+
+**Why revise:** since 8 November the testers use the public site on the **staging** backend, so the testers' only database is also the development database. Since 9 November nothing is published until a milestone (owner's workflow). R4, R4.5 and R5 all change the database schema; each change would reach the testers' data before their screens are published, and could break the live site between milestones. Some items also had no place in the order (the image viewer), duplicated another release (R3.5's texts and confirmations repeat the polish pass), or depended on a later release (R3.5's «partida» filter needs R4's table labels).
+
+**Principles, in priority order:**
+
+1. **Protect the testers' data.** No server change touches the testers' database while it is also the development database.
+2. **Shared pieces before the screens that use them.** One style and the shared controls come before any new screen, so nothing is built twice.
+3. **Operations the agent does by hand come before new game features.** Invitations and reset codes still need the agent and the server shell.
+4. **Settle the data model before storing it on devices.** Offline copies and unsent changes must not have to survive later migrations.
+5. **Small, app-only fixes for what testers meet now go first.** They need no server change and no backup.
+
+Publishing happens only at the milestones marked ◆; between them, changes merge into `main` and reach staging.magistrischolae.fyi only when the owner asks.
+
+| # | Step | Size | Touches | Why here |
+|---|---|---|---|---|
+| 1 | **R3.4 Lists and limits:** subjects taught as a list, a name box that can be emptied while retyping, counters near limits | S | App | Fixes inputs testers meet today. The server already enforces these rules (subjects are stored as a list; limits refuse a save); only the screens lag behind (principle 5). |
+| 2 | **R3.4 Polish pass**, several pull requests in this order: (a) remove Classic; (b) the shared controls; (c) no cut words; (d) the remaining inconsistencies, including R3.5's «every text in the translations file» and «no `window.confirm`», which are the same work | M | App | (a) halves the styling every later screen needs; (b) every later screen (notes, administration, Biblioteca) is built from the controls, so they come first (principle 2); (c) and (d) touch the same screens, while they are open. |
+| 3 | **R3.4 Image viewer** (designed first): tapping a portrait or gallery image opens it at full size | S | App | Flagged important by the owner but had no place. It reuses the dialog shell of the controls' picker, so it follows step 2. |
+| 4 | **R3.5 App shell:** personal notes with promotion and GM notes return; the save-status panel speaks plainly | M | App | Personal and GM notes are the only feature testers lost at the switch (8 November); their server side already exists. The «partida» filter moves to R4, which creates the table labels it filters by. |
+| 5 | **R3.6 Retire the old app:** local mode, Dexie, old backups and stopgap forms deleted; the service worker's cache renamed | S | App | Pure deletion. Done before the milestone, the testers' browsers drop the old cached files once, and every later step reads less code. |
+| 6 ◆ | **R6 Own backend for the testers** (moved from after R5), published with steps 1–5 as **milestone 1** | S–M | Server | Must come before R4's first migration (principle 1). The testers' data moves to a production backend; staging becomes the development copy, so later migrations are rehearsed there first and reach testers only at a milestone, with their screens. Includes backups that store each image once and the launch checklist. One change event for testers: the finished R3 screens and their own backend together. |
+| 7 ◆ | **R4 Administration and roles**, in this order: (a) administrator screens for invitations, reset codes and users; (b) table labels and the «partida» filter; (c) sheet statuses: drafts and active / inactive; (d) assignment, campaign creation and renaming, deleting archived sheets; (e) administrator access with the GM's permission (privacy design first). **Milestone 2.** | M–L | Server and app | (a) first because the agent still issues them by hand (the testers' invitations expire on 15 November) (principle 3). The whole release settles who may see and change each sheet, so the new data of R4.5 and R5 follows those rules from the start. |
+| 8 ◆ | **R4.5 Sheet types.** **Milestone 3.** The stress rules (its step 6) wait for the GM's answers (Q9–Q11) and may ship later. | M | Server and app | Before R5 because the Biblioteca's character view, filters and institutions (teachers, students) are built on the sheet types; building them on today's `characterType` would mean doing them twice (principle 2). |
+| 9 ◆ | **R5 Biblioteca del Máster,** steps 0–5; a milestone after each step the owner chooses. The main list's filter bar (Controls, D2) comes with step 3 (Personajes), which needs the same filtering. | L | Server and app | The largest release; it needs the final roles (R4) and sheet types (R4.5). |
+| 10 | **Images from a web address** (moved from R3.4): the server downloads the image | S–M | Server | The boxes are hidden, so nobody misses it, and the server-side download needs its own security review. It fits once production releases are routine. |
+| 11 | **Temporary sheet versions** (designed first) | M | Server and app | After R5, as decided; its exact place is confirmed when R5 ends. It changes the sheet model, so it comes before offline (principle 4). |
+| 12 ◆ | **R7.1–R7.2 Offline viewing, then offline editing** | M–L | App | After the model settles (principle 4): sheets and unsent changes kept on devices would otherwise have to survive the sheet-type and Biblioteca migrations. **This moves offline from "right after launch" (decision 2, when launch was R6) to after R5: owner decision.** |
+| 13 | **R7.3–R7.6:** visibility editor and sharing; character and familiar export / import; the multiverse collection (far backlog); clean-up | M–L | Both | Unchanged. |
+
+**Owner decisions this proposal needs (decision 15):** R6 before R4 (step 6); offline after R5 instead of right after R6 (step 12); images from a web address after R5 (step 10). Everything else only places items that had no position, removes duplicates, or follows from these.
 
 ## Feature checklist
 
@@ -240,12 +272,13 @@ Each step below is its own pull request. It keeps the app working under the brow
        - **one visual style** (owner, 9 November 2026): remove the Classic style, its CSS and the «Estilo Visual» card in settings; Academia stays, and a saved Classic choice falls back to it;
        - **the controls** ([product-design.md, Controls](product-design.md#controls), adopted 9 November 2026): the shared components replace the remaining native selectors, checkboxes and number boxes, one component at a time; no browser-drawn selectors.
        - **no cut words** (owner, 9 November 2026): about 50 places cut text with «…» (`truncate`, `line-clamp`) across the list, form, sheet, familiar and settings screens; each wraps instead, or stays cut only where one line is essential, with the reason noted (the skill rows and tags were done on 9 November).
-    5. **Images from a web address,** downloaded by the server (its own security review).
+    5. **Image viewer** (designed first): tapping a portrait or gallery image opens it at full size (owner: important; placed by the revised order).
+    - **Images from a web address,** downloaded by the server (its own security review): **moved after R5** by the revised order.
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the academy and classic styles.
   - The save-status panel speaks plainly, without field names.
-  - Lists show and filter by each character's **partida** (the table, decision 9), so the two stories stay easy to tell apart.
-  - Text goes through `localization.ts`. No `window.confirm`.
+  - ~~Lists show and filter by each character's **partida**~~: moved to R4, which creates the table labels (revised order).
+  - ~~Text goes through `localization.ts`. No `window.confirm`.~~ Folded into the R3.4 polish pass, which does the same work (revised order).
 - **R3.6 Retire the old app.**
   - Remove the code of local mode (it stops working at the R3.4 switch), the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
   - Keep the service worker, which since milestone 3 caches only the app's own files and never `/api` or `/media`. Give its cache a new name so browsers that had the old app drop its cached files after launch.
@@ -409,6 +442,7 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 | 12 | How much of the UI may change in R3? | R3 | **Decided 8 November 2026:** first, every screen kept its look unless the owner approved before-and-after screenshots (R3.1 screenshot tests). **Relaxed the same day,** with the transition nearly complete: no aesthetic changes without a reason; any step that has a reason for a visible change may make it. |
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
 | 14 | The owner's target design (9 November 2026) | R3.4–R5 | **Recorded 9 November 2026** in product-design.md: a polish pass ends R3.4; R4 adds private player drafts (invisible to the GM until confirmed), active/inactive sheets, deletion of archived sheets, assignment, GM-created campaigns and time-limited administrator access granted by the GM; R4.5 adds sheet types, «Criatura mágica», non-magical characters and the stress rules; R5 is the Biblioteca del Máster («Casas» / «Secciones»); R6 after R5; the multiverse collection goes to the far backlog. Follow-up answers the same day: the GM chooses NPC or player character when confirming a draft; players can own a «Criatura mágica»; the GM changes sheet types; sheets based on another (R5) and temporary versions (after R5). Q9–Q11 (stress) still open. |
+| 15 | Revised order (9 November 2026) | Now | **Proposed:** see [Order and reasons](#order-and-reasons-revised-9-november-2026-proposal-for-the-owner). Needs the owner's yes on R6 before R4, offline after R5, and images from a web address after R5. |
 
 ## Former milestones
 

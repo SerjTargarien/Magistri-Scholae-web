@@ -176,6 +176,9 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
   await openTab(page, "hechizos");
   await page.locator("#input-spell-name").fill("Revelio");
+  await page.locator("#select-spell-val-plus").click(); // difficulty: a stepper, 1 → 3
+  await page.locator("#select-spell-val-plus").click();
+  await expect(page.locator("#select-spell-val")).toHaveText("3");
   await page.locator("#checkbox-spell-spec").click(); // «Especializado»: a switch
   await page.locator("#btn-add-spell").click();
   await page.locator("#input-potion-name").fill("Draught of Calm");
@@ -184,6 +187,8 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await page.locator("#input-new-club").fill("Duelling Club");
   await page.locator("#btn-add-club").click();
   await page.locator("#input-new-item").fill("Pewter cauldron");
+  await page.locator("#input-new-item-qty").fill("12"); // a typed quantity, no browser spinner
+  await page.locator("#input-new-item-qty").press("Enter");
   await page.locator("#btn-add-inventory-item").click();
   await page.locator("#input-new-note-title").fill("Suspicions");
   await page.locator("#input-new-note-content").fill("The alchemy teacher hides something.");
@@ -200,10 +205,10 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   expect(stored!.habilidades.find((s: { catalogo?: string }) => s.catalogo === "atletismo").valor).toBe(1);
   expect(stored!.habilidades.filter((s: { catalogo?: string }) => s.catalogo === "sigilo")).toEqual([expect.objectContaining({ valor: 0 })]);
   expect(stored!.habilidades.filter((s: { catalogo?: string }) => !s.catalogo)).toEqual([]);
-  expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio", specialized: true })]);
+  expect(stored!.conjuros).toEqual([expect.objectContaining({ nombre: "Revelio", specialized: true, valor: 3 })]);
   expect(stored!.pociones).toEqual([expect.objectContaining({ nombre: "Draught of Calm" })]);
   expect(stored!.clubesList).toEqual([expect.objectContaining({ nombre: "Duelling Club" })]);
-  expect(stored!.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron" })]);
+  expect(stored!.equipoList).toEqual([expect.objectContaining({ nombre: "Pewter cauldron", cantidad: 12 })]);
   expect(stored!.notasList).toEqual([expect.objectContaining({ titulo: "Suspicions", contenido: "The alchemy teacher hides something." })]);
 });
 

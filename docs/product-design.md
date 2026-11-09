@@ -109,10 +109,10 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Campaign, settings | Native selector | Picker (9) | Polish pass |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |
 | Image fit | Two buttons | Segmented (5) | Polish pass |
-| Values, quantities, stress maximum | Steppers; native number boxes when adding equipment and in the form | Stepper (1) | Polish pass (the number boxes) |
+| Values, quantities, stress maximum | Steppers; native number boxes when adding equipment and in the form | Stepper (1) | Done (9 November 2026) |
 | Experience | Stepper, typed in edit mode | Stays (1) | Done (PR #41) |
 | Stress, destiny | Pips | Stay (2) | — |
-| Spell and potion difficulty when adding | Native selector | Stepper (1), like the value on existing rows | Polish pass |
+| Spell and potion difficulty when adding | Native selector | Stepper (1), like the value on existing rows | Done (9 November 2026) |
 | Specialized, «Es profesor», «inicial» | Native checkboxes | Switch (3) | Done (9 November 2026) |
 | «Entiendo que…» before deleting | Native checkbox | Check (4) | Done (9 November 2026) |
 | Severity when adding | Option chips | Stays (6) | Done (PR #41) |

@@ -635,7 +635,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - `src/components/Toggle.tsx`: `Switch` (a row with a toggle, the whole row tappable) and `Check` (a drawn box), as in the approved controls demo. They replace every native checkbox: «Especializado» when adding a spell or potion, «Es profesor» in the form and on the sheet, «Inicial» in the campaign skills, and «Entiendo que…» in the archive dialog. The app has no browser-drawn checkbox left.
 - Checks: type check; 53 unit tests; both builds; 47 browser tests (the tests click the switches and check `aria-checked`; the spells test now also stores a specialized spell).
 
-**Next:** polish pass (b), part 2: the stepper (number boxes and difficulty selectors), then the segmented image fit, the restyled zoom sliders, the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (b), part 2: the stepper — 9 November 2026
+
+- `src/components/Stepper.tsx`: «−» value «+» (32 px buttons, disabled at the range's ends), with an optional typed box for ranges above 20 and an optional label beside it. It replaces the spell and potion difficulty selectors (1–5), the equipment quantity boxes on the sheet and in the form (typed, 1–9,999, no browser spinners) and the form's stress maxima (1–10). Limits come from the server's field rules. On the sheet the quantity and «Registrar Objeto de Inventario» are stacked, so the button keeps one line on phones.
+- Checks: type check; 53 unit tests; both builds; 47 browser tests (the spells test raises a difficulty to 3 with «+» and types a quantity of 12). Looked at in the demo build at phone width.
+
+**Next:** polish pass (b), part 3: the segmented image fit, then the restyled zoom sliders, the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

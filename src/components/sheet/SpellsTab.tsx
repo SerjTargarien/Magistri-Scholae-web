@@ -10,6 +10,7 @@ import { Trash } from "lucide-react";
 import type { SheetContext } from "./useCharacterSheet";
 import { limitAttrs } from "../LimitHint";
 import { Switch } from "../Toggle";
+import { Stepper } from "../Stepper";
 
 export function SpellsTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -81,18 +82,7 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                       onChange={(e) => setNewSpellName(e.target.value)}
                       className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                     />
-                    <select
-                      id="select-spell-val"
-                      value={newSpellVal}
-                      onChange={(e) => setNewSpellVal(parseInt(e.target.value) || 1)}
-                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                    >
-                      <option value="1">{t.labelDificultad} I</option>
-                      <option value="2">{t.labelDificultad} II</option>
-                      <option value="3">{t.labelDificultad} III</option>
-                      <option value="4">{t.labelDificultad} IV</option>
-                      <option value="5">{t.labelDificultad} V</option>
-                    </select>
+                    <Stepper id="select-spell-val" label={t.labelDificultad} showLabel min={1} max={5} value={newSpellVal} onChange={setNewSpellVal} />
                     <Switch id="checkbox-spell-spec" inline checked={newSpellSpec} onChange={setNewSpellSpec}
                       label={t.specialized} labelClassName="text-xs text-neutral-300" />
                   </div>
@@ -168,18 +158,7 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
                       onChange={(e) => setNewPotionName(e.target.value)}
                       className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                     />
-                    <select
-                      id="select-potion-val"
-                      value={newPotionVal}
-                      onChange={(e) => setNewPotionVal(parseInt(e.target.value) || 1)}
-                      className="text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
-                    >
-                      <option value="1">{t.labelDificultad} I</option>
-                      <option value="2">{t.labelDificultad} II</option>
-                      <option value="3">{t.labelDificultad} III</option>
-                      <option value="4">{t.labelDificultad} IV</option>
-                      <option value="5">{t.labelDificultad} V</option>
-                    </select>
+                    <Stepper id="select-potion-val" label={t.labelDificultad} showLabel min={1} max={5} value={newPotionVal} onChange={setNewPotionVal} />
                     <Switch id="checkbox-potion-spec" inline checked={newPotionSpec} onChange={setNewPotionSpec}
                       label={t.specialized} labelClassName="text-xs text-neutral-300" />
                   </div>

@@ -9,6 +9,8 @@ import { Sparkles, Plus, Trash2, X, Minus } from "lucide-react";
 
 import type { FormContext } from "./useCharacterForm";
 import { limitAttrs } from "../LimitHint";
+import { Stepper } from "../Stepper";
+import { ruleAt } from "../../model/rules";
 
 export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -201,29 +203,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                       />
                       <div className="flex items-center justify-between gap-3">
                         {/* Quantity Input */}
-                        <div className="flex items-center border border-neutral-800 bg-neutral-950 rounded-lg overflow-hidden h-8 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
-                            className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={newItemQty}
-                            onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
-                            className="w-8 text-center bg-transparent text-[11px] text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono font-bold"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setNewItemQty(q => q + 1)}
-                            className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-900 cursor-pointer transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                        </div>
+                        <Stepper id="input-form-item-qty" label={t.labelQuantity} typed min={1} max={ruleAt("character", "equipoList/x/cantidad")?.maximum ?? 9999} value={newItemQty} onChange={setNewItemQty} />
 
                         <button
                           type="button"

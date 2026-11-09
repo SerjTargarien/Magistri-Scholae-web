@@ -10,6 +10,8 @@ import { Edit, Plus, Minus, Trash, Check } from "lucide-react";
 import type { SheetContext } from "./useCharacterSheet";
 import { journalTitle } from "../../model/journal";
 import { limitAttrs } from "../LimitHint";
+import { Stepper } from "../Stepper";
+import { ruleAt } from "../../model/rules";
 
 export function NotesTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -158,32 +160,9 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                       onChange={(e) => setNewItemName(e.target.value)}
                       className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                     />
-                    <div className="flex items-center gap-2">
-                      {/* Quantity Input */}
-                      <div className="flex items-center border border-neutral-800 bg-neutral-900 rounded-lg overflow-hidden h-8">
-                        <button
-                          id="btn-qty-minus"
-                          onClick={() => setNewItemQty(q => Math.max(1, q - 1))}
-                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <input
-                          id="input-new-item-qty"
-                          type="number"
-                          min="1"
-                          value={newItemQty}
-                          onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-10 text-center bg-transparent text-xs text-neutral-200 focus:outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
-                        />
-                        <button
-                          id="btn-qty-plus"
-                          onClick={() => setNewItemQty(q => q + 1)}
-                          className="px-2 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
+                    <div className="flex flex-col gap-2">
+                      {/* Quantity, then the add button on its own line (room on phones) */}
+                      <Stepper id="input-new-item-qty" label={t.labelQuantity} showLabel typed min={1} max={ruleAt("character", "equipoList/x/cantidad")?.maximum ?? 9999} value={newItemQty} onChange={setNewItemQty} />
 
                       <button
                         id="btn-add-inventory-item"

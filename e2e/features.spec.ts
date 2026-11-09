@@ -435,6 +435,7 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   await page.locator("#btn-familiar-edit").click(); // «Finalizar Edición»
   await expect(page.locator("#input-familiar-gallery-picker")).toHaveCount(0);
   await expect(page.locator("#btn-familiar-del-gal-pic-0")).toHaveCount(0);
+  await page.locator("#familiar-tab-perfil").click(); // species, name and bond are on the profile, not the header
   await expect(page.locator("#familiar-detail-container")).toContainText("Giant toad");
 
   await reloadApp(page);

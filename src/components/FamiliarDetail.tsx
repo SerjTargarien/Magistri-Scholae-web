@@ -7,7 +7,6 @@ import React from "react";
 import type { FamiliarDetailProps } from "../account/screens";
 import type { CharacterSheet } from "../model/sheet";
 import { imageSrc } from "../remote/assets";
-import { FiligreeCorner } from "./AcademyOrnaments";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import {
@@ -53,48 +52,24 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
       className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 font-sans select-none animate-fade-in"
       id="familiar-detail-container"
     >
-      {/* Top Banner Navigation & Actions */}
+      {/* Top bar, as on the character sheet: back, edit and (GM) archive. The species,
+          bonded character and name are on the profile (owner, 9 November 2026). */}
       <div
-        className={`p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-950/85 to-[#120924] border border-amber-500/30 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-2xl`}
+        className="flex flex-row justify-between items-center mb-5 bg-[#120e1c]/90 border border-[#c8a248]/35 p-2.5 rounded-xl gap-2 z-20 relative shadow-lg"
+        id="familiar-top-nav-bar"
       >
-        <>
-          <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/40" />
-          <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/40" />
-          <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/40" />
-          <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/40" />
-        </>
-        
+        <button
+          type="button"
+          id="btn-familiar-back"
+          onClick={onBack}
+          className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-[#f3e5c0] bg-gradient-to-b from-[#231c35] to-[#130f1e] border border-[#c8a248]/50 rounded-lg hover:border-[#f3d88c] focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shrink-0 shadow-sm"
+        >
+          <ArrowLeft className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="sm:hidden">{t.back}</span>
+          <span className="hidden sm:inline">{t.familiarBackToList}</span>
+        </button>
 
-        <div className="z-10 flex items-center gap-3">
-          <button
-            type="button"
-            id="btn-familiar-back"
-            onClick={onBack}
-            className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 hover:text-amber-300 border border-neutral-700/60 transition-colors flex items-center gap-1.5 text-xs font-mono uppercase cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">{t.familiarBackToList}</span>
-          </button>
-
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold flex items-center gap-1">
-                <PawPrint className="w-3.5 h-3.5" />
-                {familiar.especie || t.familiarSpeciesShort}
-              </span>
-              <span className="text-neutral-500">·</span>
-              <span className="text-xs font-mono text-neutral-400">
-                {linkedMaster ? linkedMaster.fields.nombre : store.sheet.bondId ? "—" : t.familiarUnbound}
-              </span>
-            </div>
-            <h1 className="font-magic text-2xl sm:text-3xl font-bold text-neutral-100 uppercase tracking-wider glow-amber break-words max-w-md">
-              {familiar.nombre || t.noName}
-            </h1>
-          </div>
-        </div>
-
-        {/* Header Action Buttons */}
-        <div className="z-10 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+        <div className="flex gap-2">
           {/* Edit toggle, as on the character sheet: changes save as they are made */}
           {canEditSheet && (
           <button
@@ -127,10 +102,11 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
             type="button"
             id="btn-familiar-delete"
             onClick={() => setIsDeleteOpen(true)}
-            className="p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-800 transition-colors cursor-pointer"
             title={archiveText.button}
+            className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-rose-200 bg-gradient-to-b from-[#4c1420] to-[#280910] border border-[#c8a248]/40 hover:border-rose-400 hover:text-white rounded-lg focus:outline-none min-h-[40px] transition-all cursor-pointer select-none shadow-sm"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 shrink-0 text-rose-300" />
+            <span className="hidden sm:inline">{archiveText.button}</span>
           </button>
           )}
         </div>

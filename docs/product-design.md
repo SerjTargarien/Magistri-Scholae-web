@@ -292,14 +292,14 @@ Tabs:
 
 ### 7. Familiar sheet
 
-- **Header:** «Volver a Personajes», species and character, name, «Editar» / «Finalizar Edición», «Archivar» for the GM.
+- **Header:** the character sheet's top bar: «Volver a Personajes» («Volver» on phones), «Editar» / «Finalizar Edición», «Archivar» for the GM.
 - **Perfil y Vínculo:** portrait, name, species, description, «Vínculo Mágico».
-- **Diario del Familiar**, **Galería de Recuerdos**.
+- **Notas del Familiar**, **Galería de Recuerdos**.
 
 **Target** (R3.4 polish pass):
 
-- The header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»: species, character and name go (they are on the profile).
-- The journal tab is called «**Notas del Familiar**», and its box suggestions fit a familiar.
+- The header keeps only «Volver a Personajes», «Editar» / «Finalizar Edición» and «Archivar»: species, character and name go (they are on the profile). **Done 9 November 2026.**
+- The journal tab is called «**Notas del Familiar**», and its box suggestions fit a familiar. **Done 9 November 2026** («p. ej. Encontró una llave en el jardín»; empty: «Sin notas.»).
 - The crop dialog gets a zoom slider like the others.
 - The link picker says «Seleccionar un personaje para vincular a este familiar».
 

@@ -710,7 +710,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The per-screen text tables (campaign skills, save status, sign-in errors and account texts, knowledge levels, settings, both archive dialogs, the form's save failure) moved into `src/localization.ts` as named tables; `src/remote/text.ts` is gone. Loose texts got keys: the familiar gallery's «Subir Imagen Local» is now «Elegir imagen», the stress «Max» is «Máx.», the gallery's English «Delete picture» uses «Eliminar», and the image alt texts are Spanish. English fallbacks in the form were dropped (the keys exist). The settings note no longer mentions the removed visual style. Only the demo's test panel keeps its own texts, as a development tool (known inconsistency 5).
 - Checks: type check; 53 unit tests; both builds; 55 browser tests (the familiar gallery shows «Elegir imagen»).
 
-**Next:** polish pass (d), the familiar sheet's header and notes tab; then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (d), part 7: the familiar sheet's header and notes tab — 9 November 2026
+
+- The familiar sheet's header becomes the character sheet's top bar: «Volver a Personajes» («Volver» on phones), «Editar» / «Finalizar Edición» and, for the GM, «Archivar», in the same button styles. The species, bonded character and name left the header; they are on the profile. The journal tab is «Notas del Familiar», its text box suggests «p. ej. Encontró una llave en el jardín», and an empty list says «Sin notas.». The profile's unlinked sentence («No está vinculado a ningún personaje.») moved into the translations file (missed by part 6).
+- Checks: type check; 53 unit tests; both builds; 55 browser tests (the familiar test reads the species from the profile). Screenshots at phone and desktop widths, in reading and edit mode.
+- **Polish pass (d) is complete** (Known inconsistencies 1–6 done; 7–9 were already settled).
+
+**Next:** the image viewer (designed first): tapping a portrait or gallery image opens it at full size. Then R3.5, R3.6, and R6 with milestone 1. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

@@ -44,7 +44,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                 {...limitAttrs("familiar", "notasList/x/contenido", { path: "notasList", count: notes.length })}
                 id="input-familiar-note-content"
                 rows={3}
-                placeholder={t.placeholderNoteContent}
+                placeholder={t.familiarNotePlaceholder}
                 value={newNoteContent}
                 onChange={(e) => setNewNoteContent(e.target.value)}
                 className="w-full bg-neutral-950/80 border border-neutral-800 rounded-lg p-2.5 text-xs text-neutral-100 focus:border-amber-500 focus:outline-none font-sans"
@@ -68,7 +68,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
           <div className="space-y-3">
             {notes.length === 0 ? (
               <div className="glass-panel p-8 text-center text-neutral-400 font-serif italic text-xs rounded-2xl border border-neutral-800">
-                {t.emptyNotes}
+                {t.familiarNotesEmpty}
               </div>
             ) : (
               notes.map((note) => (

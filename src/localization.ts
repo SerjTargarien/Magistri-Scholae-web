@@ -387,6 +387,7 @@ export interface TranslationDict {
   familiarBondSectionTitle: string;
   familiarBondWithWizard: string;
   familiarBondNone: string;
+  familiarBondNoneHint: string;
   familiarChangeBond: string;
   familiarUnbind: string;
   familiarBondStudent: string;
@@ -402,6 +403,8 @@ export interface TranslationDict {
   wizardViewDetail: string;
   tabFamiliarProfile: string;
   tabFamiliarNotes: string;
+  familiarNotePlaceholder: string;
+  familiarNotesEmpty: string;
   tabFamiliarGallery: string;
   archetypeStudent: string;
   archetypeAdultWizard: string;
@@ -796,6 +799,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarBondSectionTitle: "Vínculo Mágico",
     familiarBondWithWizard: "Mago Asignado",
     familiarBondNone: "Sin vínculo",
+    familiarBondNoneHint: "No está vinculado a ningún personaje.",
     familiarChangeBond: "Cambiar Vínculo",
     familiarUnbind: "Desvincular",
     familiarBondStudent: "Vincular personaje",
@@ -810,7 +814,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarViewDetail: "Ver Ficha de Familiar",
     wizardViewDetail: "Ver Ficha del Mago",
     tabFamiliarProfile: "Perfil y Vínculo",
-    tabFamiliarNotes: "Diario del Familiar",
+    tabFamiliarNotes: "Notas del Familiar",
+    familiarNotePlaceholder: "p. ej. Encontró una llave en el jardín",
+    familiarNotesEmpty: "Sin notas.",
     tabFamiliarGallery: "Galería de Recuerdos",
     archetypeStudent: "Alumno de la Academia",
     archetypeAdultWizard: "Mago Adulto / Profesor",
@@ -1203,6 +1209,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarBondSectionTitle: "Magical Bond",
     familiarBondWithWizard: "Bonded Wizard",
     familiarBondNone: "No bond",
+    familiarBondNoneHint: "Not linked to any character.",
     familiarChangeBond: "Change Bond",
     familiarUnbind: "Unbind",
     familiarBondStudent: "Link character",
@@ -1217,7 +1224,9 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarViewDetail: "View Familiar Sheet",
     wizardViewDetail: "View Wizard Sheet",
     tabFamiliarProfile: "Profile & Bond",
-    tabFamiliarNotes: "Familiar Chronicles",
+    tabFamiliarNotes: "Familiar Notes",
+    familiarNotePlaceholder: "e.g. Found a key in the garden",
+    familiarNotesEmpty: "No notes.",
     tabFamiliarGallery: "Memory Gallery",
     archetypeStudent: "Academy Student",
     archetypeAdultWizard: "Adult Wizard / Professor",

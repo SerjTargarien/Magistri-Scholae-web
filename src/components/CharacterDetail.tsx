@@ -52,11 +52,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
     character, familiars, onBack, onArchive, onSelectFamiliar, onOpenCreateFamiliar, t, archiveText, characterType,
     theme, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
     setLightboxImage, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
-    setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, asking, 
-       isSelectFamiliarModalOpen,
+    setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, asking,
+    isSelectFamiliarModalOpen,
     setIsSelectFamiliarModalOpen, bondId, linkedFamiliar, bondFamiliar, handleAvatarChange, onCropComplete,
-    handleConfirmCrop, setAvatarFit, removeAvatar,   galleryImages,
-       
+    handleConfirmCrop, setAvatarFit, removeAvatar, galleryImages,
     handleDeleteCharacterClick, confirmDeleteCharacter,
   } = ctx;
   const casa = character.casa ?? "";

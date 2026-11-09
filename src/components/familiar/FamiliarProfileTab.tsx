@@ -284,7 +284,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                   <div>
                     <div className="text-sm font-bold text-neutral-200">{t.familiarBondNone}</div>
                     <div className="text-xs text-neutral-400 mt-1 font-serif italic">
-                      Este compañero no está vinculado a ningún alumno o mago actualmente.
+                      {t.familiarBondNoneHint}
                     </div>
                   </div>
                   {editBond && (

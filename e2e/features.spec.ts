@@ -497,6 +497,12 @@ test("the familiar editor's «Volver» asks before discarding typed values", asy
 
   await openEditor();
   await page.locator("#input-familiar-especie").fill("Ferret");
+  // A portrait goes through the same crop dialog as everywhere else, with zoom.
+  await page.locator("#familiar-file-input").setInputFiles(pngFile());
+  await page.locator("#crop-avatar-modal #crop-zoom").fill("1.5");
+  await expect(page.locator("#crop-avatar-modal")).toContainText("150%");
+  await page.locator("#btn-crop-confirm").click();
+  await expect(page.locator("#familiar-avatar-preview")).toBeVisible();
   await page.locator("#btn-familiar-back").click();
   await page.locator("#btn-discard-familiar-cancel").click(); // keeps editing
   await expect(page.locator("#input-familiar-especie")).toHaveValue("Ferret");

@@ -700,9 +700,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Rules adopted by the owner (product-design.md, Confirmations), with one shared dialog (`src/components/ConfirmDialog.tsx`, and `useAskFirst` for the sheets' questions). Before, only six kinds of entry on the character sheet asked; the other 26 removals on both sheets happened at once.
 - Saved sheets ask before removing anything (both sheets, edit mode and session tab); the creation form does not; the form's «Cancelar» and the familiar editor's «Volver» ask only when something changed; archiving a character or a familiar uses the same dialog with a tick box (the familiar's had none); unlinking does not ask. The old minor-delete dialog, the two archive dialogs and the form's discard dialog are gone. Eight new texts (`confirmDeleteAspect`, `confirmRemoveSkill`, `remove` «Quitar»…); the familiar's archive texts now match the character's.
 - Checks: type check; 53 unit tests; both builds; 55 browser tests (new: «Cancelar» in the dialog keeps a skill; the familiar gallery asks; the familiar editor's «Volver» asks only after typing; both archive dialogs wait for the tick box). Screenshots of the dialog at phone and desktop widths.
-- Still separate: the familiar editor keeps its own crop dialog (next, a small PR, so the crop dialog is really one everywhere).
 
-**Next:** polish pass (d): the familiar editor's crop dialog, Known inconsistency 5 (texts in the translations file), and the familiar sheet's header and notes tab; then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (d), part 5: the familiar editor's crop dialog — 9 November 2026
+
+- The familiar editor (standalone, and the creation form's familiar dialog) now uses the shared crop dialog too, so there is one crop dialog everywhere. Checks: type check; 53 unit tests; both builds; 55 browser tests (the editor test now crops a portrait at 150%).
+
+**Next:** polish pass (d): Known inconsistency 5 (texts in the translations file), and the familiar sheet's header and notes tab; then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

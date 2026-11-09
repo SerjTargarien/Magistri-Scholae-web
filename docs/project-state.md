@@ -602,7 +602,11 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - PRs #41–#44 merged and published: release `20261109-123631-206d290` on the public site and staging (both serve the new build; the API answers). The owner considers this version stable enough for testers.
 - **Workflow from now on (owner):** one pull request per change, merged into `main` once its CI passes without a separate ask; nothing published to magistrischolae.fyi until an important milestone the owner approves; staging.magistrischolae.fyi gets a frontend release only when the owner asks to try something. Recorded in AGENTS.md.
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass (now also removing the Classic style, moving the remaining choices to the shared controls, and wrapping text instead of cutting it) and images from a web address; then R4.
+## Roadmap order revised — 9 November 2026
+
+- Approved by the owner (implementation-plan.md, «Order and reasons»; decision 15): lists and limits → polish pass (Classic removal, shared controls, no cut words, the rest) → image viewer → R3.5 notes and save messages → R3.6 → **R6 own backend for the testers, published with the finished R3 as milestone 1** → R4 (administration screens first) → R4.5 → R5 → images from a web address → temporary sheet versions → offline → **printable sheets** (added by the owner) → the rest of R7. Main reason: the testers' only database is the development database, and nothing is published between milestones.
+
+**Next:** lists and limits (R3.4), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

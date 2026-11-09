@@ -567,7 +567,9 @@ The owner wrote a parallel version of the design document with his intended chan
 
 Owner's answers the same day (folded into product-design.md, the plan, field-rules, design.md and AGENTS.md): player drafts are a private vault the GM does not see at all until confirmed; only archived sheets can be deleted; administrator access covers the whole campaign for 24 hours or until the GM withdraws it or the issue is solved; «Criatura mágica» is an adult wizard plus «Especie», «Descripción» and «Pactos»; the stress rules (FATE homebrew, maxima 1–5 from «Físico», «Voluntad», «Empatía», leve / moderada / grave); branches are «Casas» in schools and «Secciones» elsewhere; R6 after R5; a multiverse collection with two-way links goes to the far backlog. Follow-up questions Q9–Q14 are in product-design.md.
 
-**Next:** the owner answers Q9–Q14; then the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
+Further answers: the GM chooses NPC or player character when confirming a draft; players can own a «Criatura mágica» from creation; the GM changes sheet types later (R4.5); sheets based on another (R5) and temporary versions (after R5, designed first); personal notes stay excluded from administrator access.
+
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff
 

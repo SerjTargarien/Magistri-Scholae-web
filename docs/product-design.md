@@ -25,17 +25,18 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 **Target** (owner, 9 November 2026):
 
-- **Player's drafts (borradores):** a new player sheet starts as a draft in the player's **private vault**: a scratchpad to learn the tools or imagine characters, possibly to propose to the GM as new NPCs. **The GM does not see drafts at all.** The player proposes a draft once and the GM confirms it; from then on it is a campaign sheet (R4).
+- **Player's drafts (borradores):** a new player sheet starts as a draft in the player's **private vault**: a scratchpad to learn the tools or imagine characters, possibly to propose to the GM as new NPCs. **The GM does not see drafts at all.** The player proposes a draft once and the GM confirms it, choosing whether it becomes **the player's character or an NPC** of his own; from then on it is a campaign sheet (R4).
 - **GM** (R4):
   - sees and edits every character and familiar that is **not a draft**;
   - marks campaign sheets **active or inactive** (dead, travelling…), a separate status: inactive sheets leave the main list («grimorio») without being archived;
   - archives, and can **delete only an archived sheet**, after several confirmation steps;
-  - creates sheets and **assigns them to players**;
+  - creates sheets and **assigns them to players**, and creates new sheets **based on an existing one**, changing what he wants (R5);
+  - **changes a sheet's type**: to an adult when the character ages, or to a «Criatura mágica» if something changes the character's nature (R4.5);
   - creates campaigns and sees the campaign chooser; players join a campaign by invitation;
   - chooses which fields a shared reader sees (the visibility editor, R7.3).
 - **Player:** sees and edits the sheets they created or that the GM assigned to them, and their own drafts.
 - **Shared reader:** sees the fields the GM chose for that sheet.
-- **Administrator:** as today, and can see and change **the whole campaign's data** only while the GM allows it: the GM grants access for an issue, and it ends after **24 hours**, when the GM withdraws it, or when the administrator marks the issue as solved, whichever comes first. Admin screens in R4.
+- **Administrator:** as today, and can see and change **the whole campaign's data** only while the GM allows it: the GM grants access for an issue, and it ends after **24 hours**, when the GM withdraws it, or when the administrator marks the issue as solved, whichever comes first. Personal notes stay excluded. Admin screens in R4.
 
 ## Screens
 
@@ -78,9 +79,10 @@ The place to design a change before building it (owner request, 8 November 2026)
 
 - «**Menor**», with «Mago» and «Alumno de Escuela de Magia» ticked by default; unticking hides the related values.
 - «**Adulto**», with «Mago» ticked by default; unticking hides the related values.
-- «**Criatura mágica**»: everything an adult wizard has (it can even be a teacher), plus «**Especie**», a general «**Descripción**» (as familiars have) and a «**Pactos**» tab, like the notes tab, whose entries each link to another character.
+- «**Criatura mágica**»: everything an adult wizard has (it can even be a teacher), plus «**Especie**», a general «**Descripción**» (as familiars have) and a «**Pactos**» tab, like the notes tab, whose entries each link to another character. A player can own one, from character creation on.
 - «**Familiar**»: as today.
 - Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago.
+- The GM can later change a sheet's type (a minor grows up; a character becomes a «Criatura mágica»); values the new type does not show are hidden, not deleted.
 
 ### 5. Character creation form («Registro de Personaje» / «Registro de Mago Adulto»)
 
@@ -211,6 +213,12 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
   - non-magical characters cannot have familiars.
 - Data: one new field on the character (absent meaning magical, so existing sheets need no change), with its rule in field-rules.md.
 
+### Sheet versions (owner, 9 November 2026; after R5, designed first)
+
+- **Temporary versions:** a version of a character sheet can temporarily take the place of a player's character, for example in a parallel universe where they are a different person, or themselves but not quite. When it ends, the original sheet is back exactly as it was.
+- To design: who creates and ends a version (the GM), what the player sees and edits meanwhile, whether journal entries and experience gained in the version carry over, and how lists show it.
+- Related, simpler, in R5: the GM creates a new sheet **based on an existing one** and changes what he wants (an independent copy).
+
 ### Recorded for later
 
 - **Far backlog: a multiverse collection.** A collection of everything created in the magical multiverse, with an archaic Spanish or Latin name, opened from a button near the GM notes. It copies characters between campaigns, either as an independent copy or as a **linked representation that updates with changes on both sides**. This reverses today's "no automatic two-way sync" rule (design.md section 11) and will need its own design for edits on both sides. It replaces the older private "GM library" idea (R7.5).
@@ -224,11 +232,10 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
 
 ## Open questions
 
-Q1–Q8 were answered on 9 November 2026 and folded in above (drafts, deletion of archived sheets only, administrator access, «Criatura mágica», stress maxima, «Casas» / «Secciones», R6 after R5, the multiverse collection in the far backlog). Still open:
+Q1–Q8 and Q12–Q14 were answered on 9 November 2026 and folded in above (drafts, deletion of archived sheets only, administrator access, «Criatura mágica», stress maxima, «Casas» / «Secciones», R6 after R5, the multiverse collection in the far backlog). Still open, **waiting for the GM's full explanation of the stress rules** (owner, 9 November 2026):
 
 - **Q9 — Stress maximum from skills.** How a skill value (0–5) gives the track's maximum (1–5): for example, the maximum equals the skill with a minimum of 1, or 2 plus half the skill, or a table.
 - **Q10 — Repeated damage.** What happens when pips would overflow without reaching a new step, or when the character already has a consequence of the level a new hit gives (does it move up to the next free level?), and how many consequences of each level a track holds.
 - **Q11 — The app's role in damage.** Should the sheet only record stress and consequences (the GM applies the rules), or offer a «Recibir daño» box that applies them?
-- **Q12 — Confirmed drafts.** When the GM confirms a proposed draft, does it become the player's character, or can the GM take it as an NPC?
-- **Q13 — Criatura mágica, owner and familiars.** Can a player own one, as an adult wizard? Can it have a familiar?
-- **Q14 — Administrator access, personal notes.** Personal notes stay excluded from that access, as from the GM's?
+
+Answered later the same day: **Q12** the GM chooses when confirming whether a draft becomes the player's character or his NPC; **Q13** a player can own a «Criatura mágica» from creation, the GM can change a sheet's type later, and temporary versions and sheets based on another were added (Sheet versions); **Q14** personal notes stay excluded from administrator access. Whether a «Criatura mágica» can have a familiar is decided in R4.5's design step.

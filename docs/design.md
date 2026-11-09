@@ -131,10 +131,11 @@ Additional current-source responsibilities:
 
 **Owner's target design (9 November 2026; [product-design.md](product-design.md), Roles; built in R4):**
 
-- **Player drafts:** a new player sheet is a draft in the player's private vault; **the GM does not see drafts at all**, an exception to the GM's campaign-wide read access. The player proposes a draft once and the GM confirms it; it is then an ordinary campaign sheet. The GM also marks campaign sheets active or inactive (dead, travelling) to keep the main list short without archiving.
+- **Player drafts:** a new player sheet is a draft in the player's private vault; **the GM does not see drafts at all**, an exception to the GM's campaign-wide read access. The player proposes a draft once and the GM confirms it as the player's character or as his own NPC; it is then an ordinary campaign sheet.
+- **Sheet types and versions:** the GM changes a sheet's type and creates sheets based on another (independent copies within the campaign); temporary versions that stand in for a player's character are designed after R5. The GM also marks campaign sheets active or inactive (dead, travelling) to keep the main list short without archiving.
 - **Deletion:** the GM can delete only an archived sheet, after several confirmations.
 - **The GM creates campaigns** and assigns sheets he creates to players.
-- **Administrator access with the GM's permission:** a change to the rule that the site administrator does not read campaign sheet content. The GM grants access to the whole campaign for an issue; it ends after 24 hours, when the GM withdraws it, or when the administrator marks the issue as solved. Read and change; every access is audited; personal notes stay excluded (to confirm, product-design.md Q14).
+- **Administrator access with the GM's permission:** a change to the rule that the site administrator does not read campaign sheet content. The GM grants access to the whole campaign for an issue; it ends after 24 hours, when the GM withdraws it, or when the administrator marks the issue as solved. Read and change; every access is audited; personal notes stay excluded.
 - **Campaign data beyond sheets** (R5): institutions, branches and schools (year groups, subjects, clubs, classes) are GM-owned campaign records that sheets link to; players read what appears on their sheets.
 
 A user may be a GM in one campaign and a player in another. Authorization is campaign-scoped even when only one campaign exists initially. Every relationship endpoint must verify that referenced users, characters, and grants belong to the expected scope.

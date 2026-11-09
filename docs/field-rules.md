@@ -17,7 +17,8 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 | «Criatura mágica» | A character type with everything an adult wizard has, plus «Especie», a general «Descripción» and «Pactos» (a list like the journal, each entry linked to another character). | R4.5 |
 | Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |
 | `casa`, `adultWizardProfile/institution`, `curso`, `adultWizardProfile/teachingSubjects`, `clubesList` | Links to the campaign's institutions, branches and school records, with free text kept as a fallback. | R5 |
-| Sheet status | Draft (private to the player, invisible to the GM) → proposed → confirmed; and, for campaign sheets, active / inactive set by the GM. Existing sheets count as confirmed and active. | R4 |
+| Sheet status | Draft (private to the player, invisible to the GM) → proposed → confirmed as the player's character or a GM NPC; and, for campaign sheets, active / inactive set by the GM. Existing sheets count as confirmed and active. | R4 |
+| Sheet type changes | The GM changes a sheet's type later (Menor → Adulto, any → «Criatura mágica»); values the new type does not show are kept. | R4.5 |
 
 ## How to read the rules
 

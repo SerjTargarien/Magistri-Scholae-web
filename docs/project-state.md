@@ -673,7 +673,14 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - A temporary browser test (not committed) measured every screen at phone and desktop widths, including placeholders: with the demo's data nothing is cut any more. With long names (a 48-character character name, a 36-character familiar name) the list cards' names, player and species, and the familiar sheet's title are still cut: user data, which needs the layout rules (product-design.md, «Text that does not fit», proposal in PR #58).
 - Checks: type check; 53 unit tests; both builds; 49 browser tests (three steps of the student test find the renamed boxes and button).
 
-**Next:** polish pass (c), no cut words (about 50 places wrap instead of ending in «…»), then (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## No cut words: the rules applied — 9 November 2026
+
+- The owner adopted the rules in product-design.md («Text that does not fit»): wording first, then wrap; only the cards' concept and description keep two lines and «…» (also the bonded character's concept on the familiar sheet); no text under 9 px.
+- Applied: names on the list cards, the player, species and bonded character, the familiar sheet's title, the linked familiar's name on the character banner, «Desvincular», the creation form's tabs, equipment names in the form (no hover-only name), image errors, the account's name and username in settings and the campaign skills' age note all wrap or show whole; the ten texts at 7–8 px are 9 px. The familiar sheet's «elegir mago» dialog is the shared picker. The code has no `truncate` left; `line-clamp-2` remains only for the summaries.
+- Measured with a temporary test (not committed) with a 48-character character name, a 36-character familiar name and a 92-character concept, at phone and desktop widths: the only cut text is the long concept's two-line summary on its card. Pictures of the cards checked: long names wrap and the row's cards grow together.
+- Checks: type check; 53 unit tests; both builds; 49 browser tests.
+
+**Next:** polish pass (d), the remaining inconsistencies (product-design.md, Known inconsistencies 1–6), then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

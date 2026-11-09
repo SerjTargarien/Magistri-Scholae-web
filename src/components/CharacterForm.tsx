@@ -113,7 +113,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
                 className={`flex items-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border transition-all text-left shrink-0 snap-center cursor-pointer select-none lg:w-full ${houseTabBtnStyle(formTab.id as any)}`}
               >
                 <IconComp className={`w-4 h-4 shrink-0 ${activeFormTab === formTab.id ? houseIconColor : "text-neutral-500"}`} />
-                <span className="truncate">{formTab.label}</span>
+                <span className="whitespace-nowrap">{formTab.label}</span>
               </button>
             );
           })}
@@ -126,7 +126,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
               className="flex items-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-950/60 text-emerald-300 transition-all text-left shrink-0 snap-center cursor-pointer select-none lg:w-full lg:mt-2"
             >
               <PawPrint className="w-4 h-4 shrink-0 text-emerald-400" />
-              <span className="truncate">{t.familiarEditorCardTitle}</span>
+              <span className="whitespace-nowrap">{t.familiarEditorCardTitle}</span>
             </button>
           )}
         </div>

@@ -162,7 +162,7 @@ The ground rules for «no cut words» (owner, 9 November 2026). **Status: adopte
 
 ### Every place that cuts today
 
-Measured on 9 November 2026 after the wording pass (rule 1), on every screen at phone and desktop widths, with the demo's data and with long names (a 48-character character name, a 36-character familiar name). The code still cuts in these places; «cut now» marks where text is actually lost today.
+Measured on 9 November 2026 after the wording pass (rule 1), on every screen at phone and desktop widths, with the demo's data and with long names (a 48-character character name, a 36-character familiar name). «Cut now» marks where text was lost before the rules were applied. **All applied on 9 November 2026:** measured again with the same long names, the only text still cut is the cards' two-line summaries (rule 4).
 
 | Where | Text | Cut now? | Rule | Becomes |
 |---|---|---|---|---|

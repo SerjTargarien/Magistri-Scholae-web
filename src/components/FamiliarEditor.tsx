@@ -272,7 +272,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
                     <div className="text-center text-neutral-600 p-4 select-none">
                       <PawPrint className="w-9 h-9 mx-auto mb-2 opacity-40 text-emerald-400" />
                       <span className="text-[10px] font-mono block uppercase">{t.noPortrait}</span>
-                      <span className="text-[8px] font-mono text-neutral-500 mt-1 block">
+                      <span className="text-[9px] font-mono text-neutral-500 mt-1 block">
                         {t.idealRatio}
                       </span>
                     </div>
@@ -344,7 +344,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
 
                 {imageError && (
                   <div className="bg-rose-950/40 border border-rose-500/20 rounded-lg p-2.5 flex items-center justify-between text-rose-300 text-[10px] font-mono">
-                    <span className="truncate">{imageError}</span>
+                    <span className="min-w-0 break-words">{imageError}</span>
                     <button
                       type="button"
                       onClick={() => setImageError(null)}

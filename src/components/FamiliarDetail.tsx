@@ -26,6 +26,11 @@ import { useFamiliarDetail } from "./familiar/useFamiliarDetail";
 import { FamiliarProfileTab } from "./familiar/FamiliarProfileTab";
 import { FamiliarNotesTab } from "./familiar/FamiliarNotesTab";
 import { FamiliarGalleryTab } from "./familiar/FamiliarGalleryTab";
+import { Picker, pickerTexts } from "./Picker";
+import { HOUSES } from "../data/gameData";
+
+/** The picker's «no character» row. */
+const NO_MASTER = "__none";
 
 export type { FamiliarDetailProps };
 
@@ -81,7 +86,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
                 {linkedMaster ? linkedMaster.fields.nombre : store.sheet.bondId ? "—" : t.familiarUnbound}
               </span>
             </div>
-            <h1 className="font-magic text-2xl sm:text-3xl font-bold text-neutral-100 uppercase tracking-wider glow-amber truncate max-w-md">
+            <h1 className="font-magic text-2xl sm:text-3xl font-bold text-neutral-100 uppercase tracking-wider glow-amber break-words max-w-md">
               {familiar.nombre || t.noName}
             </h1>
           </div>
@@ -219,96 +224,31 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
       )}
 
       {/* Select Master / Bonding Modal */}
+      {/* Linking a character: the shared picker (Controls, control 9) */}
       {isSelectMasterOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-amber-500/30 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-magic text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                <LinkIcon className="w-4 h-4" />
-                {t.familiarBondStudent}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsSelectMasterOpen(false)}
-                className="text-neutral-400 hover:text-neutral-200 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-neutral-300 font-sans">
-              {t.selectFamiliarToBond}
-            </p>
-
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
-              {/* Option: Unbind */}
-              <button
-                type="button"
-                onClick={() => {
-                  handleBondMaster(null);
-                  setIsSelectMasterOpen(false);
-                }}
-                className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                  !store.sheet.bondId
-                    ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
-                    : "bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700"
-                }`}
-              >
-                <span>{t.familiarBondNone}</span>
-                {!store.sheet.bondId && <Check className="w-4 h-4 text-emerald-400" />}
-              </button>
-
-              {/* Characters list */}
-              {characters.map((charProjection) => {
-                const char = charProjection.fields as CharacterSheet;
-                return (
-                <button
-                  key={charProjection.id}
-                  type="button"
-                  onClick={() => {
-                    handleBondMaster(charProjection.id);
-                    setIsSelectMasterOpen(false);
-                  }}
-                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                    isBondedTo(charProjection.id)
-                      ? "bg-amber-950/60 border-amber-500 text-amber-200"
-                      : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 truncate">
-                    {char.avatarImage ? (
-                      <img
-                        src={imageSrc(char.avatarImage)}
-                        alt={char.nombre}
-                        className="w-7 h-7 rounded-lg object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-neutral-800 flex items-center justify-center shrink-0">
-                        <User className="w-3.5 h-3.5 text-neutral-400" />
-                      </div>
-                    )}
-                    <span className="truncate font-semibold">{char.nombre}</span>
-                    <span className="text-[10px] text-neutral-500">
-                      ({char.characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : char.casa})
-                    </span>
-                  </div>
-                  {isBondedTo(charProjection.id) && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                </button>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-neutral-800">
-              <button
-                type="button"
-                onClick={() => setIsSelectMasterOpen(false)}
-                className="px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl text-xs font-mono uppercase cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-        </div>
+        <Picker
+          id="master-picker"
+          title={t.familiarBondStudent}
+          intro={t.selectFamiliarToBond}
+          selected={store.sheet.bondId ?? NO_MASTER}
+          items={[
+            { id: NO_MASTER, label: t.familiarBondNone, icon: <span className="w-9 h-9 rounded-full grid place-items-center shrink-0 bg-neutral-900 border border-neutral-700 text-neutral-400"><X className="w-4 h-4" /></span> },
+            ...characters.map((charProjection) => {
+              const char = charProjection.fields as CharacterSheet;
+              return {
+                id: charProjection.id,
+                label: char.nombre ?? "",
+                detail: char.characterType === "adult_wizard" ? t.characterTypeAdultWizardShort : HOUSES[char.casa ?? ""]?.nombre ?? char.casa,
+                icon: char.avatarImage
+                  ? <img src={imageSrc(char.avatarImage)} alt="" className="w-9 h-9 rounded-full object-cover shrink-0 border border-[#d4af37]" />
+                  : <span className="w-9 h-9 rounded-full grid place-items-center shrink-0 bg-neutral-900 border border-[#d4af37] text-neutral-400"><User className="w-4 h-4" /></span>,
+              };
+            }),
+          ]}
+          onPick={(id) => { handleBondMaster(id === NO_MASTER ? null : id); setIsSelectMasterOpen(false); }}
+          onClose={() => setIsSelectMasterOpen(false)}
+          texts={pickerTexts(t)}
+        />
       )}
 
       {/* Archive Confirmation Modal (no window.confirm) */}

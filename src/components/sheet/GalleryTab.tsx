@@ -93,7 +93,7 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                       </button>
                     )}
 
-                    <div className="absolute bottom-2 left-2 bg-neutral-900/80 px-1.5 py-0.5 text-[8px] font-mono rounded text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-2 left-2 bg-neutral-900/80 px-1.5 py-0.5 text-[9px] font-mono rounded text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
                       #{idx + 1}
                     </div>
                   </div>

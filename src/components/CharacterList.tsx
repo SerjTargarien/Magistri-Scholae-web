@@ -324,7 +324,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                   {/* Parchment Mid-Plate for Name & Concept Quote */}
                   <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
-                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
+                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider break-words">
                       {c.nombre || t.noName}
                     </h3>
 
@@ -349,23 +349,23 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   {/* Dark Inset Bottom Footer Bar */}
                   <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-3 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
                     <div>
-                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblDestino}</div>
+                      <div className="text-[9px] text-[#b8a68e] uppercase tracking-tight">{t.lblDestino}</div>
                       <div className="text-xs text-amber-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4">
                         <Coins className="w-3 h-3 text-amber-400 shrink-0" />
                         {c.puntosDestino}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblExp}</div>
+                      <div className="text-[9px] text-[#b8a68e] uppercase tracking-tight">{t.lblExp}</div>
                       <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4" title={String(c.pxs ?? 0)}>
                         <Award className="w-3 h-3 text-violet-400 shrink-0" />
                         {cardCount(c.pxs, lang)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.jugador}</div>
-                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                        <span className="truncate">{c.jugador || "—"}</span>
+                      <div className="text-[9px] text-[#b8a68e] uppercase tracking-tight">{t.jugador}</div>
+                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center text-center break-words min-w-0 max-w-full px-1 mt-0.5 min-h-4">
+                        <span className="min-w-0 break-words">{c.jugador || "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -427,7 +427,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
                   {/* Parchment Mid-Plate for Name & Description Quote */}
                   <div className="academy-parchment-plate px-3 pt-5 pb-3 text-center flex-1 flex flex-col justify-center">
-                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider truncate">
+                    <h3 className="font-magic text-base font-bold text-[#1b1108] uppercase tracking-wider break-words">
                       {f.nombre || t.noName}
                     </h3>
 
@@ -452,15 +452,15 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                   {/* Dark Inset Bottom Footer Bar */}
                   <div className="mt-1.5 bg-[#18120c]/95 border border-[#b88c32]/70 rounded-b-xl px-2 py-2.5 grid grid-cols-2 divide-x divide-[#8c6d38]/35 text-center font-mono tabular-nums shadow-inner">
                     <div>
-                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarSpeciesShort}</div>
-                      <div className="text-xs text-emerald-400 font-bold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                        <span className="truncate">{f.especie || "—"}</span>
+                      <div className="text-[9px] text-[#b8a68e] uppercase tracking-tight">{t.familiarSpeciesShort}</div>
+                      <div className="text-xs text-emerald-400 font-bold flex items-center justify-center text-center break-words min-w-0 max-w-full px-1 mt-0.5 min-h-4">
+                        <span className="min-w-0 break-words">{f.especie || "—"}</span>
                       </div>
                     </div>
                     <div>
-                      <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.familiarBondLabel}</div>
-                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center truncate max-w-full px-1 mt-0.5 h-4">
-                        <span className="truncate">{linkedStudent ? linkedStudent.nombre : t.familiarUnbound}</span>
+                      <div className="text-[9px] text-[#b8a68e] uppercase tracking-tight">{t.familiarBondLabel}</div>
+                      <div className="text-[11px] text-[#f5ead4] font-semibold flex items-center justify-center text-center break-words min-w-0 max-w-full px-1 mt-0.5 min-h-4">
+                        <span className="min-w-0 break-words">{linkedStudent ? linkedStudent.nombre : t.familiarUnbound}</span>
                       </div>
                     </div>
                   </div>

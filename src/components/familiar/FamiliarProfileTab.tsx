@@ -246,7 +246,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       <div className="font-magic text-lg font-bold text-neutral-100 uppercase tracking-wide">
                         {linkedMaster.fields.nombre}
                       </div>
-                      <div className="text-xs text-neutral-400 font-serif italic truncate max-w-xs">
+                      <div className="text-xs text-neutral-400 font-serif italic line-clamp-2 max-w-xs">
                         {linkedMaster.fields.concepto || "—"}
                       </div>
                     </div>

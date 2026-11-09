@@ -129,10 +129,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-neutral-950/40 p-4 border border-violet-500/10 rounded-lg">
             <div className="min-w-0">
-              <div className="text-sm text-neutral-200 font-medium truncate">
+              <div className="text-sm text-neutral-200 font-medium break-words">
                 {account.displayName}
               </div>
-              <div className="text-[11px] text-neutral-500 font-mono truncate">
+              <div className="text-[11px] text-neutral-500 font-mono break-all">
                 {account.username}
               </div>
             </div>

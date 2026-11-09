@@ -163,7 +163,7 @@ export function FormAspectsTab({ ctx }: { ctx: FormContext }) {
                             className="flex items-center justify-between bg-neutral-900/40 px-3 py-1.5 border border-neutral-800 rounded-lg hover:border-violet-500/10 transition-all"
                           >
                             <div className="flex items-center gap-2 max-w-[80%] min-w-0">
-                              <span className="text-[11px] text-neutral-200 font-mono truncate" title={eq.nombre}>{eq.nombre}</span>
+                              <span className="min-w-0 text-[11px] text-neutral-200 font-mono break-words">{eq.nombre}</span>
                               <span className="bg-neutral-950/80 text-[10px] px-1.5 py-0.5 rounded text-amber-400 font-bold border border-neutral-800">
                                 x{eq.cantidad}
                               </span>

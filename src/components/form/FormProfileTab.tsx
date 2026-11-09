@@ -48,7 +48,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                       <div className="text-center text-neutral-600 p-4 select-none">
                         <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-violet-400" />
                         <span className="text-[10px] font-mono block uppercase">{t.noPortrait}</span>
-                        <span className="text-[8px] font-mono text-neutral-500 mt-1 block">{t.idealRatio}</span>
+                        <span className="text-[9px] font-mono text-neutral-500 mt-1 block">{t.idealRatio}</span>
                       </div>
                     )}
                     {avatarDataUrl && (
@@ -113,7 +113,7 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
 
                   {imageError && (
                     <div className="bg-rose-950/40 border border-rose-500/20 rounded-lg p-2.5 flex items-center justify-between text-rose-300 text-[10px] font-mono" id="avatar-image-upload-error">
-                      <span className="truncate">{imageError}</span>
+                      <span className="min-w-0 break-words">{imageError}</span>
                       <button
                         id="btn-close-avatar-err"
                         type="button"

@@ -228,7 +228,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       {/* Overlaid Familiar Name Scrim */}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-3 pb-0.5 px-1 text-center">
                         <div
-                          className={`font-magic text-[8px] font-bold uppercase tracking-wider truncate text-[#fce8a6]`}
+                          className={`font-magic text-[9px] font-bold uppercase tracking-wider break-words text-center text-[#fce8a6]`}
                         >
                           {linkedFamiliar.nombre || t.noName}
                         </div>
@@ -253,7 +253,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                       className={`w-14 aspect-[3/4] rounded-lg flex flex-col items-center justify-center p-1 text-center transition-all cursor-pointer select-none shadow-[0_6px_16px_rgba(0,0,0,0.95)] ring-2 ring-black/80 bg-[#120d1a]/95 border-2 border-dashed border-[#c8a248] text-[#fce8a6]`}
                     >
                       <PawPrint className="w-4 h-4 mb-0.5 text-emerald-400" />
-                      <span className="text-[7px] font-mono uppercase tracking-tighter leading-tight line-clamp-2">
+                      <span className="text-[9px] font-mono uppercase tracking-tighter leading-tight break-words">
                         {t.bondExistingFamiliar}
                       </span>
                     </button>
@@ -300,7 +300,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   title={t.familiarUnbind}
                 >
                   <Unlink className="w-3 h-3" />
-                  <span className="truncate">{t.familiarUnbind}</span>
+                  <span className="break-words">{t.familiarUnbind}</span>
                 </button>
               )}
             </div>
@@ -403,7 +403,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   {/* Bottom dark scrim with overlaid Familiar Name */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-6 pb-1.5 px-2 text-center">
                     <div
-                      className={`font-magic text-[11px] font-bold uppercase tracking-wider truncate text-[#fce8a6] drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]`}
+                      className={`font-magic text-[11px] font-bold uppercase tracking-wider break-words text-[#fce8a6] drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]`}
                     >
                       {linkedFamiliar.nombre || t.noName}
                     </div>
@@ -441,7 +441,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   title={t.familiarUnbind}
                 >
                   <Unlink className="w-3 h-3" />
-                  <span className="truncate">{t.familiarUnbind}</span>
+                  <span className="break-words">{t.familiarUnbind}</span>
                 </button>
               )}
             </div>

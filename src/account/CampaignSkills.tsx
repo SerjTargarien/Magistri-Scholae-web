@@ -141,7 +141,7 @@ export function CampaignSkills({ lang, catalogue, onSave, onBack }: CampaignSkil
                       className={inputClass}
                     />
                     {skill.edadMaxima !== undefined && (
-                      <span className="text-[9px] text-neutral-500 font-mono whitespace-nowrap">{s.ageLimit.replace("{age}", String(skill.edadMaxima))}</span>
+                      <span className="text-[9px] text-neutral-500 font-mono">{s.ageLimit.replace("{age}", String(skill.edadMaxima))}</span>
                     )}
                   </div>
                 </div>

@@ -53,12 +53,16 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
 
   // The new character, complete, in the server's model.
   const [characterState, setCharacterState] = useState<CharacterSheet>(() => newCharacterSheet(newCharacterType, catalogue));
+  // The blank sheet the form started from: «Cancelar» asks first if anything differs from it.
+  const blankSheet = useRef(characterState);
 
   // A different character type starts a fresh sheet, as before.
   const firstType = useRef(true);
   useEffect(() => {
     if (firstType.current) { firstType.current = false; return; }
-    setCharacterState(newCharacterSheet(newCharacterType, catalogue));
+    const fresh = newCharacterSheet(newCharacterType, catalogue);
+    blankSheet.current = fresh;
+    setCharacterState(fresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newCharacterType]);
 
@@ -90,7 +94,6 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
   // The cropped portrait (data URL). Not a field: onSave uploads it after creation.
   const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
 
-  // A familiar created from the form's dialog, bonded by onSave.
   // A familiar confirmed in the dialog: created and linked only when the character is saved.
   const [pendingFamiliar, setPendingFamiliar] = useState<PendingFamiliar | null>(null);
 
@@ -327,15 +330,14 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     return "";
   };
 
+  // Any change at all: a field of the sheet, the portrait, a confirmed familiar,
+  // or text typed in an «add» box and not added yet.
   const isStateDirty = () =>
-    (characterState.nombre ?? "").trim() !== "" ||
-    (characterState.concepto ?? "").trim() !== "" ||
-    (characterState.jugador ?? "").trim() !== "" ||
+    JSON.stringify(characterState) !== JSON.stringify(blankSheet.current) ||
     !!avatarDataUrl ||
-    (characterState.aspectosPersonales ?? []).length > 0 ||
-    (characterState.complicaciones ?? []).length > 0 ||
-    (characterState.equipoList ?? []).length > 0 ||
-    (characterState.camposPersonalizados ?? []).length > 0;
+    !!pendingFamiliar ||
+    [newAspectName, newComplicationName, pastedAvatarUrl, newItemName, newCustomFieldName, newCustomFieldValue,
+      ...Object.values(inlineSkillNames)].some(text => text.trim() !== "");
 
   const handleCancelClick = () => {
     if (isStateDirty()) {

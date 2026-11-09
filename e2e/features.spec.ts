@@ -465,6 +465,35 @@ test("bonds: link from the character, navigate both ways; archiving the characte
   await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
 });
 
+test("«Cancelar» on the creation form asks before discarding any change", async ({ page }) => {
+  const openForm = async () => {
+    await page.locator("#btn-add-character-header").click();
+    await page.locator("#type-select-student").click();
+    await expect(page.locator("#character-form-container")).toBeVisible();
+  };
+  // Nothing changed: it leaves at once.
+  await openForm();
+  await page.locator("#btn-form-cancel").click();
+  await expect(page.locator("#modal-discard-draft")).toHaveCount(0);
+  await expect(page.locator("#character-form-container")).toHaveCount(0);
+
+  // Fields the old check missed (age, wand): it asks first.
+  for (const change of [
+    () => page.locator("#input-edad").fill("14"),
+    () => page.locator("#input-varita-sintonia").fill("Willow"),
+  ]) {
+    await openForm();
+    await change();
+    await page.locator("#btn-form-cancel").click();
+    await expect(page.locator("#modal-discard-draft")).toBeVisible();
+    await page.locator("#btn-discard-draft-cancel").click(); // keeps editing
+    await expect(page.locator("#character-form-container")).toBeVisible();
+    await page.locator("#btn-form-cancel").click();
+    await page.locator("#btn-discard-draft-confirm").click();
+    await expect(page.locator("#character-form-container")).toHaveCount(0);
+  }
+});
+
 test("a familiar made in the creation form is created only with its character", async ({ page }) => {
   const confirmFamiliar = async (name: string) => {
     await page.locator("#btn-form-open-familiar-editor-nav").click();

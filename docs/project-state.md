@@ -685,7 +685,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The familiar dialog in the creation form no longer creates anything: its button reads «Confirmar familiar», the form keeps the values (the «Familiar» tab then shows the familiar's name; reopening the dialog shows what was entered), and saving the character creates the familiar and links it. «Cancelar» leaves no familiar behind (known inconsistency 1). `FamiliarEditor` can start from given values (`initial`) and take another button label (`confirmLabel`); the form's screen contract loses `onCreateFamiliar`, and `onSave` receives the pending familiar.
 - Checks: type check; 53 unit tests; both builds; 51 browser tests (new: a confirmed familiar is not created when the character is cancelled, and is created and linked when it is saved).
 
-**Next:** polish pass (d), the remaining inconsistencies (product-design.md, Known inconsistencies 1–6), then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (d), part 2: «Cancelar» asks before discarding any change — 9 November 2026
+
+- The creation form compares the whole sheet with the blank one it started from, so any change (age, wand, house, skills, stress, anything) makes «Cancelar» ask first; so do a portrait, a confirmed familiar, and text typed in an «add» box but not added yet. A form left untouched closes at once, as before (known inconsistency 2).
+- Checks: type check; 53 unit tests; both builds; 53 browser tests (new: an untouched form closes at once; a changed age or wand asks, «Cancelar» in the dialog keeps editing).
+
+**Next:** polish pass (d), the remaining inconsistencies (product-design.md, Known inconsistencies 3–5, and the familiar sheet's header and notes tab), then the image viewer. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

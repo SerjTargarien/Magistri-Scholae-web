@@ -184,7 +184,8 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0); // every physical skill is already there
   await page.locator("#skill-row-Sigilo button").first().click(); // remove it
   await page.locator("#btn-open-skill-list-fisicas").click();
-  await page.locator("#btn-pick-skill-sigilo").click(); // and pick it again
+  await page.locator("#skill-list-fisicas-item-sigilo").click(); // and pick it again
+  await page.locator("#skill-list-fisicas-done").click();
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
   await openTab(page, "hechizos");
   await page.locator("#input-spell-name").fill("Revelio");
@@ -251,7 +252,7 @@ test("a skill the GM types joins the campaign's list; players then pick it", asy
   await page.locator("#type-select-student").click();
   await page.locator("#btn-form-tab-habilidades").click();
   await page.locator("#btn-open-skill-list-fisicas").click();
-  await expect(page.locator("#btn-pick-skill-escalada")).toBeVisible();
+  await expect(page.locator("#skill-list-fisicas-item-escalada")).toBeVisible();
 });
 
 test("the GM's campaign skill list: starting skills, names and new skills", async ({ page }) => {
@@ -280,7 +281,8 @@ test("the GM's campaign skill list: starting skills, names and new skills", asyn
   await openTab(page, "habilidades");
   await expect(page.locator('[id="skill-row-Duelo mágico"]')).toBeVisible(); // linked skills show the list's name
   await page.locator("#btn-open-skill-list-fisicas").click();
-  await page.locator("#btn-pick-skill-sigilo").click();
+  await page.locator("#skill-list-fisicas-item-sigilo").click();
+  await page.locator("#skill-list-fisicas-done").click();
   await expect(page.locator("#btn-open-skill-list-fisicas")).toHaveCount(0);
 });
 

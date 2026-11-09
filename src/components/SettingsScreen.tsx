@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { Language, TRANSLATIONS } from "../localization";
 import type { SettingsScreenProps } from "../account/screens";
 import { CAMPAIGN_SKILLS_TEXT } from "../account/CampaignSkills";
+import { Picker, pickerTexts } from "./Picker";
 import { 
   Languages, 
   Database, 
   Sparkles,
   ArrowLeft,
+  ChevronDown,
   CircleUser,
   LogOut,
   ListChecks,
@@ -46,6 +48,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const t = TRANSLATIONS[lang];
   const s = SETTINGS_TEXT[lang];
+  const [choosingCampaign, setChoosingCampaign] = useState(false);
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-6" id="settings-screen">
@@ -136,21 +139,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
             {account.campaigns.length > 1 && (
               <div className="flex items-center gap-3 sm:ml-auto">
-                <label htmlFor="settings-campaign-select" className="text-sm text-neutral-300 font-medium">
-                  {s.campaignLabel}:
-                </label>
-                <select
+                <span className="text-sm text-neutral-300 font-medium">{s.campaignLabel}:</span>
+                <button
                   id="settings-campaign-select"
-                  value={account.campaignId}
-                  onChange={(e) => account.onChangeCampaign(e.target.value)}
-                  className="bg-neutral-900 border border-violet-500/30 text-amber-300 p-2 rounded-md font-medium font-mono text-sm cursor-pointer"
+                  type="button"
+                  aria-haspopup="dialog"
+                  onClick={() => setChoosingCampaign(true)}
+                  className="inline-flex items-center gap-2 min-h-10 px-3 rounded-lg border border-amber-600/50 bg-gradient-to-b from-[#231c35] to-[#130f1e] text-amber-300 text-sm font-medium cursor-pointer hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 >
-                  {account.campaigns.map((campaign) => (
-                    <option key={campaign.id} value={campaign.id}>
-                      {campaign.name}
-                    </option>
-                  ))}
-                </select>
+                  <span className="break-words text-left">{account.campaigns.find((c) => c.id === account.campaignId)?.name}</span>
+                  <ChevronDown className="w-4 h-4 shrink-0" />
+                </button>
+                {choosingCampaign && (
+                  <Picker
+                    id="campaign-picker"
+                    title={s.campaignLabel}
+                    items={account.campaigns.map((campaign) => ({ id: campaign.id, label: campaign.name }))}
+                    selected={account.campaignId}
+                    onPick={(id) => { setChoosingCampaign(false); if (id !== account.campaignId) account.onChangeCampaign(id); }}
+                    onClose={() => setChoosingCampaign(false)}
+                    texts={pickerTexts(t)}
+                  />
+                )}
               </div>
             )}
 

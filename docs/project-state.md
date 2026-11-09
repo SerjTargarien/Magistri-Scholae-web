@@ -655,7 +655,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The sheet's house selectors in edit mode (under the crest, and for a house without a recognised crest) are a tag menu: a tag with the house's medallion and name opens the five houses with their medallions, as in the approved demo. `TagMenu` options may now carry an icon, and a tag may take its own shape (`tagClass`). The character sheet has no browser selector left.
 - Checks: type check; 53 unit tests; both builds; 49 browser tests (new: the house changes from its tag and is stored). Looked at in the demo build at phone width.
 
-**Next:** polish pass (b), part 6: the picker (campaign in settings, «Añadir de la lista», linking a familiar). Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (b), part 6: the picker — 9 November 2026
+
+- `src/components/Picker.tsx`: a dialog on wide screens and a tall sheet from the bottom on phones; search above 8 entries; a single choice closes on tap, a multiple choice uses checks and «Hecho (n)»; Escape, a tap outside and «×» close it and give focus back. It replaces the campaign selector in settings, the inline list of «+ Añadir de la lista» (now several skills at once, sheet and form) and the dialog that links a familiar from the character's sheet (with «Crear Familiar» in its footer).
+- **Polish pass (b) is complete:** the app has no browser-drawn selector, checkbox, number spinner or unstyled slider left, except the language selector, hidden until the language choice returns (then a segmented control).
+- Checks: type check; 53 unit tests; both builds; 49 browser tests (the skill tests pick from the list and confirm with «Hecho»). Looked at in the demo build at phone width.
+
+**Next:** polish pass (c), no cut words (about 50 places wrap instead of ending in «…»), then (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

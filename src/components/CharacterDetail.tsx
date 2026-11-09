@@ -41,6 +41,10 @@ import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Check as CheckBox } from "./Toggle";
 import { Segmented } from "./Segmented";
 import { Slider } from "./Slider";
+import { Picker, pickerTexts } from "./Picker";
+
+/** The picker's «no familiar» row. */
+const NO_FAMILIAR = "__none";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -697,110 +701,41 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         </div>
       )}
 
-      {/* Modal: Vincular Familiar a este personaje */}
+      {/* Linking a familiar: the shared picker (Controls, control 9) */}
       {isSelectFamiliarModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-amber-500/30 shadow-2xl space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <h3 className="font-magic text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                <PawPrint className="w-4 h-4 text-emerald-400" />
-                {t.familiarBondSectionTitle}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsSelectFamiliarModalOpen(false)}
-                className="text-neutral-400 hover:text-neutral-200 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-neutral-300 font-sans">
-              {t.selectFamiliarPlaceholder}
-            </p>
-
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
-              {/* Opción 1: Sin familiar / Desvincular */}
-              <button
-                type="button"
-                onClick={() => {
-                  bondFamiliar(null);
-                  setIsSelectFamiliarModalOpen(false);
-                }}
-                className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                  !bondId
-                    ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
-                    : "bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700"
-                }`}
-              >
-                <span>{t.familiarBondNone}</span>
-                {!bondId && <Check className="w-4 h-4 text-emerald-400" />}
-              </button>
-
-              {/* Lista de familiares creados */}
-              {familiars.map((familiar) => {
-                const fam = familiar.fields as FamiliarSheet;
-                return (
-                <button
-                  key={familiar.id}
-                  type="button"
-                  onClick={() => {
-                    bondFamiliar(familiar.id);
-                    setIsSelectFamiliarModalOpen(false);
-                  }}
-                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
-                    bondId === familiar.id
-                      ? "bg-amber-950/60 border-amber-500 text-amber-200"
-                      : "bg-neutral-950/60 border-neutral-800 text-neutral-200 hover:border-neutral-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 truncate">
-                    {fam.imagen ? (
-                      <img
-                        src={imageSrc(fam.imagen)}
-                        alt={fam.nombre}
-                        className="w-7 h-7 rounded-lg object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-emerald-950/60 flex items-center justify-center shrink-0 text-emerald-400">
-                        <PawPrint className="w-4 h-4" />
-                      </div>
-                    )}
-                    <span className="truncate font-semibold">{fam.nombre}</span>
-                    <span className="text-[10px] text-emerald-400">
-                      ({fam.especie})
-                    </span>
-                  </div>
-                  {bondId === familiar.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                </button>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-between items-center pt-2 border-t border-neutral-800">
-              {onOpenCreateFamiliar ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSelectFamiliarModalOpen(false);
-                    onOpenCreateFamiliar();
-                  }}
-                  className="text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{t.createNewFamiliar}</span>
-                </button>
-              ) : <div />}
-              <button
-                type="button"
-                onClick={() => setIsSelectFamiliarModalOpen(false)}
-                className="px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl text-xs font-mono uppercase cursor-pointer"
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-        </div>
+        <Picker
+          id="familiar-picker"
+          title={t.familiarBondSectionTitle}
+          intro={t.selectFamiliarPlaceholder}
+          selected={bondId ?? NO_FAMILIAR}
+          items={[
+            { id: NO_FAMILIAR, label: t.familiarBondNone, icon: <span className="w-9 h-9 rounded-full grid place-items-center shrink-0 bg-neutral-900 border border-neutral-700 text-neutral-400"><X className="w-4 h-4" /></span> },
+            ...familiars.map((familiar) => {
+              const fam = familiar.fields as FamiliarSheet;
+              return {
+                id: familiar.id,
+                label: fam.nombre ?? "",
+                detail: fam.especie,
+                icon: fam.imagen
+                  ? <img src={imageSrc(fam.imagen)} alt="" className="w-9 h-9 rounded-full object-cover shrink-0 border border-[#d4af37]" />
+                  : <span className="w-9 h-9 rounded-full grid place-items-center shrink-0 bg-emerald-950/60 border border-[#d4af37] text-emerald-300"><PawPrint className="w-4 h-4" /></span>,
+              };
+            }),
+          ]}
+          onPick={(id) => { bondFamiliar(id === NO_FAMILIAR ? null : id); setIsSelectFamiliarModalOpen(false); }}
+          onClose={() => setIsSelectFamiliarModalOpen(false)}
+          texts={pickerTexts(t)}
+          footer={onOpenCreateFamiliar && (
+            <button
+              type="button"
+              onClick={() => { setIsSelectFamiliarModalOpen(false); onOpenCreateFamiliar(); }}
+              className="min-h-10 px-3 text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.createNewFamiliar}</span>
+            </button>
+          )}
+        />
       )}
     </div>
   );

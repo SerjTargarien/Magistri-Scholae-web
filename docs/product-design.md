@@ -106,7 +106,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | House, creation form | Option cards | Stays (8) | — |
 | House, sheet edit mode | Native selector | Tag menu with crests (7) | Done (9 November 2026) |
 | Visual style, settings | Option cards | Removed with Classic (owner) | Done (9 November 2026) |
-| Campaign, settings | Native selector | Picker (9) | Polish pass |
+| Campaign, settings | Native selector | Picker (9) | Done (9 November 2026) |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |
 | Image fit | Two buttons | Segmented (5) | Done (9 November 2026) |
 | Values, quantities, stress maximum | Steppers; native number boxes when adding equipment and in the form | Stepper (1) | Done (9 November 2026) |
@@ -118,8 +118,8 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Severity when adding | Option chips | Stays (6) | Done (PR #41) |
 | Severity on a consequence | Native selector as a tag | Tag menu (7) | Done (PR #41) |
 | Knowledge level, sheet and form | Native selector | Tag menu (7) | Done (PR #41) |
-| Skill from the campaign's list | Inline list of chips | Picker with search (9) | Polish pass |
-| Bonded familiar | Dialog with a list | Picker (9), the same component | Polish pass |
+| Skill from the campaign's list | Inline list of chips | Picker with search (9) | Done (9 November 2026) |
+| Bonded familiar | Dialog with a list | Picker (9), the same component | Done (9 November 2026) |
 | Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | R4 |
 | Active / inactive | — | Switch (3), GM only | R4 |
 | Assigned player | — | Picker (9) | R4 |

@@ -65,6 +65,10 @@ export interface TranslationDict {
   limitEntries: string;
   limitImages: string;
   limitReached: string;
+  pickerSearch: string;
+  pickerNoMatch: string;
+  pickerDone: string;
+  pickerClose: string;
   placeholderJugador: string;
   placeholderPuestoClase: string;
   placeholderConcepto: string;
@@ -454,6 +458,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     limitEntries: "entradas",
     limitImages: "imágenes",
     limitReached: "límite alcanzado",
+    pickerSearch: "Buscar",
+    pickerNoMatch: "Nada coincide con «{q}».",
+    pickerDone: "Hecho",
+    pickerClose: "Cerrar",
     placeholderJugador: "p. ej. Miguel Ángel",
     placeholderPuestoClase: "p. ej. Prefecta, Monitor",
     placeholderConcepto: "p. ej. Alquimista rebelde con un secreto familiar",
@@ -844,6 +852,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     limitEntries: "entries",
     limitImages: "images",
     limitReached: "limit reached",
+    pickerSearch: "Search",
+    pickerNoMatch: "Nothing matches «{q}».",
+    pickerDone: "Done",
+    pickerClose: "Close",
     placeholderJugador: "e.g., Michael Angel",
     placeholderPuestoClase: "e.g., Prefect, Monitor",
     placeholderConcepto: "e.g., Rebel alchemist with a family secret",

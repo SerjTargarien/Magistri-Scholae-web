@@ -19,6 +19,8 @@ export type TagOption<T extends string> = {
   hint?: string;
   /** The tag's colours for this value; none draws the value as plain text in the menu. */
   tone?: string;
+  /** A picture before the label, in the tag and the menu (a house's medallion). */
+  icon?: React.ReactNode;
 };
 
 /** Tags keep their natural width; a value too long for the row wraps to a second line, never cut with «…» (owner, 9 November 2026). */
@@ -30,7 +32,7 @@ const PLAIN = "border-neutral-700 bg-neutral-900/60 text-neutral-300";
 export const HIT = "relative after:absolute after:content-[''] after:left-1/2 after:top-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-[max(100%,40px)] after:h-[max(100%,40px)]";
 const PHONE = 640;
 
-export function TagMenu<T extends string>({ id, title, value, options, emptyLabel, editable, onChange }: {
+export function TagMenu<T extends string>({ id, title, value, options, emptyLabel, editable, onChange, tagClass }: {
   /** The tag's id; menu items are `${id}-option-${value || "none"}`. */
   id: string;
   /** The menu's heading and the tag's accessible name. */
@@ -41,6 +43,8 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
   emptyLabel: string;
   editable: boolean;
   onChange: (value: T) => void;
+  /** Replaces the tag's shape and colours (the house tag); the value's tone then does not apply. */
+  tagClass?: string;
 }) {
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
@@ -51,7 +55,8 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
   if (!editable) {
     if (!current) return null;
     return (
-      <span id={id} title={title} className={`${TAG} ${current.tone ?? PLAIN}`}>
+      <span id={id} title={title} className={tagClass ?? `${TAG} ${current.tone ?? PLAIN}`}>
+        {current.icon}
         <span className="min-w-0">{current.label}</span>
       </span>
     );
@@ -77,8 +82,9 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
             setOpen(true);
           }
         }}
-        className={`${TAG} ${HIT} ${current ? current.tone ?? PLAIN : EMPTY} cursor-pointer transition-colors hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950`}
+        className={`${tagClass ?? `${TAG} ${current ? current.tone ?? PLAIN : EMPTY}`} ${HIT} cursor-pointer transition-colors hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950`}
       >
+        {current?.icon}
         <span className="min-w-0">{text}</span>
         <ChevronDown className="w-3 h-3 shrink-0 opacity-80" aria-hidden="true" />
       </button>
@@ -160,6 +166,7 @@ function Menu<T extends string>({ id, title, value, options, anchor, onPick, onC
               onClick={() => onPick(o.value)}
               className="flex items-center gap-2.5 w-full min-h-10 px-2.5 py-1 rounded-lg border border-transparent text-left text-[13px] text-neutral-200 hover:bg-white/5 hover:border-amber-600/30 focus:outline-none focus-visible:bg-white/5 focus-visible:border-amber-600/40 cursor-pointer"
             >
+              {o.icon}
               <span className="min-w-0">
                 {o.tone ? <span className={`${TAG} ${o.tone}`}>{o.label}</span> : <span>{o.label}</span>}
                 {o.hint && <span className="block text-[11px] text-neutral-400 mt-0.5">{o.hint}</span>}

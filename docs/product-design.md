@@ -104,7 +104,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Main list: search | Text box | Stays, inside the filter bar | — |
 | New sheet type | Option cards | Stays (8) | — |
 | House, creation form | Option cards | Stays (8) | — |
-| House, sheet edit mode | Native selector | Tag menu with crests (7) | Polish pass |
+| House, sheet edit mode | Native selector | Tag menu with crests (7) | Done (9 November 2026) |
 | Visual style, settings | Option cards | Removed with Classic (owner) | Done (9 November 2026) |
 | Campaign, settings | Native selector | Picker (9) | Polish pass |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |

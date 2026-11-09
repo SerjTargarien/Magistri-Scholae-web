@@ -16,6 +16,10 @@ import type { SheetContext } from "./useCharacterSheet";
 import { SubjectList } from "../SubjectList";
 import { limitAttrs } from "../LimitHint";
 import { Switch } from "../Toggle";
+import { TagMenu } from "../TagMenu";
+
+/** The house tag (Controls, tag menu): the medallion and the name, as in the approved demo. */
+const HOUSE_TAG = "inline-flex items-center gap-2 min-h-[34px] pl-1 pr-3 rounded-full border border-amber-600/30 bg-[rgba(17,13,27,0.9)] text-[#fce8a6] font-magic text-[11px] font-bold uppercase tracking-[0.12em] hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -407,17 +411,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           variant="shield"
                         />
                         {isQuickEditing && writable("casa") ? (
-                          <select
-                            value={casa.toUpperCase()}
-                            onChange={(e) => edit("casa", e.target.value as House)}
-                            className="mt-2 w-full text-center text-[10px] bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-1.5 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                          >
-                            {Object.keys(HOUSES).map((hKey) => (
-                              <option key={hKey} value={hKey}>
-                                {HOUSES[hKey].nombre}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="mt-2 flex justify-center">
+                            <TagMenu<House>
+                              id="tag-house"
+                              title={t.casa}
+                              value={casa.toUpperCase() as House}
+                              emptyLabel={t.casa}
+                              editable
+                              onChange={(house) => edit("casa", house)}
+                              tagClass={HOUSE_TAG}
+                              options={Object.keys(HOUSES).map((hKey) => ({ value: hKey as House, label: HOUSES[hKey].nombre, icon: <HouseCrest house={hKey} variant="medallion" className="w-6 h-6 shrink-0" /> }))}
+                            />
+                          </div>
                         ) : (
                           <div className={`font-magic text-xs tracking-widest uppercase text-amber-300 font-bold mt-2 text-center drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]`}>
                             {hInfo.nombre}
@@ -444,17 +449,18 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                           <div>
                             <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.casa}</div>
                             {isQuickEditing && writable("casa") ? (
-                              <select
-                                value={casa.toUpperCase()}
-                                onChange={(e) => edit("casa", e.target.value as House)}
-                                className="mt-1 w-full text-xs bg-neutral-950 text-amber-300 border border-neutral-800 rounded px-2 py-1 font-magic uppercase tracking-wider focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                              >
-                                {Object.keys(HOUSES).map((hKey) => (
-                                  <option key={hKey} value={hKey}>
-                                    {HOUSES[hKey].nombre}
-                                  </option>
-                                ))}
-                              </select>
+                              <div className="mt-2 flex justify-center">
+                                <TagMenu<House>
+                                  id="tag-house-other"
+                                  title={t.casa}
+                                  value={casa.toUpperCase() as House}
+                                  emptyLabel={t.casa}
+                                  editable
+                                  onChange={(house) => edit("casa", house)}
+                                  tagClass={HOUSE_TAG}
+                                  options={Object.keys(HOUSES).map((hKey) => ({ value: hKey as House, label: HOUSES[hKey].nombre, icon: <HouseCrest house={hKey} variant="medallion" className="w-6 h-6 shrink-0" /> }))}
+                                />
+                              </div>
                             ) : (
                               <div className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wider mt-0.5">
                                 {hInfo.nombre}

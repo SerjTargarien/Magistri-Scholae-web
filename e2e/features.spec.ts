@@ -136,6 +136,18 @@ test("a text box shows a counter near its limit and stops at it", async ({ page 
   await expect(page.locator("#limit-hint")).toHaveCount(0); // gone once the box is left
 });
 
+test("the house changes from its tag on the sheet, in a menu drawn by the app", async ({ page }) => {
+  await createCharacter(page, "House Student");
+  await setEditMode(page, true);
+  await expect(page.locator("#detail-tab-perfil select")).toHaveCount(0);
+  await page.locator("#tag-house").click();
+  await page.locator("#tag-house-option-URANIA").click();
+  await expect(page.locator("#tag-house")).toContainText("Urania");
+  await setEditMode(page, false);
+  await reloadApp(page);
+  expect(await storedSheet(page, "House Student")).toMatchObject({ casa: "URANIA" });
+});
+
 test("a name can be emptied while retyping; an empty name is never saved", async ({ page }) => {
   await createCharacter(page, "Retyped Student");
   await setEditMode(page, true);

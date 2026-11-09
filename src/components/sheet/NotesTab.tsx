@@ -8,6 +8,7 @@ import React from "react";
 import { Edit, Plus, Minus, Trash, Check } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
+import { journalTitle } from "../../model/journal";
 
 export function NotesTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -223,7 +224,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                               type="text"
                               value={editingNoteTitle}
                               onChange={(e) => setEditingNoteTitle(e.target.value)}
-                              placeholder={t.placeholderNoteTitle}
+                              placeholder={journalTitle({ fecha: note.fecha }, t.entryFrom, lang)}
                               className="w-full text-xs bg-neutral-900 border border-neutral-800 focus:border-violet-500 rounded-lg p-2 text-neutral-200 focus:outline-none"
                             />
                             <textarea
@@ -256,7 +257,7 @@ export function NotesTab({ ctx }: { ctx: SheetContext }) {
                             <div className="flex justify-between items-start gap-3">
                               <div>
                                 <h4 className="text-xs font-semibold text-neutral-200 font-sans tracking-wide">
-                                  {note.titulo}
+                                  {journalTitle(note, t.entryFrom, lang)}
                                 </h4>
                                 <span className="text-[9px] font-mono text-neutral-500">
                                   {new Date(note.fecha ?? 0).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {

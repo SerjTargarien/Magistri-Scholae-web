@@ -132,7 +132,7 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | `clubesList[].nombre` | Add/remove. | **Required, text 100**; **list ≤ 50** |
 | `equipoList[].nombre` | Add/remove. | **Required, text 100**; **list ≤ 500** |
 | `equipoList[].cantidad` | At least 1, no maximum. | **Whole number 1–9,999** |
-| `notasList[].titulo` | An empty title becomes "Entrada del …" in the interface language, stored as data. | **Text 200**; an empty title is stored empty and the generated title is only shown (R3.4) |
+| `notasList[].titulo` | Since 9 November 2026 an entry without a title stores none, and the sheet shows «Entrada del …» from the entry's date (characters and familiars; entries saved earlier keep their stored title). | **Text 200**; an empty title is stored empty and the generated title is only shown (R3.4, done) |
 | `notasList[].contenido` | Required, multi-line. | **Required, text 50,000** |
 | `notasList[].fecha` | Set by the player's device at creation. | **Whole number**, a real date |
 | `notasList` | Newest first. | **List ≤ 5,000** (owner: higher limits with clear warnings) |

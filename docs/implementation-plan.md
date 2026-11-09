@@ -226,7 +226,7 @@ Each step below is its own pull request. It keeps the app working under the brow
       - **C2** (**done**): a GM-only catalogue write endpoint (validated, raises the revision, archive never delete) with an «inicial» flag per skill (all 48 on to begin with); new characters start from the flagged skills; a GM-only «Habilidades de la campaña» screen in settings (add, rename, tick «inicial»), in the GM's interface language only (a name in either language passes; automatic translation may come later); a skill the GM types on a sheet or in the form joins the campaign list without «inicial» (others pick it with +). The list belongs to the campaign, which is the GM's universe (decision 9), so both tables share it. Moving between categories, reordering, archiving from the screen and new categories stay in R4.
   - **Later, its own design step:** clicking any portrait or gallery image that does nothing today opens a floating window with the image at full size (owner: important).
   - **Remaining, in order** (owner's target design, 9 November 2026; one pull request each):
-    1. **Journal titles shown, not stored** (character «Entrada del …», familiar «Sin Nombre»): before the next publish (owner).
+    1. **Journal titles shown, not stored** (character «Entrada del …», familiar «Sin Nombre»): before the next publish (owner). **Done 9 November 2026.**
     2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity.
     3. **Lists and limits:** subjects taught as a list; a name box that can be emptied while retyping; counters near limits.
     4. **Polish pass** (product-design.md, Known inconsistencies):

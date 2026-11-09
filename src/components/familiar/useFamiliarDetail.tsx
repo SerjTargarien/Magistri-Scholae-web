@@ -156,8 +156,10 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoteTitle.trim() && !newNoteContent.trim()) return;
+    // An entry without a title stores none; the sheet shows one from its date (model/journal.ts).
+    const titulo = newNoteTitle.trim();
     const problems = store.edit(`notasList/${newItemId()}`, {
-      titulo: newNoteTitle.trim() || t.noName,
+      ...(titulo ? { titulo } : {}),
       contenido: newNoteContent.trim(),
       fecha: Date.now(),
     });
@@ -175,10 +177,12 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
       setEditingNoteId(null);
       return;
     }
-    const titulo = editingNoteTitle.trim() || note.titulo;
+    // Emptying the title brings back the generated one; an entry needs a title or a text.
+    const titulo = editingNoteTitle.trim();
     const contenido = editingNoteContent.trim();
+    if (!titulo && !contenido) return;
     const problems = [
-      ...(titulo !== undefined && titulo !== (note.titulo ?? "") ? store.edit(`notasList/${noteId}/titulo`, titulo) : []),
+      ...(titulo !== (note.titulo ?? "") ? store.edit(`notasList/${noteId}/titulo`, titulo) : []),
       ...(contenido !== (note.contenido ?? "") ? store.edit(`notasList/${noteId}/contenido`, contenido) : []),
     ];
     if (problems.length) {

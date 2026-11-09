@@ -8,10 +8,11 @@ import React from "react";
 import { Edit, FileText, Plus, Trash } from "lucide-react";
 
 import type { FamiliarContext } from "./useFamiliarDetail";
+import { journalTitle } from "../../model/journal";
 
 export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    notes, t, isAcademy, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
+    lang, notes, t, isAcademy, newNoteTitle, setNewNoteTitle, newNoteContent, setNewNoteContent, editingNoteId,
     setEditingNoteId, editingNoteTitle, setEditingNoteTitle, editingNoteContent, setEditingNoteContent, handleAddNote,
     handleSaveEditedNote, handleDeleteNote, canAddNote, canEditNote, canDeleteNote, isQuickEditing,
   } = ctx;
@@ -32,6 +33,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
 
             <div className="space-y-3">
               <input
+                id="input-familiar-note-title"
                 type="text"
                 placeholder={t.placeholderNoteTitle}
                 value={newNoteTitle}
@@ -39,6 +41,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                 className="w-full bg-neutral-950/80 border border-neutral-800 rounded-lg p-2.5 text-xs font-mono text-neutral-100 focus:border-amber-500 focus:outline-none"
               />
               <textarea
+                id="input-familiar-note-content"
                 rows={3}
                 placeholder={t.placeholderNoteContent}
                 value={newNoteContent}
@@ -47,6 +50,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
               />
               <div className="flex justify-end">
                 <button
+                  id="btn-familiar-add-note"
                   type="submit"
                   disabled={!newNoteTitle.trim() && !newNoteContent.trim()}
                   className="px-4 py-2 bg-emerald-900 hover:bg-emerald-800 disabled:opacity-50 text-emerald-100 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
@@ -76,6 +80,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                       <input
                         type="text"
                         value={editingNoteTitle}
+                        placeholder={journalTitle({ fecha: note.fecha }, t.entryFrom, lang)}
                         onChange={(e) => setEditingNoteTitle(e.target.value)}
                         className="w-full bg-neutral-950 border border-amber-500/50 rounded p-2 text-xs font-mono text-neutral-100"
                       />
@@ -106,7 +111,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                     <>
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wide">
-                          {note.titulo}
+                          {journalTitle(note, t.entryFrom, lang)}
                         </h3>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono text-neutral-500">

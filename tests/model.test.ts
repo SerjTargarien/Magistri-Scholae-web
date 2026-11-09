@@ -137,3 +137,14 @@ test("checkSheet reports what the server would refuse", () => {
   assert.deepEqual(checkSheet("familiar", { nombre: "Ámbar", especie: "Mochuelo", notasList: [{ id: "n", titulo: "", contenido: "", fecha: 1 }] })
     .map(p => p.rule), ["requireOneOf"]);
 });
+
+test("journal entries without a title show one generated from their date; stored titles stay", async () => {
+  const { journalTitle } = await import("../src/model/journal");
+  const fecha = new Date(2026, 10, 9, 12, 30).getTime();
+  assert.equal(journalTitle({ titulo: "Sospechas", fecha }, "Entrada del ", "es"), "Sospechas");
+  const generated = journalTitle({ fecha }, "Entrada del ", "es");
+  assert.ok(generated.startsWith("Entrada del 09"), generated);
+  assert.ok(generated.includes("12:30"), generated);
+  assert.equal(journalTitle({ titulo: "  ", fecha }, "Entrada del ", "es"), generated);
+  assert.equal(journalTitle({}, "Entrada del ", "es"), "Entrada del");
+});

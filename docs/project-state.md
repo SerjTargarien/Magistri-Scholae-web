@@ -569,7 +569,12 @@ Owner's answers the same day (folded into product-design.md, the plan, field-rul
 
 Further answers: the GM chooses NPC or player character when confirming a draft; players can own a «Criatura mágica» from creation; the GM changes sheet types later (R4.5); sheets based on another (R5) and temporary versions (after R5, designed first); personal notes stay excluded from administrator access.
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
+## Journal titles shown, not stored — 9 November 2026
+
+- A journal entry without a title (character or familiar) stores none; the sheet shows «Entrada del …» from the entry's own date (`src/model/journal.ts`), also as the placeholder when editing. Emptying a title while editing brings the generated one back. Familiar entries no longer store «Sin Nombre». Entries saved earlier keep their stored titles.
+- Tests: a unit test for the generated title; a feature test adding untitled entries to a character and a familiar (nothing stored in the title, «Entrada del» shown), on desktop and phone.
+
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the remaining phase 3 changes after the journal titles (before the next publish), and the remaining phase 3 changes (destiny gems, typeable XP, consequence severity, subjects as a list, esoteric knowledge, counters near limits, images from a web address, …), then R3.5.
 
 ## Updating this handoff
 

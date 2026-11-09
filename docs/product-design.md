@@ -123,7 +123,7 @@ Tabs:
 
 - Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, phase 3); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
-- Removing anything asks first (polish pass); generated journal titles are shown, not stored (phase 3, **before the next publish**).
+- Removing anything asks first (polish pass); generated journal titles are shown, not stored (**done**).
 - Drafts, proposal and confirmation, and active/inactive status (R4).
 
 ### 7. Familiar sheet
@@ -184,7 +184,7 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider.
 5. **Texts outside the translations file or in English** ("Cover" / "Contain", "Delete picture", archive texts, the unlinked-familiar sentence, "Subir Imagen Local"). Decision: every player-facing text moves to the translations file; the fit buttons read in Spanish everywhere (they may go if nothing is lost).
 6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares».
-7. **Journal titles stored.** Decision: shown, not stored; **fix before the next publish** (phase 3).
+7. **Journal titles stored.** Decision: shown, not stored. **Done** (9 November 2026): characters and familiars.
 8. **Edit-mode gaps** in the session tab, equipment quantities and journal. Decision: kept on purpose, for convenience during play.
 9. **Known limits already planned:** destiny, experience, severity, subjects as a list, the name box, the save-status panel (phase 3 and R3.5).
 

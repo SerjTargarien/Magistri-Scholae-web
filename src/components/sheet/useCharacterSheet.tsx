@@ -455,7 +455,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   // 5d. Individual Diary Notes Actions
   const handleAddNote = () => {
     if (!newNoteContent.trim()) return;
-    addEntry("notasList", { titulo: newNoteNoteTitle(), contenido: newNoteContent.trim(), fecha: Date.now() });
+    // An entry without a title stores none; the sheet shows one from its date (model/journal.ts).
+    const titulo = newNoteTitle.trim();
+    addEntry("notasList", { ...(titulo ? { titulo } : {}), contenido: newNoteContent.trim(), fecha: Date.now() });
     setNewNoteTitle("");
     setNewNoteContent("");
   };
@@ -471,25 +473,14 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     if (!editingNoteContent.trim()) return;
     const note = (character.notasList ?? []).find(n => n.id === id);
     if (!note) return;
-    const titulo = editingNoteTitle.trim() || note.titulo;
+    // Emptying the title brings back the generated one.
+    const titulo = editingNoteTitle.trim();
     const contenido = editingNoteContent.trim();
-    if (titulo !== note.titulo) edit(`notasList/${id}/titulo`, titulo);
+    if (titulo !== (note.titulo ?? "")) edit(`notasList/${id}/titulo`, titulo);
     if (contenido !== note.contenido) edit(`notasList/${id}/contenido`, contenido);
     setEditingNoteId(null);
     setEditingNoteTitle("");
     setEditingNoteContent("");
-  };
-
-  const newNoteNoteTitle = () => {
-    if (newNoteTitle.trim()) return newNoteTitle.trim();
-    // Default fallback name
-    const timestamp = new Date().toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-    return t.entryFrom + timestamp;
   };
 
   const handleRemoveNote = (id: string) => {

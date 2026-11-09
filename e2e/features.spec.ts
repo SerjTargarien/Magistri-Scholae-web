@@ -220,6 +220,28 @@ test("esoteric skills keep a knowledge level, set in the form and on the sheet",
   await expect(page.locator('#skill-block-fisicas [id^="select-knowledge-"]')).toHaveCount(0);
 });
 
+test("journal entries without a title store none and show one from their date", async ({ page }) => {
+  await createCharacter(page, "Diary Student");
+  await openTab(page, "notas");
+  await page.locator("#input-new-note-content").fill("Untitled thoughts");
+  await page.locator("#btn-add-note").click();
+  await expect(page.locator("#detail-tab-notas")).toContainText("Entrada del");
+  await reloadApp(page);
+  const stored = await storedSheet(page, "Diary Student");
+  expect(stored!.notasList).toEqual([expect.objectContaining({ contenido: "Untitled thoughts" })]);
+  expect(stored!.notasList[0]).not.toHaveProperty("titulo");
+
+  await openFamiliar(page, "Chispa");
+  await page.locator("#familiar-tab-notas").click();
+  await page.locator("#input-familiar-note-content").fill("Chased a moth");
+  await page.locator("#btn-familiar-add-note").click();
+  await expect(page.locator("#familiar-detail-container")).toContainText("Entrada del");
+  await reloadApp(page);
+  const familiar = await storedSheet(page, "Chispa");
+  const note = familiar!.notasList.find((n: { contenido?: string }) => n.contenido === "Chased a moth");
+  expect(note).not.toHaveProperty("titulo");
+});
+
 test("adult wizard: profile fields and archetype tabs persist", async ({ page }) => {
   await createCharacter(page, "Smoke Professor", {
     type: "adult-wizard",

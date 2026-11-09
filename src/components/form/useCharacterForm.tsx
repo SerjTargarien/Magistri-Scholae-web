@@ -11,9 +11,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { TRANSLATIONS, getLocalizedHouseLore, translateHouseMotto } from "../../localization";
 import { getCroppedImg } from "../../utils/imageCompressor";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
-import type { CharacterFormProps } from "../../account/screens";
+import type { CharacterFormProps, PendingFamiliar } from "../../account/screens";
 import type { AdultWizardProfile, CharacterSheet, EsotericKnowledge, House, SkillEntry, TextEntry } from "../../model/sheet";
-import { newItemId } from "../../model/sheet";
+import { newItemId, type FamiliarSheet } from "../../model/sheet";
 import { newCharacterSheet } from "../../model/defaults";
 import type { SkillCategory } from "../../model/catalogue";
 import { ApiFailure } from "../../remote/client";
@@ -43,7 +43,7 @@ const EMPTY_PROFILE: AdultWizardProfile = {
 };
 
 export function useCharacterForm(screenProps: CharacterFormProps) {
-  const { lang, newCharacterType, catalogue, isGM = false, onAddCatalogueSkill, onSave, onCreateFamiliar, onCancel } = screenProps;
+  const { lang, newCharacterType, catalogue, isGM = false, onAddCatalogueSkill, onSave, onCancel } = screenProps;
   const t = TRANSLATIONS[lang];
 
   // Forms Navigation State
@@ -91,7 +91,8 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
   const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
 
   // A familiar created from the form's dialog, bonded by onSave.
-  const [createdFamiliar, setCreatedFamiliar] = useState<{ id: string; nombre: string } | null>(null);
+  // A familiar confirmed in the dialog: created and linked only when the character is saved.
+  const [pendingFamiliar, setPendingFamiliar] = useState<PendingFamiliar | null>(null);
 
   // Local state for adding a skill and saving defaults (keyed by category id)
   const [inlineSkillNames, setInlineSkillNames] = useState<Record<string, string>>({});
@@ -309,7 +310,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     setFormError(null);
     saving.current = true;
     try {
-      await onSave({ ...characterState, nombre }, avatarDataUrl ?? undefined, createdFamiliar?.id);
+      await onSave({ ...characterState, nombre }, avatarDataUrl ?? undefined, pendingFamiliar ?? undefined);
     } catch (err) {
       console.error("Creating the character failed:", err);
       setFormError(describeSaveFailure(err, lang));
@@ -319,11 +320,11 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     }
   };
 
-  // Creating a familiar from the form's dialog: remembered for onSave's bond.
-  const handleCreateFamiliar = async (fields: Parameters<CharacterFormProps["onCreateFamiliar"]>[0], image?: string) => {
-    const created = await onCreateFamiliar(fields, image);
-    setCreatedFamiliar({ id: created.id, nombre: created.nombre });
-    return created.id;
+  // The familiar dialog's «Confirmar familiar»: the form keeps it; nothing is created yet.
+  const handleConfirmFamiliar = async (fields: FamiliarSheet, image?: string) => {
+    setPendingFamiliar({ fields, image });
+    setShowFamiliarEditorModal(false);
+    return "";
   };
 
   const isStateDirty = () =>
@@ -400,7 +401,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     setPastedAvatarUrl,
     avatarDataUrl,
     removeAvatar,
-    createdFamiliar,
+    pendingFamiliar,
     inlineSkillNames,
     setInlineSkillNames,
     isGM,
@@ -448,7 +449,7 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     handlePickSkill,
     setSkillKnowledge,
     handleSave,
-    handleCreateFamiliar,
+    handleConfirmFamiliar,
     handleCancelClick,
     houseMotto,
     theme,

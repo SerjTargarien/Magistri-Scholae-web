@@ -27,6 +27,7 @@ import { CAMPAIGN_SKILLS_TEXT, CampaignSkills } from "./account/CampaignSkills";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
+import type { PendingFamiliar } from "./account/screens";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
 // Demo builds only; the condition is replaced at build time.
@@ -280,9 +281,15 @@ export default function App() {
     return store;
   };
 
-  const handleSaveForm = async (fields: CharacterSheet, avatar?: string, familiarId?: string) => {
+  const handleSaveForm = async (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar) => {
     const store = await create("character", fields, avatar ? { path: "avatarImage", dataUrl: avatar } : undefined);
-    if (familiarId) await bond(store, familiarId).catch(() => showToast("error", t.errorStoringStudent));
+    // A familiar confirmed in the form is created only now, with its character, and linked to it.
+    if (familiar) {
+      try {
+        const created = await createFamiliar(familiar.fields, familiar.image);
+        await bond(store, created.sheet.id);
+      } catch { showToast("error", t.errorStoringStudent); }
+    }
     await loadLists();
     setSelectedCharId(store.sheet.id);
     setScreen("DETAIL");
@@ -426,10 +433,6 @@ export default function App() {
               onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               catalogue={catalogue}
               onSave={handleSaveForm}
-              onCreateFamiliar={async (fields, image) => {
-                const store = await createFamiliar(fields, image);
-                return { id: store.sheet.id, nombre: String(store.sheet.fields.nombre ?? "") };
-              }}
               onCancel={() => setScreen("LIST")}
             />
           )}

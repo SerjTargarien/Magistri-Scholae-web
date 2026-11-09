@@ -263,7 +263,7 @@ Each step below is its own pull request. It keeps the app working under the brow
     2. **Session tab:** destiny gems up to 10; typeable experience; consequence severity. **Done 9 November 2026.**
     3. **Lists and limits:** subjects taught as a list; a name box that can be emptied while retyping; counters near limits. **Done 9 November 2026.**
     4. **Polish pass** (product-design.md, Known inconsistencies):
-       - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved;
+       - the familiar dialog in the creation form keeps its values and the familiar is created and linked only when the character is saved (**done 9 November 2026**);
        - «Cancelar» on the form asks before discarding any change;
        - consistent removal confirmations (confirm in most cases);
        - zoom slider on the familiar sheet's crop dialog;

@@ -331,12 +331,12 @@ The GM's first screen after opening a campaign; the grimorio opens from it. Per 
 
 Found while mapping the screens on 9 November 2026, with the owner's decisions. They are fixed in the **R3.4 polish pass** unless noted.
 
-1. **Familiar created in the creation form survives a cancelled character.** Decision: the dialog loses its save button and gets a confirm one that keeps the values; the familiar is created only when the character is saved.
+1. **Familiar created in the creation form survives a cancelled character.** Decision: the dialog loses its save button and gets a confirm one that keeps the values; the familiar is created only when the character is saved. **Done 9 November 2026.**
 2. **Discard-draft check misses fields.** Decision: «Cancelar» asks before discarding any change.
 3. **Different confirmations.** Decision: consistent rules; in most cases confirmation is preferred (better safe than sorry).
 4. **Crop dialog without zoom on the familiar sheet.** Decision: add the zoom slider.
 5. **Texts outside the translations file or in English** ("Cover" / "Contain", "Delete picture", archive texts, the unlinked-familiar sentence, "Subir Imagen Local"). Decision: every player-facing text moves to the translations file; the fit buttons read in Spanish everywhere (they may go if nothing is lost).
-6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares».
+6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares». **Done 9 November 2026** with shorter wording (rule 1 of «Text that does not fit»): the picker «Vincular personaje» says «Elige un personaje.»; «Registro de Familiares».
 7. **Journal titles stored.** Decision: shown, not stored. **Done** (9 November 2026): characters and familiars.
 8. **Edit-mode gaps** in the session tab, equipment quantities and journal. Decision: kept on purpose, for convenience during play.
 9. **Known limits already planned:** destiny, experience and severity (**done 9 November 2026**), subjects as a list, the name box, the save-status panel (phase 3 and R3.5).

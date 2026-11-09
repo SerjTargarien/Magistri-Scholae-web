@@ -363,6 +363,7 @@ export interface TranslationDict {
   familiarCreateNewBtn: string;
   familiarUpdateBtn: string;
   familiarSaveNewBtn: string;
+  confirmFamiliar: string;
   familiarOpenEditorBtn: string;
   familiarConfirmDelete: string;
   filterFamiliars: string;
@@ -759,6 +760,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarCreateNewBtn: "Nuevo Familiar",
     familiarUpdateBtn: "Actualizar Familiar",
     familiarSaveNewBtn: "Guardar Familiar",
+    confirmFamiliar: "Confirmar familiar",
     familiarOpenEditorBtn: "Abrir Editor de Familiares",
     familiarConfirmDelete: "¿Eliminar permanentemente esta ficha de familiar?",
     filterFamiliars: "Familiares",
@@ -1153,6 +1155,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarCreateNewBtn: "New Familiar",
     familiarUpdateBtn: "Update Familiar",
     familiarSaveNewBtn: "Save Familiar",
+    confirmFamiliar: "Confirm familiar",
     familiarOpenEditorBtn: "Open Familiar Editor",
     familiarConfirmDelete: "Permanently delete this familiar sheet?",
     filterFamiliars: "Familiars",

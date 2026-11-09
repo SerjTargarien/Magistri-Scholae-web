@@ -34,7 +34,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
   const {
     lang, onCancel, t, activeFormTab, setActiveFormTab, characterType, formError, showDiscardModal, setShowDiscardModal,
     showFamiliarEditorModal, setShowFamiliarEditorModal, cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen,
-    crop, setCrop, zoom, setZoom, onCropComplete, handleConfirmCrop, handleSave, handleCreateFamiliar, handleCancelClick,
+    crop, setCrop, zoom, setZoom, onCropComplete, handleConfirmCrop, handleSave, handleConfirmFamiliar, pendingFamiliar, handleCancelClick,
     houseMotto, theme, houseTabBtnStyle, houseIconColor,
   } = ctx;
 
@@ -126,7 +126,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
               className="flex items-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-950/60 text-emerald-300 transition-all text-left shrink-0 snap-center cursor-pointer select-none lg:w-full lg:mt-2"
             >
               <PawPrint className="w-4 h-4 shrink-0 text-emerald-400" />
-              <span className="whitespace-nowrap">{t.familiarEditorCardTitle}</span>
+              <span className="whitespace-nowrap">{pendingFamiliar?.fields.nombre || t.familiarEditorCardTitle}</span>
             </button>
           )}
         </div>
@@ -290,7 +290,9 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
           <div className="w-full max-w-6xl my-auto">
             <FamiliarEditor
               lang={lang}
-              onCreate={handleCreateFamiliar}
+              onCreate={handleConfirmFamiliar}
+              initial={pendingFamiliar ?? undefined}
+              confirmLabel={t.confirmFamiliar}
               onUploadImage={async () => {}}
               onBack={() => setShowFamiliarEditorModal(false)}
               onShowToast={() => {}}

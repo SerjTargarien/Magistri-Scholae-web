@@ -51,9 +51,8 @@ export interface CharacterFormProps {
    * after creation; `familiarId` is a familiar created from the form, bonded after.
    * Rejects with the server's error (ApiFailure, with details naming the rule).
    */
-  onSave: (fields: CharacterSheet, avatar?: string, familiarId?: string) => Promise<void>;
-  /** Creates a familiar from the form's familiar dialog; resolves with its id and name. */
-  onCreateFamiliar: (fields: FamiliarSheet, image?: string) => Promise<{ id: string; nombre: string }>;
+  /** Creates the character; a familiar confirmed in the form's dialog is created and linked with it (nothing is created on «Cancelar»). */
+  onSave: (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -73,6 +72,9 @@ export interface FamiliarDetailProps {
   onShowToast: Toast;
 }
 
+/** A familiar confirmed in the creation form's dialog, created only when the character is saved. */
+export interface PendingFamiliar { fields: FamiliarSheet; image?: string }
+
 export interface FamiliarEditorProps {
   lang: Language;
   /** Creates a new familiar (the editor only creates; existing familiars are edited on their sheet); `image` (data URL) is uploaded after creation. Resolves with its id. */
@@ -82,6 +84,10 @@ export interface FamiliarEditorProps {
   onShowToast: Toast;
   /** Rendered as a dialog inside the creation form (today's isModal layout). */
   isModal?: boolean;
+  /** Values to start from (the creation form's dialog, reopened). */
+  initial?: PendingFamiliar;
+  /** The save button's label, when it does not save (the creation form's «Confirmar familiar»). */
+  confirmLabel?: string;
 }
 
 export interface CharacterListProps {

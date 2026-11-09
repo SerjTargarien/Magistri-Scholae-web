@@ -465,6 +465,33 @@ test("bonds: link from the character, navigate both ways; archiving the characte
   await expect(familiarCard(page, "Chispa")).not.toContainText("Bonded Student");
 });
 
+test("a familiar made in the creation form is created only with its character", async ({ page }) => {
+  const confirmFamiliar = async (name: string) => {
+    await page.locator("#btn-form-open-familiar-editor-nav").click();
+    await page.locator("#input-familiar-nombre").fill(name);
+    await page.locator("#input-familiar-especie").fill("Raven");
+    await page.locator("#btn-save-familiar").click(); // «Confirmar familiar»: kept in the form
+    await expect(page.locator("#modal-familiar-editor")).toHaveCount(0);
+    await expect(page.locator("#btn-form-open-familiar-editor-nav")).toContainText(name);
+  };
+  // Cancelled: nothing is created.
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#input-nombre").fill("Cancelled Student");
+  await confirmFamiliar("Ghost Raven");
+  await page.locator("#btn-form-open-familiar-editor-nav").click(); // reopened, the values are still there
+  await expect(page.locator("#input-familiar-nombre")).toHaveValue("Ghost Raven");
+  await page.locator("#btn-save-familiar").click();
+  await page.locator("#btn-form-cancel").click();
+  await page.locator("#btn-discard-draft-confirm").click();
+  expect(await storedSheet(page, "Ghost Raven")).toBeUndefined();
+
+  // Saved: the familiar is created and linked to its character.
+  await createCharacter(page, "Raven Keeper", { fill: async () => { await confirmFamiliar("Real Raven"); } });
+  await reloadApp(page);
+  await expect(familiarCard(page, "Real Raven")).toContainText("Raven Keeper");
+});
+
 test("player: a familiar created from the character sheet is linked to that character", async ({ page }) => {
   const createFromSheet = async (name: string) => {
     await setEditMode(page, true);

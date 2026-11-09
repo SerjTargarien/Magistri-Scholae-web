@@ -39,16 +39,18 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
   onBack,
   onShowToast,
   isModal = false,
+  initial,
+  confirmLabel,
 }) => {
   const t = TRANSLATIONS[lang];
   // Creation only (owner decision, 8 November 2026): an existing familiar is edited on its
   // own sheet, like a character, and familiars are listed on the main card view.
   // Form fields. `imagen` is the cropped picture (data URL), uploaded after creation.
-  const [nombre, setNombre] = useState("");
-  const [especie, setEspecie] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [imagen, setImagen] = useState("");
-  const [imageFit, setImageFit] = useState<"cover" | "contain">("cover");
+  const [nombre, setNombre] = useState(initial?.fields.nombre ?? "");
+  const [especie, setEspecie] = useState(initial?.fields.especie ?? "");
+  const [descripcion, setDescripcion] = useState(initial?.fields.descripcion ?? "");
+  const [imagen, setImagen] = useState(initial?.image ?? "");
+  const [imageFit, setImageFit] = useState<"cover" | "contain">(initial?.fields.imageFit ?? "cover");
   const [pastedUrl, setPastedUrl] = useState("");
 
   // Validation & feedback
@@ -152,6 +154,8 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
       }
     }
 
+    // In the creation form's dialog nothing is saved yet: the form keeps the values.
+    if (confirmLabel) return;
     onShowToast("success", t.familiarSavedToast);
     resetForm();
   };
@@ -430,7 +434,7 @@ export const FamiliarEditor: React.FC<FamiliarEditorProps> = ({
               className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl text-neutral-950 transition-all font-sans cursor-pointer shadow-lg hover:scale-[1.02] active:scale-[0.98] bg-amber-500 hover:bg-amber-400"
             >
               <Save className="w-4 h-4" />
-              {t.familiarSaveNewBtn}
+              {confirmLabel ?? t.familiarSaveNewBtn}
             </button>
           </div>
         </form>

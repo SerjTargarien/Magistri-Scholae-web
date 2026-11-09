@@ -311,8 +311,10 @@ export interface TranslationDict {
   adultWizardInstitutionPlaceholder: string;
   adultWizardFormerHousePlaceholder: string;
   adultWizardReputationPlaceholder: string;
-  adultWizardTeachingSubjectsPlaceholder: string;
-  commaSeparatedHint: string;
+  placeholderAddSubject: string;
+  labelNoSubjects: string;
+  removeSubject: string;
+  addSubject: string;
   yes: string;
   no: string;
   noPortrait: string;
@@ -703,8 +705,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardInstitutionPlaceholder: "Ej: Ministerio de Magia",
     adultWizardFormerHousePlaceholder: "Ej: Irati, Urania",
     adultWizardReputationPlaceholder: "Ej: Conocido en el gremio de pociones",
-    adultWizardTeachingSubjectsPlaceholder: "Ej: Runas Antiguas, Defensa contra las Artes Oscuras",
-    commaSeparatedHint: "Separadas por comas",
+    placeholderAddSubject: "Añadir asignatura (ej: Runas Antiguas)",
+    labelNoSubjects: "Sin asignaturas registradas",
+    removeSubject: "Quitar asignatura",
+    addSubject: "Añadir asignatura",
     yes: "Sí",
     no: "No",
     noPortrait: "SIN RETRATO",
@@ -1093,8 +1097,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardInstitutionPlaceholder: "E.g. Ministry of Magic",
     adultWizardFormerHousePlaceholder: "E.g. Irati, Urania",
     adultWizardReputationPlaceholder: "E.g. Well-known in the Potions Guild",
-    adultWizardTeachingSubjectsPlaceholder: "E.g. Ancient Runes, Defense against the Dark Arts",
-    commaSeparatedHint: "Separated by commas",
+    placeholderAddSubject: "Add a subject (e.g. Ancient Runes)",
+    labelNoSubjects: "No subjects recorded",
+    removeSubject: "Remove subject",
+    addSubject: "Add subject",
     yes: "Yes",
     no: "No",
     noPortrait: "NO PORTRAIT",

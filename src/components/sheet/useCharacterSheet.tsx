@@ -81,7 +81,6 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const canBond = !!onBondFamiliar && capabilities.bondWritable;
 
   const profile = character.adultWizardProfile ?? {};
-  const teachingSubjectsText = (profile.teachingSubjects ?? []).map(s => s.value).join(", ");
 
   const edit = (path: string, value: unknown) => store.edit(path, value);
   const addEntry = (list: string, entry: Record<string, unknown>) => store.edit(`${list}/${newItemId()}`, entry);
@@ -91,27 +90,10 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     edit(`adultWizardProfile/${field}`, value);
   };
 
-  // The subjects stay one comma-separated box for now; each change becomes
-  // per-entry edits: unchanged subjects keep their entry, changed ones are
-  // rewritten in place, new ones added and dropped ones removed.
-  const updateTeachingSubjects = (text: string) => {
-    const next = text.split(",").map(s => s.trim()).filter(Boolean);
-    const current = profile.teachingSubjects ?? [];
-    const unused = [...current];
-    const unmatched: string[] = [];
-    for (const value of next) {
-      const index = unused.findIndex(entry => entry.value === value);
-      if (index >= 0) unused.splice(index, 1);
-      else unmatched.push(value);
-    }
-    const base = "adultWizardProfile/teachingSubjects";
-    unmatched.forEach((value, i) => {
-      const entry = unused[i];
-      if (entry) edit(`${base}/${entry.id}/value`, value);
-      else addEntry(base, { value });
-    });
-    unused.slice(unmatched.length).forEach(entry => removeEntry(base, entry.id));
-  };
+  // Subjects taught: a list, one entry per subject (R3.4).
+  const SUBJECTS = "adultWizardProfile/teachingSubjects";
+  const addSubject = (value: string) => addEntry(SUBJECTS, { value });
+  const removeSubject = (id: string) => removeEntry(SUBJECTS, id);
 
   // Tabs: perfil, sesion, habilidades, hechizos, notas, galeria
   const [activeTab, setActiveTab] = useState<"perfil" | "sesion" | "habilidades" | "hechizos" | "notas" | "galeria">("perfil");
@@ -547,9 +529,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     canBond,
     edit,
     profile,
-    teachingSubjectsText,
     updateProfileField,
-    updateTeachingSubjects,
+    addSubject,
+    removeSubject,
     activeTab,
     setActiveTab,
     newSpellName,

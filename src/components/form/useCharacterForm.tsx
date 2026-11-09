@@ -77,10 +77,9 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     }));
   };
 
-  /** The comma-separated subjects box, as list entries (trimmed, non-empty). */
-  const updateTeachingSubjects = (text: string) => {
-    updateProfileField("teachingSubjects", text.split(",").map(s => s.trim()).filter(Boolean).map(value => ({ id: newItemId(), value })));
-  };
+  /** Subjects taught: a list, one entry per subject (R3.4). */
+  const addSubject = (value: string) => updateProfileField("teachingSubjects", [...profile.teachingSubjects, { id: newItemId(), value }]);
+  const removeSubject = (id: string) => updateProfileField("teachingSubjects", profile.teachingSubjects.filter(s => s.id !== id));
 
   const [formError, setFormError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -387,7 +386,8 @@ export function useCharacterForm(screenProps: CharacterFormProps) {
     characterType,
     profile,
     updateProfileField,
-    updateTeachingSubjects,
+    addSubject,
+    removeSubject,
     formError,
     setFormError,
     imageError,

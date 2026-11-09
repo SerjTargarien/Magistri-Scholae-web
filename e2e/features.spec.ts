@@ -295,6 +295,11 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
       await page.locator("#input-aw-institution").fill("Academy");
       await page.locator("#input-varita-sintonia").fill("Elder staff");
       await page.locator("#checkbox-aw-is-teacher").check();
+      // Subjects are a list: one per entry, a comma is just part of a name.
+      await page.locator("#form-subjects-input").fill("Runas, antiguas");
+      await page.locator("#form-subjects-add").click();
+      await page.locator("#form-subjects-input").fill("Pociones");
+      await page.locator("#form-subjects-input").press("Enter");
     },
   });
   for (const tab of ["perfil", "sesion", "habilidades", "hechizos", "notas", "galeria"]) await expect(page.locator(`#tab-button-${tab}`)).toBeVisible();
@@ -311,6 +316,19 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
     adultWizardProfile: expect.objectContaining({ role: "Potions master", institution: "Academy", isTeacher: true }),
   });
   expect(stored!.adultWizardProfile).not.toHaveProperty("magicalFocus");
+  expect(stored!.adultWizardProfile.teachingSubjects.map((s: { value: string }) => s.value)).toEqual(["Runas, antiguas", "Pociones"]);
+
+  // On the sheet: one added and one removed in edit mode, by entry.
+  await setEditMode(page, true);
+  await page.locator("#sheet-subjects-input").fill("Alquimia");
+  await page.locator("#sheet-subjects-add").click();
+  const pociones = stored!.adultWizardProfile.teachingSubjects[1].id;
+  await page.locator(`#sheet-subjects-remove-${pociones}`).click();
+  await setEditMode(page, false);
+  await expect(page.locator("#sheet-subjects-read")).toContainText("Alquimia");
+  await reloadApp(page);
+  const after = await storedSheet(page, "Smoke Professor");
+  expect(after!.adultWizardProfile.teachingSubjects.map((s: { value: string }) => s.value)).toEqual(["Runas, antiguas", "Alquimia"]);
 });
 
 test("familiar sheet: one edit mode like a character's (fields, portrait by tapping, gallery); only the GM can archive it", async ({ page }) => {

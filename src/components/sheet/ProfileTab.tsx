@@ -13,11 +13,12 @@ import { Shield, User, Plus, X } from "lucide-react";
 import type { House } from "../../model/sheet";
 
 import type { SheetContext } from "./useCharacterSheet";
+import { SubjectList } from "../SubjectList";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
     lang, character, t, hInfo, localizedLore, characterType, isAcademy, writable, shown, canAdd, canRemove, edit, profile,
-    teachingSubjectsText, updateProfileField, updateTeachingSubjects, isQuickEditing, newPersonalAspectInput,
+    addSubject, removeSubject, updateProfileField, isQuickEditing, newPersonalAspectInput,
     setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
     newCustomFieldValue, setNewCustomFieldValue, handleDeleteAspect, handleAddNewAspect, handleDeleteComplication,
     handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
@@ -236,17 +237,15 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
                       {profile.isTeacher && (
                         <div className="flex flex-col gap-1 col-span-2">
-                          <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider flex justify-between">
-                            <span>{t.adultWizardTeachingSubjects}</span>
-                            <span className="text-[8px] text-neutral-500 normal-case font-normal">{t.commaSeparatedHint}</span>
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={t.adultWizardTeachingSubjectsPlaceholder}
-                            value={teachingSubjectsText}
-                            disabled={!canAdd("adultWizardProfile/teachingSubjects")}
-                            onChange={(e) => updateTeachingSubjects(e.target.value)}
-                            className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                          <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardTeachingSubjects}</label>
+                          <SubjectList
+                            id="sheet-subjects"
+                            items={profile.teachingSubjects ?? []}
+                            editable={canAdd("adultWizardProfile/teachingSubjects")}
+                            canRemove={(id) => canRemove("adultWizardProfile/teachingSubjects", id)}
+                            onAdd={addSubject}
+                            onRemove={removeSubject}
+                            texts={{ placeholder: t.placeholderAddSubject, empty: t.labelNoSubjects, remove: t.removeSubject, add: t.addSubject }}
                           />
                         </div>
                       )}
@@ -359,7 +358,10 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       {profile.isTeacher && (
                         <div className="col-span-2">
                           <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardTeachingSubjects}</div>
-                          <div className="text-neutral-200 mt-0.5">{teachingSubjectsText || "—"}</div>
+                          <div className="mt-1">
+                            <SubjectList id="sheet-subjects-read" items={profile.teachingSubjects ?? []} editable={false} onAdd={() => {}} onRemove={() => {}}
+                              texts={{ placeholder: "", empty: t.labelNoSubjects, remove: t.removeSubject, add: t.addSubject }} />
+                          </div>
                         </div>
                       )}
                     </>

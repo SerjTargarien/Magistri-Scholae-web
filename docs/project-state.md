@@ -606,7 +606,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - Approved by the owner (implementation-plan.md, «Order and reasons»; decision 15): lists and limits → polish pass (Classic removal, shared controls, no cut words, the rest) → image viewer → R3.5 notes and save messages → R3.6 → **R6 own backend for the testers, published with the finished R3 as milestone 1** → R4 (administration screens first) → R4.5 → R5 → images from a web address → temporary sheet versions → offline → **printable sheets** (added by the owner) → the rest of R7. Main reason: the testers' only database is the development database, and nothing is published between milestones.
 
-**Next:** lists and limits (R3.4), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Lists and limits, part 1: subjects taught as a list — 9 November 2026
+
+- An adult wizard's subjects taught are a list like the aspects (`src/components/SubjectList.tsx`), in the creation form and on the sheet: one entry per subject, added with a box and «+» (or Enter), removed with «×» in edit mode; readers see one row per subject, or «Sin asignaturas registradas». A comma is now just part of a name; the old comma-separated box lost commas and spaces while typing, so a second subject could not be typed in the form. Stored entries are unchanged.
+- Checks: type check; 51 unit tests; both builds; 43 browser tests (the adult-wizard test adds two subjects in the form, one with a comma, then adds and removes one on the sheet by entry). Looked at in the demo build at phone width, in and out of edit mode.
+
+**Next:** lists and limits, part 2 (a name box that can be emptied while retyping) and part 3 (counters near limits), then the polish pass. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

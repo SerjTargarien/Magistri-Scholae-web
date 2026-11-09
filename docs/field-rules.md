@@ -57,7 +57,7 @@ The cards show: portrait, house crest, archetype, `curso` (badge, not clipped), 
 | `role`, `institution`, `reputation` | Free. (`magicalFocus` was removed in schema version 4: migration 0006 merged it into `varitaSintonia`, keeping both texts when they differ, or moving the focus to a custom field «Foco mágico» when both do not fit in 200 characters.) | **Text 120** each |
 | `formerHouse` | Free text; the house filter matches it by substring. | **Text 80** |
 | `isTeacher` | Checkbox. | Yes/no |
-| `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** |
+| `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** **Done 9 November 2026** (form and sheet). |
 
 ## House (form tab Afiliación, students; sheet Perfil heraldry)
 

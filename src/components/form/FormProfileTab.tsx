@@ -10,10 +10,11 @@ import { imageSrc } from "../../remote/assets";
 
 import type { FormContext } from "./useCharacterForm";
 import { IMAGE_FROM_URL } from "../imageFromUrl";
+import { SubjectList } from "../SubjectList";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
-    t, characterState, setCharacterState, characterType, profile, updateProfileField, updateTeachingSubjects, formError,
+    t, characterState, setCharacterState, characterType, profile, updateProfileField, addSubject, removeSubject, formError,
     setFormError, imageError, setImageError, pastedAvatarUrl, setPastedAvatarUrl, avatarDataUrl, removeAvatar,
     handleAgeChange, handleImageUpload, handleUrlAvatarSubmit, houseAccentBorder, houseIconColor,
   } = ctx;
@@ -379,17 +380,16 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                         {/* Asignaturas que imparte */}
                         {profile.isTeacher && (
                           <div className="flex flex-col gap-1.5 sm:col-span-2 animate-fade-in">
-                            <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold flex justify-between">
-                              <span>{t.adultWizardTeachingSubjects}</span>
-                              <span className="text-[9px] text-neutral-500 normal-case font-normal">{t.commaSeparatedHint}</span>
+                            <label className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                              {t.adultWizardTeachingSubjects}
                             </label>
-                            <input
-                              id="input-aw-teaching-subjects"
-                              type="text"
-                              placeholder={t.adultWizardTeachingSubjectsPlaceholder}
-                              value={profile.teachingSubjects.map(s => s.value ?? "").join(", ")}
-                              onChange={(e) => updateTeachingSubjects(e.target.value)}
-                              className="w-full text-xs font-sans"
+                            <SubjectList
+                              id="form-subjects"
+                              items={profile.teachingSubjects}
+                              editable
+                              onAdd={addSubject}
+                              onRemove={removeSubject}
+                              texts={{ placeholder: t.placeholderAddSubject, empty: t.labelNoSubjects, remove: t.removeSubject, add: t.addSubject }}
                             />
                           </div>
                         )}

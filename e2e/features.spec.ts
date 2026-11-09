@@ -57,27 +57,65 @@ test("student: identity, house, aspects, complications and custom fields persist
 test("session tracking: destiny, XP, stress, temporary aspects and consequences persist", async ({ page }) => {
   await createCharacter(page, "Session Student");
   await openTab(page, "sesion");
-  await page.getByRole("button", { name: "Puntos de Destino: 5" }).click();
+  // Three gems by default; each point above three adds one, up to 10.
+  const gems = page.locator("#destiny-gems-container button");
+  await expect(gems).toHaveCount(3);
+  for (let i = 0; i < 9; i++) await page.locator("#btn-dest-plus").click();
+  await expect(gems).toHaveCount(10);
+  await page.getByRole("button", { name: "Puntos de Destino: 7" }).click();
+  await expect(gems).toHaveCount(7);
   await page.locator("#btn-exp-plus").click();
   await page.locator("#btn-exp-plus").click();
+  await expect(page.locator("#input-exp")).toHaveCount(0); // typed only in edit mode
   await page.locator("#stress-phys-box-2").click();
   await page.locator("#stress-mental-box-1").click();
   await page.locator("#input-session-new-temp-aspect").fill("Turned into a toad");
   await page.locator("#btn-session-add-temp-aspect").click();
+  // A new consequence starts as «Leve»; another severity is one tap.
   await page.locator("#input-session-new-phys-consequence").fill("Numb arm");
   await page.locator("#btn-session-add-phys-consequence").click();
+  await page.locator("#btn-session-severity-social-grave").click();
   await page.locator("#input-session-new-social-consequence").fill("Whispers behind me");
   await page.locator("#btn-session-add-social-consequence").click();
+  await expect(page.locator("#btn-session-severity-social-leve")).toHaveAttribute("aria-checked", "true");
 
   await reloadApp(page);
   await openCharacter(page, "Session Student");
   await openTab(page, "sesion");
   await expect(page.locator("#detail-tab-sesion")).toContainText("Numb arm");
-  const stored = await storedSheet(page, "Session Student");
-  expect(stored).toMatchObject({ puntosDestino: 5, pxs: 2, estresFisico: 2, estresMental: 1 });
+  let stored = await storedSheet(page, "Session Student");
+  expect(stored).toMatchObject({ puntosDestino: 7, pxs: 2, estresFisico: 2, estresMental: 1 });
   expect(stored!.aspectoTemporal.map((a: { value: string }) => a.value)).toEqual(["Turned into a toad"]);
-  expect(stored!.consecuenciasFisicas).toEqual([expect.objectContaining({ descripcion: "Numb arm" })]);
-  expect(stored!.consecuenciasSociales).toEqual([expect.objectContaining({ descripcion: "Whispers behind me" })]);
+  expect(stored!.consecuenciasFisicas).toEqual([expect.objectContaining({ descripcion: "Numb arm", gravedad: "leve" })]);
+  expect(stored!.consecuenciasSociales).toEqual([expect.objectContaining({ descripcion: "Whispers behind me", gravedad: "grave" })]);
+
+  // The severity tag changes outside edit mode; experience is typed in edit mode.
+  const arm = stored!.consecuenciasFisicas[0].id;
+  // Severity changes from its tag: a menu drawn by the app, never a browser selector.
+  await expect(page.locator("#detail-tab-sesion select")).toHaveCount(0);
+  const armTag = page.locator(`#tag-severity-${arm}`);
+  await expect(armTag).toContainText("Leve");
+  await armTag.click();
+  await expect(page.locator(`#tag-severity-${arm}-menu`)).toBeVisible();
+  await page.keyboard.press("Escape"); // closes without a change and gives the tag its focus back
+  await expect(page.locator(`#tag-severity-${arm}-menu`)).toHaveCount(0);
+  await expect(armTag).toBeFocused();
+  await armTag.click();
+  await page.locator(`#tag-severity-${arm}-option-moderada`).click();
+  await expect(armTag).toContainText("Moderada");
+  await setEditMode(page, true);
+  await openTab(page, "sesion");
+  await page.locator("#input-exp").fill("250000");
+  await page.locator("#input-exp").press("Enter");
+  await page.locator("#input-exp").fill("");
+  await page.locator("#input-exp").blur(); // an emptied box changes nothing
+  await setEditMode(page, false);
+  await expect(page.locator("#value-exp")).toHaveText("250000");
+  await reloadApp(page);
+  stored = await storedSheet(page, "Session Student");
+  expect(stored).toMatchObject({ pxs: 250000 });
+  await expect(characterCard(page, "Session Student").first()).toContainText("250 mil"); // short on the card
+  expect(stored!.consecuenciasFisicas[0]).toMatchObject({ id: arm, gravedad: "moderada" });
 });
 
 test("skills, spells, potions, clubs, equipment and journal entries persist", async ({ page }) => {
@@ -187,7 +225,11 @@ test("esoteric skills keep a knowledge level, set in the form and on the sheet",
   await createCharacter(page, "Esoteric Student", {
     fill: async () => {
       await page.locator("#btn-form-tab-habilidades").click();
-      await page.locator('[id^="select-knowledge-"]').first().selectOption("basico"); // the form always shows the selector
+      // The form always offers the level: an empty tag («Ninguno») opens the menu.
+      const tag = page.locator('[id^="btn-knowledge-"]').first();
+      await expect(tag).toContainText("Ninguno");
+      await tag.click();
+      await page.locator('[role="menu"] [id$="-option-basico"]').click();
     },
   });
   let stored = await storedSheet(page, "Esoteric Student");
@@ -197,18 +239,20 @@ test("esoteric skills keep a knowledge level, set in the form and on the sheet",
   await setEditMode(page, true);
   await openTab(page, "habilidades");
   await page.locator(`#btn-skill-Cábala-plus`).click();
-  await page.locator(`#select-knowledge-${cabala.id}`).selectOption("medio");
+  await page.locator(`#btn-knowledge-${cabala.id}`).click();
+  await page.locator(`#btn-knowledge-${cabala.id}-option-medio`).click();
   await setEditMode(page, false);
   await reloadApp(page);
   await openCharacter(page, "Esoteric Student");
   await openTab(page, "habilidades");
   await expect(page.locator(`#tag-knowledge-${cabala.id}`)).toContainText("Medio");
-  await expect(page.locator('[id^="select-knowledge-"]')).toHaveCount(0); // only in edit mode
+  await expect(page.locator('[id^="btn-knowledge-"]')).toHaveCount(0); // only in edit mode
   stored = await storedSheet(page, "Esoteric Student");
   expect(stored!.habilidades.find((s: { id: string }) => s.id === cabala.id)).toMatchObject({ catalogo: "cabala", valor: 1, conocimiento: "medio" });
 
   await setEditMode(page, true);
-  await page.locator(`#select-knowledge-${cabala.id}`).selectOption("");
+  await page.locator(`#btn-knowledge-${cabala.id}`).click();
+  await page.locator(`#btn-knowledge-${cabala.id}-option-none`).click();
   await setEditMode(page, false);
   await reloadApp(page);
   stored = await storedSheet(page, "Esoteric Student");
@@ -217,7 +261,7 @@ test("esoteric skills keep a knowledge level, set in the form and on the sheet",
   await openCharacter(page, "Esoteric Student");
   await setEditMode(page, true);
   await openTab(page, "habilidades");
-  await expect(page.locator('#skill-block-fisicas [id^="select-knowledge-"]')).toHaveCount(0);
+  await expect(page.locator('#skill-block-fisicas [id^="btn-knowledge-"]')).toHaveCount(0);
 });
 
 test("journal entries without a title store none and show one from their date", async ({ page }) => {

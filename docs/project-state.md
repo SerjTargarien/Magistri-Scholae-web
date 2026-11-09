@@ -576,7 +576,16 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Existing data: before the change, a read-only count on the staging backend (metadata only) found 5 sheets and no journal entries, so no stored generated titles needed cleaning.
 - Merged as PR #39 (`1d16109`; GitHub did not start CI for the PR, so it was run by hand on the branch: frontend, backend and deploy config passed). Published on 9 November 2026: release `20261109-101827-1d16109` on the public site and staging; both serve the new build, `www` redirects to the main domain, and the API answers.
 
-**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: the session tab (destiny gems, typeable XP, consequence severity), lists and limits, the polish pass and images from a web address; then R4.
+## Session tab: destiny, experience and severity — 9 November 2026
+
+- **Destiny:** three gems by default and one more for each point above three, up to 10 (the server's rule); at most five a row, so ten show as two rows on a phone.
+- **Experience:** in edit mode the number is a box (saved on Enter or leaving it; Escape restores it; an emptied box changes nothing), 0 to 1,000,000; − and + stay. Character cards show it exact up to 99,999 and short above («250 mil», «1 M»), the full number on hover, because 1,000,000 overflowed a card's third at 1024 px.
+- **Consequences:** the add form has a «Leve / Moderada / Grave» choice, starting on «Leve» (owner); each consequence shows a coloured tag that whoever may edit it changes with a tap, also outside edit mode; readers see a plain tag. The one consequence on staging saved without a severity shows no tag until one is picked; no stored data changes. The three consequence lists share one component (`SessionTab.tsx`).
+- Existing data (read-only count on staging, values only): destiny 2–3, experience up to 16, one consequence without a severity.
+- **Tag menu** (product-design.md, Controls, adopted 9 November 2026): the severity on a consequence and an esoteric skill's knowledge level (sheet edit mode and creation form) no longer use browser selectors. Each is a coloured tag that opens a menu drawn by the app (`src/components/TagMenu.tsx`): beside the tag on wide screens, a sheet from the bottom below 640 px; arrows, Enter, Escape and a tap outside work, and focus returns to the tag. An empty tag looks like the others, only dashed and quieter («Elegir», «Ninguno»); readers see the plain tag. Severity options carry the game's durations as hints. The tags, the severity chips and the «×» get 40 px touch areas.
+- Checks: type check; 51 unit tests; both builds; 43 browser tests (the session test now covers 3 → 10 gems, typed experience, an emptied box, severity on add and from the tag, and the short card number, at desktop and phone widths). Looked at in the demo build at 375, 1024 and 1280 px. With the tag menu: the session and esoteric tests open it, close it with Escape (focus back on the tag) and pick from it; the session tab has no browser selector left; checks rerun (type check, 51 unit tests, both builds, 43 browser tests).
+
+**Next:** Q9–Q11 (stress) wait for the GM's explanation; meanwhile, the rest of R3.4 in order: lists and limits, the polish pass and images from a web address; then R4.
 
 ## Controls study and the owner's verdicts — 9 November 2026
 

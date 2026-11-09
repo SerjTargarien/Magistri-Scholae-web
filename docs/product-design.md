@@ -212,7 +212,7 @@ Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothin
 Tabs:
 
 - **Perfil:** «Datos Personales», «Filiación de la Casa y Heráldica» (students), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
-- **Sesión** (usable outside edit mode, on purpose: convenience during play): destiny gems, experience (− +), «Aspecto Temporal», three stress tracks, three consequence lists.
+- **Sesión** (usable outside edit mode, on purpose: convenience during play): destiny gems (three, plus one per point above three, up to 10), experience (− +, typed in edit mode), «Aspecto Temporal», three stress tracks, three consequence lists, each consequence with a severity tag (Leve, Moderada, Grave).
 - **Habilidades:** values, removal, «+ Añadir de la lista», knowledge levels, GM-only typed box.
 - **Conjuros y Pociones:** add and remove in edit mode; entries not editable.
 - **Inventario y Notas:** clubs, equipment (quantity ± at any time), journal (add and edit at any time, remove in edit mode).
@@ -220,7 +220,7 @@ Tabs:
 
 **Target:**
 
-- Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, phase 3); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
+- Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, **done 9 November 2026**); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
 - Removing anything asks first (polish pass); generated journal titles are shown, not stored (**done**).
 - Drafts, proposal and confirmation, and active/inactive status (R4).
@@ -285,7 +285,7 @@ Found while mapping the screens on 9 November 2026, with the owner's decisions. 
 6. **Wrong wording.** Decision: «Seleccionar un personaje para vincular a este familiar»; «Registro de Familiares».
 7. **Journal titles stored.** Decision: shown, not stored. **Done** (9 November 2026): characters and familiars.
 8. **Edit-mode gaps** in the session tab, equipment quantities and journal. Decision: kept on purpose, for convenience during play.
-9. **Known limits already planned:** destiny, experience, severity, subjects as a list, the name box, the save-status panel (phase 3 and R3.5).
+9. **Known limits already planned:** destiny, experience and severity (**done 9 November 2026**), subjects as a list, the name box, the save-status panel (phase 3 and R3.5).
 
 ## Design notes
 

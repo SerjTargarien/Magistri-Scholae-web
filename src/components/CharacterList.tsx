@@ -13,6 +13,7 @@ import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
 import { TRANSLATIONS } from "../localization";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
+import type { Language } from "../model/catalogue";
 import {
   Plus,
   Settings,
@@ -22,6 +23,12 @@ import {
   Award,
   PawPrint
 } from "lucide-react";
+
+/** Experience on a card: exact up to 99,999, short above («250 mil», «1 M») so it fits a third of the card. */
+const cardCount = (value: number | undefined, lang: Language) =>
+  (value ?? 0) < 100_000
+    ? String(value ?? 0)
+    : new Intl.NumberFormat(lang === "es" ? "es-ES" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value ?? 0);
 
 const characterFields = (item: ApiSheetProjection) => item.fields as CharacterSheet;
 const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarSheet;
@@ -385,9 +392,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </div>
                       <div>
                         <div className="text-[8px] text-[#b8a68e] uppercase tracking-tight">{t.lblExp}</div>
-                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4">
+                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-1 mt-0.5 h-4" title={String(c.pxs ?? 0)}>
                           <Award className="w-3 h-3 text-violet-400 shrink-0" />
-                          {c.pxs}
+                          {cardCount(c.pxs, lang)}
                         </div>
                       </div>
                       <div>
@@ -490,9 +497,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </div>
                       <div>
                         <div className="text-[8px] text-neutral-500 uppercase tracking-tight">{t.lblExp}</div>
-                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-0.5 h-4">
+                        <div className="text-xs text-violet-400 font-bold flex items-center justify-center gap-0.5 h-4" title={String(c.pxs ?? 0)}>
                           <Award className="w-3 h-3 text-violet-400 shrink-0" />
-                          {c.pxs}
+                          {cardCount(c.pxs, lang)}
                         </div>
                       </div>
                       <div>

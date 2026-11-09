@@ -129,6 +129,14 @@ export interface TranslationDict {
   increaseDestiny: string;
   noStress: string;
   removeConsequence: string;
+  severity: string;
+  severityLeve: string;
+  severityModerada: string;
+  severityGrave: string;
+  severityChoose: string;
+  severityLeveHint: string;
+  severityModeradaHint: string;
+  severityGraveHint: string;
 
   // 8. Aspects, Belongings, Clubs & Custom Fields
   aspectosPersonales: string;
@@ -510,6 +518,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     increaseDestiny: "Aumentar destino",
     noStress: "Sin estrés",
     removeConsequence: "Eliminar consecuencia",
+    severity: "Gravedad",
+    severityLeve: "Leve",
+    severityModerada: "Moderada",
+    severityGrave: "Grave",
+    severityChoose: "Elegir",
+    severityLeveHint: "Puede pasar en la sesión",
+    severityModeradaHint: "Pasa tras la sesión",
+    severityGraveHint: "No pasa sin medidas",
 
     // 8. Aspects, Belongings, Clubs & Custom Fields
     aspectosPersonales: "Aspectos Personales",
@@ -892,6 +908,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     increaseDestiny: "Increase destiny",
     noStress: "No stress",
     removeConsequence: "Remove consequence",
+    severity: "Severity",
+    severityLeve: "Mild",
+    severityModerada: "Moderate",
+    severityGrave: "Severe",
+    severityChoose: "Choose",
+    severityLeveHint: "Can pass during the session",
+    severityModeradaHint: "Passes after the session",
+    severityGraveHint: "Lasts unless something is done",
 
     // 8. Aspects, Belongings, Clubs & Custom Fields
     aspectosPersonales: "Personal Aspects / Traits",

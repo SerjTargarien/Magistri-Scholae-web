@@ -13,6 +13,7 @@ import { IMAGE_FROM_URL } from "../imageFromUrl";
 import { SubjectList } from "../SubjectList";
 import { limitAttrs } from "../LimitHint";
 import { Switch } from "../Toggle";
+import { Segmented } from "../Segmented";
 
 export function FormProfileTab({ ctx }: { ctx: FormContext }) {
   const {
@@ -104,32 +105,9 @@ export function FormProfileTab({ ctx }: { ctx: FormContext }) {
                     {/* Portrait Fit Selector (cover vs contain) */}
                     <div className="border-t border-neutral-800/60 pt-2 space-y-1">
                       <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase block">{t.lblAvatarFit}</span>
-                      <div className="grid grid-cols-2 gap-1.5" id="form-avatar-fit-toggle">
-                        <button
-                          id="btn-form-fit-cover"
-                          type="button"
-                          onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "cover" }))}
-                          className={`px-2 py-1 rounded text-[9px] font-mono font-bold border transition-all cursor-pointer truncate ${
-                            (characterState.avatarFit || "cover") === "cover"
-                              ? "bg-amber-500/20 border-amber-500 text-amber-300"
-                              : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200"
-                          }`}
-                        >
-                          {t.optAvatarCover}
-                        </button>
-                        <button
-                          id="btn-form-fit-contain"
-                          type="button"
-                          onClick={() => setCharacterState(prev => ({ ...prev, avatarFit: "contain" }))}
-                          className={`px-2 py-1 rounded text-[9px] font-mono font-bold border transition-all cursor-pointer truncate ${
-                            characterState.avatarFit === "contain"
-                              ? "bg-amber-500/20 border-amber-500 text-amber-300"
-                              : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200"
-                          }`}
-                        >
-                          {t.optAvatarContain}
-                        </button>
-                      </div>
+                      <Segmented id="form-avatar-fit-toggle" label={t.lblAvatarFit} full small value={characterState.avatarFit || "cover"}
+                        onChange={(fit) => setCharacterState(prev => ({ ...prev, avatarFit: fit }))}
+                        options={[{ value: "cover" as const, label: t.optAvatarCover, id: "btn-form-fit-cover" }, { value: "contain" as const, label: t.optAvatarContain, id: "btn-form-fit-contain" }]} />
                     </div>
                   </div>
 

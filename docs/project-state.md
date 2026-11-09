@@ -640,7 +640,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - `src/components/Stepper.tsx`: «−» value «+» (32 px buttons, disabled at the range's ends), with an optional typed box for ranges above 20 and an optional label beside it. It replaces the spell and potion difficulty selectors (1–5), the equipment quantity boxes on the sheet and in the form (typed, 1–9,999, no browser spinners) and the form's stress maxima (1–10). Limits come from the server's field rules. On the sheet the quantity and «Registrar Objeto de Inventario» are stacked, so the button keeps one line on phones.
 - Checks: type check; 53 unit tests; both builds; 47 browser tests (the spells test raises a difficulty to 3 with «+» and types a quantity of 12). Looked at in the demo build at phone width.
 
-**Next:** polish pass (b), part 3: the segmented image fit, then the restyled zoom sliders, the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
+## Polish pass (b), part 3: the segmented image fit — 9 November 2026
+
+- `src/components/Segmented.tsx`: one row of 2–4 options, the chosen one lit gold; arrow keys move and choose. It replaces the four portrait fit button pairs (character sheet, familiar sheet, familiar editor, creation form), whose labels were English («Cover / Contain») on the sheet and long elsewhere («Ajustar / Lienzo Completo», cut on phones). All now read «Recortar» / «Completa», as in the approved demo. The sheet's portrait column is 144 px wide at every width (it was 112 px on desktop, too narrow for the two options).
+- Checks: type check; 53 unit tests; both builds; 47 browser tests. Looked at in the demo build at 375 and 1280 px (no option cut or overflowing).
+
+**Next:** polish pass (b), part 4: the restyled zoom sliders, then the house tag menu and the picker. Then (c) no cut words and (d) the remaining inconsistencies. Q9–Q11 (stress) wait for the GM's explanation; they only block R4.5's last step.
 
 ## Updating this handoff
 

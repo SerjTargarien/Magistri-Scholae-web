@@ -39,6 +39,7 @@ import { GalleryTab } from "./sheet/GalleryTab";
 import { RequiredTextInput } from "./RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Check as CheckBox } from "./Toggle";
+import { Segmented } from "./Segmented";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -266,36 +267,12 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           />
 
           {isQuickEditing && ((character.avatarImage && (writable("avatarFit") || writable("avatarImage"))) || (linkedFamiliar && canBond)) && (
-            <div className="flex flex-col gap-1.5 w-36 md:w-28 mt-1">
+            <div className="flex flex-col gap-1.5 w-36 mt-1">
               {character.avatarImage && (
                 <>
                   {writable("avatarFit") && (
-                  <div className="grid grid-cols-2 gap-1 bg-neutral-950 p-0.5 rounded-lg border border-neutral-800">
-                    <button
-                      type="button"
-                      onClick={() => setAvatarFit("cover")}
-                      className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
-                        (character.avatarFit || "cover") === "cover"
-                          ? "bg-violet-900 text-amber-300 border border-amber-500/30"
-                          : "text-neutral-500 hover:text-neutral-300"
-                      }`}
-                      title={t.optAvatarCover}
-                    >
-                      Cover
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAvatarFit("contain")}
-                      className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer truncate ${
-                        character.avatarFit === "contain"
-                          ? "bg-violet-900 text-amber-300 border border-amber-500/30"
-                          : "text-neutral-500 hover:text-neutral-300"
-                      }`}
-                      title={t.optAvatarContain}
-                    >
-                      Contain
-                    </button>
-                  </div>
+                  <Segmented label={t.lblAvatarFit} full small value={character.avatarFit || "cover"} onChange={setAvatarFit}
+                    options={[{ value: "cover" as const, label: t.optAvatarCover, id: "btn-sheet-fit-cover" }, { value: "contain" as const, label: t.optAvatarContain, id: "btn-sheet-fit-contain" }]} />
                   )}
                   {writable("avatarImage") && (
                   <button

@@ -13,6 +13,7 @@ import { PawPrint, Image as ImageIcon, Link as LinkIcon, Unlink, ExternalLink } 
 import type { FamiliarContext } from "./useFamiliarDetail";
 import { RequiredTextInput } from "../RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "../LimitHint";
+import { Segmented } from "../Segmented";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
@@ -78,23 +79,8 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
               {isQuickEditing && familiar.imagen && (canEditImageFit || canEditImage) && (
                 <div className="mt-3 flex flex-col sm:flex-row gap-2">
                   {canEditImageFit && (
-                  <div className="grid grid-cols-2 gap-1 bg-neutral-950 p-0.5 rounded-lg border border-neutral-800 flex-1">
-                    {(["cover", "contain"] as const).map(fit => (
-                      <button
-                        key={fit}
-                        type="button"
-                        id={`btn-familiar-fit-${fit}`}
-                        onClick={() => setImageFit(fit)}
-                        className={`py-1.5 px-2 rounded text-[10px] font-mono font-bold transition-all cursor-pointer truncate ${
-                          (familiar.imageFit ?? "cover") === fit
-                            ? "bg-violet-900 text-amber-300 border border-amber-500/30"
-                            : "text-neutral-500 hover:text-neutral-300"
-                        }`}
-                      >
-                        {fit === "cover" ? t.optAvatarCover : t.optAvatarContain}
-                      </button>
-                    ))}
-                  </div>
+                  <div className="flex-1"><Segmented label={t.lblAvatarFit} full value={familiar.imageFit ?? "cover"} onChange={setImageFit}
+                    options={[{ value: "cover" as const, label: t.optAvatarCover, id: "btn-familiar-fit-cover" }, { value: "contain" as const, label: t.optAvatarContain, id: "btn-familiar-fit-contain" }]} /></div>
                   )}
                   {canEditImage && (
                   <button

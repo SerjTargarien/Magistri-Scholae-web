@@ -108,7 +108,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Visual style, settings | Option cards | Removed with Classic (owner) | Done (9 November 2026) |
 | Campaign, settings | Native selector | Picker (9) | Polish pass |
 | Language (hidden) | Native selector | Segmented (5) | When it returns |
-| Image fit | Two buttons | Segmented (5) | Polish pass |
+| Image fit | Two buttons | Segmented (5) | Done (9 November 2026) |
 | Values, quantities, stress maximum | Steppers; native number boxes when adding equipment and in the form | Stepper (1) | Done (9 November 2026) |
 | Experience | Stepper, typed in edit mode | Stays (1) | Done (PR #41) |
 | Stress, destiny | Pips | Stay (2) | — |

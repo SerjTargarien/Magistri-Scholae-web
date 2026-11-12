@@ -751,7 +751,9 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The app's API types (`PersonalNoteView`, `NotePromotionPreview`) and the demo's mock server follow (optional title, dates, newest first); the mock learns the move in step 4.
 - Checks: Django check, migrations and API contract checks locally; the backend suite in CI (new tests: dates, order, sheet filter, field-named errors, the chosen date, a note that does not fit); type check, unit and browser tests.
 
-**Next:** release the backend to staging (backup first, owner's go-ahead given), then R3.5 step 4, the notes screens.
+- **Released to the staging backend** with the owner's go-ahead: backup first (by hand, the nightly script: encrypted, verified, uploaded to Backblaze), then the server's code updated to `7a45e0f`, `api-staging` rebuilt, migration `0007_note_written_at` applied, `api-staging` restarted (a few seconds). After: both sites' APIs answer; data intact (6 sheets, 5 accounts, 0 notes); `check --deploy` shows only the intentional HSTS-preload warning. The staging frontend stays on `74aedea` (it uses no notes yet). Rollback: restore that backup (the migration adds a column; reversing it loses only note dates).
+
+**Next:** R3.5 step 4, the notes screens.
 
 ## Updating this handoff
 

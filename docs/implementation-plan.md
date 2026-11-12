@@ -20,7 +20,7 @@ Milestones 1–3 are implemented and verified locally (re-verified 7 November 20
 2. Django/PostgreSQL API with accounts, campaigns, field projection, path patches, bonds and notes.
 3. Remote editing with a save queue, retries, private images and note promotion.
 
-Remote mode still uses a stopgap generic form UI. See [project-state.md](project-state.md).
+Since the R3.4 switch (8 November 2026) the public site and staging run the account app with the real screens; R3.1–R3.4 are done, including the polish pass and the image viewer (12 November 2026). See [project-state.md](project-state.md).
 
 ## Summary
 
@@ -30,7 +30,7 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 | R1 Same app, new home (**done 7 Nov 2026**) | Current app served from Contabo at `magistrischolae.fyi`; DNS at Porkbun | S–M | R0, SSH access |
 | S Server security (**done 7 Nov 2026**) | Key-only SSH (owner's devices and the agent), with the VNC console as fallback | S | R1 |
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
-| R3 Real UI on accounts | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
+| R3 Real UI on accounts (R3.1–R3.4 **done 12 Nov 2026**) | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
 | R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R6 (approved order) |
 | R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
 | R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
@@ -39,7 +39,7 @@ Remote mode still uses a stopgap generic form UI. See [project-state.md](project
 
 **Critical path** (revised order, approved 9 November 2026): the rest of R3 → R6 → R4 → R4.5 → R5, then offline (R7.1–R7.2) once the data model has settled.
 
-**Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done.
+**Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done. *(Superseded on 9 November by [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026).)*
 
 **9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. Order decided by the owner the same morning: the rest of R3 → R4 → R4.5 → R5 → R6 → R7. **Revised the same day** after the owner's new workflow (publish only at milestones): see [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026) below.
 
@@ -59,9 +59,9 @@ Publishing happens only at the milestones marked ◆; between them, changes merg
 
 | # | Step | Size | Touches | Why here |
 |---|---|---|---|---|
-| 1 | **R3.4 Lists and limits:** subjects taught as a list, a name box that can be emptied while retyping, counters near limits | S | App | Fixes inputs testers meet today. The server already enforces these rules (subjects are stored as a list; limits refuse a save); only the screens lag behind (principle 5). |
-| 2 | **R3.4 Polish pass**, several pull requests in this order: (a) remove Classic; (b) the shared controls; (c) no cut words; (d) the remaining inconsistencies, including R3.5's «every text in the translations file» and «no `window.confirm`», which are the same work | M | App | (a) halves the styling every later screen needs; (b) every later screen (notes, administration, Biblioteca) is built from the controls, so they come first (principle 2); (c) and (d) touch the same screens, while they are open. |
-| 3 | **R3.4 Image viewer** (designed first): tapping a portrait or gallery image opens it at full size | S | App | Flagged important by the owner but had no place. It reuses the dialog shell of the controls' picker, so it follows step 2. |
+| 1 | **R3.4 Lists and limits** (**done 9 Nov**): subjects taught as a list, a name box that can be emptied while retyping, counters near limits | S | App | Fixes inputs testers meet today. The server already enforces these rules (subjects are stored as a list; limits refuse a save); only the screens lag behind (principle 5). |
+| 2 | **R3.4 Polish pass** (**done 9 Nov**), several pull requests in this order: (a) remove Classic; (b) the shared controls; (c) no cut words; (d) the remaining inconsistencies, including R3.5's «every text in the translations file» and «no `window.confirm`», which are the same work | M | App | (a) halves the styling every later screen needs; (b) every later screen (notes, administration, Biblioteca) is built from the controls, so they come first (principle 2); (c) and (d) touch the same screens, while they are open. |
+| 3 | **R3.4 Image viewer** (**done 12 Nov**; designed first): tapping a portrait or gallery image opens it at full size | S | App | Flagged important by the owner but had no place. It reuses the dialog shell of the controls' picker, so it follows step 2. |
 | 4 | **R3.5 App shell:** personal notes with promotion and GM notes return; the save-status panel speaks plainly | M | App | Personal and GM notes are the only feature testers lost at the switch (8 November); their server side already exists. The «partida» filter moves to R4, which creates the table labels it filters by. |
 | 5 | **R3.6 Retire the old app:** local mode, Dexie, old backups and stopgap forms deleted; the service worker's cache renamed | S | App | Pure deletion. Done before the milestone, the testers' browsers drop the old cached files once, and every later step reads less code. |
 | 6 ◆ | **R6 Own backend for the testers** (moved from after R5), published with steps 1–5 as **milestone 1** | S–M | Server | Must come before R4's first migration (principle 1). The testers' data moves to a production backend; staging becomes the development copy, so later migrations are rehearsed there first and reach testers only at a milestone, with their screens. Includes backups that store each image once and the launch checklist. One change event for testers: the finished R3 screens and their own backend together. |
@@ -199,8 +199,8 @@ No aesthetic change is made without a reason.
 
 - **Do it right: no translation layer** between the screens and the server. The screens use the server's data model directly.
 - **No old data to keep.** The only records in the old local format are the owner's test data. So there is no converter, no data carry-over (R5 is dropped), and the old local mode is retired at the end of R3. The live site stays frozen on its current release until launch (R6).
-- **No aesthetic changes without a reason;** any step that has a reason for a visible change may make it (owner decision, 8 November 2026; until then every change needed the owner's approval of before-and-after screenshots, enforced by the R3.1 screenshot tests). New screens (sign-in, campaign selection) follow the existing academy and classic styles.
-- **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens.
+- **No aesthetic changes without a reason;** any step that has a reason for a visible change may make it (owner decision, 8 November 2026; until then every change needed the owner's approval of before-and-after screenshots, enforced by the R3.1 screenshot tests). New screens (sign-in, campaign selection) follow the existing academy and classic styles. *(Since 9 November 2026: Academia only; Classic was removed.)*
+- **Offline comes right after launch** as a new offline mode built on the server's model (R7.1 and R7.2). R3 builds the sheet store so that offline plugs in without changing the screens. *(Moved after R5 by decision 15, 9 November 2026.)*
 - Rejected: a translation layer, rewriting the server to store position-based lists (which would lose per-item updates and per-item privacy), and keeping the old local mode alive alongside the new one.
 
 **Goal:** the existing screens run on the server's data model, against staging and an in-browser mock server, with every existing screen looking as it does today.
@@ -278,6 +278,12 @@ Each step below is its own pull request. It keeps the app working under the brow
 - **R3.5 App shell.**
   - Login, invitation registration, reset-code redemption, campaign selection (done early: R3.4 follow-ups), personal notes with promotion, and GM notes, in the Academia style.
   - The save-status panel speaks plainly, without field names.
+  - **Steps** (prepared 12 November 2026 from a review of the code; one pull request each):
+    1. **Save messages in plain words** (app only). Today the panel shows raw paths and codes (`field_too_long · notasList/… · maxLength`) and values as JSON; it says which field in the sheet's own words, what went wrong and what to do. Two defects go with it: the «Descartado» line never clears, and «Reintentar» does nothing after a refusal (only after a lost connection), so it shows only when it can help. Whether a quiet «Guardando… / Guardado» stays visible all the time ([design.md](design.md) asks for it) is an owner decision.
+    2. **Notes design** (designed first, with a demo like the image viewer): where a player's personal notes live (on each sheet, in one list, or both), how «Mover al diario» shows who will see the note before it moves, where the GM's notes go on a sheet, and names that keep the private notes apart from the sheet's journal («Bitácora», «Notas del Familiar»). [product-design.md](product-design.md) has no screen for them yet.
+    3. **Notes on the server** (small, no schema change): the list sorted by last change and filterable by sheet (today it comes in random order), `updatedAt` in the answer, length errors that name the field, a promotion preview that refuses a note too long or empty for a journal (today the move fails after the preview), and the notes' rules in [field-rules.md](field-rules.md). It means rebuilding the staging backend, which the testers use: backup first and the owner's go-ahead (AGENTS.md).
+    4. **Personal notes and «Mover al diario»** on the account screens, through their own adapter (notes are not sheet fields), with the mock server learning promotion (today it answers «not in demo») and browser tests.
+    5. **GM notes** on the sheet, for the GM only. R4's GM screens keep their final place (the Biblioteca, R5).
   - ~~Lists show and filter by each character's **partida**~~: moved to R4, which creates the table labels (revised order).
   - ~~Text goes through `localization.ts`. No `window.confirm`.~~ Folded into the R3.4 polish pass, which does the same work (revised order).
 - **R3.6 Retire the old app.**
@@ -380,7 +386,7 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 - Run the production stack on the VPS, with its database and media separate from staging.
 - Generate production secrets and bootstrap the administrator.
 - Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him).
-- Switch the apex frontend from the old local-mode app to the account app. Check in a browser that had the old app that its service worker hands over to the new one.
+- ~~Switch the apex frontend from the old local-mode app to the account app~~ (done 8 November 2026, on the staging backend). Check in a browser that had the old app that its service worker hands over to the new one (R3.6 renames its cache).
 - Before launch, backups store each image once (owner decision, 8 November 2026): the database is dumped nightly as now, but images are uploaded to Backblaze only when new, so the 30-day history does not multiply image storage. The restore drill covers it.
 - Run the first production backup and check it restores.
 - Tag the release.
@@ -394,11 +400,11 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 - Logs are visible.
 - `check --deploy` is clean.
 
-**Known regression:** the old app worked offline, but nobody relies on it. The account app edits online only at launch; the new offline mode follows immediately (R7.1 and R7.2, decision 2).
+**Known regression:** the old app worked offline, but nobody relies on it. The account app edits online only; the new offline mode comes after R5 (R7.1 and R7.2, decision 15).
 
 **Owner actions:** invite the players and hand out their invitations.
 
-**Rollback:** reactivate the previous local-mode release at the apex (`release.sh --activate`). Server data is kept for a retry.
+**Rollback:** point the public site's `/api` back to the staging backend, which keeps the testers' data until the move is confirmed; the frontend release can be switched back with `release.sh --activate`. Production data is kept for a retry.
 
 ## R7 — After launch (in order)
 

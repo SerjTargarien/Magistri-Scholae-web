@@ -724,7 +724,15 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Released to staging at the owner's request for a trial on his phone (frontend release `20261112-143411-74aedea`; backend untouched; the API answers). The public site stays on `206d290` until milestone 1.
 - Checks: type check; 53 unit tests; both builds; 57 browser tests (new: the viewer at phone and desktop widths: portrait in reading mode, edit mode still changes it, gallery counter, fading buttons on a computer and none on a phone, arrows, double-tap zoom, Escape, the back button, a tap to close; the familiar sheet's portrait and gallery).
 
-**Next:** R3.5 (personal notes with promotion, GM notes, plain save messages), then R3.6 and R6 with milestone 1.
+## Roadmap review — 12 November 2026
+
+- **Current version:** `main` (`375916c`) green in CI; staging serves `74aedea` (the image viewer, owner's trial); the public site stays on `206d290` until milestone 1; both APIs answer.
+- **Done since the 9 November order:** steps 1–3 (lists and limits, the polish pass, the image viewer). The plan's stale parts were corrected (the stopgap form, Classic, offline after R5, R6's apex switch and rollback).
+- **Invitations:** 7 of the 9 testers' invitations are unused and all expire on 15 November 2026 (read-only check on staging). The administrator screens that let the owner reissue them come with R4 (a), after R6, so until then new ones are issued by hand on request.
+- **R3 exit criterion still open:** the browser tests run in CI against the mock only, not against a real backend (planned in R3.6).
+- **R3.5 prepared** as five steps (implementation-plan.md, R3.5): plain save messages; a notes design; small notes fixes on the server; personal notes with «Mover al diario»; GM notes.
+
+**Next:** R3.5 step 1 (save messages in plain words), then the notes design.
 
 ## Updating this handoff
 

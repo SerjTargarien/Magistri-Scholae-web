@@ -96,16 +96,16 @@ Assigned-player policy metadata omits restriction paths that a GM has since hidd
 
 ## Personal notes
 
-- `GET personal-notes?limit=50&offset=0` returns only the current author's notes. No other-author/search filter is accepted.
-- `POST personal-notes` takes `{title, content, label?, sheetId?}`. A referenced sheet must currently be accessible. The label is author supplied and never resolved against a sheet after reassignment.
-- `GET personal-notes/{id}` returns `{id, sheetId, label, title, content, revision}` only to the author.
+- `GET personal-notes?limit=50&offset=0[&sheetId=…]` returns only the current author's notes, newest written first (`createdAt`), optionally only those about one sheet. No other-author/search filter is accepted.
+- `POST personal-notes` takes `{title?, content?, label?, sheetId?}` (each text may be empty; limits in field-rules.md, Private notes; a refused text names its field). A referenced sheet must currently be accessible. The label is author supplied and never resolved against a sheet after reassignment.
+- `GET personal-notes/{id}` returns `{id, sheetId, label, title, content, revision, createdAt, updatedAt}` only to the author. `createdAt` (milliseconds) is when the note was written and never changes.
 - `PATCH personal-notes/{id}` accepts `{expectedRevision: number, title?, content?, label?}`.
 - `DELETE personal-notes/{id}` requires `{expectedRevision: number}`.
 
 GM and site-administrator API accounts receive 404 for another author's note, including mutations. Notes remain available to their author after sheet reassignment, archiving or membership removal, without restoring sheet access. They are absent from all ordinary entity/GM responses.
 
-- `POST personal-notes/{id}/promote/preview` accepts `{sheetId, expectedRevision, noteRevision}`. Only the author may preview, with current journal write access. Returns `previewToken`, per-journal-field `audiences`, the author's own title/content and `sourceWillBeDeleted: true`. Audience `shared` means GMs, assigned player and explicit shared readers, not public access.
-- `POST personal-notes/{id}/promote` accepts the same references plus `{previewToken, operationId}` after explicit audience confirmation. It atomically adds a new stable journal item and deletes the personal source. Author, sheet, note revision, sheet/policy revision and five-minute preview expiry are checked again. Any failure preserves the private source and journal. Retries resolve to the current permitted destination projection without duplicate publication. Preview tokens contain references, not private note bodies.
+- `POST personal-notes/{id}/promote/preview` accepts `{sheetId, expectedRevision, noteRevision, fecha?}` (`fecha`: the journal entry's date in milliseconds; by default the note's `createdAt`). The new entry is checked against the journal's rules here, so a note that is empty or too long is refused with the journal field's path before anything moves. Only the author may preview, with current journal write access. Returns `previewToken`, per-journal-field `audiences`, the author's own title/content, the entry's `fecha` and `sourceWillBeDeleted: true`. Audience `shared` means GMs, assigned player and explicit shared readers, not public access.
+- `POST personal-notes/{id}/promote` accepts the same references (and `fecha?`) plus `{previewToken, operationId}` after explicit audience confirmation. It atomically adds a new stable journal item and deletes the personal source. Author, sheet, note revision, sheet/policy revision and five-minute preview expiry are checked again. Any failure preserves the private source and journal. Retries resolve to the current permitted destination projection without duplicate publication. Preview tokens contain references, not private note bodies.
 
 ## Deferred work
 

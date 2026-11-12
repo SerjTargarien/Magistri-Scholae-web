@@ -134,7 +134,7 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | `equipoList[].cantidad` | At least 1, no maximum. | **Whole number 1–9,999** |
 | `notasList[].titulo` | Since 9 November 2026 an entry without a title stores none, and the sheet shows «Entrada del …» from the entry's date (characters and familiars; entries saved earlier keep their stored title). | **Text 200**; an empty title is stored empty and the generated title is only shown (R3.4, done) |
 | `notasList[].contenido` | Required, multi-line. | **Required, text 50,000** |
-| `notasList[].fecha` | Set by the player's device at creation. | **Whole number**, a real date |
+| `notasList[].fecha` | Set by the player's device at creation; for an entry moved from a private note, the date chosen in the move dialog (by default when the note was written). | **Whole number**, a real date |
 | `notasList` | Newest first. | **List ≤ 5,000** (owner: higher limits with clear warnings) |
 
 ## Gallery (sheet tab Galería)
@@ -154,6 +154,20 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | `notasList` | Needs a title or content. | As the character journal, but content may be empty if there is a title |
 | `galleryImages` | Up to 2.5 MB stored **uncompressed**, or a **web link** stored as is. | Uploaded and compressed like the character gallery; web addresses as for portraits; **list ≤ 50** |
 | bond | One familiar per student. | Unchanged: a separate bond operation |
+
+## Private notes (not part of the sheet)
+
+Private notes are their own records, never sheet fields: only their author reads or changes them (product-design.md, Notes). Rules enforced by the server (`backend/domain/notes.py`); a refused value names its field (`title`, `content`, `label`).
+
+| Field | Rule |
+|---|---|
+| `title` | **Text 200, may be empty** (the app shows «Nota del 12 nov» from `createdAt`; since 12 November 2026) |
+| `content` | **Text 64,000, may be empty** while it is written. Moving it to a journal needs it to fit the journal's rules (character: required, 50,000; familiar: a title or content), checked already in the move's preview |
+| `label` | **Text 120, may be empty**; not shown by the app for now |
+| `createdAt` | **Set by the server** when the note is created; never changed by edits; the list's order, newest first (owner, 12 November 2026) |
+| `sheetId` | Optional: a sheet the author can open; the list can be filtered by it |
+
+The GM-note record (one text of 64,000 per sheet) has no screen: the owner dropped GM notes on 12 November 2026.
 
 ## Whole sheet and storage
 

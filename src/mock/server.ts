@@ -21,7 +21,7 @@ const CODES: Record<string, string> = {
   linkedOrOwn: "field_required", requireOneOf: "field_required", unknownField: "unknown_field", maxSheetBytes: "sheet_too_large",
 };
 
-interface PersonalNote { id: string; author: string; sheetId: string | null; label: string; title: string; content: string; revision: number }
+interface PersonalNote { id: string; author: string; sheetId: string | null; label: string; title: string; content: string; revision: number; createdAt: number; updatedAt: number }
 interface State {
   viewer: DemoRole | null; sheets: DemoSheet[]; notes: PersonalNote[]; uploads: Record<string, string>;
   /** The campaign's skill list, which the demo GM can change (C2). */
@@ -349,13 +349,14 @@ export class MockServer {
     const view = ({ author: _a, ...note }: PersonalNote) => note;
     if (path === "personal-notes") {
       if (method === "POST") {
-        if (typeof body.title !== "string" || !body.title.trim()) return fail(400, "invalid_request");
+        // As the server since R3.5: the title is optional; a note keeps when it was written.
+        const now = Date.now();
         const note = { id: crypto.randomUUID(), author: user.id, sheetId: body.sheetId ?? null, label: String(body.label ?? ""),
-          title: body.title, content: String(body.content ?? ""), revision: 1 };
+          title: String(body.title ?? ""), content: String(body.content ?? ""), revision: 1, createdAt: now, updatedAt: now };
         this.state.notes.push(note); this.save();
         return new Reply(200, view(note));
       }
-      return new Reply(200, { items: this.state.notes.filter(n => n.author === user.id).map(view) });
+      return new Reply(200, { items: this.state.notes.filter(n => n.author === user.id).sort((a, b) => b.createdAt - a.createdAt).map(view) });
     }
     const match = path.match(/^personal-notes\/([^/]+)(\/promote(\/preview)?)?$/);
     const note = this.state.notes.find(n => n.id === match?.[1] && n.author === user.id);
@@ -364,7 +365,7 @@ export class MockServer {
     if (method === "GET") return new Reply(200, view(note));
     if (body.expectedRevision !== note.revision) return fail(409, "revision_conflict");
     if (method === "DELETE") { this.state.notes = this.state.notes.filter(n => n !== note); this.save(); return new Reply(200, {}); }
-    Object.assign(note, { title: body.title ?? note.title, content: body.content ?? note.content, label: body.label ?? note.label, revision: note.revision + 1 });
+    Object.assign(note, { title: body.title ?? note.title, content: body.content ?? note.content, label: body.label ?? note.label, revision: note.revision + 1, updatedAt: Date.now() });
     this.save();
     return new Reply(200, view(note));
   }

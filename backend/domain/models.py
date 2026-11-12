@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.db.models.functions import Lower
 from .catalogue import default_catalogue
 
@@ -122,9 +123,11 @@ class PersonalNote(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True)
     label = models.CharField(max_length=120, blank=True)
-    title = models.CharField(max_length=200)
-    content = models.TextField()
+    title = models.CharField(max_length=200, blank=True)
+    content = models.TextField(blank=True)
     revision = models.PositiveIntegerField(default=1)
+    # When the note was written (owner, 12 November 2026: proper diaries); edits never change it.
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
 

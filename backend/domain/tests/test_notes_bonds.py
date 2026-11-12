@@ -1,5 +1,7 @@
 import json
+from datetime import timedelta
 from django.test import Client
+from django.utils import timezone
 from domain.models import Bond, Membership, PersonalNote, Share, Sheet
 from .base import APICase
 
@@ -50,6 +52,30 @@ class NotesAndBondsTests(APICase):
         self.send(self.alice_client, f"personal-notes/{note['id']}", {"expectedRevision": 1, "content": "stale"}, method="patch", status=409)
         self.send(self.alice_client, f"personal-notes/{note['id']}", {"expectedRevision": 2}, method="delete")
         self.assertFalse(PersonalNote.objects.filter(pk=note["id"]).exists())
+
+    def test_private_notes_keep_when_they_were_written_newest_first_and_by_sheet(self):
+        about_sheet = self.send(self.alice_client, "personal-notes", {"sheetId": str(self.sheet.pk), "content": "about the sheet"})
+        self.assertEqual(about_sheet["title"], "")  # the title is optional
+        PersonalNote.objects.filter(pk=about_sheet["id"]).update(created_at=timezone.now() - timedelta(hours=2))
+        written = self.read(self.alice_client, f"personal-notes/{about_sheet['id']}")["createdAt"]
+        edited = self.send(self.alice_client, f"personal-notes/{about_sheet['id']}", {"expectedRevision": 1, "content": "edited later"}, method="patch")
+        self.assertEqual(edited["createdAt"], written)  # editing never changes when it was written
+        self.assertGreater(edited["updatedAt"], written)
+        no_sheet = self.send(self.alice_client, "personal-notes", {"content": "about no sheet"})
+        listed = [n["id"] for n in self.read(self.alice_client, "personal-notes")["items"]]
+        self.assertEqual(listed, [no_sheet["id"], about_sheet["id"]])  # newest written first
+        on_sheet = self.read(self.alice_client, f"personal-notes?sheetId={self.sheet.pk}")["items"]
+        self.assertEqual([n["id"] for n in on_sheet], [about_sheet["id"]])
+        self.read(self.alice_client, "personal-notes?sheetId=not-an-id", status=400)
+        self.assertEqual(self.read(self.gm_client, f"personal-notes?sheetId={self.sheet.pk}")["items"], [])  # still author-only
+
+    def test_private_note_limits_name_the_field(self):
+        error = self.send(self.alice_client, "personal-notes", {"title": "x" * 201, "content": ""}, status=400)["error"]
+        self.assertEqual(error, {"code": "field_too_long", "path": "title", "rule": "maxLength", "limit": 200})
+        note = self.send(self.alice_client, "personal-notes", {"content": "ok"})
+        error = self.send(self.alice_client, f"personal-notes/{note['id']}", {"expectedRevision": 1, "content": "y" * 64001}, method="patch", status=400)["error"]
+        self.assertEqual(error["path"], "content")
+        self.assertEqual(error["limit"], 64000)
 
     def test_personal_note_author_cannot_be_forged_or_filtered(self):
         self.send(self.alice_client, "personal-notes", {"title": "Demo", "content": "Demo", "authorId": str(self.gm.pk)}, status=400)

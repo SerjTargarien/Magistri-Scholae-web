@@ -265,9 +265,16 @@ def gm_notes(request, body, sheet_id, kind):
 def personal_notes(request, body):
     if request.method == "POST":
         return notes.create_personal(request.user, body)
-    query_keys(request, ["limit", "offset"])
+    query_keys(request, ["limit", "offset", "sheetId"])
     limit, offset = pagination(request)
-    return {"items": [notes.personal_view(n) for n in PersonalNote.objects.filter(author=request.user).order_by("id")[offset:offset + limit]]}
+    found = PersonalNote.objects.filter(author=request.user)
+    if "sheetId" in request.GET:
+        try:
+            found = found.filter(sheet_id=uuid.UUID(request.GET["sheetId"]))
+        except ValueError:
+            require(False)
+    # Newest written first, like a diary (owner, 12 November 2026).
+    return {"items": [notes.personal_view(n) for n in found.order_by("-created_at", "-id")[offset:offset + limit]]}
 
 
 @endpoint(["GET", "PATCH", "DELETE"], outcome="personal")

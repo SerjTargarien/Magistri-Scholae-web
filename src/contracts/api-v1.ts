@@ -36,6 +36,7 @@ export interface ApiPatch {
 }
 export interface ApiError { error: { code: string } }
 export interface ApiUser { id: string; username: string; displayName: string; isAdministrator: boolean }
+/** A private note (author only). Its title may be empty; createdAt is when it was written and never changes. */
 export interface PersonalNoteView {
   id: string;
   sheetId: string | null;
@@ -43,4 +44,17 @@ export interface PersonalNoteView {
   title: string;
   content: string;
   revision: number;
+  /** When the note was written, in milliseconds (owner, 12 November 2026). */
+  createdAt: number;
+  updatedAt: number;
+}
+/** POST personal-notes/<id>/promote/preview: who will read the journal entry, and its date. */
+export interface NotePromotionPreview {
+  previewToken: string;
+  audiences: Record<"titulo" | "contenido" | "fecha", "gm" | "assigned" | "shared">;
+  sourceWillBeDeleted: true;
+  title: string;
+  content: string;
+  /** The entry's date: the one sent, or when the note was written. */
+  fecha: number;
 }

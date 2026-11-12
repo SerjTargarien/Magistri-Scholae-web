@@ -112,6 +112,30 @@ class RemoteEditingTests(APICase):
         self.assertFalse(PersonalNote.objects.filter(pk=note["id"]).exists())
         self.assertNotIn("Private content", str(list(AuditEvent.objects.values())))
 
+    def test_promotion_takes_the_chosen_date_or_when_the_note_was_written(self):
+        note = self.send(self.alice_client, "personal-notes", {"title": "Dated", "content": "Written during the session"})
+        body = {"sheetId": str(self.sheet.pk), "expectedRevision": self.current()["revision"], "noteRevision": note["revision"]}
+        path = f"personal-notes/{note['id']}/promote"
+        preview = self.send(self.alice_client, path + "/preview", body)
+        self.assertEqual(preview["fecha"], note["createdAt"])  # suggested: when the note was written
+        chosen = note["createdAt"] - 86_400_000 * 9
+        preview = self.send(self.alice_client, path + "/preview", {**body, "fecha": chosen})
+        result = self.send(self.alice_client, path, {**body, "fecha": chosen, "previewToken": preview["previewToken"]})
+        moved = next(entry for entry in result["fields"]["notasList"] if entry["titulo"] == "Dated")
+        self.assertEqual(moved["fecha"], chosen)
+
+    def test_promotion_preview_refuses_a_note_that_does_not_fit_the_journal(self):
+        for content, code in [("", "field_required"), ("z" * 50001, "field_too_long")]:
+            note = self.send(self.alice_client, "personal-notes", {"title": "", "content": content})
+            body = {"sheetId": str(self.sheet.pk), "expectedRevision": self.current()["revision"], "noteRevision": note["revision"]}
+            error = self.send(self.alice_client, f"personal-notes/{note['id']}/promote/preview", body, status=400)["error"]
+            self.assertEqual(error["code"], code)
+            self.assertRegex(error["path"], r"^notasList/[0-9a-f]+/contenido$")
+            self.assertTrue(PersonalNote.objects.filter(pk=note["id"]).exists())
+        note = self.send(self.alice_client, "personal-notes", {"content": "fits"})
+        body = {"sheetId": str(self.sheet.pk), "expectedRevision": self.current()["revision"], "noteRevision": note["revision"], "fecha": "yesterday"}
+        self.assertEqual(self.send(self.alice_client, f"personal-notes/{note['id']}/promote/preview", body, status=400)["error"]["code"], "field_out_of_range")
+
     def test_promotion_stale_note_sheet_or_policy_preserves_private_source(self):
         note = self.send(self.alice_client, "personal-notes", {"title": "Private", "content": "Keep"})
         body = {"sheetId": str(self.sheet.pk), "expectedRevision": self.current()["revision"], "noteRevision": note["revision"]}

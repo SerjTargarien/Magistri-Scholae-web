@@ -743,7 +743,15 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Designed with an interactive demo (claude.ai artifact «Magistri Scholae notes») and adopted with the owner's verdicts: [product-design.md, Notes](product-design.md#notes). Two kinds of notes: the shared Bitácora and private notes («Notas privadas», on each sheet and in «Mis notas»).
 - Owner decisions: **no separate GM notes** (the GM keeps private notes like everyone; a GM's move to the Bitácora reveals the note to the player, and the dialog says so); **notes keep when they were written** (date and time), and «Mover a la bitácora» suggests that date and lets the author change it with the app's own calendar. The database change this needs is allowed now (nobody uses notes yet; read-only check on staging: 0 private notes, 0 GM notes), with a backup first.
 
-**Next:** R3.5 step 3, notes on the server (backup and the owner's go-ahead before rebuilding staging), then step 4.
+## R3.5 step 3: notes on the server — 12 November 2026
+
+- Private notes keep when they were written (`createdAt`, migration `0007_note_written_at`; the owner allowed this database change now, since no notes are stored); the title (and the text) may be empty; the list comes newest written first and can be filtered by sheet (`sheetId`); answers carry `createdAt` and `updatedAt`.
+- «Mover a la bitácora»: the move takes the entry's date (`fecha`, by default when the note was written; before, the time of the move), and its preview checks the new entry against the journal's rules, so an empty or too long note is refused before anything moves (before, the preview passed and the move failed).
+- A refused note text names its field (`title`, `content`, `label`) with its limit, like sheet fields (before, a bare `invalid_request`). The notes' rules are in field-rules.md, Private notes; the API in api-v1.md.
+- The app's API types (`PersonalNoteView`, `NotePromotionPreview`) and the demo's mock server follow (optional title, dates, newest first); the mock learns the move in step 4.
+- Checks: Django check, migrations and API contract checks locally; the backend suite in CI (new tests: dates, order, sheet filter, field-named errors, the chosen date, a note that does not fit); type check, unit and browser tests.
+
+**Next:** release the backend to staging (backup first, owner's go-ahead given), then R3.5 step 4, the notes screens.
 
 ## Updating this handoff
 

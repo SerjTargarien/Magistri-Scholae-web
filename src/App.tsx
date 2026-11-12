@@ -28,6 +28,8 @@ import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
 import type { PendingFamiliar } from "./account/screens";
+import { remoteNotes } from "./account/notes";
+import { MyNotes } from "./components/notes/MyNotes";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
 // Demo builds only; the condition is replaced at build time.
@@ -38,7 +40,7 @@ const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.p
 /** Whether viewers may switch the interface language (false: Spanish only for the first version). */
 const LANGUAGE_CHOICE = false;
 
-type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS";
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
@@ -201,6 +203,9 @@ export default function App() {
     }
   };
 
+  // Private notes (R3.5): their own adapter; a move hands the sheet's new copy to its store.
+  const notesApi = useMemo(() => remoteNotes(client, settle), [client]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const mutate = async (store: SheetStore, action: string, body: object) => {
     await settle(store);
     const send = () => client.mutation<ApiSheetProjection>(`${entityPath(store.sheet)}/${action}`, { expectedRevision: store.sheet.revision, ...body })();
@@ -353,7 +358,22 @@ export default function App() {
               onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
               onAddCharacter={() => setScreen("TYPE_SELECT")}
               onOpenSettings={() => setScreen("SETTINGS")}
+              onOpenNotes={() => setScreen("NOTES")}
               onShowToast={showToast}
+            />
+          )}
+
+          {screen === "NOTES" && (
+            <MyNotes
+              lang={lang}
+              notes={notesApi}
+              sheets={[...characters, ...familiars]}
+              storeFor={storeFor}
+              onOpenSheet={sheet => {
+                if (sheet.entityType === "character") { setSelectedCharId(sheet.id); setScreen("DETAIL"); }
+                else { setSelectedFamiliarId(sheet.id); setScreen("FAMILIAR_DETAIL"); }
+              }}
+              onBack={() => { setScreen("LIST"); void loadLists(); }}
             />
           )}
 
@@ -371,6 +391,7 @@ export default function App() {
               onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
+              notes={notesApi}
             />
           )}
 
@@ -386,6 +407,7 @@ export default function App() {
               onBondMaster={characterId => bond(familiarStore, characterId)}
               onUploadImage={uploadImage(familiarStore)}
               onShowToast={showToast}
+              notes={notesApi}
             />
           )}
 

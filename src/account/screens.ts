@@ -7,6 +7,7 @@ import type { Language } from "../localization";
 import type { SkillCatalogue } from "../model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "../model/sheet";
 import type { SheetStore } from "../store/sheetStore";
+import type { NotesApi } from "./notes";
 
 export type Toast = (type: "success" | "error", text: string) => void;
 
@@ -36,6 +37,8 @@ export interface CharacterDetailProps {
   onAddCatalogueSkill?: (categoryId: string, name: string) => Promise<string>;
   onOpenCreateFamiliar?: () => void;
   onUploadImage: UploadImage;
+  /** The viewer's private notes about this sheet («Notas privadas», below the Bitácora). */
+  notes?: NotesApi;
 }
 
 export interface CharacterFormProps {
@@ -70,6 +73,8 @@ export interface FamiliarDetailProps {
   onBondMaster: (characterId: string | null) => Promise<void>;
   onUploadImage: UploadImage;
   onShowToast: Toast;
+  /** The viewer's private notes about this familiar («Notas privadas», below its notes). */
+  notes?: NotesApi;
 }
 
 /** A familiar confirmed in the creation form's dialog, created only when the character is saved. */
@@ -98,6 +103,8 @@ export interface CharacterListProps {
   onSelectFamiliar: (id: string) => void;
   onAddCharacter: () => void;
   onOpenSettings: () => void;
+  /** «Mis notas»: all of the viewer's private notes. */
+  onOpenNotes?: () => void;
   onShowToast: Toast;
 }
 

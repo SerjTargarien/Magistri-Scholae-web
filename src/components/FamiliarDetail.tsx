@@ -10,6 +10,7 @@ import { imageSrc } from "../remote/assets";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ImageViewer } from "./ImageViewer";
+import { PrivateNotes } from "./notes/PrivateNotes";
 import {
   ArrowLeft,
   Edit,
@@ -172,7 +173,10 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
       {activeTab === "perfil" && <FamiliarProfileTab ctx={ctx} />}
 
       {/* Tab 2: Diario / Crónicas del Familiar (Inherited Notes) */}
-      {activeTab === "notas" && <FamiliarNotesTab ctx={ctx} />}
+      {activeTab === "notas" && <>
+        <FamiliarNotesTab ctx={ctx} />
+        {screenProps.notes && <PrivateNotes lang={screenProps.lang} notes={screenProps.notes} store={screenProps.store} />}
+      </>}
 
       {/* Tab 3: Galería de Recuerdos (Inherited Gallery) */}
       {activeTab === "galeria" && <FamiliarGalleryTab ctx={ctx} />}

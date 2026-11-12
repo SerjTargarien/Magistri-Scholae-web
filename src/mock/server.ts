@@ -191,7 +191,7 @@ export class MockServer {
       return pageOf(query) ? new Reply(200, { items: [{ ...CAMPAIGN, role: user.role === "gm" ? "gm" : "player" }] }) : fail(400, "invalid_request");
     if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return method === "POST" ? this.saveCatalogue(body, user)
       : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
-    if (path.startsWith("personal-notes")) return this.personalNotes(method, path, body, user);
+    if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
 
     const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|gm-notes))?$/);
     if (!match) return fail(501, "not_in_demo");
@@ -345,7 +345,7 @@ export class MockServer {
     return new Reply(200, sheet.gmNote);
   }
 
-  private personalNotes(method: string, path: string, body: any, user: DemoUser): Reply {
+  private personalNotes(method: string, path: string, query: URLSearchParams, body: any, user: DemoUser): Reply {
     const view = ({ author: _a, ...note }: PersonalNote) => note;
     if (path === "personal-notes") {
       if (method === "POST") {
@@ -356,18 +356,53 @@ export class MockServer {
         this.state.notes.push(note); this.save();
         return new Reply(200, view(note));
       }
-      return new Reply(200, { items: this.state.notes.filter(n => n.author === user.id).sort((a, b) => b.createdAt - a.createdAt).map(view) });
+      // Newest written first, optionally about one sheet, like the server.
+      const sheetId = query.get("sheetId");
+      const mine = this.state.notes.filter(n => n.author === user.id && (sheetId === null || n.sheetId === sheetId));
+      return new Reply(200, { items: mine.sort((a, b) => b.createdAt - a.createdAt).map(view) });
     }
     const match = path.match(/^personal-notes\/([^/]+)(\/promote(\/preview)?)?$/);
     const note = this.state.notes.find(n => n.id === match?.[1] && n.author === user.id);
     if (!match || !note) return fail(404, "not_found");
-    if (match[2]) return fail(501, "not_in_demo");
+    if (match[2]) return match[3] ? this.promote(note, body, user, false) : this.receipt(body, () => this.promote(note, body, user, true));
     if (method === "GET") return new Reply(200, view(note));
     if (body.expectedRevision !== note.revision) return fail(409, "revision_conflict");
     if (method === "DELETE") { this.state.notes = this.state.notes.filter(n => n !== note); this.save(); return new Reply(200, {}); }
     Object.assign(note, { title: body.title ?? note.title, content: body.content ?? note.content, label: body.label ?? note.label, revision: note.revision + 1, updatedAt: Date.now() });
     this.save();
     return new Reply(200, view(note));
+  }
+
+  /** «Mover a la bitácora», like notes.promote: the entry is checked against the journal's rules in the preview. */
+  private promote(note: PersonalNote, body: any, user: DemoUser, apply: boolean): Reply {
+    const sheet = this.state.sheets.find(s => s.id === body.sheetId);
+    if (!sheet || !this.access(sheet, user)) return fail(404, "not_found");
+    if (body.noteRevision !== note.revision) return fail(409, "revision_conflict");
+    const projection = this.projection(sheet, user);
+    if (body.expectedRevision !== projection.revision) return fail(409, "revision_conflict");
+    const fecha = body.fecha ?? note.createdAt;
+    if (!Number.isInteger(fecha) || fecha < 0 || fecha > 8640000000000000) return fail(400, "field_out_of_range", { path: "fecha", rule: "range" });
+    let token: { note: string; sheet: string; revision: string; noteRevision: number; itemId: string };
+    if (apply) {
+      try { token = JSON.parse(atob(String(body.previewToken))); } catch { return fail(409, "invalid_preview"); }
+      if (token.note !== note.id || token.sheet !== sheet.id || token.revision !== projection.revision || token.noteRevision !== note.revision) return fail(409, "invalid_preview");
+    } else token = { note: note.id, sheet: sheet.id, revision: projection.revision, noteRevision: note.revision, itemId: crypto.randomUUID().replace(/-/g, "") };
+    // Adding to the journal needs write access to it (the projection already reflects the viewer's access).
+    if (!projection.capabilities.collectionPaths.includes("notasList")) return fail(403, "field_forbidden");
+    const path = `notasList/${token.itemId}`;
+    const fields = setPath(sheet.fields, path, { titulo: note.title, contenido: note.content, fecha });
+    const refused = this.problems(sheet.kind, fields as Record<string, unknown>);
+    if (refused) return refused;
+    if (!apply) {
+      // Who reads the new entry: GM only, the assigned player too, or shared readers too.
+      const tier = sheet.gmOnly.includes("notasList") ? "gm" : sheet.restricted.includes("notasList") ? "assigned" : "shared";
+      return new Reply(200, { previewToken: btoa(JSON.stringify(token)), audiences: { titulo: tier, contenido: tier, fecha: tier },
+        sourceWillBeDeleted: true, title: note.title, content: note.content, fecha });
+    }
+    sheet.fields = fields as any;
+    sheet.revision++;
+    this.state.notes = this.state.notes.filter(n => n !== note);
+    return new Reply(200, this.projection(sheet, user));
   }
 }
 

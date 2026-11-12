@@ -9,6 +9,7 @@ import { HouseCrest } from "./HouseCrest";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ImageViewer } from "./ImageViewer";
+import { PrivateNotes } from "./notes/PrivateNotes";
 import { imageSrc } from "../remote/assets";
 import type { FamiliarSheet } from "../model/sheet";
 import type { CharacterDetailProps } from "../account/screens";
@@ -505,7 +506,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         {activeTab === "hechizos" && <SpellsTab ctx={ctx} />}
 
         {/* TAB 5: NOTAS & CHRONICLES */}
-        {activeTab === "notas" && <NotesTab ctx={ctx} />}
+        {activeTab === "notas" && <>
+          <NotesTab ctx={ctx} />
+          {sheetProps.notes && <PrivateNotes lang={sheetProps.lang} notes={sheetProps.notes} store={sheetProps.store} />}
+        </>}
 
         {/* TAB 6: GALERÍA DE FOTOS (Base64 list) */}
         {activeTab === "galeria" && <GalleryTab ctx={ctx} />}

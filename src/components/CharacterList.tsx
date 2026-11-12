@@ -10,13 +10,14 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { TRANSLATIONS } from "../localization";
+import { NOTES_TEXT, TRANSLATIONS } from "../localization";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import type { Language } from "../model/catalogue";
 import {
   Plus,
   Settings,
+  NotebookPen,
   Search,
   BadgeHelp,
   Coins,
@@ -41,6 +42,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onSelectFamiliar,
   onAddCharacter,
   onOpenSettings,
+  onOpenNotes,
 }) => {
   const t = TRANSLATIONS[lang];
 
@@ -141,6 +143,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
         {/* Header Right menu with configuration */}
         <div className="flex flex-wrap items-center justify-center gap-2.5">
+          {onOpenNotes && (
+            <button
+              id="btn-my-notes"
+              onClick={onOpenNotes}
+              className="academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-violet-200 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
+              title={NOTES_TEXT[lang].myNotes}
+            >
+              <NotebookPen className="w-4 h-4 mr-1 md:mr-2 text-violet-300" />
+              <span className="hidden md:inline">{NOTES_TEXT[lang].myNotes}</span>
+            </button>
+          )}
+
           <button
             id="btn-settings"
             onClick={onOpenSettings}

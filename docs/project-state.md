@@ -753,7 +753,14 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - **Released to the staging backend** with the owner's go-ahead: backup first (by hand, the nightly script: encrypted, verified, uploaded to Backblaze), then the server's code updated to `7a45e0f`, `api-staging` rebuilt, migration `0007_note_written_at` applied, `api-staging` restarted (a few seconds). After: both sites' APIs answer; data intact (6 sheets, 5 accounts, 0 notes); `check --deploy` shows only the intentional HSTS-preload warning. The staging frontend stays on `74aedea` (it uses no notes yet). Rollback: restore that backup (the migration adds a column; reversing it loses only note dates).
 
-**Next:** R3.5 step 4, the notes screens.
+## R3.5 step 4: private notes in the app — 12 November 2026
+
+- «Notas privadas» below the Bitácora on both sheets (`src/components/notes/PrivateNotes.tsx`), «Mis notas» from a new header button on the main list (`MyNotes.tsx`), and «Mover a la bitácora» (`MoveNoteDialog.tsx`), as designed (product-design.md, Notes). Notes save as you type and keep when they were written; a note left empty goes away by itself; deleting asks first; the move names who will read the entry (a GM is told the player will read it), suggests the note's date and lets the author change it with the new app-drawn date control (`DateTimeField.tsx`, Controls 12), and a note that does not fit is stopped by the server's preview with the field named in plain words. A note about no sheet chooses its sheet with the shared picker.
+- Screens reach notes only through their own adapter (`src/account/notes.ts`: list, create, update, remove, preview, move), which the app builds on its API client; a move waits for the sheet's store to settle and hands the sheet's new copy to it. The demo's mock server learned the move (with the journal's checks), the sheet filter and the newest-first order.
+- Checks: type check; 58 unit tests; both builds; 59 browser tests (new, at phone and desktop widths: a private note saved and kept after a reload; the GM does not see it and is told a move would reveal it; a move with a chosen date lands in the Bitácora by that date; a note that does not fit is stopped; deleting asks first; «Mis notas» with a note about no sheet moved by choosing the sheet). Screenshots at both widths.
+- **R3.5 is complete** (step 5, GM notes, was dropped by the owner).
+
+**Next:** R3.6, retire the old app (local mode, Dexie, old backups and stopgap forms, the service worker's cache name; decide on the unused GM-notes endpoint; browser tests against a real backend in CI); then R6 with milestone 1.
 
 ## Updating this handoff
 

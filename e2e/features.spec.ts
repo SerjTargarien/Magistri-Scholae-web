@@ -691,6 +691,84 @@ test("image viewer: the portrait in reading mode and the gallery; buttons near t
   await expect(page.locator("#character-detail-screen")).toBeVisible();
 });
 
+test("private notes: only their author reads them; «Mover a la bitácora» with a chosen date; «Mis notas»", async ({ page }) => {
+  const newNote = async (title: string, text: string) => {
+    await page.locator("#btn-new-private-note").click();
+    await page.locator('[id^="private-note-title-"]').fill(title);
+    if (text) await page.locator('[id^="private-note-text-"]').fill(text);
+    await page.locator('[id^="btn-private-note-done-"]').click();
+  };
+  const privateNotes = page.locator("#private-notes");
+  const card = (title: string) => privateNotes.locator('[id^="private-note-"]', { hasText: title });
+
+  await openCharacter(page, "Luna de Bruma");
+  await openTab(page, "notas");
+  await expect(privateNotes).toContainText("Solo tú las ves. Ni el GM puede leerlas.");
+  await newNote("Sospechas", "Diego oculta algo sobre el mapa."); // saved as typed, no edit mode
+  await page.locator("#btn-new-private-note").click(); // a note left empty goes away by itself
+  await page.locator('[id^="btn-private-note-done-"]').click();
+  await expect(privateNotes.locator('div[id^="private-note-"]')).toHaveCount(1); // only «Sospechas»
+  await expect(card("Sospechas")).toHaveCount(1);
+  await reloadApp(page);
+  await openCharacter(page, "Luna de Bruma");
+  await openTab(page, "notas");
+  await expect(card("Sospechas")).toContainText("Diego oculta algo sobre el mapa.");
+
+  // The GM does not see the player's note; the GM's own note, moved, would reveal it to the player.
+  await viewAs(page, "gm");
+  await openCharacter(page, "Luna de Bruma");
+  await openTab(page, "notas");
+  await expect(privateNotes).not.toContainText("Sospechas");
+  await expect(privateNotes).toContainText("Los jugadores no pueden leerlas.");
+  await newNote("El cuaderno", "Era de su abuela.");
+  await card("El cuaderno").locator('[id^="btn-private-note-move-"]').click();
+  await expect(page.locator("#modal-move-note")).toContainText("podrá leerla: es una forma de revelarle algo.");
+  await page.locator("#btn-move-note-cancel").click();
+
+  // The player moves the note with a chosen date: it lands in the Bitácora by that date.
+  await viewAs(page, "player");
+  await openCharacter(page, "Luna de Bruma");
+  await openTab(page, "notas");
+  await expect(privateNotes).not.toContainText("El cuaderno");
+  await card("Sospechas").locator('[id^="btn-private-note-move-"]').click();
+  const dialog = page.locator("#modal-move-note");
+  await expect(dialog).toContainText("tú, como jugador asignado");
+  await page.locator("#move-note-date-day").click();
+  await page.locator("#move-note-date-day-3").click();
+  await expect(page.locator("#btn-move-note-written")).toBeVisible(); // back to when it was written
+  await page.locator("#btn-move-note-confirm").click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("#private-notes-message")).toContainText("Movida a la Bitácora Celestial de Luna de Bruma.");
+  await expect(card("Sospechas")).toHaveCount(0);
+  const moved = (await storedSheet(page, "Luna de Bruma"))!.notasList.find((n: { titulo: string }) => n.titulo === "Sospechas");
+  expect(new Date(moved.fecha).getDate()).toBe(3);
+
+  // A note that does not fit the journal is stopped before anything moves.
+  await newNote("Solo un título", "");
+  await card("Solo un título").locator('[id^="btn-private-note-move-"]').click();
+  await expect(page.locator("#move-note-refusal")).toContainText("no puede quedar vacío");
+  await page.locator("#btn-move-note-cancel").click();
+  // Deleting asks first.
+  await card("Solo un título").locator('[id^="btn-private-note-delete-"]').click();
+  await page.locator("#btn-delete-private-note-confirm").click();
+  await expect(card("Solo un título")).toHaveCount(0);
+
+  // «Mis notas»: every private note, including one about no sheet, moved by choosing the sheet.
+  await page.locator("#btn-detail-back").click();
+  await page.locator("#btn-my-notes").click();
+  await expect(page.locator("#my-notes-screen")).toContainText("Mis notas");
+  await page.locator("#btn-new-unattached-note").click();
+  await page.locator('[id^="private-note-title-"]').fill("Ideas");
+  await page.locator('[id^="private-note-text-"]').fill("Unirse al club de astronomía.");
+  await page.locator('[id^="btn-private-note-done-"]').click();
+  await expect(page.locator("#my-notes-group-none")).toContainText("Ideas");
+  await page.locator("#my-notes-group-none").locator('[id^="btn-private-note-move-"]').click();
+  await page.locator('[id^="note-sheet-picker-item-"]', { hasText: "Luna de Bruma" }).click();
+  await page.locator("#btn-move-note-confirm").click();
+  await expect(page.locator("#my-notes-message")).toContainText("Movida a la Bitácora Celestial de Luna de Bruma.");
+  await expect(page.locator("#my-notes-screen")).toContainText("No tienes notas privadas.");
+});
+
 test("one visual style (Academia) and a Spanish-only interface", async ({ page }) => {
   const root = page.locator("#academy-app-root");
   const addButton = page.locator("#btn-add-character-header");

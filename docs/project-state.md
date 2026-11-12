@@ -721,6 +721,7 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - Designed with an interactive demo and the owner's verdicts (product-design.md, Image viewer), then built as one component, `src/components/ImageViewer.tsx`, used by both sheets. It replaces the two different gallery lightboxes (no moving, zoom or Escape) and adds portraits in reading mode. Computer: buttons fade in near the mouse; phone: gestures only; the back button closes it; the hint shows once; the name and counter fade. It is drawn into the page's body, so no layer of the sheet covers it.
 - A jump found by the owner on his phone in the demo (after a pinch, the finger left on the screen was measured from where the other one first touched, so the image slid down) is fixed in the demo and the app; a simulated two-finger touch confirms the image stays still and the viewer stays open.
+- Released to staging at the owner's request for a trial on his phone (frontend release `20261112-143411-74aedea`; backend untouched; the API answers). The public site stays on `206d290` until milestone 1.
 - Checks: type check; 53 unit tests; both builds; 57 browser tests (new: the viewer at phone and desktop widths: portrait in reading mode, edit mode still changes it, gallery counter, fading buttons on a computer and none on a phone, arrows, double-tap zoom, Escape, the back button, a tap to close; the familiar sheet's portrait and gallery).
 
 **Next:** R3.5 (personal notes with promotion, GM notes, plain save messages), then R3.6 and R6 with milestone 1.

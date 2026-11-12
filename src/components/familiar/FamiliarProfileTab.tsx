@@ -17,7 +17,7 @@ import { Segmented } from "../Segmented";
 
 export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    familiar, onSelectCharacter, t, isQuickEditing, edit, setImageFit, removeImage, avatarInputRef,
+    familiar, onSelectCharacter, openPortrait, t, isQuickEditing, edit, setImageFit, removeImage, avatarInputRef,
     setIsSelectMasterOpen, linkedMaster, handleAvatarChange, handleBondMaster, canEditName, canEditSpecies,
     canEditDescription, canEditImage, canEditImageFit, canBond,
   } = ctx;
@@ -42,9 +42,10 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
               {/* Portrait container */}
               <div
                 id="familiar-portrait"
-                onClick={editImage ? () => avatarInputRef.current?.click() : undefined}
+                // Edit mode: a tap changes the portrait. Reading mode: it opens the viewer.
+                onClick={editImage ? () => avatarInputRef.current?.click() : familiar.imagen ? openPortrait : undefined}
                 className={`relative aspect-[3/4] w-full bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center ${
-                  editImage ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+                  editImage ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : familiar.imagen ? "cursor-zoom-in select-none" : ""
                 }`}
               >
                 {familiar.imagen ? (

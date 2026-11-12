@@ -9,6 +9,7 @@ import type { CharacterSheet } from "../model/sheet";
 import { imageSrc } from "../remote/assets";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { ImageViewer } from "./ImageViewer";
 import {
   ArrowLeft,
   Edit,
@@ -39,7 +40,7 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
   const {
     store, familiar, notes, gallery, characters, onBack, onArchive, t, archiveText, asking,
     canEditProfile, canAddNote, canAddGalleryImage, canBond, activeTab, setActiveTab, isQuickEditing, setIsQuickEditing,
-    lightboxImage, setLightboxImage,
+    viewer,
     cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen, crop, setCrop, zoom, setZoom, setCroppedAreaPixels,
     isDeleteOpen, setIsDeleteOpen, isSelectMasterOpen, setIsSelectMasterOpen, linkedMaster, isBondedTo,
     handleConfirmCrop, handleBondMaster,
@@ -176,29 +177,8 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
       {/* Tab 3: Galería de Recuerdos (Inherited Gallery) */}
       {activeTab === "galeria" && <FamiliarGalleryTab ctx={ctx} />}
 
-      {/* Lightbox Modal */}
-      {lightboxImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh]">
-            <img
-              src={lightboxImage}
-              alt={t.imageExpandedAlt}
-              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-neutral-800"
-              referrerPolicy="no-referrer"
-            />
-            <button
-              type="button"
-              onClick={() => setLightboxImage(null)}
-              className="absolute -top-3 -right-3 p-2 rounded-full bg-neutral-900 text-neutral-200 hover:text-amber-400 border border-neutral-700 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* The image viewer: portrait and gallery (product-design.md, Image viewer) */}
+      {viewer.request && <ImageViewer request={viewer.request} t={t} onClose={viewer.close} />}
 
       {/* Select Master / Bonding Modal */}
       {/* Linking a character: the shared picker (Controls, control 9) */}

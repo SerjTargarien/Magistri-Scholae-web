@@ -13,7 +13,7 @@ import { ListCounter } from "../LimitHint";
 
 export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
   const {
-    gallery, t, setLightboxImage, galleryError, handleAddGalleryImage, handleDeleteGalleryImage,
+    gallery, t, openGallery, galleryError, handleAddGalleryImage, handleDeleteGalleryImage,
     canAddGalleryImage, canDeleteGalleryImage, isQuickEditing,
   } = ctx;
   return (
@@ -62,7 +62,7 @@ export function FamiliarGalleryTab({ ctx }: { ctx: FamiliarContext }) {
                 <div
                   key={entry.id}
                   id={`familiar-gallery-item-${idx}`}
-                  onClick={() => setLightboxImage(imageSrc(entry.value))}
+                  onClick={() => openGallery(idx)}
                   className="relative aspect-square rounded-xl overflow-hidden group bg-neutral-950 border border-neutral-800 shadow-lg cursor-pointer"
                 >
                   <img

@@ -436,6 +436,16 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   await expect(page.locator("#input-familiar-gallery-picker")).toHaveCount(0);
   await expect(page.locator("#btn-familiar-del-gal-pic-0")).toHaveCount(0);
   await page.locator("#familiar-tab-perfil").click(); // species, name and bond are on the profile, not the header
+  // Reading mode: the portrait and the gallery open the image viewer.
+  await page.locator("#familiar-portrait").click();
+  await expect(page.locator("#image-viewer-count")).toHaveText("Retrato");
+  await page.keyboard.press("Escape");
+  await page.locator("#familiar-tab-galeria").click();
+  await page.locator("#familiar-gallery-item-0").click();
+  await expect(page.locator("#image-viewer-count")).toHaveText("1 / 1");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#image-viewer")).toHaveCount(0);
+  await page.locator("#familiar-tab-perfil").click();
   await expect(page.locator("#familiar-detail-container")).toContainText("Giant toad");
 
   await reloadApp(page);
@@ -610,6 +620,75 @@ test("portrait upload with crop and a gallery image persist", async ({ page }) =
   const asset = /^[0-9a-f-]{36}$/;
   expect(stored!.avatarImage).toMatch(asset);  // an uploaded image, never an embedded data URL
   expect(stored!.galleryImages).toEqual([{ id: expect.any(String), value: expect.stringMatching(asset) }]);
+});
+
+test("image viewer: the portrait in reading mode and the gallery; buttons near the mouse on a computer, gestures on a phone", async ({ page }) => {
+  await createCharacter(page, "Viewer Student", {
+    fill: async () => {
+      await page.locator("#avatar-file-input").setInputFiles(pngFile());
+      await page.getByRole("button", { name: "Confirmar Recorte" }).click();
+    },
+  });
+  await setEditMode(page, true);
+  await openTab(page, "galeria");
+  await page.locator("#input-gallery-picker").setInputFiles(pngFile("one.png"));
+  await expect(page.locator("#btn-del-gal-pic-0")).toBeVisible();
+  await page.locator("#input-gallery-picker").setInputFiles(pngFile("two.png"));
+  await expect(page.locator("#btn-del-gal-pic-1")).toBeVisible();
+  // In edit mode a portrait tap still changes the portrait.
+  const chooser = page.waitForEvent("filechooser");
+  await page.locator("#character-portrait").click();
+  await chooser;
+  await expect(page.locator("#image-viewer")).toHaveCount(0);
+  await setEditMode(page, false);
+
+  const viewer = page.locator("#image-viewer");
+  const phone = isMobile(page);
+  await page.locator("#character-portrait").click(); // reading mode: the viewer
+  await expect(viewer).toHaveAttribute("data-input", phone ? "touch" : "pc");
+  await expect(page.locator("#image-viewer-title")).toHaveText("Viewer Student");
+  await expect(page.locator("#image-viewer-count")).toHaveText("Retrato");
+  await expect(page.locator("#image-viewer-hint")).toHaveClass(/opacity-100/); // the hint, the first time only
+  await expect(page.locator("#btn-image-viewer-next")).toHaveCount(0); // a portrait opens alone
+  await page.keyboard.press("Escape");
+  await expect(viewer).toHaveCount(0);
+
+  await page.locator("#gallery-item-0").click();
+  await expect(page.locator("#image-viewer-count")).toHaveText("1 / 2");
+  await expect(page.locator("#image-viewer-hint")).toHaveClass(/opacity-0/); // not again
+  if (phone) {
+    await expect(viewer.locator("button")).toHaveCount(0); // gestures only
+  } else {
+    // The buttons are there but invisible until the mouse comes near.
+    const next = page.locator("#btn-image-viewer-next");
+    await expect(next).toHaveClass(/opacity-0/);
+    await next.hover();
+    await expect(next).toHaveClass(/opacity-100/);
+    await next.click();
+    await expect(page.locator("#image-viewer-count")).toHaveText("2 / 2");
+    await expect(next).toHaveCount(0); // it stops at the last image
+    await page.keyboard.press("ArrowLeft");
+  }
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#image-viewer-count")).toHaveText("2 / 2");
+  await page.locator("#image-viewer-img").dblclick(); // a double tap zooms, it does not close
+  await expect(page.locator("#image-viewer-img")).toHaveAttribute("style", /scale\(2\.5\)/);
+  await page.locator("#image-viewer-img").dblclick();
+  await expect(page.locator("#image-viewer-img")).toHaveAttribute("style", /scale\(1\)/);
+  await page.goBack(); // the back button closes the viewer and stays on the sheet
+  await expect(viewer).toHaveCount(0);
+  await expect(page.locator("#character-detail-screen")).toBeVisible();
+
+  await page.locator("#gallery-item-1").click();
+  await page.locator("#image-viewer-img").click(); // a tap or click anywhere closes
+  await expect(viewer).toHaveCount(0);
+  if (!phone) {
+    await page.locator("#gallery-item-1").click();
+    await page.locator("#btn-image-viewer-close").hover();
+    await page.locator("#btn-image-viewer-close").click();
+    await expect(viewer).toHaveCount(0);
+  }
+  await expect(page.locator("#character-detail-screen")).toBeVisible();
 });
 
 test("one visual style (Academia) and a Spanish-only interface", async ({ page }) => {

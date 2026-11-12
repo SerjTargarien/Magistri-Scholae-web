@@ -9,6 +9,8 @@
 // field the viewer may not see is absent (never blank).
 import React, { useState, useRef } from "react";
 import { useAskFirst } from "../ConfirmDialog";
+import { useImageViewer } from "../ImageViewer";
+import { imageSrc } from "../../remote/assets";
 import { HOUSES } from "../../data/gameData";
 import { getCharacterVisualTheme } from "../../utils/characterVisualTheme";
 import { CHARACTER_ARCHIVE_TEXT, TRANSLATIONS, getLocalizedHouseLore } from "../../localization";
@@ -99,8 +101,8 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
 
-  // Gallery view states (the lightbox holds a gallery entry's ID)
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  // The image viewer (portrait and gallery) and the gallery's upload error
+  const viewer = useImageViewer();
   const [galleryError, setGalleryError] = useState<string | null>(null);
 
   // Temporary aspects local input state
@@ -342,6 +344,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
 
   // 6. Gallery: compressed on the device, then uploaded into a new entry.
   const galleryImages = (character.galleryImages ?? []).filter(pic => !!pic.value);
+  const sheetName = character.nombre || t.noName;
+  const openGallery = (idx: number) => viewer.open(galleryImages.map(pic => imageSrc(pic.value)), idx, sheetName);
+  const openPortrait = () => { if (character.avatarImage) viewer.open([imageSrc(character.avatarImage)], 0, sheetName, true); };
 
   const handleGalleryAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -491,8 +496,9 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
     setNewNoteTitle,
     newNoteContent,
     setNewNoteContent,
-    lightboxImage,
-    setLightboxImage,
+    viewer,
+    openGallery,
+    openPortrait,
     galleryError,
     setGalleryError,
     newTempAspect,

@@ -13,7 +13,7 @@ import { ListCounter } from "../LimitHint";
 
 export function GalleryTab({ ctx }: { ctx: SheetContext }) {
   const {
-    t, canAdd, canRemove, setLightboxImage, galleryError, setGalleryError, isQuickEditing, galleryImages,
+    t, canAdd, canRemove, openGallery, galleryError, setGalleryError, isQuickEditing, galleryImages,
     handleGalleryAdd, removeGalleryImage,
   } = ctx;
   return (
@@ -71,7 +71,7 @@ export function GalleryTab({ ctx }: { ctx: SheetContext }) {
                   <div
                     id={`gallery-item-${idx}`}
                     key={pic.id}
-                    onClick={() => setLightboxImage(pic.id)}
+                    onClick={() => openGallery(idx)}
                     className="break-inside-avoid bg-neutral-950 border border-violet-500/10 rounded-xl overflow-hidden cursor-pointer shadow hover:border-amber-500/40 hover:-translate-y-0.5 transition-all mb-4 relative group"
                   >
                     <img

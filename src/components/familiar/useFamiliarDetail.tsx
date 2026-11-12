@@ -10,6 +10,8 @@
 // «Editar» / «Finalizar Edición», each field saved as it is typed.
 import React, { useState, useRef } from "react";
 import { useAskFirst } from "../ConfirmDialog";
+import { useImageViewer } from "../ImageViewer";
+import { imageSrc } from "../../remote/assets";
 import { FAMILIAR_ARCHIVE_TEXT, TRANSLATIONS } from "../../localization";
 import type { FamiliarDetailProps } from "../../account/screens";
 import type { CharacterSheet, FamiliarSheet } from "../../model/sheet";
@@ -71,8 +73,11 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
   const [editingNoteTitle, setEditingNoteTitle] = useState("");
   const [editingNoteContent, setEditingNoteContent] = useState("");
 
-  // Gallery state
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  // The image viewer (portrait and gallery) and the gallery's upload error
+  const viewer = useImageViewer();
+  const sheetName = familiar.nombre || t.noName;
+  const openGallery = (idx: number) => viewer.open(gallery.map((entry) => imageSrc(entry.value)), idx, sheetName);
+  const openPortrait = () => { if (familiar.imagen) viewer.open([imageSrc(familiar.imagen)], 0, sheetName, true); };
   const [galleryError, setGalleryError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -264,8 +269,9 @@ export function useFamiliarDetail(screenProps: FamiliarDetailProps) {
     setEditingNoteTitle,
     editingNoteContent,
     setEditingNoteContent,
-    lightboxImage,
-    setLightboxImage,
+    viewer,
+    openGallery,
+    openPortrait,
     galleryError,
     setGalleryError,
     avatarInputRef,

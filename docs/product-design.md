@@ -191,6 +191,21 @@ Measured on 9 November 2026 after the wording pass (rule 1), on every screen at 
 - **D2. Decided:** the bonded character's concept on the familiar sheet keeps two lines and «…», a summary like the cards.
 - **D3. Decided:** no text smaller than 9 px (rule 9).
 
+## Image viewer
+
+Adopted by the owner on 12 November 2026 after trying an interactive demo (claude.ai artifact «Magistri Scholae image viewer», with his verdicts). One viewer, `src/components/ImageViewer.tsx`, for portraits and galleries on both sheets.
+
+1. **What opens it:** any gallery image, on both sheets, in reading and edit mode; the character's portrait on its sheet and the familiar's portrait on its profile, in reading mode. In edit mode a portrait tap still changes the portrait. List cards, the familiar card on the character banner and the photos in pickers keep their action.
+2. **One viewer, never cropped:** the image is whole and as large as the screen allows; one smaller than the screen is shown at its own size, not stretched.
+3. **Out of the way (owner):** the image has the whole screen and everything else floats over it. On a computer the ×, magnifier and ‹ › buttons are invisible until the mouse comes within about 120 px of one, or the keyboard reaches it. On a phone there are no buttons, only gestures.
+4. **Moving:** computer: ‹ › and the arrow keys; phone: swipe left or right. It stops at the first and last image. A portrait opens alone.
+5. **Zoom:** computer: the magnifier, double-click, the wheel, + and −; phone: pinch and double-tap (2.5× at that point, again to go back). Up to 4×; drag to move while zoomed. What is left of a pinch when one finger lifts never drags, swipes or closes.
+6. **Closing:** computer: the ×, a click anywhere, Escape; phone: a tap anywhere or a swipe down. On both, the back button closes the viewer instead of leaving the sheet.
+7. **Only for looking:** no delete, edit or download inside it; removing stays on the gallery grid, with its confirmation.
+8. **Portraits are the saved crop** (3:4); the original before cropping is not kept.
+9. **The gesture hint shows once** per device, for 3.5 seconds.
+10. **The name and counter** («2 / 5», or «Retrato») show for about 2 seconds on opening and on each change, then fade; on a computer they come back while the mouse is near the top.
+
 ## Confirmations
 
 Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases confirmation is preferred»). One dialog for all of them, `src/components/ConfirmDialog.tsx`: a title, the question, «Cancelar» and the action button; Escape or a tap outside cancels.

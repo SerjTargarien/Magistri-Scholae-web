@@ -126,6 +126,14 @@ export interface TranslationDict {
   labelMax: string;
   chooseImage: string;
   imageExpandedAlt: string;
+  imageViewerPortrait: string;
+  imageViewerPrev: string;
+  imageViewerNext: string;
+  imageViewerZoomIn: string;
+  imageViewerZoomOut: string;
+  imageViewerClose: string;
+  imageViewerHintPc: string;
+  imageViewerHintTouch: string;
   crestAlt: string;
   labelSalud: string;
   labelHerido: string;
@@ -535,6 +543,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelMax: "Máx.",
     chooseImage: "Elegir imagen",
     imageExpandedAlt: "Imagen ampliada",
+    imageViewerPortrait: "Retrato",
+    imageViewerPrev: "Anterior",
+    imageViewerNext: "Siguiente",
+    imageViewerZoomIn: "Ampliar",
+    imageViewerZoomOut: "Reducir",
+    imageViewerClose: "Cerrar",
+    imageViewerHintPc: "Flechas o ‹ › para cambiar · rueda o doble clic para ampliar · clic para cerrar",
+    imageViewerHintTouch: "Desliza para cambiar · pellizca para ampliar · toca o desliza abajo para cerrar",
     crestAlt: "Escudo de la academia",
     labelSalud: "SANO",
     labelHerido: "HERIDO",
@@ -945,6 +961,14 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelMax: "Max",
     chooseImage: "Choose image",
     imageExpandedAlt: "Enlarged image",
+    imageViewerPortrait: "Portrait",
+    imageViewerPrev: "Previous",
+    imageViewerNext: "Next",
+    imageViewerZoomIn: "Zoom in",
+    imageViewerZoomOut: "Zoom out",
+    imageViewerClose: "Close",
+    imageViewerHintPc: "Arrows or ‹ › to change · wheel or double-click to zoom · click to close",
+    imageViewerHintTouch: "Swipe to change · pinch to zoom · tap or swipe down to close",
     crestAlt: "Academy crest",
     labelSalud: "HEALTH",
     labelHerido: "HURT",

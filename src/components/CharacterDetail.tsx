@@ -8,6 +8,7 @@ import { FiligreeCorner } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { ImageViewer } from "./ImageViewer";
 import { imageSrc } from "../remote/assets";
 import type { FamiliarSheet } from "../model/sheet";
 import type { CharacterDetailProps } from "../account/screens";
@@ -50,19 +51,18 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
   const ctx = useCharacterSheet(sheetProps);
   const {
     character, familiars, onBack, onArchive, onSelectFamiliar, onOpenCreateFamiliar, t, archiveText, characterType,
-    theme, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, lightboxImage,
-    setLightboxImage, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
+    theme, writable, shown, canEditSheet, canBond, edit, activeTab, setActiveTab, viewer,
+    openPortrait, isQuickEditing, setIsQuickEditing, avatarInputRef, cropImageSrc, setCropImageSrc, isCropperOpen,
     setIsCropperOpen, crop, setCrop, zoom, setZoom, isDeleteStudentOpen, setIsDeleteStudentOpen, asking,
     isSelectFamiliarModalOpen,
     setIsSelectFamiliarModalOpen, bondId, linkedFamiliar, bondFamiliar, handleAvatarChange, onCropComplete,
-    handleConfirmCrop, setAvatarFit, removeAvatar, galleryImages,
+    handleConfirmCrop, setAvatarFit, removeAvatar,
     handleDeleteCharacterClick, confirmDeleteCharacter,
   } = ctx;
   const casa = character.casa ?? "";
   // Edit mode shows only the controls this viewer may use.
   const editAvatar = isQuickEditing && writable("avatarImage");
   const editBond = isQuickEditing && canBond;
-  const lightboxEntry = lightboxImage ? galleryImages.find((pic) => pic.id === lightboxImage) : undefined;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-4" id="character-detail-screen">
@@ -149,9 +149,11 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
             {/* Wizard Portrait Wrapper (with Mobile Corner-Overlaid Familiar & Bottom-Left Discrete Crest) */}
             <div className="relative">
               <div
-                onClick={editAvatar ? () => avatarInputRef.current?.click() : undefined}
+                id="character-portrait"
+                // Edit mode: a tap changes the portrait. Reading mode: it opens the viewer.
+                onClick={editAvatar ? () => avatarInputRef.current?.click() : character.avatarImage ? openPortrait : undefined}
                 className={`w-28 aspect-[3/4] bg-neutral-950 rounded-xl border-2 border-[#c8a248] shadow-[0_0_20px_rgba(0,0,0,0.85)] overflow-hidden flex items-center justify-center relative ${
-                  editAvatar ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : ""
+                  editAvatar ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : character.avatarImage ? "cursor-zoom-in select-none" : ""
                 }`}
               >
                 {character.avatarImage ? (
@@ -511,28 +513,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
       </div>
       </div>
 
-      {/* Lightbox Modal overlay */}
-      {lightboxEntry && (
-        <div
-          id="lightbox-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur duration-300 pointer-events-auto"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-100 cursor-pointer">
-            <X className="w-8 h-8" />
-          </div>
-
-          <div className="max-w-[90vw] max-h-[85vh] overflow-hidden rounded-xl border border-violet-500/20" onClick={(e) => e.stopPropagation()}>
-            <img
-              id="lightbox-img"
-              src={imageSrc(lightboxEntry.value)}
-              alt={t.imageExpandedAlt}
-              className="max-w-full max-h-[85vh] object-contain"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-        </div>
-      )}
+      {/* The image viewer: portrait and gallery (product-design.md, Image viewer) */}
+      {viewer.request && <ImageViewer request={viewer.request} t={t} onClose={viewer.close} />}
 
       {/* Archiving (GM only): the shared dialog, with its tick box */}
       {isDeleteStudentOpen && (

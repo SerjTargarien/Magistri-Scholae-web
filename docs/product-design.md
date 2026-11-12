@@ -191,6 +191,20 @@ Measured on 9 November 2026 after the wording pass (rule 1), on every screen at 
 - **D2. Decided:** the bonded character's concept on the familiar sheet keeps two lines and «…», a summary like the cards.
 - **D3. Decided:** no text smaller than 9 px (rule 9).
 
+## Notes
+
+Adopted by the owner on 12 November 2026 after trying an interactive demo (claude.ai artifact «Magistri Scholae notes», with his verdicts). R3.5 builds it.
+
+1. **Two kinds, two names and looks:** the sheet's shared journal keeps its name (characters: «Bitácora Celestial»; familiars: «Notas del Familiar»); private notes are «Notas privadas», always with a lock, a violet edge and «Solo tú las ves. Ni el GM puede leerlas.» (for the GM: «La jugadora no puede leerlas.»). Each says who reads it. **No separate GM notes** (owner): the GM keeps private notes like everyone; shared GM notes can return with R4 if a second GM joins.
+2. **Where private notes live:** on each sheet, in the notes tab, below the Bitácora: your private notes about that sheet. And «Mis notas», a button on the main list, with all your private notes, newest first, grouped by sheet, including notes about no sheet.
+3. **Who:** anyone who can open a sheet can keep private notes about it (a player on their character, a reader of a shared sheet, the GM). Nobody else reads them, not the GM and not the administrator in the app. They stay yours if the sheet is reassigned or archived.
+4. **Writing and dates:** an optional title (without one: «Nota del 12 nov») and a text, saved as you type, always editable by their author (not part of the sheet, so no edit mode). Each note keeps **when it was written, date and time** (owner: proper diaries), shown on it and used for its order, newest first; editing it later does not change that date. The server's «etiqueta» is not shown for now.
+5. **«Mover a la bitácora»:** on a note about a sheet you can edit. The dialog names the Bitácora and who will read it there; offers the entry's **date and time, suggested from when the note was written, which you can change** (a calendar and hour and minute steps drawn by the app, never the browser's picker); shows the text; and warns that the private note disappears. The entry takes its place in the Bitácora by that date. A note about no sheet first asks which sheet. No «copy instead» for now.
+6. **When the GM moves a note,** the assigned player reads it, and the dialog says so by name («Ana podrá leerla: es una forma de revelarle algo»). An entry hidden from the player waits for the visibility editor (R7.3).
+7. **A note that does not fit is stopped first:** an empty note, or one longer than the Bitácora allows (50,000 characters), cannot be moved; the dialog says why before anything happens.
+8. **Deleting asks first** ([Confirmations](#confirmations)).
+9. **Familiars too:** the same two kinds on their «Notas del Familiar» tab.
+
 ## Image viewer
 
 Adopted by the owner on 12 November 2026 after trying an interactive demo (claude.ai artifact «Magistri Scholae image viewer», with his verdicts). One viewer, `src/components/ImageViewer.tsx`, for portraits and galleries on both sheets.
@@ -400,7 +414,7 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
 
 ### Recorded for later
 
-- **Far backlog: a multiverse collection.** A collection of everything created in the magical multiverse, with an archaic Spanish or Latin name, opened from a button near the GM notes. It copies characters between campaigns, either as an independent copy or as a **linked representation that updates with changes on both sides**. This reverses today's "no automatic two-way sync" rule (design.md section 11) and will need its own design for edits on both sides. It replaces the older private "GM library" idea (R7.5).
+- **Far backlog: a multiverse collection.** A collection of everything created in the magical multiverse, with an archaic Spanish or Latin name, opened from a button near the notes. It copies characters between campaigns, either as an independent copy or as a **linked representation that updates with changes on both sides**. This reverses today's "no automatic two-way sync" rule (design.md section 11) and will need its own design for edits on both sides. It replaces the older private "GM library" idea (R7.5).
 
 - **Full-screen image viewer** for portraits; the galleries already enlarge a picture on tap.
 - **The GM renames the campaign** name he sees (R4).

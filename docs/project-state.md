@@ -738,7 +738,12 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Two defects fixed: the «Descartado» line never cleared (now «Entendido» clears it, and closing the sheet forgets it), and «Reintentar» did nothing after a refusal (it now appears only for a lost connection, a server error or too many changes, as «Reintentar ahora»). On phones the panel spans the screen's width instead of running past its edge.
 - Checks: type check; 58 unit tests (new: every field of both sheets has a plain label; messages for rules and server refusals; values; when «Reintentar» shows; «Entendido» clears discarded changes); both builds; 57 browser tests (the demo's refused edit and same-field conflict now read in plain words). Screenshots at phone and desktop widths.
 
-**Next:** R3.5 step 2, the notes design (with a demo).
+## R3.5 step 2: notes design — 12 November 2026
+
+- Designed with an interactive demo (claude.ai artifact «Magistri Scholae notes») and adopted with the owner's verdicts: [product-design.md, Notes](product-design.md#notes). Two kinds of notes: the shared Bitácora and private notes («Notas privadas», on each sheet and in «Mis notas»).
+- Owner decisions: **no separate GM notes** (the GM keeps private notes like everyone; a GM's move to the Bitácora reveals the note to the player, and the dialog says so); **notes keep when they were written** (date and time), and «Mover a la bitácora» suggests that date and lets the author change it with the app's own calendar. The database change this needs is allowed now (nobody uses notes yet; read-only check on staging: 0 private notes, 0 GM notes), with a backup first.
+
+**Next:** R3.5 step 3, notes on the server (backup and the owner's go-ahead before rebuilding staging), then step 4.
 
 ## Updating this handoff
 

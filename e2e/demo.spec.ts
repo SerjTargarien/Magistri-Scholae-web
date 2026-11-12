@@ -25,7 +25,7 @@ test("player: the GM-only field is absent, own fields save and survive a reload"
   expect((await storedSheet(page, "Luna de Bruma"))!.concepto).toBe("Rastreadora editada en la demo");
 });
 
-test("an edit that breaks a rule is refused with its rule and never saved", async ({ page }) => {
+test("an edit that breaks a rule is refused in plain words and never saved", async ({ page }) => {
   await openLuna(page);
   await setEditMode(page, true);
   // A custom field's name is required: emptying it is refused with its rule.
@@ -33,7 +33,9 @@ test("an edit that breaks a rule is refused with its rule and never saved", asyn
   const customName = page.locator("#input-custom-name-custom-1");
   await expect(customName).toHaveValue("Patronus");
   await customName.fill("");
-  await expect(status(page)).toContainText("camposPersonalizados/custom-1/nombre (required)");
+  // In plain words (R3.5): the field as the sheet names it, what is wrong; never a stored path.
+  await expect(status(page)).toContainText("Campos Personalizados (nombre): no puede quedar vacío.");
+  await expect(status(page)).not.toContainText("camposPersonalizados");
   await reloadApp(page);
   expect((await storedSheet(page, "Luna de Bruma"))!.camposPersonalizados[0]).toMatchObject({ id: "custom-1", nombre: "Patronus" });
 });
@@ -62,6 +64,9 @@ test("offline edits wait for the connection; a same-field collision asks which v
   await page.locator("#demo-other-nombre").click();
   await page.locator("#demo-offline").click();
   await expect(status(page).getByRole("button", { name: "Mantener el mío" })).toBeVisible();
+  // The field by the sheet's name, both values as typed.
+  await expect(status(page)).toContainText("Nombre del Personaje");
+  await expect(status(page)).toContainText("Tu valor: Luna, versión propia");
   await status(page).getByRole("button", { name: "Mantener el mío" }).click();
   await expect(status(page)).toHaveCount(0);
   await reloadApp(page);

@@ -302,6 +302,13 @@ export class SheetStore {
     if (online) { if (this.flight || this.pending.size) void this.flush(); else void this.refresh(); }
   }
 
+  /** The viewer has read which changes were discarded («Entendido» in the save panel). */
+  dismissDropped() {
+    if (this.disposed || !this.dropped.length) return;
+    this.dropped = [];
+    this.emit();
+  }
+
   /** Reopens a store after a development-mode remount (React StrictMode runs effects twice). */
   activate() { this.disposed = false; }
 
@@ -313,6 +320,7 @@ export class SheetStore {
     this.pending.clear();
     this.rejected.clear();
     this.conflicts = [];
+    this.dropped = [];
     this.flight = undefined;
     this.options.slot?.clear();
   }

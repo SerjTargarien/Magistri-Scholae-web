@@ -225,11 +225,11 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 - **Start:** the session is restored; with no session, the sign-in screen. The campaign is the one used last, or the only one; with several and none chosen, the campaign chooser.
 - **Loading:** «Abriendo grimorio de la escuela...».
 - **Messages (toasts):** bottom right, green or red, close by themselves after 4 seconds or with «×». An expired session or a failed load: «No se pudieron cargar los datos. Recarga para volver a intentarlo.»
-- **Save status** (bottom left, on character and familiar sheets): hidden while everything is saved. It appears for working offline, someone else changing the same field («Mantener el mío» / «Mantener el suyo»), a refused save («No se pudo guardar … Reintentar») and a value not accepted («No aceptado: …», with raw field names).
+- **Save status** (bottom left, on character and familiar sheets): hidden while saving works (owner, 12 November 2026: only problems are shown, no «Guardando… / Guardado»). It appears for working offline, someone else changing the same field («Mantener el mío» / «Mantener el suyo»), a change not saved and why, and changes discarded because the field became read-only («Entendido» clears them). Since R3.5 step 1 it speaks plainly: the field as the sheet names it («Campos Personalizados (nombre)»), what is wrong («no puede quedar vacío») and what to do («Corrígelo y se guardará solo»); «Reintentar ahora» appears only for a lost connection or a server error.
 - Coming back to the tab re-reads the lists and open sheets; leaving the page while a save is pending asks first.
 - Demo builds only: the «DEMO» banner and the test panel.
 
-**Target:** the save-status panel speaks plainly, without field names (R3.5). **For a GM, the first screen after opening a campaign is the Biblioteca del Máster** (R5); the grimorio opens from there.
+**Target:** the save-status panel speaks plainly, without field names (R3.5; **done 12 November 2026**). **For a GM, the first screen after opening a campaign is the Biblioteca del Máster** (R5); the grimorio opens from there.
 
 ### 2. Sign-in («Iniciar sesión» / «Aceptar invitación» / «Restablecer contraseña»)
 

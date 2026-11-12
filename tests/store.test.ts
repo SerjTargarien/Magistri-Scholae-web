@@ -165,6 +165,8 @@ test("a draft for a field that became read-only is discarded, never re-sent", as
   assert.deepEqual(store.dropped, ["linaje"]);
   assert.equal(server.sent.length, 1);
   assert.equal(server.fields.linaje, "Herbolarias");
+  store.dismissDropped(); // «Entendido» in the save panel clears the line
+  assert.deepEqual(store.dropped, []);
 });
 
 test("a change the server refuses is held for correction while other changes keep saving", async t => {

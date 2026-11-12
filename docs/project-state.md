@@ -732,7 +732,13 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - **R3 exit criterion still open:** the browser tests run in CI against the mock only, not against a real backend (planned in R3.6).
 - **R3.5 prepared** as five steps (implementation-plan.md, R3.5): plain save messages; a notes design; small notes fixes on the server; personal notes with «Mover al diario»; GM notes.
 
-**Next:** R3.5 step 1 (save messages in plain words), then the notes design.
+## R3.5 step 1: save messages in plain words — 12 November 2026
+
+- The save panel (`src/account/SaveStatus.tsx`, words in `src/account/saveMessages.ts`) names the field as the sheet does (most names come from the existing translations; list entries as «Bitácora Celestial (texto)»), says what is wrong and what to do, and shows values as typed (no JSON, no stored paths, no error codes). Owner's decision: only problems are shown; nothing appears while saving works.
+- Two defects fixed: the «Descartado» line never cleared (now «Entendido» clears it, and closing the sheet forgets it), and «Reintentar» did nothing after a refusal (it now appears only for a lost connection, a server error or too many changes, as «Reintentar ahora»). On phones the panel spans the screen's width instead of running past its edge.
+- Checks: type check; 58 unit tests (new: every field of both sheets has a plain label; messages for rules and server refusals; values; when «Reintentar» shows; «Entendido» clears discarded changes); both builds; 57 browser tests (the demo's refused edit and same-field conflict now read in plain words). Screenshots at phone and desktop widths.
+
+**Next:** R3.5 step 2, the notes design (with a demo).
 
 ## Updating this handoff
 

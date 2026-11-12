@@ -759,6 +759,7 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Screens reach notes only through their own adapter (`src/account/notes.ts`: list, create, update, remove, preview, move), which the app builds on its API client; a move waits for the sheet's store to settle and hands the sheet's new copy to it. The demo's mock server learned the move (with the journal's checks), the sheet filter and the newest-first order.
 - Checks: type check; 58 unit tests; both builds; 59 browser tests (new, at phone and desktop widths: a private note saved and kept after a reload; the GM does not see it and is told a move would reveal it; a move with a chosen date lands in the Bitácora by that date; a note that does not fit is stopped; deleting asks first; «Mis notas» with a note about no sheet moved by choosing the sheet). Screenshots at both widths.
 - **R3.5 is complete** (step 5, GM notes, was dropped by the owner).
+- Released to staging at the owner's request for a trial (frontend release `20261112-171034-12ab53c`, with plain save messages and the private notes; the staging backend already had the notes changes; both APIs answer). The public site stays on `206d290` until milestone 1.
 
 **Next:** R3.6, retire the old app (local mode, Dexie, old backups and stopgap forms, the service worker's cache name; decide on the unused GM-notes endpoint; browser tests against a real backend in CI); then R6 with milestone 1.
 

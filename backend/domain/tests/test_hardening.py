@@ -163,12 +163,6 @@ class LockFreeReadTests(MediaCase):
             b"".join(response.streaming_content)
         self.assertEqual(response.status_code, 200)
         self.assertFalse([q for q in queries.captured_queries if "FOR UPDATE" in q["sql"]])
-        with CaptureQueriesContext(connection) as queries:
-            self.read(self.gm_client, f"characters/{self.sheet.pk}/gm-notes")
-        self.assertFalse([q for q in queries.captured_queries if "FOR UPDATE" in q["sql"]])
-        with CaptureQueriesContext(connection) as queries:
-            self.send(self.gm_client, f"characters/{self.sheet.pk}/gm-notes", {"expectedRevision": 0, "content": "Fictional"}, "patch")
-        self.assertTrue([q for q in queries.captured_queries if "FOR UPDATE" in q["sql"]])
 
 
 class MaintenanceTests(MediaCase):

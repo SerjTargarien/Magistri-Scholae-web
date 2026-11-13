@@ -35,7 +35,6 @@ for plural, kind in [("characters", "character"), ("familiars", "familiar")]:
         path(base + "/<uuid:sheet_id>/visibility/preview", views.visibility_preview, arguments),
         path(base + "/<uuid:sheet_id>/visibility", views.visibility, arguments),
         path(base + "/<uuid:sheet_id>/bond", views.bond, arguments),
-        path(base + "/<uuid:sheet_id>/gm-notes", views.gm_notes, arguments),
         path(base + "/<uuid:sheet_id>/assets", views.asset_upload, arguments),
     ]
 handler404 = views.not_found

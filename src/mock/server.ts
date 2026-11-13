@@ -193,7 +193,7 @@ export class MockServer {
       : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
 
-    const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|gm-notes))?$/);
+    const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage))?$/);
     if (!match) return fail(501, "not_in_demo");
     const kind: EntityKind = match[1] === "characters" ? "character" : "familiar";
     const [, , id, action] = match;
@@ -209,7 +209,6 @@ export class MockServer {
     const sheet = this.state.sheets.find(s => s.id === id && s.kind === kind);
     if (!sheet || !this.access(sheet, user)) return fail(404, "not_found");
     if (!action && method === "GET") { this.lastOpened = sheet.id; return new Reply(200, this.projection(sheet, user)); }
-    if (action === "gm-notes") return this.gmNotes(method, sheet, body, user);
     return this.receipt(body, () => {
       if (body.expectedRevision !== this.projection(sheet, user).revision) return fail(409, "revision_conflict");
       if (!action && method === "PATCH") return this.patch(sheet, body, user);
@@ -272,7 +271,7 @@ export class MockServer {
     if (refused) return refused;
     if (user.role !== "gm" && ownSkillsKey((body.fields as any).habilidades) !== "[]") return fail(403, "gm_only_skill");
     const sheet: DemoSheet = { id: `demo-${crypto.randomUUID()}`, kind, fields: structuredClone(body.fields), assignedPlayerId: user.id,
-      archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [], gmNote: { content: "", revision: 0 } };
+      archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [] };
     this.state.sheets.push(sheet);
     return new Reply(200, this.projection(sheet, user));
   }
@@ -333,16 +332,6 @@ export class MockServer {
     if (typeof body.archived === "boolean") sheet.archived = body.archived;
     sheet.revision++;
     return new Reply(200, this.projection(sheet, user));
-  }
-
-  private gmNotes(method: string, sheet: DemoSheet, body: any, user: DemoUser): Reply {
-    if (user.role !== "gm") return fail(403, "forbidden");
-    if (method === "PATCH") {
-      if (body.expectedRevision !== sheet.gmNote.revision) return fail(409, "revision_conflict");
-      sheet.gmNote = { content: String(body.content ?? "").slice(0, 64000), revision: sheet.gmNote.revision + 1 };
-      this.save();
-    }
-    return new Reply(200, sheet.gmNote);
   }
 
   private personalNotes(method: string, path: string, query: URLSearchParams, body: any, user: DemoUser): Reply {

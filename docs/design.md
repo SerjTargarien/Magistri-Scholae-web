@@ -153,7 +153,7 @@ A user may be a GM in one campaign and a player in another. Authorization is cam
 | Familiar | Independent entity with ID, scope/ownership, profile/media/journal data, optional bond, revision, and legacy provenance. Preserve standalone and bonded records; define campaign access consistently with the bonded wizard before account-backed release. |
 | CharacterShare | Character and recipient; read-only access, unique grant. Membership alone grants no access to another player's character. |
 | FieldPolicy | Campaign defaults, character overrides, and player restrictions keyed by registered field/item identity. Implementation may use policy JSON plus validated services. |
-| GMNote | Character, campaign, content, independent revision. Never included in player sheet payloads. |
+| ~~GMNote~~ | Removed in R3.6 (13 November 2026): the owner dropped GM notes; the GM keeps private notes like everyone. |
 | PersonalNote | Author, optional character reference and author-visible label, content, independent revision. Author-only; no GM read grant. |
 | CharacterAsset | Character, stable asset ID, private storage key, size, MIME type, checksum, owning field/item identity. |
 | LibraryLink | Source library character, campaign copy, enabled state, and per-field last-applied baseline. GM-only access. |
@@ -263,7 +263,7 @@ This is a proposed interface, not existing code. `CharacterView` contains a proj
 | `/api/v1/characters` and `/{id}` | Authorized lists, projected detail, create, patch, and archive. |
 | `/api/v1/characters/{id}/sharing` | GM-controlled read-only grants. |
 | `/api/v1/characters/{id}/visibility` | Validated default/override changes and preview. |
-| `/api/v1/characters/{id}/gm-notes` | GM-only notes. |
+| ~~`/api/v1/characters/{id}/gm-notes`~~ | Removed in R3.6 (GM notes dropped by the owner). |
 | `/api/v1/personal-notes/*` | Author-only notes and explicit promotion. |
 | `/api/v1/characters/{id}/assets/*` | Authorized upload and projected media access. |
 | `/api/v1/library/*` | GM library and independent campaign copies. |

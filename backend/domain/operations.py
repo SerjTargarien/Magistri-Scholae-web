@@ -35,10 +35,6 @@ def execute(actor, scope, body, outcome_kind, apply, target_id=None):
             note = PersonalNote.objects.filter(pk=receipt.target_id, author=actor).first()
             require(note is not None, "not_found", 404)
             return personal_view(note)
-        if receipt.outcome_kind == "gmnote":
-            from .notes import gm_note
-            target = Sheet.objects.get(pk=receipt.target_id)
-            return gm_note(actor, target.pk, target.kind)
         return {}
     result = apply(body)
     ProcessedOperation.objects.create(actor=actor, operation_id=operation_id, fingerprint=fingerprint,

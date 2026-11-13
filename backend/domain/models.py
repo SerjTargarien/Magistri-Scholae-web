@@ -112,12 +112,6 @@ class Bond(models.Model):
         constraints = [models.CheckConstraint(condition=~models.Q(character=models.F("familiar")), name="different_bond_entities")]
 
 
-class GMNote(models.Model):
-    sheet = models.OneToOneField(Sheet, on_delete=models.CASCADE)
-    content = models.TextField(blank=True)
-    revision = models.PositiveIntegerField(default=1)
-
-
 class PersonalNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)

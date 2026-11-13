@@ -22,7 +22,6 @@ export interface DemoSheet {
   restricted: string[];
   /** Users who may read this sheet without editing it. */
   sharedWith: string[];
-  gmNote: { content: string; revision: number };
 }
 
 export const CAMPAIGN = { id: "demo-campaign", name: "Universo de demostración", policyRevision: 1 };
@@ -102,7 +101,7 @@ const spark: FamiliarSheet = { nombre: "Chispa", especie: "Zorro", descripcion: 
 
 const sheet = (id: string, kind: DemoSheet["kind"], fields: DemoSheet["fields"], extra: Partial<DemoSheet> = {}): DemoSheet => ({
   id, kind, fields: structuredClone(fields), assignedPlayerId: USERS.player.id, archived: false, revision: 1,
-  gmOnly: [], restricted: [], sharedWith: [], gmNote: { content: "", revision: 0 }, ...extra,
+  gmOnly: [], restricted: [], sharedWith: [], ...extra,
 });
 
 /** A fresh copy of the demo world. */
@@ -111,7 +110,7 @@ export function demoSheets(): DemoSheet[] {
     // Luna: the GM keeps the family's money secret even from her player; her
     // player hides her lineage and journal from shared readers.
     sheet("demo-luna", "character", luna, { bondId: "demo-amber", gmOnly: ["economia"], restricted: ["linaje", "notasList"],
-      sharedWith: [USERS.reader.id], gmNote: { content: "Sabe más de lo que cuenta sobre el lago.", revision: 1 } }),
+      sharedWith: [USERS.reader.id] }),
     sheet("demo-diego", "character", diego),
     // A GM character: players cannot see it at all.
     sheet("demo-professor", "character", professor, { assignedPlayerId: USERS.gm.id, gmOnly: ["adultWizardProfile/reputation"] }),

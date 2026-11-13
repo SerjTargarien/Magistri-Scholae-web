@@ -82,12 +82,6 @@ class RemoteEditingTests(APICase):
         first = self.send(self.alice_client, path, body)
         self.assertEqual(self.send(self.alice_client, path, body)["revision"], first["revision"])
         self.familiar.refresh_from_db(); self.assertEqual(self.familiar.revision, 2)
-        note_body = {"operationId": str(uuid.uuid4()), "expectedRevision": 0, "content": "Fictional GM note"}
-        path = f"characters/{self.sheet.pk}/gm-notes"
-        first_note = self.send(self.gm_client, path, note_body, "patch")
-        self.assertEqual(self.send(self.gm_client, path, note_body, "patch"), first_note)
-        self.assertEqual(first_note["revision"], 1)
-        self.read(self.alice_client, path, status=403)
 
     def test_invalid_operation_id_has_bounded_error(self):
         self.send(self.alice_client, "familiars", {"operationId": 42, "campaignId": str(self.campaign.pk), "fields": {"nombre": "Invalid"}}, status=400)

@@ -2,7 +2,7 @@ from django.db import transaction
 from django.core import signing
 import uuid
 from .errors import APIError, keys, require, text
-from .models import GMNote, PersonalNote, Sheet
+from .models import PersonalNote, Sheet
 from .permissions import accessible, member, sheet_for
 
 
@@ -107,20 +107,3 @@ def edit_personal(actor, note_id, body, delete=False):
     note.revision += 1
     note.save()
     return personal_view(note)
-
-
-@transaction.atomic
-def gm_note(actor, sheet_id, kind, body=None):
-    # Only an edit locks the campaign and sheet rows; reading does not.
-    sheet = sheet_for(actor, sheet_id, kind, lock=body is not None)
-    member(actor, sheet.campaign, gm=True)
-    note = GMNote.objects.filter(sheet=sheet).first()
-    if body is not None:
-        keys(body, ["expectedRevision", "content"], ["expectedRevision", "content"])
-        require(type(body["expectedRevision"]) is int and body["expectedRevision"] == (note.revision if note else 0), "revision_conflict", 409)
-        if note is None:
-            note = GMNote(sheet=sheet, revision=0)
-        note.content = text(body["content"], 64000, empty=True)
-        note.revision += 1
-        note.save()
-    return {"content": note.content if note else "", "revision": note.revision if note else 0}

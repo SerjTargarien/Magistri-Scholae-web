@@ -771,7 +771,15 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - Staging data: the 7 unused player invitations were extended by 14 days, to 29 November 2026, after a backup (`staging/magistri-staging-20261113-053519.tar.gpg`), with the owner's go-ahead; the testers' links are unchanged.
 - Checks: type check; 41 unit tests (the 17 storage tests went with the code); all three builds; browser tests (see the pull request).
 
-**Next:** the rest of R3.6: the service worker's new cache name; the unused GM-notes endpoint (owner's decision); browser tests against a real backend in CI.
+**Next:** see step 2.
+
+## R3.6 step 2: GM notes removed from the server — 13 November 2026
+
+- The owner chose to remove the unused GM-notes endpoint (`/characters|familiars/{id}/gm-notes`), since GM notes were dropped on 12 November. Removed: the endpoint, its `GMNote` table (migration `0008_remove_gm_notes`, which drops the table; staging held 0 GM notes), its operation replay, its tests and the demo mock's copy. A request to the old path now answers 404 (tested).
+- Checks: Django checks, migration check and API contract locally; the backend suite in CI (it needs PostgreSQL).
+- Staging backend: see the release note below once it is rebuilt.
+
+**Next:** the rest of R3.6: the service worker's new cache name; browser tests against a real backend in CI.
 
 ## Updating this handoff
 

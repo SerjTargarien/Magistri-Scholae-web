@@ -6,7 +6,7 @@ Errors have shape `{ "error": { "code": "..." } }`. Principal statuses: 400 inva
 
 ## Mutation retries
 
-Remote clients supply UUID `operationId` on entity creation/patch/manage/share/visibility-apply/bond, asset upload, personal-note create/edit/delete/promotion-apply and GM-note edits. Existing v1 requests without an ID retain compatibility but cannot claim retry deduplication. Auth and signed preview routes do not accept operation IDs. Do not attach IDs to unsupported account/campaign administration requests.
+Remote clients supply UUID `operationId` on entity creation/patch/manage/share/visibility-apply/bond, asset upload, and personal-note create/edit/delete/promotion-apply. Existing v1 requests without an ID retain compatibility but cannot claim retry deduplication. Auth and signed preview routes do not accept operation IDs. Do not attach IDs to unsupported account/campaign administration requests.
 
 An actor-scoped operation ID binds to the method, route and exact body, including expected revision. Reusing it with another request yields `409 operation_reused`. Retrying the identical request returns the current authorized projection/note, without reapplying a mutation. Revoked access returns denial. Receipts store keyed request fingerprints and outcome references, never reusable response/note bodies. The operation and receipt commit together; concurrent retries serialize. Unknown outcomes must retry the same body/ID before generating a new one. Explicit conflict reconciliation creates a new operation with a newly fetched revision; no whole-record last-write-wins exists.
 
@@ -45,7 +45,6 @@ The following route families exist independently under **`characters`** and **`f
 | `/{id}/visibility` | GET current policy (GM) or own restrictions (assigned player); POST `{expectedRevision, previewToken}` applies a preview. |
 | `/{id}/visibility/preview` | GM POST `{expectedRevision, defaultAudience?, overrides?}`; assigned player POST `{expectedRevision, restrictions}`. Returns proposed policy, changed path audiences and a signed preview token. |
 | `/{id}/bond` | POST `{expectedRevision, targetId: UUID or null, targetRevision?}`. Target revision required when linking. Player must edit both sides and any displaced partners; GM may manage all within the campaign. |
-| `/{id}/gm-notes` | GET `{content, revision}`; PATCH `{expectedRevision: number, content}`. GM only; use revision 0 when creating the first note. |
 | `/{id}/assets` | POST `{operationId, expectedRevision, path, imageBase64}` atomically attaches a decoded image to a media path and returns the updated projection. |
 
 Example projected entity:

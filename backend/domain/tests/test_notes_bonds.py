@@ -31,7 +31,7 @@ class NotesAndBondsTests(APICase):
             self.assertEqual(listed["items"], [])
             self.send(client, f"personal-notes/{note['id']}", {"expectedRevision": 1, "content": "forged"}, method="patch", status=404)
             self.send(client, f"personal-notes/{note['id']}", {"expectedRevision": 1}, method="delete", status=404)
-        for path in [f"characters/{self.sheet.pk}", f"characters?campaignId={self.campaign.pk}", f"characters/{self.sheet.pk}/gm-notes"]:
+        for path in [f"characters/{self.sheet.pk}", f"characters?campaignId={self.campaign.pk}"]:
             result = self.read(self.gm_client, path)
             self.assertNotIn("private-title-marker", json.dumps(result))
             self.assertNotIn("private-body-marker", json.dumps(result))
@@ -82,11 +82,9 @@ class NotesAndBondsTests(APICase):
         self.read(self.gm_client, f"personal-notes?authorId={self.alice.pk}", status=400)
         self.read(self.gm_client, "personal-notes?q=private-body-marker", status=400)
 
-    def test_gm_note_is_separate_and_denied_to_assigned_player(self):
-        self.send(self.gm_client, f"characters/{self.sheet.pk}/gm-notes", {"expectedRevision": 0, "content": "gm-note-marker"}, method="patch")
-        self.read(self.alice_client, f"characters/{self.sheet.pk}/gm-notes", status=403)
-        sheet = self.read(self.alice_client, f"characters/{self.sheet.pk}")
-        self.assertNotIn("gm-note-marker", json.dumps(sheet))
+    def test_gm_notes_endpoint_is_gone(self):
+        # GM notes were dropped by the owner (12 November 2026) and removed in R3.6.
+        self.read(self.gm_client, f"characters/{self.sheet.pk}/gm-notes", status=404)
 
     def test_bond_does_not_grant_familiar_access_or_reveal_its_id(self):
         self.bond(self.gm, self.gm_client, self.sheet, self.familiar)

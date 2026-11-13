@@ -167,7 +167,7 @@ Private notes are their own records, never sheet fields: only their author reads
 | `createdAt` | **Set by the server** when the note is created; never changed by edits; the list's order, newest first (owner, 12 November 2026) |
 | `sheetId` | Optional: a sheet the author can open; the list can be filtered by it |
 
-The GM-note record (one text of 64,000 per sheet) has no screen: the owner dropped GM notes on 12 November 2026.
+There is no GM-note record: the owner dropped GM notes on 12 November 2026, and R3.6 removed the server's record and endpoint.
 
 ## Whole sheet and storage
 

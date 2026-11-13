@@ -256,11 +256,6 @@ def bond(request, body, sheet_id, kind):
     return services.set_bond(request.user, sheet_id, kind, body)
 
 
-@endpoint(["GET", "PATCH"], outcome="gmnote")
-def gm_notes(request, body, sheet_id, kind):
-    return notes.gm_note(request.user, sheet_id, kind, body if request.method == "PATCH" else None)
-
-
 @endpoint(["GET", "POST"], outcome="personal")
 def personal_notes(request, body):
     if request.method == "POST":

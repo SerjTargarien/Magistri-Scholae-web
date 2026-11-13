@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CharacterType } from "../types";
+import type { CharacterType } from "../model/sheet";
 
 export type EntityArchetypeKey = CharacterType | "familiar";
 

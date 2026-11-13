@@ -9,7 +9,7 @@ Read AGENTS.md, docs/project-state.md, the R? section and the execution rules in
 
 Work on a development branch. Briefly state what you found and your approach, then carry out the release without asking for routine confirmation. Ask me before anything the release lists as an owner action, and before any push, merge to main, deployment, DNS, Vercel or VPS change, unless my message explicitly asks for it.
 
-Keep local mode and every item in the plan's feature checklist working. Do not bump or rename MagistriScholaeDB, and do not turn a partial projection into a whole-record remote save. Keep changes inside the release. Record unrelated defects instead of fixing them.
+Keep every item in the plan's feature checklist working, and do not turn a partial projection into a whole-record remote save. Keep changes inside the release. Record unrelated defects instead of fixing them.
 
 Run npm run lint, npm test and the builds the release affects, the backend checks if backend code changed, and any smoke tests that exist. Report exactly what ran and what could not be verified. Update docs/project-state.md with the changes, the checks and their results, the limits, and the next release.
 

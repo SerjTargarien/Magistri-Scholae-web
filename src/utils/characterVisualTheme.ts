@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Character, getCharacterType } from "../types";
+import type { CharacterType } from "../model/sheet";
 import { HOUSES, HOUSE_ICONS, CHARACTER_TYPES } from "../data/gameData";
 
 export interface CharacterVisualTheme {
@@ -16,9 +16,9 @@ export interface CharacterVisualTheme {
 }
 
 export const getCharacterVisualTheme = (
-  character: Pick<Character, "characterType" | "casa">
+  character: { characterType?: CharacterType | null; casa?: string | null }
 ): CharacterVisualTheme => {
-  const type = getCharacterType(character as Character);
+  const type = character.characterType || "student";
 
   if (type === "adult_wizard") {
     return {

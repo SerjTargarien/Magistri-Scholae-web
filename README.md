@@ -9,7 +9,7 @@ The canonical working repository for Codex and Google AI Studio is `SerjTargarie
 - [Development commands and AI Studio workflow](docs/development.md)
 - [Starter prompt for a release chat](docs/chat-starter.md)
 
-The app supports default local Dexie storage, isolated mock preview, and explicitly selected Django/PostgreSQL account storage. Milestones 1–3 are implemented locally. The road to the Contabo launch is ordered as releases R0–R7 in the roadmap. See the development guide for verified commands and limitations. The original AI Studio template instructions are retained below.
+The app is the account app on the Django/PostgreSQL API, with an explicitly marked demo build on an in-browser mock server; the old browser-only mode was retired in R3.6. The road to the Contabo launch is ordered as releases R0–R7 in the roadmap. See the development guide for verified commands and limitations. The original AI Studio template instructions are retained below.
 
 ---
 <div align="center">

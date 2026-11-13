@@ -1,6 +1,6 @@
 // Blank new sheets in the server's model (R3.2). The server stores what the
 // app sends and fills in nothing, so these defaults live here. They match the
-// old app's (src/utils/characterFactory.ts) apart from the fields the owner
+// retired local app's apart from the fields the owner
 // removed (motto, shield text, the old single-text fields) and the new skill
 // catalogue: destiny 3, stress maximum 3 for students and 5 for adults, age 11,
 // house Irati and year "1º" for students, every applicable default skill at 0.

@@ -763,6 +763,16 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 **Next:** R3.6, retire the old app (local mode, Dexie, old backups and stopgap forms, the service worker's cache name; decide on the unused GM-notes endpoint; browser tests against a real backend in CI); then R6 with milestone 1.
 
+## R3.6 step 1: the old local code deleted — 13 November 2026
+
+- Deleted: `src/storage/` (the Dexie adapters, backups and storage-mode switch), `src/db.ts` (`MagistriScholaeDB`), the old hand-written types (`src/types.ts`), the old character factory and default skill list, the old preview fixtures, `test:baseline` with its script and CI step, the storage unit tests, the `dexie`, `dexie-react-hooks` and `fake-indexeddb` packages, the dead `VITE_STORAGE_MODE` variable, and 92 texts nothing used any more (backups, the typed reset, storage use, the install help, old familiar and sheet labels). No screen used any of it since the R3.4 switch, so nothing visible changes. The house colours and archetype registry now use the server model's character type.
+- `tests/boundary.test.ts` now checks that no source file opens a browser database (the offline store, R7, will change that rule with its own module). [storage-contract.md](storage-contract.md) is kept as a record of the old mode.
+- Browsers that ran the old app may still hold `MagistriScholaeDB`; the app never opens it.
+- Staging data: the 7 unused player invitations were extended by 14 days, to 29 November 2026, after a backup (`staging/magistri-staging-20261113-053519.tar.gpg`), with the owner's go-ahead; the testers' links are unchanged.
+- Checks: type check; 41 unit tests (the 17 storage tests went with the code); all three builds; browser tests (see the pull request).
+
+**Next:** the rest of R3.6: the service worker's new cache name; the unused GM-notes endpoint (owner's decision); browser tests against a real backend in CI.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

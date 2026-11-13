@@ -2,7 +2,7 @@
 
 ## Current application
 
-The repository root is the React/Vite frontend: since the R3.4 switch, the account app, whose real screens run on the Django/PostgreSQL API under `backend/` through the sheet store (or, in demo builds, on an in-browser mock server). The old browser-only mode ended at the switch; its storage code (`src/storage/`, `MagistriScholaeDB`) remains until R3.6 deletes it. See [storage-contract.md](storage-contract.md), [backend setup](../backend/README.md), [API contract](api-v1.md), [project-state.md](project-state.md) and [implementation-plan.md](implementation-plan.md).
+The repository root is the React/Vite frontend: since the R3.4 switch, the account app, whose real screens run on the Django/PostgreSQL API under `backend/` through the sheet store (or, in demo builds, on an in-browser mock server). The old browser-only mode ended at the switch, and R3.6 deleted its code ([storage-contract.md](storage-contract.md) is its record). See [backend setup](../backend/README.md), [API contract](api-v1.md), [project-state.md](project-state.md) and [implementation-plan.md](implementation-plan.md).
 
 Use npm with the checked-in `package-lock.json`. This implementation was verified with Node **26.8.1** (pinned in `.node-version`) and npm **11.19.0** (`packageManager`). The package declares Node >=22.12.0 for dependency compatibility; other versions have not been exercised here.
 
@@ -20,12 +20,11 @@ npm run lint
 npm test
 npm run build
 npm run build:demo
-npm run test:baseline
 ```
 
 `npm run test:e2e` runs the Playwright browser tests in `e2e/` against the demo build (the account app with the in-browser mock server, see below): the feature checklist from [implementation-plan.md](implementation-plan.md) at desktop and phone widths (`features.spec.ts`), and the sheet store's behaviour in the real screens (`demo.spec.ts`: roles and hidden fields, refused edits, merging, offline edits, conflicts, retries). It starts its own Vite server on loopback port 4312; every test uses a fresh browser context, never a real profile. First-time setup: `npx playwright install chromium`. Server deployment is described in [deploy/README.md](../deploy/README.md). GitHub Actions (`.github/workflows/ci.yml`) runs these, the checks below and the backend suite on every pull request.
 
-`lint` means `tsc --noEmit`, not ESLint. `npm test` uses Node's test runner through `tsx` and `fake-indexeddb` for isolated databases and boundary checks. `test:baseline` reproduces the pre-refactor handler defects from the original Git commit; it requires that commit to remain available locally. A production build outputs `dist/` (the account app; `build:remote` is the same build, used by `deploy/release.sh --target staging`). `npm run preview` serves the most recent build. `build:demo` writes the demo build to the same `dist/`.
+`lint` means `tsc --noEmit`, not ESLint. `npm test` uses Node's test runner through `tsx`, including the boundary check that no source file opens a browser database. A production build outputs `dist/` (the account app; `build:remote` is the same build, used by `deploy/release.sh --target staging`). `npm run preview` serves the most recent build. `build:demo` writes the demo build to the same `dist/`.
 
 The existing `clean` script uses Unix `rm` and removes `dist` and `server.js`; it is not needed for the first refactor and is not a portable Windows setup prerequisite.
 
@@ -44,7 +43,7 @@ Use both English and Spanish. Exercise academy and classic styles, desktop and m
 - `catalogue.ts`: the campaign skill catalogue: names, categories, order, and whether a skill applies to a character (Magia intuitiva up to 14).
 - `defaults.ts`: blank new sheets (every applicable catalogue skill at 0; the per-device skill preset was removed on 8 November 2026).
 
-The old hand-written types in `src/types.ts` stay until each screen moves (R3.4); game data (houses, character types, the old default skills) is in `src/data/gameData.ts`.
+The old hand-written types were deleted in R3.6; game data (houses, character types) is in `src/data/gameData.ts`.
 
 ### The sheet store
 
@@ -66,7 +65,7 @@ Keep the existing `DISABLE_HMR` handling in `vite.config.ts` unless a task speci
 
 ## Running the app (since the R3.4 switch)
 
-The app is the account app: it signs in, picks the campaign (automatically when there is only one), lists the campaign's sheets newest first, and opens each sheet through a sheet store (`src/App.tsx`). The old browser-only mode (`MagistriScholaeDB`) ended at the R3.4 switch (owner decision, 8 November 2026); its code is removed in R3.6.
+The app is the account app: it signs in, picks the campaign (automatically when there is only one), lists the campaign's sheets newest first, and opens each sheet through a sheet store (`src/App.tsx`). The old browser-only mode (`MagistriScholaeDB`) ended at the R3.4 switch (owner decision, 8 November 2026); R3.6 deleted its code.
 
 ```bash
 # Against a local Django backend (see "Backend development"); /api is proxied to 127.0.0.1:8000

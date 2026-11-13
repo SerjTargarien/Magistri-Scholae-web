@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_STORAGE_MODE?: string;
+  /** "true" in demo builds: the in-browser mock server answers /api (always marked DEMO). */
+  readonly VITE_MOCK_SERVER?: string;
 }

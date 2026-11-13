@@ -5,7 +5,7 @@ Adopted 7 November 2026, replacing the milestone 4–6 order. The goal is a work
 ## Execution rules
 
 - Work one release (or one release step) at a time. A request for a release authorizes routine edits and checks inside it, not the next release.
-- Each release or step lands as its own pull request with CI green. Keep the app working after every step: local mode until R3.6 removes it, the mock and staging throughout. Do not bump or rename `MagistriScholaeDB` while it exists.
+- Each release or step lands as its own pull request with CI green. Keep the app working after every step, on the mock and on staging. (Local mode and `MagistriScholaeDB` were deleted in R3.6.)
 - Deployments, DNS, Vercel settings and VPS changes happen only in the release that names them, and only when the owner asks for that action.
 - Never turn a partial projection into a whole-record remote save. A new stored field needs a registry entry, a fixture and a test, not only a new input.
 - Prefer splitting large files to growing them. Add a dependency only when a release needs it.
@@ -102,7 +102,7 @@ No aesthetic change is made without a reason.
 
 1. Push `codex/milestone-3-remote` and open a draft pull request to `main` (once decision 1 is made).
 2. Add a GitHub Actions workflow:
-   - Frontend: `npm ci`, `lint`, `test`, all three builds, and `test:baseline` (needs `fetch-depth: 0`).
+   - Frontend: `npm ci`, `lint`, `test`, all three builds (`test:baseline` ran here until R3.6 deleted the old code it checked).
    - Backend: a `postgres:18` service, then `check`, `makemigrations --check`, `export_api_contract --check` and the test suite.
 3. Add Playwright smoke tests of the current UI in mock mode, at desktop and mobile widths, covering the feature checklist. Run them in CI. They are the safety net for R3, which rewrites a 3,800-line screen.
 4. Check local mode in a browser, then merge to `main`.

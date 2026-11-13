@@ -19,8 +19,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0 # test:baseline reads the original commit 2518abd
       - uses: actions/setup-node@v5
         with:
           node-version-file: .node-version
@@ -28,7 +26,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - run: npm run test:baseline
       - run: npm run build:demo
       - run: npm run build:remote
       - run: npm run build

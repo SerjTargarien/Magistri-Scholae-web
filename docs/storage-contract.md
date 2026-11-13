@@ -1,5 +1,7 @@
 # Milestone 1 storage contract
 
+> **Retired in R3.6 (13 November 2026).** This describes the old browser-only mode, whose code (`src/storage/`, `src/db.ts`, `src/types.ts`, `test:baseline`) was deleted. It is kept as a record; records now go through the sheet store and its adapters ([development.md](development.md)).
+
 Implemented on 18 October 2026. The React/Vite frontend stays at the repository root. Milestones 2–3 provide a separate [backend API and remote editor](api-v1.md). This document describes the unchanged local/mock contract.
 
 ## Selection and isolation

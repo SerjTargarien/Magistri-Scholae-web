@@ -9,7 +9,6 @@ export interface TranslationDict {
   // 1. General UI Elements & Common Labels
   appName: string;
   tagline: string;
-  languageName: string;
   searchPlaceholder: string;
   settings: string;
   back: string;
@@ -23,14 +22,9 @@ export interface TranslationDict {
   loadingMessage: string;
   mockModeBanner: string;
   storageLoadError: string;
-  importBondWarnings: string;
   errorStoringStudent: string;
-  resetConfirmPhrase: string;
   btnFinish: string;
   confirmDelete: string;
-  confirmDeleteText: string;
-  confirmDeleteCheckbox: string;
-  confirmDeleteButton: string;
   confirmDeleteTitle: string;
 
   // 2. Navigation Tabs
@@ -82,7 +76,6 @@ export interface TranslationDict {
   filterAllHouses: string;
   noCharacters: string;
   addCharacter: string;
-  filterByHouse: string;
   emptyRecords: string;
   lblDestino: string;
   lblExp: string;
@@ -102,12 +95,7 @@ export interface TranslationDict {
   validationErrorName: string;
   validationErrorGeneric: string;
   draftDiscardConfirm: string;
-  schoolShield: string;
   secDatosAlumno: string;
-  secLinajeDestino: string;
-  secEstresRango: string;
-  secPersonalAspects: string;
-  secCustomFields: string;
 
   // 7. Stress Systems, Counters & Health Labels
   estresFisico: string;
@@ -121,7 +109,6 @@ export interface TranslationDict {
   placeholderConsecuenciaFisica: string;
   placeholderConsecuenciaMental: string;
   placeholderConsecuenciaSocial: string;
-  labelActual: string;
   labelMaximo: string;
   labelMax: string;
   chooseImage: string;
@@ -160,7 +147,6 @@ export interface TranslationDict {
 
   // 8. Aspects, Belongings, Clubs & Custom Fields
   aspectosPersonales: string;
-  addAspecto: string;
   equipo: string;
   clubes: string;
   customFields: string;
@@ -194,11 +180,6 @@ export interface TranslationDict {
   confirmDeleteItem: string;
 
   // 9. Academic Skills & Preset Templates
-  catFisicas: string;
-  catMentales: string;
-  catSociales: string;
-  catTroncales: string;
-  catOptativas: string;
   removeSkill: string;
   addSkill: string;
   placeholderNewSkillCategory: string;
@@ -209,9 +190,6 @@ export interface TranslationDict {
   noSkillsInCategory: string;
 
   // 10. Spellbooks, Brews & Grimoires
-  conjuroName: string;
-  pocionName: string;
-  spellsAndPotions: string;
   specialized: string;
   level: string;
   addSpell: string;
@@ -227,7 +205,6 @@ export interface TranslationDict {
   register: string;
   catalogOfPotions: string;
   registerNewPotion: string;
-  labelGrado: string;
   labelDificultad: string;
 
   // 11. Journal / Chronicles Notes
@@ -245,22 +222,17 @@ export interface TranslationDict {
   placeholderNoteTitle: string;
   placeholderNoteContent: string;
   labelNotesChronicleTitle: string;
-  placeholderNotasChronicle: string;
   notesLabel: string;
   registerNote: string;
   entryFrom: string;
-  consolidatedJournal: string;
 
   // 12. Gallery, Portrait Fitting & Cropping
   uploadAvatar: string;
   uploadGallery: string;
   pasteUrl: string;
-  invalidUrl: string;
   galleryInstructions: string;
   labelGalleryEmpty: string;
   confirmDeleteGalleryImage: string;
-  subirArchivoLocalMax: string;
-  imageTooLarge: string;
   imageUploadError: string;
   btnChangePhoto: string;
   lblAvatarFit: string;
@@ -273,53 +245,11 @@ export interface TranslationDict {
   // 13. Settings, Storage, Purging & Backups
   about: string;
   aboutDescription: string;
-  installHelp: string;
-  installHelpText: string;
   storageInfo: string;
-  storageInfoText: string;
-  estimatedUsage: string;
-  totalQuota: string;
   schoolSealPrefix: string;
   languageSelector: string;
   settingsCurrentLanguage: string;
   settingsLanguageExplanation: string;
-  exportBackup: string;
-  importBackup: string;
-  resetData: string;
-  resetDataConfirmPlaceholder: string;
-  resetDataConfirmError: string;
-  resetSuccess: string;
-  importSuccess: string;
-  importError: string;
-  importReplace: string;
-  importAdd: string;
-  importMergeRequestTitle: string;
-  importMergeRequestText: string;
-  settingsTitleDatabaseTools: string;
-  settingsDDBBExplanation: string;
-  settingsExecutePurge: string;
-  settingsConfirmWipeDDBBDescription: string;
-  backupDownloadedMsg: string;
-  backupErrorExportMsg: string;
-  backupErrorOverwriteMsg: string;
-  backupErrorMergeMsg: string;
-  backupErrorWipeMsg: string;
-  backupTotalStudentsInFile: string;
-  backupExportedOn: string;
-  labelOfflineAutoSave: string;
-  pwaOfflineStatusSuffix: string;
-  pwaStatusLabel: string;
-  exportSelect: string;
-  selectStudents: string;
-  selectAll: string;
-  deselectAll: string;
-  exportStudent: string;
-  studentListEmptyBackup: string;
-  exportSelectTitle: string;
-  exportSelectDescription: string;
-  searchBackupStudents: string;
-  exportSelectedCount: string;
-  exportFullBackup: string;
   characterTypeStudent: string;
   characterTypeStudentDescription: string;
   characterTypeAdultWizard: string;
@@ -359,10 +289,6 @@ export interface TranslationDict {
   discardDraftTitle: string;
   discardDraftConfirmBtn: string;
   removeAvatar: string;
-  importAction: string;
-  downloadAction: string;
-  selectAtLeastOneError: string;
-  noMatchingStudents: string;
   deleteCustomField: string;
   emptyCustomFields: string;
   familiarEditorCardTitle: string;
@@ -377,36 +303,21 @@ export interface TranslationDict {
   familiarDescriptionPlaceholder: string;
   familiarValidationError: string;
   familiarSavedToast: string;
-  familiarDeletedToast: string;
-  familiarGalleryTitle: string;
-  familiarGalleryEmpty: string;
   familiarCreateNewBtn: string;
-  familiarUpdateBtn: string;
   familiarSaveNewBtn: string;
   confirmFamiliar: string;
-  familiarOpenEditorBtn: string;
-  familiarConfirmDelete: string;
   filterFamiliars: string;
   familiarSpeciesShort: string;
   familiarBondLabel: string;
   familiarUnbound: string;
   noDescriptionDefined: string;
-  familiarDetailTitle: string;
   familiarBondSectionTitle: string;
-  familiarBondWithWizard: string;
   familiarBondNone: string;
   familiarBondNoneHint: string;
   familiarChangeBond: string;
   familiarUnbind: string;
   familiarBondStudent: string;
-  familiarSelectMasterPlaceholder: string;
-  familiarEditInEditor: string;
-  familiarQuickEdit: string;
   familiarBackToList: string;
-  familiarDeleteTitle: string;
-  familiarDeletePrompt: string;
-  familiarDeleteConfirmBtn: string;
-  familiarSavedInlineToast: string;
   familiarViewDetail: string;
   wizardViewDetail: string;
   tabFamiliarProfile: string;
@@ -414,10 +325,7 @@ export interface TranslationDict {
   familiarNotePlaceholder: string;
   familiarNotesEmpty: string;
   tabFamiliarGallery: string;
-  archetypeStudent: string;
-  archetypeAdultWizard: string;
   archetypeFamiliar: string;
-  noFamiliarBonded: string;
   bondExistingFamiliar: string;
   createNewFamiliar: string;
   selectFamiliarToBond: string;
@@ -429,7 +337,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 1. General UI Elements & Common Labels
     appName: "Magistri Scholae",
     tagline: "Editor de fichas de Personaje",
-    languageName: "Español",
     searchPlaceholder: "Buscar",
     settings: "Ajustes",
     back: "Volver",
@@ -442,12 +349,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     studentPrefix: "ALUMNO",
     loadingMessage: "Abriendo grimorio de la escuela...",
     errorStoringStudent: "Error al guardar el personaje en la base de datos.",
-    resetConfirmPhrase: "ELIMINAR TODO",
     btnFinish: "Finalizar Edición",
     confirmDelete: "Eliminar Personaje permanentemente",
-    confirmDeleteText: "¿Estás seguro de que deseas eliminar permanentemente a este personaje? Esta acción es irreversible, destruirá de forma completa su bitácora de crónicas, galería de retratos, conjuros, pociones y equipamiento.",
-    confirmDeleteCheckbox: "Entiendo que esta acción es definitiva y no podré recuperar de ningún modo la ficha de este personaje.",
-    confirmDeleteButton: "Eliminar Permanente",
     confirmDeleteTitle: "Confirmar Eliminación",
 
     // 2. Navigation Tabs
@@ -499,7 +402,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     filterAllHouses: "Todas las Casas",
     noCharacters: "No se encontraron personajes. ¡Crea el primero!",
     addCharacter: "Nuevo Personaje",
-    filterByHouse: "Filtrar por Casa",
     emptyRecords: "Bóveda Vacía",
     lblDestino: "Destino",
     lblExp: "Exp",
@@ -519,12 +421,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     validationErrorName: "El nombre es obligatorio.",
     validationErrorGeneric: "Por favor, corrige los errores antes de continuar.",
     draftDiscardConfirm: "¿Descartar los cambios? No se guardarán.",
-    schoolShield: "ESCUELA:",
     secDatosAlumno: "Datos Personales",
-    secLinajeDestino: "Linaje, Destino y Economía",
-    secEstresRango: "Ajustar Rangos de Estrés",
-    secPersonalAspects: "Aspectos Personales",
-    secCustomFields: "Atributos Personalizados",
 
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Estrés Físico",
@@ -538,7 +435,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderConsecuenciaFisica: "p. ej. Brazo roto",
     placeholderConsecuenciaMental: "p. ej. Pesadillas",
     placeholderConsecuenciaSocial: "p. ej. Mala fama",
-    labelActual: "ACTUAL",
     labelMaximo: "MÁXIMO",
     labelMax: "Máx.",
     chooseImage: "Elegir imagen",
@@ -577,7 +473,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 8. Aspects, Belongings, Clubs & Custom Fields
     aspectosPersonales: "Aspectos Personales",
-    addAspecto: "Añadir Aspecto",
     equipo: "Equipamiento",
     clubes: "Clubes Escolares",
     customFields: "Campos Personalizados",
@@ -611,11 +506,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmDeleteItem: "¿Eliminar este objeto?",
 
     // 9. Academic Skills & Preset Templates
-    catFisicas: "Habilidades Físicas",
-    catMentales: "Habilidades Mentales",
-    catSociales: "Habilidades Sociales",
-    catTroncales: "Asignaturas Troncales",
-    catOptativas: "Asignaturas Optativas",
     removeSkill: "Quitar Habilidad",
     addSkill: "Añadir Habilidad",
     placeholderNewSkillCategory: "Nueva habilidad",
@@ -626,9 +516,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     noSkillsInCategory: "Sin habilidades.",
 
     // 10. Spellbooks, Brews & Grimoires
-    conjuroName: "Nombre del Conjuro",
-    pocionName: "Fórmula de la Poción",
-    spellsAndPotions: "Hechizos y Pociones",
     specialized: "Especialista",
     level: "Grado",
     addSpell: "Registrar Hechizo",
@@ -644,7 +531,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     register: "Registrar",
     catalogOfPotions: "Catálogo de Pociones",
     registerNewPotion: "Nueva poción",
-    labelGrado: "Grado",
     labelDificultad: "Dificultad",
 
     // 11. Journal / Chronicles Notes
@@ -662,22 +548,17 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderNoteTitle: "Título (opcional)",
     placeholderNoteContent: "Texto de la nota",
     labelNotesChronicleTitle: "Bitácora Celestial",
-    placeholderNotasChronicle: "Escribe aquí las crónicas del personaje, registros de clase, pactos extraescolares o secretos que vaya descubriendo de la academia...",
     notesLabel: "Notas",
     registerNote: "Registrar Entrada",
     entryFrom: "Entrada del ",
-    consolidatedJournal: "Bitácora Consolidada",
 
     // 12. Gallery, Portrait Fitting & Cropping
     uploadAvatar: "Subir retrato",
     uploadGallery: "Añadir imagen",
     pasteUrl: "Pegar URL remota",
-    invalidUrl: "URL inválida",
     galleryInstructions: "Imágenes del personaje",
     labelGalleryEmpty: "Galería vacía",
     confirmDeleteGalleryImage: "¿Eliminar esta imagen?",
-    subirArchivoLocalMax: "Subir Archivo Local (Tamaño Máx: 2MB)",
-    imageTooLarge: "La imagen es demasiado pesada y no se pudo reducir lo suficiente. Selecciona una menor de 5MB.",
     imageUploadError: "No se pudo usar la imagen. Prueba con otro archivo.",
     btnChangePhoto: "Cambiar foto",
     lblAvatarFit: "Ajuste de Retrato",
@@ -690,56 +571,13 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 13. Settings, Storage, Purging & Backups
     about: "Acerca de",
     aboutDescription: "Fichas de personaje para partidas de academia mágica.",
-    installHelp: "Instalación PWA",
-    installHelpText: "Esta aplicación se ejecuta localmente y sin conexión. En tu dispositivo móvil o de escritorio, selecciona 'Instalar aplicación' o 'Añadir a pantalla de inicio' en el menú de tu navegador para llevar la experiencia mágica a pantalla completa.",
     storageInfo: "Almacenamiento",
-    storageInfoText: "Tus datos se guardan de forma permanente e individual en la base de datos IndexedDB de tu propio navegador. El almacenamiento es local y privado.",
-    estimatedUsage: "Uso estimado:",
-    totalQuota: "Cuota total:",
     schoolSealPrefix: "Diseñado con cariño por Serj, en 2026",
     languageSelector: "Seleccionar Idioma",
     settingsCurrentLanguage: "Idioma Actual",
     settingsLanguageExplanation: "Configura el idioma preferido para la interfaz mágica y todas las fichas.",
-    exportBackup: "Exportar Copia de Seguridad",
-    importBackup: "Importar Copia de Seguridad",
-    resetData: "Purgar Base de Datos",
-    resetDataConfirmPlaceholder: "Escribe 'ELIMINAR TODO' para confirmar",
-    resetDataConfirmError: "El texto de confirmación no coincide.",
-    resetSuccess: "Se ha restablecido la base de datos por completo.",
-    importSuccess: "Copia de seguridad importada con éxito.",
-    importError: "Archivo inválido o corrupto.",
-    importReplace: "Reemplazar base de datos",
-    importAdd: "Añadir a los existentes",
-    importMergeRequestTitle: "Conflicto de Copia de Seguridad",
-    importMergeRequestText: "Se ha cargado una copia de seguridad. ¿Deseas reemplazar todos tus personajes actuales con el archivo importado, o prefieres añadir los nuevos personajes a tu lista actual sin perder nada?",
-    settingsTitleDatabaseTools: "Copia de Seguridad",
-    settingsDDBBExplanation: "Descarga una copia física de todos tus personajes, incluyendo biografías, puntuaciones e imágenes persistentes.",
-    settingsExecutePurge: "EJECUTAR PURGA",
-    settingsConfirmWipeDDBBDescription: "Esta acción borrará de forma definitiva TODAS las fichas de personajes y la biblioteca de imágenes de tu base de datos de este navegador. Para proceder, escribe el código de confirmación exactamente en el campo de abajo:",
-    backupDownloadedMsg: "Copia de seguridad descargada.",
-    backupErrorExportMsg: "Error al exportar los datos.",
-    backupErrorOverwriteMsg: "Error al sobreescribir.",
-    backupErrorMergeMsg: "Error al combinar datos.",
-    backupErrorWipeMsg: "Fallo al borrar la base de datos.",
-    backupTotalStudentsInFile: "Personajes en backup",
-    backupExportedOn: "Fecha de copia",
-    labelOfflineAutoSave: "ACTIVO AUTOGUARDADO OFFLINE",
-    pwaOfflineStatusSuffix: "Activo",
-    pwaStatusLabel: "Estado: Sin conexión",
-    exportSelect: "Copia parcial",
-    selectStudents: "Seleccionar Personajes",
-    selectAll: "Seleccionar Todos",
-    deselectAll: "Deseleccionar Todos",
-    exportStudent: "Exportar Personaje",
     mockModeBanner: "DEMO — Datos ficticios; nada se guarda en tus fichas.",
     storageLoadError: "No se pudieron cargar los datos. Recarga para volver a intentarlo.",
-    importBondWarnings: "Importación completada. Se han desvinculado {n} referencias a fichas ausentes del archivo.",
-    studentListEmptyBackup: "No hay personajes ni familiares en este modo para exportar.",
-    exportSelectTitle: "Exportación Selectiva",
-    exportSelectDescription: "Selecciona qué fichas de personajes deseas empaquetar en el archivo de copia de seguridad JSON.",
-    searchBackupStudents: "Buscar personaje (por nombre, tipo o casa)...",
-    exportSelectedCount: "Fichas a exportar: {n}",
-    exportFullBackup: "Copia Completa",
     characterTypeStudent: "Alumno",
     characterTypeStudentDescription: "Alumno de Magistri Scholae perteneciente a una casa fundadora.",
     characterTypeAdultWizard: "Mago adulto",
@@ -779,10 +617,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     discardDraftTitle: "Descartar Borrador",
     discardDraftConfirmBtn: "Descartar Cambios",
     removeAvatar: "Quitar retrato",
-    importAction: "Importar",
-    downloadAction: "Descargar",
-    selectAtLeastOneError: "Por favor, selecciona al menos un personaje para exportar.",
-    noMatchingStudents: "No se encontraron personajes para esta búsqueda.",
     deleteCustomField: "Eliminar campo",
     emptyCustomFields: "Sin campos personalizados.",
     familiarEditorCardTitle: "Familiar",
@@ -797,36 +631,21 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarDescriptionPlaceholder: "p. ej. Apariencia y carácter",
     familiarValidationError: "El nombre y la especie del familiar son obligatorios.",
     familiarSavedToast: "Familiar guardado.",
-    familiarDeletedToast: "Familiar eliminado del registro.",
-    familiarGalleryTitle: "Familiares Registrados",
-    familiarGalleryEmpty: "Aún no hay familiares creados en el registro.",
     familiarCreateNewBtn: "Nuevo Familiar",
-    familiarUpdateBtn: "Actualizar Familiar",
     familiarSaveNewBtn: "Guardar Familiar",
     confirmFamiliar: "Confirmar familiar",
-    familiarOpenEditorBtn: "Abrir Editor de Familiares",
-    familiarConfirmDelete: "¿Eliminar permanentemente esta ficha de familiar?",
     filterFamiliars: "Familiares",
     familiarSpeciesShort: "Especie",
     familiarBondLabel: "Vínculo",
     familiarUnbound: "Sin asignar",
     noDescriptionDefined: "Sin descripción registrada",
-    familiarDetailTitle: "Ficha de Familiar Mágico",
     familiarBondSectionTitle: "Vínculo Mágico",
-    familiarBondWithWizard: "Mago Asignado",
     familiarBondNone: "Sin vínculo",
     familiarBondNoneHint: "No está vinculado a ningún personaje.",
     familiarChangeBond: "Cambiar Vínculo",
     familiarUnbind: "Desvincular",
     familiarBondStudent: "Vincular personaje",
-    familiarSelectMasterPlaceholder: "Seleccionar mago...",
-    familiarEditInEditor: "Editor Completo",
-    familiarQuickEdit: "Edición Rápida",
     familiarBackToList: "Volver a Personajes",
-    familiarDeleteTitle: "Liberar / Eliminar Familiar",
-    familiarDeletePrompt: "¿Estás seguro de que deseas eliminar permanentemente la ficha de este familiar? Se perderán sus notas y galería.",
-    familiarDeleteConfirmBtn: "Sí, Eliminar Familiar",
-    familiarSavedInlineToast: "Familiar actualizado correctamente",
     familiarViewDetail: "Ver Ficha de Familiar",
     wizardViewDetail: "Ver Ficha del Mago",
     tabFamiliarProfile: "Perfil y Vínculo",
@@ -834,10 +653,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarNotePlaceholder: "p. ej. Encontró una llave en el jardín",
     familiarNotesEmpty: "Sin notas.",
     tabFamiliarGallery: "Galería de Recuerdos",
-    archetypeStudent: "Alumno de la Academia",
-    archetypeAdultWizard: "Mago Adulto / Profesor",
     archetypeFamiliar: "Familiar Mágico",
-    noFamiliarBonded: "Sin familiar vinculado",
     bondExistingFamiliar: "Vincular",
     createNewFamiliar: "Crear Familiar",
     selectFamiliarToBond: "Elige un personaje.",
@@ -847,7 +663,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 1. General UI Elements & Common Labels
     appName: "Magistri Scholae",
     tagline: "Offline Character Sheet Manager for Magic Academies",
-    languageName: "English",
     searchPlaceholder: "Search",
     settings: "System Settings",
     back: "Back",
@@ -860,12 +675,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     studentPrefix: "STUDENT",
     loadingMessage: "Decrypting School Tomes...",
     errorStoringStudent: "Error storing character in the database.",
-    resetConfirmPhrase: "DELETE ALL",
     btnFinish: "Finish Editing",
     confirmDelete: "Permanently Delete Character",
-    confirmDeleteText: "Are you sure you want to permanently delete this character? This action is completely irreversible and will permanently delete all of their chronicled journals, photo galleries, spells, custom potions, and belongings.",
-    confirmDeleteCheckbox: "I understand that this action is permanent and I will not be able to recover this character's sheet under any circumstance.",
-    confirmDeleteButton: "Delete Permanently",
     confirmDeleteTitle: "Confirm Deletion",
 
     // 2. Navigation Tabs
@@ -917,7 +728,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     filterAllHouses: "All Houses",
     noCharacters: "No characters found. Create the first one!",
     addCharacter: "Add Character",
-    filterByHouse: "House Filter",
     emptyRecords: "Empty Records",
     lblDestino: "Destiny",
     lblExp: "Pxs",
@@ -937,12 +747,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     validationErrorName: "The name is required.",
     validationErrorGeneric: "Please fix the form errors before saving.",
     draftDiscardConfirm: "Discard the changes? They won't be saved.",
-    schoolShield: "ACADEMY:",
     secDatosAlumno: "Character Personal Details",
-    secLinajeDestino: "Heritage, Destiny & Economy",
-    secEstresRango: "Stress Thresholds",
-    secPersonalAspects: "Personal Aspects",
-    secCustomFields: "Custom Attributes",
 
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Physical Stress",
@@ -956,7 +761,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderConsecuenciaFisica: "e.g. Broken arm",
     placeholderConsecuenciaMental: "e.g. Nightmares",
     placeholderConsecuenciaSocial: "e.g. Bad name",
-    labelActual: "CURRENT",
     labelMaximo: "MAXIMUM",
     labelMax: "Max",
     chooseImage: "Choose image",
@@ -995,7 +799,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 8. Aspects, Belongings, Clubs & Custom Fields
     aspectosPersonales: "Personal Aspects / Traits",
-    addAspecto: "Add Aspect",
     equipo: "Spellbooks & Inventory",
     clubes: "Clubs & Extracurriculars",
     customFields: "Custom Attributes",
@@ -1029,11 +832,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmDeleteItem: "Delete this item?",
 
     // 9. Academic Skills & Preset Templates
-    catFisicas: "Physical Skills",
-    catMentales: "Mental Skills",
-    catSociales: "Social Skills",
-    catTroncales: "Core Curriculum",
-    catOptativas: "Elective Subjects",
     removeSkill: "Remove Skill",
     addSkill: "Add Skill",
     placeholderNewSkillCategory: "New skill",
@@ -1044,9 +842,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     noSkillsInCategory: "No skills.",
 
     // 10. Spellbooks, Brews & Grimoires
-    conjuroName: "Spell Name",
-    pocionName: "Potion Formula",
-    spellsAndPotions: "Spellbooks & Brews",
     specialized: "Specialist",
     level: "Grade",
     addSpell: "Scribe Spell",
@@ -1062,7 +857,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     register: "Register",
     catalogOfPotions: "Laboratory Potions",
     registerNewPotion: "New potion",
-    labelGrado: "Grade",
     labelDificultad: "Difficulty",
 
     // 11. Journal / Chronicles Notes
@@ -1080,22 +874,17 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderNoteTitle: "Title (optional)",
     placeholderNoteContent: "Note text",
     labelNotesChronicleTitle: "Celestial Journal",
-    placeholderNotasChronicle: "Write here the chronicles, class logs, extracurricular pacts or secrets discovered in the academy...",
     notesLabel: "Notes",
     registerNote: "Register Note",
     entryFrom: "Entry from ",
-    consolidatedJournal: "Consolidated Journal",
 
     // 12. Gallery, Portrait Fitting & Cropping
     uploadAvatar: "Upload portrait",
     uploadGallery: "Add image",
     pasteUrl: "Paste internet link",
-    invalidUrl: "Invalid URL",
     galleryInstructions: "The character's images",
     labelGalleryEmpty: "Empty gallery",
     confirmDeleteGalleryImage: "Delete this image?",
-    subirArchivoLocalMax: "Upload File (Max Size: 2MB)",
-    imageTooLarge: "Image is too large and compression could not reduce it enough. Please select a dynamic image under 5MB.",
     imageUploadError: "The image could not be used. Try another file.",
     btnChangePhoto: "Change photo",
     lblAvatarFit: "Portrait Fit",
@@ -1108,56 +897,13 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 13. Settings, Storage, Purging & Backups
     about: "About",
     aboutDescription: "Character sheets for magic academy games.",
-    installHelp: "PWA Installation",
-    installHelpText: "This app runs fully locally and offline. On desktop or mobile devices, select 'Install app' or 'Add to home screen' from your browser menu to open it in full-screen immersion.",
     storageInfo: "Storage",
-    storageInfoText: "Your characters are safely stored locally in your browser's IndexedDB database. Your data is private and offline-first.",
-    estimatedUsage: "Estimated usage:",
-    totalQuota: "Total quota:",
     schoolSealPrefix: "School Seal — Magistri Scholae 2026",
     languageSelector: "Select Language",
     settingsCurrentLanguage: "Current Language",
     settingsLanguageExplanation: "Configure the wizarding interface preferred language.",
-    exportBackup: "Export System Backup",
-    importBackup: "Import System Backup",
-    resetData: "Wipe System Database",
-    resetDataConfirmPlaceholder: "Type 'DELETE ALL' to confirm",
-    resetDataConfirmError: "Confirmation word does not match.",
-    resetSuccess: "The local database has been completely wiped.",
-    importSuccess: "Database backup imported successfully.",
-    importError: "Invalid or corrupted backup file.",
-    importReplace: "Replace database completely",
-    importAdd: "Merge with current characters",
-    importMergeRequestTitle: "Backup Import Selection",
-    importMergeRequestText: "A backup file has been read. Do you want to replace all current characters with the imported file, or merge the imported characters without losing current data?",
-    settingsTitleDatabaseTools: "Backup & Safe Export",
-    settingsDDBBExplanation: "Download local records as highly portable JSON backups containing all character traits.",
-    settingsExecutePurge: "EXECUTE PURGE",
-    settingsConfirmWipeDDBBDescription: "This action will permanently delete ALL local characters and stored images. Type 'DELETE ALL' inside the field to proceed:",
-    backupDownloadedMsg: "Backup downloaded successfully.",
-    backupErrorExportMsg: "Error exporting records.",
-    backupErrorOverwriteMsg: "Overwrite failed.",
-    backupErrorMergeMsg: "Merge failed.",
-    backupErrorWipeMsg: "Failed to wipe database.",
-    backupTotalStudentsInFile: "Characters in file",
-    backupExportedOn: "Exported on",
-    labelOfflineAutoSave: "OFFLINE AUTO-SAVE ENABLED",
-    pwaOfflineStatusSuffix: "Cached",
-    pwaStatusLabel: "PWA Status: Offline",
-    exportSelect: "Export Selected",
-    selectStudents: "Select Characters",
-    selectAll: "Select All",
-    deselectAll: "Deselect All",
-    exportStudent: "Export Character",
     mockModeBanner: "DEMO — Fictional data; nothing is saved to your sheets.",
     storageLoadError: "Could not load your data. Reload to retry.",
-    importBondWarnings: "Import complete. Detached {n} references to records missing from the file.",
-    studentListEmptyBackup: "No characters or familiars in this mode to export.",
-    exportSelectTitle: "Selective Export",
-    exportSelectDescription: "Select which character sheets you want to package into the JSON backup file.",
-    searchBackupStudents: "Search character (by name, type or house)...",
-    exportSelectedCount: "Cards to export: {n}",
-    exportFullBackup: "Full Backup (All)",
     characterTypeStudent: "Student",
     characterTypeStudentDescription: "Student of Magistri Scholae belonging to a founding house.",
     characterTypeAdultWizard: "Adult Wizard",
@@ -1197,10 +943,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     discardDraftTitle: "Discard Draft",
     discardDraftConfirmBtn: "Discard Changes",
     removeAvatar: "Remove portrait",
-    importAction: "Import",
-    downloadAction: "Download",
-    selectAtLeastOneError: "Please select at least one character to export.",
-    noMatchingStudents: "No matching characters found.",
     deleteCustomField: "Delete field",
     emptyCustomFields: "No custom fields.",
     familiarEditorCardTitle: "Familiar Editor",
@@ -1215,36 +957,21 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarDescriptionPlaceholder: "e.g. Looks and temperament",
     familiarValidationError: "Both the familiar's name and species are required.",
     familiarSavedToast: "Familiar saved.",
-    familiarDeletedToast: "Familiar removed from the registry.",
-    familiarGalleryTitle: "Registered Familiars",
-    familiarGalleryEmpty: "No familiars have been created in the registry yet.",
     familiarCreateNewBtn: "New Familiar",
-    familiarUpdateBtn: "Update Familiar",
     familiarSaveNewBtn: "Save Familiar",
     confirmFamiliar: "Confirm familiar",
-    familiarOpenEditorBtn: "Open Familiar Editor",
-    familiarConfirmDelete: "Permanently delete this familiar sheet?",
     filterFamiliars: "Familiars",
     familiarSpeciesShort: "Species",
     familiarBondLabel: "Bond",
     familiarUnbound: "Unbound",
     noDescriptionDefined: "No description recorded",
-    familiarDetailTitle: "Magical Familiar Sheet",
     familiarBondSectionTitle: "Magical Bond",
-    familiarBondWithWizard: "Bonded Wizard",
     familiarBondNone: "No bond",
     familiarBondNoneHint: "Not linked to any character.",
     familiarChangeBond: "Change Bond",
     familiarUnbind: "Unbind",
     familiarBondStudent: "Link character",
-    familiarSelectMasterPlaceholder: "Select wizard...",
-    familiarEditInEditor: "Full Editor",
-    familiarQuickEdit: "Quick Edit",
     familiarBackToList: "Back to Characters",
-    familiarDeleteTitle: "Release / Delete Familiar",
-    familiarDeletePrompt: "Are you sure you want to permanently delete this familiar sheet? Its chronicles and gallery will be deleted.",
-    familiarDeleteConfirmBtn: "Yes, Delete Familiar",
-    familiarSavedInlineToast: "Familiar updated successfully",
     familiarViewDetail: "View Familiar Sheet",
     wizardViewDetail: "View Wizard Sheet",
     tabFamiliarProfile: "Profile & Bond",
@@ -1252,10 +979,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarNotePlaceholder: "e.g. Found a key in the garden",
     familiarNotesEmpty: "No notes.",
     tabFamiliarGallery: "Memory Gallery",
-    archetypeStudent: "Academy Student",
-    archetypeAdultWizard: "Adult Wizard / Professor",
     archetypeFamiliar: "Magical Familiar",
-    noFamiliarBonded: "No familiar bonded",
     bondExistingFamiliar: "Link",
     createNewFamiliar: "Create Familiar",
     selectFamiliarToBond: "Choose a character.",

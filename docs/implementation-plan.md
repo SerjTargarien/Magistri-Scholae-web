@@ -286,7 +286,7 @@ Each step below is its own pull request. It keeps the app working under the brow
     5. ~~**GM notes**~~: dropped by the owner (12 November 2026). R3.6 removed the server's GM-notes endpoint and table (owner, 13 November 2026).
   - ~~Lists show and filter by each character's **partida**~~: moved to R4, which creates the table labels (revised order).
   - ~~Text goes through `localization.ts`. No `window.confirm`.~~ Folded into the R3.4 polish pass, which does the same work (revised order).
-- **R3.6 Retire the old app.**
+- **R3.6 Retire the old app** (**done 13 November 2026**, PRs #79–#82).
   - Remove the code of local mode (it stops working at the R3.4 switch), the Dexie code, the old backup import/export, the typed-phrase reset and the stopgap generic forms.
   - Keep the service worker, which since milestone 3 caches only the app's own files and never `/api` or `/media`. Give its cache a new name so browsers that had the old app drop its cached files after launch.
   - The smoke suite runs against the mock and against a real backend in CI.

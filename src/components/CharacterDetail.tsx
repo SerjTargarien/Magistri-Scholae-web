@@ -336,6 +336,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 </label>
                 <input
                   {...limitAttrs("character", "concepto")}
+                  id="input-sheet-concepto"
                   type="text"
                   value={character.concepto || ""}
                   disabled={!writable("concepto")}

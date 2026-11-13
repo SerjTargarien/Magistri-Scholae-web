@@ -42,6 +42,58 @@ jobs:
             test-results/
           retention-days: 7
 
+  e2e-backend:
+    # The browser tests of the account app against a real Django/PostgreSQL
+    # backend (R3.6): the isolated fictional preview, never real data.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: magistri_preview
+          POSTGRES_USER: magistri
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U magistri -d magistri_preview"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      CI: "true"
+      E2E_REMOTE: "1"
+      DJANGO_DEBUG: "true"
+      DJANGO_SECRET_KEY: development-only-ci-preview-not-a-secret
+      DJANGO_CSRF_TRUSTED_ORIGINS: http://127.0.0.1:4313
+      POSTGRES_USER: magistri
+      POSTGRES_PASSWORD: ci-only-not-a-secret
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: backend/.python-version
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: python -m pip install -r backend/requirements.txt
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: python backend/manage.py prepare_remote_preview --settings=config.preview_settings
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-backend
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   deploy-config:
     runs-on: ubuntu-latest
     timeout-minutes: 15

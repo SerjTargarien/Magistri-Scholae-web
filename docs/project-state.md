@@ -786,7 +786,15 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 - The cache is now `magistri-scholae-account-v3` (was `magistri-scholae-static-v2`). On activation the worker deletes every other `magistri-scholae-` cache, so a browser that had the old app drops its cached files once, at the next release it loads. What it caches is unchanged: only the app's own files, never `/api` or `/media`.
 - Checks: a new unit test (activation drops the old caches and keeps the current one and other sites' caches); 42 unit tests; type check.
 
-**Next:** the last part of R3.6: browser tests against a real backend in CI.
+**Next:** see step 4.
+
+## R3.6 step 4: browser tests against a real backend — 13 November 2026
+
+- `e2e/remote.spec.ts` runs the account app against Django and PostgreSQL (the isolated fictional preview, `prepare_remote_preview`) through Vite's proxy: the assigned player's edit and private note are kept by the server after a reload, and a GM-only field never reaches the player's browser; the GM reads the edit and the GM-only field but not the player's note; the shared reader sees only the shared sheet, with no edit button. Playwright runs it only with `E2E_REMOTE=1`; CI has a new job, «e2e-backend», with its own PostgreSQL. The sheet's concept box gained an id (`input-sheet-concepto`) for it.
+- **R3.6 is complete.** Exit criteria: the smoke suite runs in CI against the mock and a real backend; nothing visible changed; all tests pass. Checking the feature checklist on staging itself stays a manual check before milestone 1.
+- Checks: type check; unit tests; the new job in CI (it needs PostgreSQL, so it did not run on this PC).
+
+**Next:** R6, the testers' own backend, published with the finished R3 as milestone 1 (needs the owner's approval).
 
 ## Updating this handoff
 

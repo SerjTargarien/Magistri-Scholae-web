@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const CACHE_NAME = "magistri-scholae-static-v2";
+// A new name for the account app (R3.6): on activation every older
+// "magistri-scholae-" cache, including the retired local app's, is deleted.
+const CACHE_NAME = "magistri-scholae-account-v3";
 
 // Install event - skip waiting to activate immediately
 self.addEventListener("install", (event) => {

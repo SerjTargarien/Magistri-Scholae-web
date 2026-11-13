@@ -3,15 +3,16 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { test } from "node:test";
 
-function worker(cacheControl = "") {
+function worker(cacheControl = "", cacheNames: string[] = []) {
   const handlers: Record<string, (event: any) => void> = {};
   let writes = 0;
+  const deleted: string[] = [];
   const response = new Response("fictional fixture", { headers: { "Cache-Control": cacheControl } });
   vm.runInNewContext(readFileSync("public/sw.js", "utf8"), {
     URL, Response,
-    self: { location: { origin: "https://demo.invalid" }, addEventListener: (name: string, callback: (event: any) => void) => { handlers[name] = callback; } },
+    self: { location: { origin: "https://demo.invalid" }, clients: { claim: async () => undefined }, addEventListener: (name: string, callback: (event: any) => void) => { handlers[name] = callback; } },
     fetch: async () => response,
-    caches: { open: async () => ({ put: () => { writes += 1; } }), match: async () => response },
+    caches: { open: async () => ({ put: () => { writes += 1; } }), match: async () => response, keys: async () => cacheNames, delete: async (name: string) => { deleted.push(name); return true; } },
   });
   return {
     dispatch(url: string) {
@@ -20,6 +21,12 @@ function worker(cacheControl = "") {
       return result;
     },
     writes: () => writes,
+    async activate() {
+      let done: Promise<unknown> | undefined;
+      handlers.activate({ waitUntil: (value: Promise<unknown>) => { done = value; } });
+      await done;
+      return deleted;
+    },
   };
 }
 
@@ -49,4 +56,9 @@ test("service worker ignores unregistered GETs, foreign assets and query-bearing
   const sw = worker();
   for (const url of ["https://demo.invalid/custom-data", "https://other.invalid/assets/app.js", "https://demo.invalid/assets/app.js?private=1"])
     assert.equal(sw.dispatch(url), undefined);
+});
+
+test("activation drops the old apps' caches and keeps the current one and other sites' caches", async () => {
+  const sw = worker("", ["magistri-scholae-v1", "magistri-scholae-static-v2", "magistri-scholae-account-v3", "someone-else"]);
+  assert.deepEqual(await sw.activate(), ["magistri-scholae-v1", "magistri-scholae-static-v2"]);
 });

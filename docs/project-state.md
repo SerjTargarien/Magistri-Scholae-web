@@ -777,9 +777,16 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 - The owner chose to remove the unused GM-notes endpoint (`/characters|familiars/{id}/gm-notes`), since GM notes were dropped on 12 November. Removed: the endpoint, its `GMNote` table (migration `0008_remove_gm_notes`, which drops the table; staging held 0 GM notes), its operation replay, its tests and the demo mock's copy. A request to the old path now answers 404 (tested).
 - Checks: Django checks, migration check and API contract locally; the backend suite in CI (it needs PostgreSQL).
-- Staging backend: see the release note below once it is rebuilt.
+- Staging backend rebuilt at `bb27085` after a backup (`staging/magistri-staging-20261113-055552.tar.gpg`), with the owner's go-ahead given with the decision: migration `0008` applied, a few seconds of API restart; both APIs answer. Neither live frontend (staging `12ab53c`, public `206d290`) calls the removed path.
 
-**Next:** the rest of R3.6: the service worker's new cache name; browser tests against a real backend in CI.
+**Next:** see step 3.
+
+## R3.6 step 3: the service worker's new cache name — 13 November 2026
+
+- The cache is now `magistri-scholae-account-v3` (was `magistri-scholae-static-v2`). On activation the worker deletes every other `magistri-scholae-` cache, so a browser that had the old app drops its cached files once, at the next release it loads. What it caches is unchanged: only the app's own files, never `/api` or `/media`.
+- Checks: a new unit test (activation drops the old caches and keeps the current one and other sites' caches); 42 unit tests; type check.
+
+**Next:** the last part of R3.6: browser tests against a real backend in CI.
 
 ## Updating this handoff
 

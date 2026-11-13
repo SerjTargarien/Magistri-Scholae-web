@@ -835,7 +835,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - Owner's request, after the half-width «Escuela» card on Perfil: the school and the house get their own tab, **«Institución»**, second after Perfil. «Escuela» is laid out like the house card (the app's crest and the school's name on the left; a student's year and class rank, or an adult's role and teaching, on the right; then subjects and clubs, one row each like the subjects); «Casa y Heráldica» sits beside it, and for adults becomes «Antigua casa», with heraldry when the text names a house. **Perfil** is «Datos Personales» beside one card with «Aspectos Personales» and «Complicaciones», then «Campos Personalizados». An adult's role, institution and former house moved from «Datos Personales» to «Institución». No stored field changed; the former house stays free text.
 - Code: `src/components/sheet/InstitutionTab.tsx`, `HousePanel.tsx` (moved out of `ProfileTab.tsx`), `SchoolPanel.tsx` rewritten; tab id `institucion`; new texts `institucion` and `removeClub`.
 - Checks: type check; 42 unit tests; 59 browser tests (the house, the clubs and an adult's role and institution are now checked on «Institución»); screenshots of a student and an adult on a desktop, a tablet and a phone, in view and edit mode.
-- Open with the owner: whether players should add their own named cards of custom fields (a stored change: each custom field would need a group).
+- Decided the same day: players and the GM get their own named cards of custom fields, as a step right after R4 ([implementation-plan.md](implementation-plan.md#custom-cards-sm-added-13-november-2026-after-r4)). Not built yet.
 
 ## Updating this handoff
 

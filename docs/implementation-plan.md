@@ -32,12 +32,13 @@ Since the R3.4 switch (8 November 2026) the public site and staging run the acco
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts (R3.1–R3.4 **done 12 Nov 2026**) | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
 | R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R6 (approved order) |
+| Custom cards (**added 13 Nov 2026**) | Named cards of text-only custom fields on Perfil, made by players and the GM | S–M | R4 |
 | R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
 | R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
 | R6 Own backend for the testers (was «Accounts launch») | The public site's data moves from the staging backend to its own production backend | S–M | R3.6 (approved order: before R4) |
 | R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R5 (approved order: offline after the model settles) |
 
-**Critical path** (revised order, approved 9 November 2026): the rest of R3 → R6 → R4 → R4.5 → R5, then offline (R7.1–R7.2) once the data model has settled.
+**Critical path** (revised order, approved 9 November 2026; custom cards added 13 November): the rest of R3 → R6 → R4 → custom cards → R4.5 → R5, then offline (R7.1–R7.2) once the data model has settled.
 
 **Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done. *(Superseded on 9 November by [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026).)*
 
@@ -66,6 +67,7 @@ Publishing happens only at the milestones marked ◆; between them, changes merg
 | 5 | **R3.6 Retire the old app:** local mode, Dexie, old backups and stopgap forms deleted; the service worker's cache renamed | S | App | Pure deletion. Done before the milestone, the testers' browsers drop the old cached files once, and every later step reads less code. |
 | 6 ◆ | **R6 Own backend for the testers** (moved from after R5), published with steps 1–5 as **milestone 1** (**done 13 Nov**: moved, published, and backups that store each image once) | S–M | Server | Must come before R4's first migration (principle 1). The testers' data moves to a production backend; staging becomes the development copy, so later migrations are rehearsed there first and reach testers only at a milestone, with their screens. Includes backups that store each image once and the launch checklist. One change event for testers: the finished R3 screens and their own backend together. |
 | 7 ◆ | **R4 Administration and roles**, in this order: (a) administrator screens for invitations, reset codes and users; (b) table labels and the «partida» filter; (c) sheet statuses: drafts and active / inactive; (d) assignment, campaign creation and renaming, deleting archived sheets; (e) administrator access with the GM's permission (privacy design first). **Milestone 2.** | M–L | Server and app | (a) first because the agent still issues them by hand (the testers' invitations expire on 15 November) (principle 3). The whole release settles who may see and change each sheet, so the new data of R4.5 and R5 follows those rules from the start. |
+| 7b | **Custom cards** (owner, 13 November 2026): named cards of text-only custom fields, so new information needs no maintenance update | S–M | Server and app | After R4, so the cards follow its rules for drafts and roles from the start; a small registry change with no conversion of existing sheets. Reaches the testers at the next milestone the owner approves. |
 | 8 ◆ | **R4.5 Sheet types.** **Milestone 3.** The stress rules (its step 6) wait for the GM's answers (Q9–Q11) and may ship later. | M | Server and app | Before R5 because the Biblioteca's character view, filters and institutions (teachers, students) are built on the sheet types; building them on today's `characterType` would mean doing them twice (principle 2). |
 | 9 ◆ | **R5 Biblioteca del Máster,** steps 0–5; a milestone after each step the owner chooses. The main list's filter bar (Controls, D2) comes with step 3 (Personajes), which needs the same filtering. | L | Server and app | The largest release; it needs the final roles (R4) and sheet types (R4.5). |
 | 10 | **Images from a web address** (moved from R3.4): the server downloads the image | S–M | Server | The boxes are hidden, so nobody misses it, and the server-side download needs its own security review. It fits once production releases are routine. |
@@ -337,6 +339,24 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 **Exit criteria:** on staging, after `createsuperuser`, the owner does everything else in the UI without becoming a GM: a campaign, GM and player invitations, registration, members, a reset code and disabling an account. A fictional GM account sets up two tables and moves a character between them. The owner, as a player, never sees another player's sheet.
 
 **Rollback:** revert.
+
+## Custom cards (S–M; added 13 November 2026, after R4)
+
+**Goal (owner, 13 November 2026):** players and the GM group text-only information in their own named cards on Perfil («Familia», «Contactos», «Secretos»…), each with its own custom fields, so a new kind of information needs no maintenance update.
+
+**Why it is small on the server:** the field registry (`backend/domain/fields.py`) already validates, projects and edits lists inside lists by stable item ID, so the cards are one new registry entry, with no new server logic. A restriction on a card already covers everything in it («explicit parents dominate children»), so a whole card can be hidden in one step. Existing sheets need no conversion: today's «Campos personalizados» stays as the first card, and new cards follow it.
+
+**Work** (designed in product-design.md first):
+
+1. **Data:** `tarjetasPersonalizadas` on the character, a list of cards with a title and their fields (a name and a text value, as `camposPersonalizados`); its rules in field-rules.md and the registry (proposed: up to 20 cards, title required, text 60; up to 50 fields per card, as today's names and values); the generated types and the mock server follow. Rehearsed on staging; it reaches production with a backup at the next milestone the owner approves (at the latest milestone 3, with R4.5).
+2. **Sheet:** in edit mode «+ Nueva tarjeta» with its title; rename; add and remove fields in each card; removing a card asks first and says how many fields it holds; the cards read like «Campos personalizados» (label above value).
+3. **Creation form:** the same cards on «Aspectos y equipo», if the design keeps custom fields there.
+
+**Left out on purpose:** moving a field to another card (a move is a removal and a new field, which would drop any restriction on it; copying the text is the honest version), and cards the Máster defines for every character of a campaign (a Biblioteca feature, R5).
+
+**Exit criteria:** cards are created, renamed, filled, hidden from another player by the GM, removed and reloaded on desktop and phone; existing sheets show exactly as before.
+
+**Rollback:** revert the app freely. Once cards are stored, an older server registry would refuse those sheets as unknown fields, so reverting the server step means restoring the backup taken before it.
 
 ## R4.5 — Sheet types (M; added 9 November 2026)
 

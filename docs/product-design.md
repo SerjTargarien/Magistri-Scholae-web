@@ -369,6 +369,7 @@ Tabs:
 **Target:**
 
 - Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, **done 9 November 2026**); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
+- **Custom cards** (owner, 13 November 2026; after R4): players and the GM add their own named cards of text-only fields on Perfil («+ Nueva tarjeta»), after «Campos personalizados»; a whole card can be hidden; no moving of fields between cards; campaign-wide cards wait for the Biblioteca (R5).
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
 - Removing anything asks first (polish pass); generated journal titles are shown, not stored (**done**).
 - Drafts, proposal and confirmation, and active/inactive status (R4).

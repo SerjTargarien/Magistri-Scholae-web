@@ -40,7 +40,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | Equipment | **equipo**; one item is an **objeto** | «inventario», «posesiones» |
 | The sheet tab with the Bitácora and private notes | **Bitácora** | «Inventario y Notas», «Equipo y Bitácora» |
 | The sheet tab with spells, potions and equipment | **Magia y equipo** | «Conjuros y Pociones» |
-| The Perfil panel with year, class rank, teaching and clubs | **Escuela**; its list is **Clubes** | «Clubes Escolares» |
+| The sheet tab with the school and the house | **Institución**: the cards **Escuela** (its list is **Clubes**) and **Casa y Heráldica** (an adult's **Antigua casa**) | «Clubes Escolares» |
 | The form tab with aspects and equipment | **Aspectos y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
@@ -320,7 +320,7 @@ Two short steps instead of a branching list.
    - **Escuela:** for a menor, an «**Alumno**» switch, on by default; for an adulto, «**Personal de escuela**» as two switches, «**Administración**» and «**Profesor**», both possible (a director who still teaches);
    - a line under the rows says what the sheet will have (e.g. «Tendrá: Casa, Escuela, Magia y equipo»); «Continuar» opens the creation form, whose tabs follow the answers.
 - **What the Máster lets players create** (per campaign): the Máster chooses which of these options players may pick (the three cards, each age, a non-magical character, «Alumno», «Administración», «Profesor»); every option by default. A specific player can get a different set. Options a player may not pick are not shown, and a step with a single possible answer is skipped. The server enforces it on creation (and on drafts, R4); the Máster's own sheets and later type changes are not limited; tightening it changes no existing sheet. It is a campaign setting, opened next to «Habilidades de la campaña» until the Biblioteca (R5).
-- **The «Escuela» panel becomes the character's institution** (R5 designs institutions: schools and other organizations): «**Escuela**» for students and school staff (year, class rank, clubs; post and subjects), «**Organización**» for anyone else who belongs to one (its name, the character's «Rol / Título», the section in R5), and **no panel** for a character without one. In edit mode such a character shows «+ Añadir escuela u organización». Until R5 the institution is the free text there is today; R5 links it to the campaign's institutions.
+- **The «Escuela» card on «Institución» becomes the character's institution** (R5 designs institutions: schools and other organizations): «**Escuela**» for students and school staff (year, class rank, clubs; post and subjects), «**Organización**» for anyone else who belongs to one (its name, the character's «Rol / Título», the section in R5), and **no card** for a character without one. In edit mode such a character shows «+ Añadir escuela u organización». Until R5 the institution is the free text there is today; R5 links it to the campaign's institutions.
 - Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago, «Profesor» if its teacher switch is on.
 - The GM can later change any of these answers (a minor grows up; a character becomes a «Criatura mágica»); values the new answers do not show are hidden, not deleted.
 - **Open:** whether a character can belong to more than one institution (R5 now says one, or none).
@@ -353,14 +353,18 @@ Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothin
 
 Tabs:
 
-- **Perfil:** «Datos Personales», «Casa y Heráldica» (students), «Escuela» (year and class rank for students; teacher and subjects for adults; the clubs), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
+- **Perfil:** «Datos Personales»; «Aspectos Personales» and «Complicaciones» in one card; «Campos Personalizados».
+- **Institución:** «Escuela» (crest and name; year and class rank for students; institution, role, teacher and subjects for adults; the clubs) and «Casa y Heráldica» (students) or «Antigua casa» (adults).
 - **Sesión** (usable outside edit mode, on purpose: convenience during play): destiny gems (three, plus one per point above three, up to 10), experience (− +, typed in edit mode), «Aspecto Temporal», three stress tracks, three consequence lists, each consequence with a severity tag (Leve, Moderada, Grave).
 - **Habilidades:** values, removal, «+ Añadir de la lista», knowledge levels, GM-only typed box.
 - **Magia y equipo:** «Grimorio de Conjuros» and «Catálogo de Pociones» (add and remove in edit mode; entries not editable), «Equipo» (quantity ± at any time).
 - **Bitácora:** the journal (add and edit at any time, remove in edit mode) and, below it, the viewer's «Notas privadas» about the sheet.
 
-**Layout (owner, 13 November 2026):** clubs and equipment left the journal's tab. Clubs joined the school details in «Escuela» on Perfil, where R5 will link them to the school's clubs; equipment joined spells and potions, as what the character carries and uses in play. A non-magical character (R4.5) keeps the «Magia y equipo» tab for its equipment, under the name «Equipo». The Máster opens «Habilidades de la campaña» from the main list (until the Biblioteca, R5), no longer from «Ajustes».
 - **Galería:** tap to enlarge; add and remove in edit mode.
+
+**Layout (owner, 13 November 2026):** clubs and equipment left the journal's tab: equipment joined spells and potions, as what the character carries and uses in play; clubs joined the school. A non-magical character (R4.5) keeps the «Magia y equipo» tab for its equipment, under the name «Equipo». The Máster opens «Habilidades de la campaña» from the main list (until the Biblioteca, R5), no longer from «Ajustes».
+
+**Institución (owner, 13 November 2026):** the school and the house have their own tab, second after Perfil, side by side on wide screens and one above the other on a phone. «Escuela» is laid out like the house card: the school's crest and name on the left, the character's place on the right (a student's «Curso académico» and «Puesto en la clase»; an adult's «Rol / Título» and «Profesor de la escuela»), then the subjects taught and the clubs. Until R5 the crest is the app's, a student's school is «Magistri Scholae» and an adult's is the «Institución» text; R5 gives each institution its own name and crest. An adult's card beside it is «Antigua casa»: the house's heraldry when the text names one of the houses, the name alone otherwise, no card when empty. Perfil keeps «Datos Personales» on the left, «Aspectos Personales» and «Complicaciones» in one card on the right, and «Campos Personalizados» below. Only where things are shown changed.
 
 **Target:**
 

@@ -19,6 +19,7 @@ import {
   Trash2,
   Shield,
   User,
+  Landmark,
   Flame,
   FileText,
   Image as ImageIcon,
@@ -33,6 +34,7 @@ import {
 
 import { useCharacterSheet } from "./sheet/useCharacterSheet";
 import { ProfileTab } from "./sheet/ProfileTab";
+import { InstitutionTab } from "./sheet/InstitutionTab";
 import { SessionTab } from "./sheet/SessionTab";
 import { SkillsTab } from "./sheet/SkillsTab";
 import { SpellsTab } from "./sheet/SpellsTab";
@@ -465,6 +467,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
       >
         {[
           { id: "perfil", label: t.perfil, icon: User },
+          { id: "institucion", label: t.institucion, icon: Landmark },
           { id: "sesion", label: t.sesion, icon: Activity },
           { id: "habilidades", label: t.habilidades, icon: Shield },
           { id: "hechizos", label: t.hechizos, icon: Flame },
@@ -496,6 +499,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
 
         {/* TAB 1: PERFIL */}
         {activeTab === "perfil" && <ProfileTab ctx={ctx} />}
+
+        {/* «Institución»: the school and the house (owner, 13 November 2026) */}
+        {activeTab === "institucion" && <InstitutionTab ctx={ctx} />}
 
         {/* TAB 2: SESIÓN (Tracker mode) */}
         {activeTab === "sesion" && <SessionTab ctx={ctx} />}

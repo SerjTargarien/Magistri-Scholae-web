@@ -140,6 +140,8 @@ test("the house changes from its tag on the sheet, in a menu drawn by the app", 
   await createCharacter(page, "House Student");
   await setEditMode(page, true);
   await expect(page.locator("#detail-tab-perfil select")).toHaveCount(0);
+  await openTab(page, "institucion"); // the house sits on «Institución» (owner, 13 November 2026)
+  await expect(page.locator("#detail-tab-institucion select")).toHaveCount(0);
   await page.locator("#tag-house").click();
   await page.locator("#tag-house-option-URANIA").click();
   await expect(page.locator("#tag-house")).toContainText("Urania");
@@ -209,7 +211,8 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await page.locator("#input-new-item-qty").press("Enter");
   await page.locator("#btn-add-inventory-item").click();
   await expect(page.locator("#detail-panel-equipo")).toContainText("Pewter cauldron");
-  await openTab(page, "perfil");
+  await openTab(page, "institucion"); // clubs: in «Escuela» on «Institución»
+  await expect(page.locator("#detail-panel-escuela")).toContainText("Magistri Scholae"); // a student's school, until R5
   await page.locator("#input-new-club").fill("Duelling Club");
   await page.locator("#btn-add-club").click();
   await expect(page.locator("#detail-panel-escuela")).toContainText("Duelling Club");
@@ -386,8 +389,10 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   await expect(characterCard(page, "Smoke Professor")).toBeVisible();
   await expect(characterCard(page, "Luna de Bruma")).toHaveCount(0);
   await openCharacter(page, "Smoke Professor");
-  await expect(page.locator("#character-detail-screen")).toContainText("Potions master");
-  await expect(page.locator("#character-detail-screen")).toContainText("Elder staff"); // one «Varita / Foco mágico» field
+  await expect(page.locator("#detail-tab-perfil")).toContainText("Elder staff"); // one «Varita / Foco mágico» field
+  await openTab(page, "institucion"); // role, institution and teaching in «Escuela»
+  await expect(page.locator("#detail-panel-escuela")).toContainText("Potions master");
+  await expect(page.locator("#detail-panel-escuela")).toContainText("Academy");
   const stored = await storedSheet(page, "Smoke Professor");
   expect(stored).toMatchObject({
     characterType: "adult_wizard", varitaSintonia: "Elder staff",

@@ -59,7 +59,7 @@ The cards show: portrait, house crest, archetype, `curso` (badge, not clipped), 
 | `isTeacher` | Checkbox. | Yes/no |
 | `teachingSubjects` | One comma-separated box; a trailing comma or space vanishes while typing. | **List like aspects (owner decision, visible):** add/remove entries; **list ≤ 30**, each **required, text 120** **Done 9 November 2026** (form and sheet). |
 
-## House (form tab Afiliación, students; sheet Perfil heraldry)
+## House (form tab Afiliación, students; sheet tab Institución)
 
 | Field | Today | Rule |
 |---|---|---|
@@ -125,7 +125,7 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | `.specialized` | Checkbox. | Yes/no |
 | lists | | **List ≤ 200** each |
 
-## Clubs, equipment and journal (sheet tab Notas)
+## Clubs, equipment and journal (sheet tabs Institución, Magia y equipo and Bitácora)
 
 | Field | Today | Rule |
 |---|---|---|

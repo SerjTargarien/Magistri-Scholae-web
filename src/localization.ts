@@ -29,6 +29,7 @@ export interface TranslationDict {
 
   // 2. Navigation Tabs
   perfil: string;
+  institucion: string;
   sesion: string;
   habilidades: string;
   hechizos: string;
@@ -162,6 +163,7 @@ export interface TranslationDict {
   addItem: string;
   addClub: string;
   emptyClubs: string;
+  removeClub: string;
   labelQuantity: string;
   labelAspectsEmpty: string;
   labelAspectosTemporalesEmpty: string;
@@ -351,6 +353,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 2. Navigation Tabs
     perfil: "Perfil",
+    institucion: "Institución",
     sesion: "Sesión",
     habilidades: "Habilidades",
     hechizos: "Magia y equipo",
@@ -484,6 +487,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     addItem: "Añadir objeto",
     addClub: "Añadir club",
     emptyClubs: "Sin clubes.",
+    removeClub: "Quitar club",
     labelQuantity: "Cantidad",
     labelAspectsEmpty: "Sin aspectos.",
     labelAspectosTemporalesEmpty: "Sin aspectos temporales.",
@@ -673,6 +677,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 2. Navigation Tabs
     perfil: "Profile",
+    institucion: "Institution",
     sesion: "Session Tracker",
     habilidades: "Attributes & Skills",
     hechizos: "Magic & Equipment",
@@ -806,6 +811,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     addItem: "Add item",
     addClub: "Register Club",
     emptyClubs: "No clubs.",
+    removeClub: "Remove club",
     labelQuantity: "Quantity",
     labelAspectsEmpty: "No aspects.",
     labelAspectosTemporalesEmpty: "No active temporary aspects.",

@@ -3,32 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The sheet's "perfil" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
+// The sheet's "perfil" tab: Datos Personales, Aspectos and Complicaciones, the custom fields. The
+// school and the house are on «Institución» (owner, 13 November 2026). Moved out of CharacterDetail.tsx in R3.4.
 import React from "react";
-import { HOUSES } from "../../data/gameData";
-import { translateHouseMotto } from "../../localization";
 import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
-import { HouseCrest, hasRecognizedCrest } from "../HouseCrest";
-import { Shield, User, Plus, X } from "lucide-react";
-import type { House } from "../../model/sheet";
+import { User, Plus, X } from "lucide-react";
 
 import type { SheetContext } from "./useCharacterSheet";
-import { SchoolPanel } from "./SchoolPanel";
 import { limitAttrs } from "../LimitHint";
-import { TagMenu } from "../TagMenu";
-
-/** The house tag (Controls, tag menu): the medallion and the name, as in the approved demo. */
-const HOUSE_TAG = "inline-flex items-center gap-2 min-h-[34px] pl-1 pr-3 rounded-full border border-amber-600/30 bg-[rgba(17,13,27,0.9)] text-[#fce8a6] font-magic text-[11px] font-bold uppercase tracking-[0.12em] hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500";
 
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
-    lang, character, t, hInfo, localizedLore, characterType, writable, shown, canAdd, canRemove, edit, profile,
+    character, t, characterType, writable, shown, canAdd, canRemove, edit, profile,
     updateProfileField, isQuickEditing, newPersonalAspectInput,
     setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
     newCustomFieldValue, setNewCustomFieldValue, handleDeleteAspect, handleAddNewAspect, handleDeleteComplication,
     handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
   } = ctx;
-  const casa = character.casa ?? "";
   const customFields = character.camposPersonalizados ?? [];
   /** The age, a whole number; an empty or unreadable box changes nothing. */
   const editAge = (text: string) => {
@@ -40,7 +31,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-tab-perfil">
 
             {/* Personal Data Panel (Row 1 Left on Desktop; Position 1 on Mobile) */}
-            <div className={`glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4 relative overflow-hidden h-full flex flex-col ${characterType === "adult_wizard" ? "md:col-span-2" : ""}`} id="detail-panel-datos-personales">
+            <div className={`glass-panel p-6 rounded-xl border border-violet-500/15 space-y-4 relative overflow-hidden h-full flex flex-col`} id="detail-panel-datos-personales">
               <>
                 <FiligreeCorner position="tl" className="w-6 h-6" />
                 <FiligreeCorner position="tr" className="w-6 h-6" />
@@ -132,49 +123,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
                   {characterType === "adult_wizard" && (
                     <>
-                      {shown("adultWizardProfile/role") && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardRole}</label>
-                        <input
-                          {...limitAttrs("character", "adultWizardProfile/role")}
-                          type="text"
-                          value={profile.role || ""}
-                          disabled={!writable("adultWizardProfile/role")}
-                          onChange={(e) => updateProfileField("role", e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-                      )}
-
-                      {shown("adultWizardProfile/institution") && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardInstitution}</label>
-                        <input
-                          {...limitAttrs("character", "adultWizardProfile/institution")}
-                          type="text"
-                          value={profile.institution || ""}
-                          disabled={!writable("adultWizardProfile/institution")}
-                          onChange={(e) => updateProfileField("institution", e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-                      )}
-
-                      {shown("adultWizardProfile/formerHouse") && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardFormerHouse}</label>
-                        <input
-                          {...limitAttrs("character", "adultWizardProfile/formerHouse")}
-                          type="text"
-                          value={profile.formerHouse || ""}
-                          disabled={!writable("adultWizardProfile/formerHouse")}
-                          onChange={(e) => updateProfileField("formerHouse", e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-                      )}
-
-                      {/* One «Varita / Foco mágico» for every character: for adults it sits next to the former house. */}
+                      {/* One «Varita / Foco mágico» for every character. */}
                       {shown("varitaSintonia") && (
                       <div className="flex flex-col gap-1">
                         <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.varitaSintonia}</label>
@@ -250,27 +199,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
                   {characterType === "adult_wizard" && (
                     <>
-                      {shown("adultWizardProfile/role") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardRole}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.role || "—"}</div>
-                      </div>
-                      )}
-
-                      {shown("adultWizardProfile/institution") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardInstitution}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.institution || "—"}</div>
-                      </div>
-                      )}
-
-                      {shown("adultWizardProfile/formerHouse") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardFormerHouse}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.formerHouse || "—"}</div>
-                      </div>
-                      )}
-
                       {shown("varitaSintonia") && (
                       <div>
                         <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.varitaSintonia}</div>
@@ -292,136 +220,14 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
 
             </div>
 
-            {/* House Affiliation & Heraldry Panel (Row 1 Right on Desktop; Position 2 on Mobile) */}
-            {characterType !== "adult_wizard" && shown("casa") && (
-              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-filiacion">
-                <>
-                  <FiligreeCorner position="tl" className="w-6 h-6" />
-                  <FiligreeCorner position="tr" className="w-6 h-6" />
-                  <FiligreeCorner position="bl" className="w-6 h-6" />
-                  <FiligreeCorner position="br" className="w-6 h-6" />
-                </>
-                
-
-                <div className="flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
-                      <Shield className={`w-4 h-4 text-amber-400`} />
-                      {t.titleHouseHeraldry}
-                    </h3>
-                    <CompassStarDivider className="-mt-1 mb-3" />
-
-                    {/* Upper Area: Crest on upper-left with name underneath, Lema to its right in bigger font */}
-                    <div className={`flex flex-row items-center gap-4 sm:gap-6 my-2 pb-4 border-b border-amber-500/15`}>
-                      {/* Left: House Crest with House Name Under It */}
-                      <div className="flex flex-col items-center justify-center shrink-0 min-w-[90px] sm:min-w-[105px]">
-                        <HouseCrest
-                          house={casa}
-                          isAdultWizard={false}
-                          className="w-20 h-20 sm:w-22 sm:h-22 filter drop-shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-transform hover:scale-105"
-                          variant="shield"
-                        />
-                        {isQuickEditing && writable("casa") ? (
-                          <div className="mt-2 flex justify-center">
-                            <TagMenu<House>
-                              id="tag-house"
-                              title={t.casa}
-                              value={casa.toUpperCase() as House}
-                              emptyLabel={t.casa}
-                              editable
-                              onChange={(house) => edit("casa", house)}
-                              tagClass={HOUSE_TAG}
-                              options={Object.keys(HOUSES).map((hKey) => ({ value: hKey as House, label: HOUSES[hKey].nombre, icon: <HouseCrest house={hKey} variant="medallion" className="w-6 h-6 shrink-0" /> }))}
-                            />
-                          </div>
-                        ) : (
-                          <div className={`font-magic text-xs tracking-widest uppercase text-amber-300 font-bold mt-2 text-center drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]`}>
-                            {hInfo.nombre}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right: Lema in a bigger font (read-only, linked to the house/organization) */}
-                      <div className="flex-1 flex flex-col justify-center min-w-0 pl-1 sm:pl-3">
-                        <div className="text-[9px] text-neutral-400 uppercase tracking-widest font-mono mb-1.5 flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full bg-amber-400/80 inline-block`}></span>
-                          {t.labelMotto}
-                        </div>
-                        <blockquote className={`font-serif italic text-base sm:text-lg md:text-xl font-medium text-amber-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] leading-snug`}>
-                          « {translateHouseMotto(hInfo.lema, lang)} »
-                        </blockquote>
-                      </div>
-                    </div>
-
-                    {/* Data grid: Casa Fundadora & Lema conditionally hidden when the house has a recognized crest */}
-                    <div className="relative grid grid-cols-2 gap-3 text-xs font-mono mt-4">
-                      {!hasRecognizedCrest(casa) && (
-                        <>
-                          <div>
-                            <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.casa}</div>
-                            {isQuickEditing && writable("casa") ? (
-                              <div className="mt-2 flex justify-center">
-                                <TagMenu<House>
-                                  id="tag-house-other"
-                                  title={t.casa}
-                                  value={casa.toUpperCase() as House}
-                                  emptyLabel={t.casa}
-                                  editable
-                                  onChange={(house) => edit("casa", house)}
-                                  tagClass={HOUSE_TAG}
-                                  options={Object.keys(HOUSES).map((hKey) => ({ value: hKey as House, label: HOUSES[hKey].nombre, icon: <HouseCrest house={hKey} variant="medallion" className="w-6 h-6 shrink-0" /> }))}
-                                />
-                              </div>
-                            ) : (
-                              <div className="font-magic text-sm font-bold text-amber-300 uppercase tracking-wider mt-0.5">
-                                {hInfo.nombre}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelMotto}</div>
-                            <div className="text-amber-300 font-serif italic text-sm mt-0.5">
-                              « {translateHouseMotto(hInfo.lema, lang)} »
-                            </div>
-                          </div>
-                        </>
-                      )}
-
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelProvenance}</div>
-                        <div className="text-neutral-200 mt-0.5">{localizedLore.procedencia}</div>
-                      </div>
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelColors}</div>
-                        <div className="text-neutral-200 mt-0.5">{localizedLore.colores}</div>
-                      </div>
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelElement}</div>
-                        <div className="text-neutral-200 mt-0.5">{localizedLore.elemento}</div>
-                      </div>
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.labelTotem}</div>
-                        <div className="text-neutral-200 mt-0.5">{localizedLore.totem}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* «Escuela»: year, class rank, teaching and clubs (moved from Datos Personales and the notes tab) */}
-            <SchoolPanel ctx={ctx} />
-
-            {/* Row 2 on Desktop: Full-width container (md:col-span-2) with Aspectos Personales & Complicaciones side-by-side */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-aspectos-complicaciones-row">
+            {/* Aspectos and Complicaciones, one card to the right of Datos Personales (owner, 13 November 2026) */}
+            <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col gap-8" id="detail-panel-rasgos">
+              <FiligreeCorner position="tl" className="w-6 h-6" />
+              <FiligreeCorner position="tr" className="w-6 h-6" />
+              <FiligreeCorner position="bl" className="w-6 h-6" />
+              <FiligreeCorner position="br" className="w-6 h-6" />
               {/* Personal Aspects Panel (Left on Desktop; Position 3 on Mobile) */}
-              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-aspectos">
-                <>
-                  <FiligreeCorner position="tl" className="w-6 h-6" />
-                  <FiligreeCorner position="tr" className="w-6 h-6" />
-                  <FiligreeCorner position="bl" className="w-6 h-6" />
-                  <FiligreeCorner position="br" className="w-6 h-6" />
-                </>
+              <div className="flex flex-col" id="detail-panel-aspectos">
                 
                 <div className="flex-1 flex flex-col justify-between">
                   <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>
@@ -497,13 +303,7 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
               </div>
 
               {/* Complications Panel (Right on Desktop; Position 4 on Mobile) */}
-              <div className="glass-panel p-6 rounded-xl border border-violet-500/15 relative overflow-hidden h-full flex flex-col justify-between" id="detail-panel-complicaciones">
-                <>
-                  <FiligreeCorner position="tl" className="w-6 h-6" />
-                  <FiligreeCorner position="tr" className="w-6 h-6" />
-                  <FiligreeCorner position="bl" className="w-6 h-6" />
-                  <FiligreeCorner position="br" className="w-6 h-6" />
-                </>
+              <div className="flex flex-col" id="detail-panel-complicaciones">
                 
                 <div className="flex-1 flex flex-col justify-between">
                   <h3 className={`font-magic text-xs text-amber-400 uppercase tracking-widest pb-1 flex items-center gap-2`}>

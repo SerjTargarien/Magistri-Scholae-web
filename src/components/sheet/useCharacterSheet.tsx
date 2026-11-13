@@ -81,7 +81,7 @@ export function useCharacterSheet(sheetProps: CharacterDetailProps) {
   const removeSubject = (id: string) => asking.ask(t.confirmRemoveSubject, () => removeEntry(SUBJECTS, id), t.remove);
 
   // Tabs: perfil, sesion, habilidades, hechizos, notas, galeria
-  const [activeTab, setActiveTab] = useState<"perfil" | "sesion" | "habilidades" | "hechizos" | "notas" | "galeria">("perfil");
+  const [activeTab, setActiveTab] = useState<"perfil" | "institucion" | "sesion" | "habilidades" | "hechizos" | "notas" | "galeria">("perfil");
 
   // Local/Temporary form states for spells & potions
   const [newSpellName, setNewSpellName] = useState("");

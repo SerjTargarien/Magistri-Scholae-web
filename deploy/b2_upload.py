@@ -27,16 +27,24 @@ def call(url, payload=None, headers=None, data=None):
         return json.load(response)
 
 
-def authorize():
+_session = None
+
+
+def authorize(fresh=False):
+    """One authorization per run (media_backup.py uploads many files)."""
+    global _session
+    if _session and not fresh:
+        return _session
     credentials = base64.b64encode(f"{os.environ['B2_KEY_ID']}:{os.environ['B2_APP_KEY']}".encode()).decode()
     account = call(f"{API}/b2_authorize_account", headers={"Authorization": "Basic " + credentials})
     bucket_id = account["allowed"].get("bucketId")
     if not bucket_id or account["allowed"].get("bucketName") != os.environ["B2_BUCKET"]:
         raise SystemExit("The key is not restricted to the configured bucket; refusing to upload.")
-    return account, bucket_id
+    _session = account, bucket_id
+    return _session
 
 
-def upload(path, remote_name, attempts=5):
+def upload(path, remote_name, attempts=5, quiet=False):
     content = open(path, "rb").read()
     sha1 = hashlib.sha1(content).hexdigest()
     account, bucket_id = authorize()
@@ -53,12 +61,13 @@ def upload(path, remote_name, attempts=5):
             })
             if result.get("contentSha1") != sha1:
                 raise SystemExit("Uploaded checksum does not match the local file.")
-            print(f"uploaded {remote_name} ({len(content)} bytes, sha1 {sha1[:12]}…)")
+            if not quiet:
+                print(f"uploaded {remote_name} ({len(content)} bytes, sha1 {sha1[:12]}…)")
             return
         except urllib.error.HTTPError as error:
             code = error.code
             if code == 401:
-                account, bucket_id = authorize()
+                account, bucket_id = authorize(fresh=True)
             elif code not in (408, 429) and code < 500:
                 raise SystemExit(f"Upload rejected: HTTP {code} {json.load(error).get('code')}")
         except (urllib.error.URLError, TimeoutError):

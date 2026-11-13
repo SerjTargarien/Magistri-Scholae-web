@@ -806,7 +806,16 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Step 4, staging's development copy:** staging's backend rebuilt at `d127e58` (no migrations); only the administrator and the two fictional test accounts can sign in there; the other accounts' personal notes and all unused invitations were removed from the copy (production keeps them); staging has new keys. Production: 5 accounts, 6 sheets, 8 images, 7 unused invitations (still expiring on 29 November).
 - Still to check by the owner: in a browser that had the old app, the new service worker takes over (R3.6 renamed its cache).
 
-**Next:** R6 step 5, backups that store each image once (with the Backblaze retention rule); then the release tag closes R6, and R4 follows.
+**Next:** see step 5.
+
+## R6 step 5: backups that store each image once — 13 November 2026
+
+- `deploy/media_backup.py`: each nightly backup lists the images with their SHA-256 (`media.txt`) instead of carrying them; an image not yet stored is encrypted, uploaded once to B2 `media/` and kept in `/opt/magistri/backups/media/` (shared by both environments; names are keyed hashes). `backup.sh`, `restore.sh` and `restore-check.sh` use it and still read older archives; `restore.sh --media-store` takes a `media/` folder downloaded from B2 if the server is lost.
+- Backblaze rules changed through the API with `deploy/b2_lifecycle.py`, as agreed with the owner: `staging/` and `production/` hidden after 30 days and deleted 30 days later; `media/` kept. Read back from the bucket afterwards.
+- Checks on the server: the image store tested with fictional files (duplicates stored once, restored folder identical, a damaged image and a wrong passphrase detected, a path outside the folder refused); first new-format backups of both environments (archives about 40 KB instead of 9.5 MB; staging reused production's 8 stored images); the production restore drill matched every table and decrypted and checked all 8 images; staging refreshed from that production archive with `restore.sh --replace` (staging backed up first, 8 images rebuilt and checked), then `make_development_copy` again.
+- **R6 is complete.** Launch checklist: H1–H4 resolved in R2; H5 (old browser data) was settled by decision 11 (no legacy reader); CI green; backups verified; the checklist session passed on production (steps 1–4); logs visible (`docker compose logs api-production`); `check --deploy` clean but for W021 (HSTS preload, intentional). Release tag `r6-20261113`.
+
+**Next:** R4, administration and roles, starting with (a) the administrator screens for invitations, reset codes and users. Migrations are rehearsed on staging's development copy and reach production only at milestone 2.
 
 ## Updating this handoff
 

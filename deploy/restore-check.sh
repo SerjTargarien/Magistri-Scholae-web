@@ -6,6 +6,8 @@
 # Decrypts the archive (default: the newest local one), restores the database
 # into a throwaway PostgreSQL container on an isolated network, and compares
 # every table's row count and the media file count with the live environment.
+# For archives that list their images (R6 step 5), every listed image is also
+# decrypted from the media store and checked against its SHA-256.
 # Everything temporary is removed afterwards; the live environment is only read.
 set -euo pipefail
 
@@ -19,6 +21,7 @@ case "$TARGET" in
   *) echo "Unknown target '$TARGET' (use staging or production)" >&2; exit 1 ;;
 esac
 BACKUP_DIR="${BACKUP_DIR:-/opt/magistri/backups}/$TARGET"
+MEDIA_STORE="${MEDIA_STORE:-${BACKUP_DIR%/*}/media}"
 ARCHIVE="${1:-$(ls -1 "$BACKUP_DIR"/magistri-"$TARGET"-*.tar.gpg | sort | tail -1)}"
 COMPOSE=(docker compose -f "$APP_DIR/deploy/compose.yaml")
 set -a; . "$APP_DIR/deploy/.env.backup"; set +a
@@ -55,7 +58,12 @@ while read -r table restored; do
 done < "$WORK/restored.txt"
 echo "   tables restored: $(wc -l < "$WORK/restored.txt"), live: $(wc -l < "$WORK/live.txt")"
 
-media_backup="$(tar -tf "$WORK/media.tar" | grep -vc '/$' || true)"
+if [[ -f "$WORK/media.txt" ]]; then
+  python3 "$DEPLOY_DIR/media_backup.py" check --list "$WORK/media.txt" --store "$MEDIA_STORE" | sed 's/^/== /'
+  media_backup="$(wc -l < "$WORK/media.txt")"
+else
+  media_backup="$(tar -tf "$WORK/media.tar" | grep -vc '/$' || true)"
+fi
 media_live="$("${COMPOSE[@]}" exec -T "$API" sh -c 'find /data/media -type f | wc -l' </dev/null)"
 echo "== media files: backup $media_backup, live $media_live"
 [[ "$differences" -eq 0 && "$media_backup" == "$media_live" ]] && echo "RESULT: restore matches the live environment" \

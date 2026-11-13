@@ -3,11 +3,16 @@
 #
 #   deploy/backup.sh [--target staging|production]   back up, verify, upload to Backblaze B2
 #
-# The archive (pg_dump custom format + a tar of the media volume) is encrypted
-# with GnuPG (AES-256) using BACKUP_PASSPHRASE from deploy/.env.backup, checked
-# by decrypting it again, uploaded with deploy/b2_upload.py, and kept locally
-# (last KEEP_LOCAL archives) for quick restores. Nothing is printed from the
-# secrets file. Retention in B2 is the bucket's lifecycle rule, not this script.
+# The archive (pg_dump custom format + media.txt, the list of media files with
+# their SHA-256) is encrypted with GnuPG (AES-256) using BACKUP_PASSPHRASE from
+# deploy/.env.backup, checked by decrypting it again, uploaded with
+# deploy/b2_upload.py, and kept locally (last KEEP_LOCAL archives) for quick
+# restores. Each image is stored once (R6 step 5): deploy/media_backup.py
+# encrypts and uploads only images not yet in the media store
+# (/opt/magistri/backups/media, shared by both environments; B2 media/), before
+# the archive that names them. Nothing is printed from the secrets file.
+# Retention in B2 is the bucket's lifecycle rule (deploy/b2_lifecycle.py):
+# archives for 30 days, images kept.
 set -euo pipefail
 umask 077   # archives and the backup folder are readable by the deploy user only
 
@@ -20,7 +25,9 @@ case "$TARGET" in
   production) DB=db-production; API=api-production ;;
   *) echo "Unknown target '$TARGET' (use staging or production)" >&2; exit 1 ;;
 esac
-BACKUP_DIR="${BACKUP_DIR:-/opt/magistri/backups}/$TARGET"
+BACKUP_ROOT="${BACKUP_DIR:-/opt/magistri/backups}"
+BACKUP_DIR="$BACKUP_ROOT/$TARGET"
+MEDIA_STORE="${MEDIA_STORE:-$BACKUP_ROOT/media}"
 KEEP_LOCAL="${KEEP_LOCAL:-7}"
 COMPOSE=(docker compose -f "$APP_DIR/deploy/compose.yaml")
 
@@ -39,18 +46,22 @@ log "backing up $TARGET as $name"
   </dev/null > "$WORK/database.dump"
 # A one-off container with the backend's image and media volume, so this also
 # works while the backend is stopped (the R6 move freezes writes that way).
-"${COMPOSE[@]}" run --rm --no-deps -T "$API" tar -C /data/media -cf - . </dev/null > "$WORK/media.tar"
+mkdir "$WORK/media"
+"${COMPOSE[@]}" run --rm --no-deps -T "$API" tar -C /data/media -cf - . </dev/null | tar -C "$WORK/media" -xf -
+# New images go to the store and B2 now, so the archive never names a missing one.
+python3 "$DEPLOY_DIR/media_backup.py" backup --dir "$WORK/media" --store "$MEDIA_STORE" --list "$WORK/media.txt"
 {
   echo "target=$TARGET"
   echo "created_utc=$stamp"
   echo "app_commit=$(git -C "$APP_DIR" rev-parse --short HEAD)"
   echo "database_bytes=$(stat -c %s "$WORK/database.dump")"
-  echo "media_files=$(tar -tf "$WORK/media.tar" | grep -vc '/$' || true)"
+  echo "media_files=$(wc -l < "$WORK/media.txt")"
+  echo "media_format=store"
 } > "$WORK/manifest.txt"
 sed 's/^/  /' "$WORK/manifest.txt"
 
 # Encrypt; the passphrase goes through a file descriptor, never the command line.
-tar -C "$WORK" -cf - manifest.txt database.dump media.tar \
+tar -C "$WORK" -cf - manifest.txt database.dump media.txt \
   | gpg --batch --quiet --yes --pinentry-mode loopback --passphrase-fd 3 \
         --symmetric --cipher-algo AES256 --output "$BACKUP_DIR/$name.partial" \
         3< <(printf '%s' "$BACKUP_PASSPHRASE")
@@ -58,7 +69,7 @@ tar -C "$WORK" -cf - manifest.txt database.dump media.tar \
 # Verify before uploading: it must decrypt and contain all three parts.
 contents="$(gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "$BACKUP_DIR/$name.partial" \
   3< <(printf '%s' "$BACKUP_PASSPHRASE") | tar -tf - | sort | paste -sd' ')"
-[[ "$contents" == "database.dump manifest.txt media.tar" ]] || { log "verification FAILED: $contents"; exit 1; }
+[[ "$contents" == "database.dump manifest.txt media.txt" ]] || { log "verification FAILED: $contents"; exit 1; }
 mv "$BACKUP_DIR/$name.partial" "$BACKUP_DIR/$name"
 log "encrypted and verified: $(stat -c %s "$BACKUP_DIR/$name") bytes"
 

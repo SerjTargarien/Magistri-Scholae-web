@@ -203,13 +203,18 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
   await page.locator("#btn-add-spell").click();
   await page.locator("#input-potion-name").fill("Draught of Calm");
   await page.locator("#btn-add-potion").click();
-  await openTab(page, "notas");
-  await page.locator("#input-new-club").fill("Duelling Club");
-  await page.locator("#btn-add-club").click();
+  // Equipment sits with spells and potions; clubs in «Escuela» on Perfil (owner, 13 November 2026).
   await page.locator("#input-new-item").fill("Pewter cauldron");
   await page.locator("#input-new-item-qty").fill("12"); // a typed quantity, no browser spinner
   await page.locator("#input-new-item-qty").press("Enter");
   await page.locator("#btn-add-inventory-item").click();
+  await expect(page.locator("#detail-panel-equipo")).toContainText("Pewter cauldron");
+  await openTab(page, "perfil");
+  await page.locator("#input-new-club").fill("Duelling Club");
+  await page.locator("#btn-add-club").click();
+  await expect(page.locator("#detail-panel-escuela")).toContainText("Duelling Club");
+  await openTab(page, "notas");
+  await expect(page.locator("#detail-tab-notas")).not.toContainText("Duelling Club"); // the Bitácora holds the journal only
   await page.locator("#input-new-note-title").fill("Suspicions");
   await page.locator("#input-new-note-content").fill("The alchemy teacher hides something.");
   await page.locator("#btn-add-note").click();
@@ -264,8 +269,8 @@ test("a skill the GM types joins the campaign's list; players then pick it", asy
 
 test("the GM's campaign skill list: starting skills, names and new skills", async ({ page }) => {
   await viewAs(page, "gm");
-  await page.locator("#btn-settings").click();
-  await page.locator("#btn-settings-campaign-skills").click();
+  await expect(page.locator("#btn-settings-campaign-skills")).toHaveCount(0); // no longer in Ajustes
+  await page.locator("#btn-campaign-skills").click(); // the Máster opens it from the main list
   await expect(page.locator("#campaign-skills-screen")).toBeVisible();
   await page.locator("#chk-initial-sigilo").click(); // a switch, drawn by the app
   await expect(page.locator("#chk-initial-sigilo")).toHaveAttribute("aria-checked", "false");

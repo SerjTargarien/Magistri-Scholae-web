@@ -359,6 +359,7 @@ export default function App() {
               onAddCharacter={() => setScreen("TYPE_SELECT")}
               onOpenSettings={() => setScreen("SETTINGS")}
               onOpenNotes={() => setScreen("NOTES")}
+              onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
               onShowToast={showToast}
             />
           )}
@@ -471,7 +472,6 @@ export default function App() {
                 campaigns,
                 onChangeCampaign: id => { for (const store of stores.current.values()) store.dispose(); stores.current.clear(); setCampaignId(id); setScreen("LIST"); },
                 onLogout: () => void logout(),
-                onOpenCampaignSkills: isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined,
               }}
             />
           )}
@@ -485,7 +485,7 @@ export default function App() {
                 if (ok) showToast("success", CAMPAIGN_SKILLS_TEXT[lang].saved);
                 return ok;
               }}
-              onBack={() => setScreen("SETTINGS")}
+              onBack={() => setScreen("LIST")}
             />
           )}
         </main>

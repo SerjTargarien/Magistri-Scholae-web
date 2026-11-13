@@ -824,6 +824,12 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - One concept hint for both boxes (`placeholderConceptoEdit` removed). Texts nothing showed were deleted: four in the main table and 46 old account-screen texts (the sign-in screen keeps its 15).
 - Checks: type check; 42 unit tests; both builds; 59 browser tests (three selectors followed the new wording).
 
+## The sheet's layout reorganized — 13 November 2026
+
+- Owner's request: clubs and equipment sat in the journal's tab. Now: **Perfil** has a new «Escuela» panel (students: year and class rank; adults: teacher and subjects; everyone: the clubs), **«Magia y equipo»** (was «Conjuros y Pociones») adds «Equipo», and **«Bitácora»** (was «Equipo y Bitácora») holds the journal and the private notes only. The Máster's «Habilidades de la campaña» opens from the main list instead of «Ajustes». Headings «Equipo» and «Clubes» follow the glossary. Only where things are shown changed; no stored field changed.
+- Code: `src/components/sheet/SchoolPanel.tsx` and `EquipmentPanel.tsx` (the moved blocks); tab ids stay `hechizos` and `notas`.
+- Checks: type check; 42 unit tests; 59 browser tests (the feature test now adds equipment on «Magia y equipo» and a club on Perfil, and checks the Bitácora holds neither; the skill list opens from the main list); screenshots of a student, an adult and a phone.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

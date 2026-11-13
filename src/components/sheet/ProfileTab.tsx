@@ -13,9 +13,8 @@ import { Shield, User, Plus, X } from "lucide-react";
 import type { House } from "../../model/sheet";
 
 import type { SheetContext } from "./useCharacterSheet";
-import { SubjectList } from "../SubjectList";
+import { SchoolPanel } from "./SchoolPanel";
 import { limitAttrs } from "../LimitHint";
-import { Switch } from "../Toggle";
 import { TagMenu } from "../TagMenu";
 
 /** The house tag (Controls, tag menu): the medallion and the name, as in the approved demo. */
@@ -24,7 +23,7 @@ const HOUSE_TAG = "inline-flex items-center gap-2 min-h-[34px] pl-1 pr-3 rounded
 export function ProfileTab({ ctx }: { ctx: SheetContext }) {
   const {
     lang, character, t, hInfo, localizedLore, characterType, writable, shown, canAdd, canRemove, edit, profile,
-    addSubject, removeSubject, updateProfileField, isQuickEditing, newPersonalAspectInput,
+    updateProfileField, isQuickEditing, newPersonalAspectInput,
     setNewPersonalAspectInput, newComplicationInput, setNewComplicationInput, newCustomFieldName, setNewCustomFieldName,
     newCustomFieldValue, setNewCustomFieldValue, handleDeleteAspect, handleAddNewAspect, handleDeleteComplication,
     handleAddNewComplication, handleAddCustomField, handleUpdateCustomField, handleRemoveCustomField,
@@ -84,37 +83,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </div>
                   )}
 
-                  {characterType !== "adult_wizard" && (
-                    <>
-                      {shown("curso") && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.curso}</label>
-                        <input
-                          {...limitAttrs("character", "curso")}
-                          type="text"
-                          value={character.curso || ""}
-                          disabled={!writable("curso")}
-                          onChange={(e) => edit("curso", e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-                      )}
-
-                      {shown("puestoClase") && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.puestoClase}</label>
-                        <input
-                          {...limitAttrs("character", "puestoClase")}
-                          type="text"
-                          value={character.puestoClase || ""}
-                          disabled={!writable("puestoClase")}
-                          onChange={(e) => edit("puestoClase", e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-                      )}
-                    </>
-                  )}
 
                   {shown("linaje") && (
                   <div className="flex flex-col gap-1">
@@ -235,30 +203,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       </div>
                       )}
 
-                      {shown("adultWizardProfile/isTeacher") && (
-                      <div className="col-span-2">
-                        <Switch id="edit-aw-is-teacher" checked={profile.isTeacher || false}
-                          disabled={!writable("adultWizardProfile/isTeacher")}
-                          onChange={(on) => updateProfileField("isTeacher", on)}
-                          label={t.adultWizardIsTeacher}
-                          labelClassName="text-[10px] text-neutral-300 font-sans font-bold uppercase tracking-wider" />
-                      </div>
-                      )}
-
-                      {profile.isTeacher && (
-                        <div className="flex flex-col gap-1 col-span-2">
-                          <label className="text-[9px] text-amber-500 uppercase font-bold tracking-wider">{t.adultWizardTeachingSubjects}</label>
-                          <SubjectList
-                            id="sheet-subjects"
-                            items={profile.teachingSubjects ?? []}
-                            editable={canAdd("adultWizardProfile/teachingSubjects")}
-                            canRemove={(id) => canRemove("adultWizardProfile/teachingSubjects", id)}
-                            onAdd={addSubject}
-                            onRemove={removeSubject}
-                            texts={{ placeholder: t.placeholderAddSubject, empty: t.labelNoSubjects, remove: t.removeSubject, add: t.addSubject }}
-                          />
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -278,23 +222,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                   </div>
                   )}
 
-                  {characterType !== "adult_wizard" && (
-                    <>
-                      {shown("curso") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.curso}</div>
-                        <div className="text-neutral-200 mt-0.5">{character.curso || "—"}</div>
-                      </div>
-                      )}
-
-                      {shown("puestoClase") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.puestoClase}</div>
-                        <div className="text-neutral-200 mt-0.5">{character.puestoClase || "—"}</div>
-                      </div>
-                      )}
-                    </>
-                  )}
 
                   {shown("linaje") && (
                   <div>
@@ -358,22 +285,6 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                       </div>
                       )}
 
-                      {shown("adultWizardProfile/isTeacher") && (
-                      <div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardIsTeacher}</div>
-                        <div className="text-neutral-200 mt-0.5">{profile.isTeacher ? t.yes : t.no}</div>
-                      </div>
-                      )}
-
-                      {profile.isTeacher && (
-                        <div className="col-span-2">
-                          <div className="text-[9px] text-neutral-500 uppercase tracking-wider">{t.adultWizardTeachingSubjects}</div>
-                          <div className="mt-1">
-                            <SubjectList id="sheet-subjects-read" items={profile.teachingSubjects ?? []} editable={false} onAdd={() => {}} onRemove={() => {}}
-                              texts={{ placeholder: "", empty: t.labelNoSubjects, remove: t.removeSubject, add: t.addSubject }} />
-                          </div>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -497,6 +408,9 @@ export function ProfileTab({ ctx }: { ctx: SheetContext }) {
                 </div>
               </div>
             )}
+
+            {/* «Escuela»: year, class rank, teaching and clubs (moved from Datos Personales and the notes tab) */}
+            <SchoolPanel ctx={ctx} />
 
             {/* Row 2 on Desktop: Full-width container (md:col-span-2) with Aspectos Personales & Complicaciones side-by-side */}
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch" id="detail-aspectos-complicaciones-row">

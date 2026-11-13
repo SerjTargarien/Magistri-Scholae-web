@@ -37,7 +37,9 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The spells list | **Grimorio** («Grimorio de Conjuros») | «grimorio» for the app or any other list |
 | One spell | **conjuro** (the form «Nuevo conjuro» with its button «Añadir») | «hechizo» |
 | Equipment | **equipo**; one item is an **objeto** | «inventario», «posesiones» |
-| The tab with clubs, equipment, the Bitácora and private notes | **Equipo y Bitácora** | «Inventario y Notas» |
+| The sheet tab with the Bitácora and private notes | **Bitácora** | «Inventario y Notas», «Equipo y Bitácora» |
+| The sheet tab with spells, potions and equipment | **Magia y equipo** | «Conjuros y Pociones» |
+| The Perfil panel with year, class rank, teaching and clubs | **Escuela**; its list is **Clubes** | «Clubes Escolares» |
 | The form tab with aspects and equipment | **Aspectos y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
@@ -340,11 +342,13 @@ Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothin
 
 Tabs:
 
-- **Perfil:** «Datos Personales», «Filiación de la Casa y Heráldica» (students), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
+- **Perfil:** «Datos Personales», «Casa y Heráldica» (students), «Escuela» (year and class rank for students; teacher and subjects for adults; the clubs), «Aspectos Personales», «Complicaciones», «Campos Personalizados».
 - **Sesión** (usable outside edit mode, on purpose: convenience during play): destiny gems (three, plus one per point above three, up to 10), experience (− +, typed in edit mode), «Aspecto Temporal», three stress tracks, three consequence lists, each consequence with a severity tag (Leve, Moderada, Grave).
 - **Habilidades:** values, removal, «+ Añadir de la lista», knowledge levels, GM-only typed box.
-- **Conjuros y Pociones:** add and remove in edit mode; entries not editable.
-- **Inventario y Notas:** clubs, equipment (quantity ± at any time), journal (add and edit at any time, remove in edit mode).
+- **Magia y equipo:** «Grimorio de Conjuros» and «Catálogo de Pociones» (add and remove in edit mode; entries not editable), «Equipo» (quantity ± at any time).
+- **Bitácora:** the journal (add and edit at any time, remove in edit mode) and, below it, the viewer's «Notas privadas» about the sheet.
+
+**Layout (owner, 13 November 2026):** clubs and equipment left the journal's tab. Clubs joined the school details in «Escuela» on Perfil, where R5 will link them to the school's clubs; equipment joined spells and potions, as what the character carries and uses in play. A non-magical character (R4.5) keeps the «Magia y equipo» tab for its equipment, under the name «Equipo». The Máster opens «Habilidades de la campaña» from the main list (until the Biblioteca, R5), no longer from «Ajustes».
 - **Galería:** tap to enlarge; add and remove in edit mode.
 
 **Target:**

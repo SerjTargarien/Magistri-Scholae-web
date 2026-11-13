@@ -105,6 +105,8 @@ export interface CharacterListProps {
   onOpenSettings: () => void;
   /** «Mis notas»: all of the viewer's private notes. */
   onOpenNotes?: () => void;
+  /** The campaign's Máster only: «Habilidades de la campaña» (owner, 13 November 2026; moves to the Biblioteca in R5). */
+  onOpenCampaignSkills?: () => void;
   onShowToast: Toast;
 }
 
@@ -115,8 +117,6 @@ export interface AccountInfo {
   campaigns: { id: string; name: string }[];
   onChangeCampaign: (campaignId: string) => void;
   onLogout: () => void;
-  /** The campaign's GM only: opens «Habilidades de la campaña». */
-  onOpenCampaignSkills?: () => void;
 }
 
 export interface SettingsScreenProps {

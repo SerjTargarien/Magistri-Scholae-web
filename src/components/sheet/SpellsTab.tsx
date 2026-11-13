@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The sheet's "hechizos" tab, moved verbatim out of CharacterDetail.tsx (R3.4).
+// The sheet's "hechizos" tab («Magia y equipo»): spells, potions and equipment. Moved out of CharacterDetail.tsx in R3.4.
 import React from "react";
 import { Trash } from "lucide-react";
 
@@ -11,6 +11,7 @@ import type { SheetContext } from "./useCharacterSheet";
 import { limitAttrs } from "../LimitHint";
 import { Switch } from "../Toggle";
 import { Stepper } from "../Stepper";
+import { EquipmentPanel } from "./EquipmentPanel";
 
 export function SpellsTab({ ctx }: { ctx: SheetContext }) {
   const {
@@ -173,6 +174,9 @@ export function SpellsTab({ ctx }: { ctx: SheetContext }) {
               )}
             </div>
 
+
+            {/* Equipo (owner, 13 November 2026): what the character carries, next to spells and potions */}
+            <EquipmentPanel ctx={ctx} />
           </div>
   );
 }

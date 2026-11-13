@@ -94,6 +94,7 @@ export interface TranslationDict {
   validationErrorGeneric: string;
   draftDiscardConfirm: string;
   secDatosAlumno: string;
+  secEscuela: string;
 
   // 7. Stress Systems, Counters & Health Labels
   estresFisico: string;
@@ -352,8 +353,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     perfil: "Perfil",
     sesion: "Sesión",
     habilidades: "Habilidades",
-    hechizos: "Conjuros y Pociones",
-    notas: "Equipo y Bitácora",
+    hechizos: "Magia y equipo",
+    notas: "Bitácora",
     galeria: "Galería",
 
     // 3. Student Personal Details & Fields
@@ -415,6 +416,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     validationErrorGeneric: "Por favor, corrige los errores antes de continuar.",
     draftDiscardConfirm: "¿Descartar los cambios? No se guardarán.",
     secDatosAlumno: "Datos Personales",
+    secEscuela: "Escuela",
 
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Estrés Físico",
@@ -465,8 +467,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
 
     // 8. Aspects, Belongings, Clubs & Custom Fields
     aspectosPersonales: "Aspectos Personales",
-    equipo: "Equipamiento",
-    clubes: "Clubes Escolares",
+    equipo: "Equipo",
+    clubes: "Clubes",
     customFields: "Campos Personalizados",
     addCustomField: "Añadir campo",
     fieldName: "Nombre del Atributo",
@@ -673,8 +675,8 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     perfil: "Profile",
     sesion: "Session Tracker",
     habilidades: "Attributes & Skills",
-    hechizos: "Spells & Potions",
-    notas: "Character Chronicles",
+    hechizos: "Magic & Equipment",
+    notas: "Journal",
     galeria: "Photo Vault",
 
     // 3. Student Personal Details & Fields
@@ -736,6 +738,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     validationErrorGeneric: "Please fix the form errors before saving.",
     draftDiscardConfirm: "Discard the changes? They won't be saved.",
     secDatosAlumno: "Character Personal Details",
+    secEscuela: "School",
 
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Physical Stress",

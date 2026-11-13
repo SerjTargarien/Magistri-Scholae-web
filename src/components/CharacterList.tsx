@@ -10,7 +10,7 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { NOTES_TEXT, TRANSLATIONS } from "../localization";
+import { CAMPAIGN_SKILLS_TEXT, NOTES_TEXT, TRANSLATIONS } from "../localization";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import type { Language } from "../model/catalogue";
@@ -18,6 +18,7 @@ import {
   Plus,
   Settings,
   NotebookPen,
+  ListChecks,
   Search,
   BadgeHelp,
   Coins,
@@ -43,6 +44,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onAddCharacter,
   onOpenSettings,
   onOpenNotes,
+  onOpenCampaignSkills,
 }) => {
   const t = TRANSLATIONS[lang];
 
@@ -152,6 +154,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             >
               <NotebookPen className="w-4 h-4 mr-1 md:mr-2 text-violet-300" />
               <span className="hidden md:inline">{NOTES_TEXT[lang].myNotes}</span>
+            </button>
+          )}
+
+          {onOpenCampaignSkills && (
+            <button
+              id="btn-campaign-skills"
+              onClick={onOpenCampaignSkills}
+              className="academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-amber-200 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
+              title={CAMPAIGN_SKILLS_TEXT[lang].title}
+            >
+              <ListChecks className="w-4 h-4 mr-1 md:mr-2 text-amber-400" />
+              <span className="hidden md:inline">{CAMPAIGN_SKILLS_TEXT[lang].title}</span>
             </button>
           )}
 

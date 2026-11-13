@@ -48,7 +48,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 **Elsewhere:**
 
 - The main list with no characters says «Aún no hay personajes», not «Bitácora Vacía».
-- The loading text names no collection; its wording is still to be chosen by the owner.
+- The loading text is «Consultando el libro de matrículas…» (owner, 13 November 2026); it names no collection.
 - The new-character form and an edited sheet each have their own hint for the concept box (`placeholderConcepto`, `placeholderConceptoEdit`); both write the same stored «concepto».
 
 ## Roles

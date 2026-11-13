@@ -28,7 +28,8 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The person who runs the campaign | **Máster** (as in «Biblioteca del Máster») | «GM» |
 | The setting's school and what belongs to it | **escuela** («Escudo de la escuela», «Profesor de la escuela») | «academia» (the GM's preferred word) |
 | Any character, whatever its type | **personaje** | «Mago» or «alumno» for characters in general |
-| The character types | **alumno** (student) and **mago adulto** (adult wizard), only when the type is meant | |
+| The character types | today **alumno** (student) and **mago adulto** (adult wizard), only when the type is meant; from R4.5 the answers **Menor** / **Adulto**, **Mago**, **Alumno**, **Personal de escuela** («Administración», «Profesor»), **Criatura mágica** | «Niño» |
+| Where a character belongs | **Escuela** (a school) or **Organización** (any other); both are **instituciones** in the Biblioteca (R5) | |
 | A character's or familiar's record | **ficha** | «hoja» |
 | The shared journal on a sheet | **Bitácora** (characters: «Bitácora Celestial»; familiars: «**Bitácora del Familiar**») | «Bitácora» for anything else; «diario»; «Notas del Familiar» |
 | One item of the Bitácora | **entrada** (the form «Nueva entrada» with its button «Añadir entrada»; «¿Eliminar esta entrada?», «Texto de la entrada», «Entrada del…») | «nota» |
@@ -305,14 +306,24 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 
 - Today: «Alumno», «Mago adulto» (both open the creation form) and «Familiar» (familiar creation); «Volver».
 
-**Target** (R4.5):
+**Target** (R4.5; revised by the owner on 13 November 2026):
 
-- «**Menor**», with «Mago» and «Alumno de Escuela de Magia» ticked by default; unticking hides the related values.
-- «**Adulto**», with «Mago» ticked by default; unticking hides the related values.
-- «**Criatura mágica**»: everything an adult wizard has (it can even be a teacher), plus «**Especie**», a general «**Descripción**» (as familiars have) and a «**Pactos**» tab, like the notes tab, whose entries each link to another character. A player can own one, from character creation on.
-- «**Familiar**»: as today.
-- Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago.
-- The GM can later change a sheet's type (a minor grows up; a character becomes a «Criatura mágica»); values the new type does not show are hidden, not deleted.
+Two short steps instead of a branching list.
+
+1. **«¿A quién registramos hoy?»**, three option cards:
+   - «**Personaje**»;
+   - «**Criatura mágica**»: a personaje with the creature box ticked. It keeps its own card for lore reasons, though it is a box that combines with either age. It adds «**Especie**», a general «**Descripción**» (as familiars have) and a «**Pactos**» tab, whose entries each link to another character. A player can own one, from character creation on;
+   - «**Familiar**»: the familiar form, as today.
+2. **«¿Quién es?»** (personaje and criatura), one screen with defaults, so a typical student takes two taps:
+   - **Edad:** «**Menor**» | «**Adulto**» (segmented);
+   - **«Mago»:** a switch, on by default;
+   - **Escuela:** for a menor, an «**Alumno**» switch, on by default; for an adulto, «**Personal de escuela**» as two switches, «**Administración**» and «**Profesor**», both possible (a director who still teaches);
+   - a line under the rows says what the sheet will have (e.g. «Tendrá: Casa, Escuela, Magia y equipo»); «Continuar» opens the creation form, whose tabs follow the answers.
+- **What the Máster lets players create** (per campaign): the Máster chooses which of these options players may pick (the three cards, each age, a non-magical character, «Alumno», «Administración», «Profesor»); every option by default. A specific player can get a different set. Options a player may not pick are not shown, and a step with a single possible answer is skipped. The server enforces it on creation (and on drafts, R4); the Máster's own sheets and later type changes are not limited; tightening it changes no existing sheet. It is a campaign setting, opened next to «Habilidades de la campaña» until the Biblioteca (R5).
+- **The «Escuela» panel becomes the character's institution** (R5 designs institutions: schools and other organizations): «**Escuela**» for students and school staff (year, class rank, clubs; post and subjects), «**Organización**» for anyone else who belongs to one (its name, the character's «Rol / Título», the section in R5), and **no panel** for a character without one. In edit mode such a character shows «+ Añadir escuela u organización». Until R5 the institution is the free text there is today; R5 links it to the campaign's institutions.
+- Existing sheets carry over without losing data: today's «Alumno» becomes a Menor, Mago, Alumno; «Mago adulto» an Adulto, Mago, «Profesor» if its teacher switch is on.
+- The GM can later change any of these answers (a minor grows up; a character becomes a «Criatura mágica»); values the new answers do not show are hidden, not deleted.
+- **Open:** whether a character can belong to more than one institution (R5 now says one, or none).
 
 ### 5. Character creation form («Registro de Personaje» / «Registro de Mago Adulto»)
 

@@ -1,7 +1,6 @@
-// Game data shared by the screens: houses, house icons, character types, and
-// the old app's default skills. Moved out of src/types.ts in R3.2 so the
-// hand-written record types can be retired on their own (R3.6). The account
-// model takes its default skills from the skill catalogue (src/model/catalogue.ts).
+// Game data shared by the screens: houses, house icons and character types
+// (backend/domain/tests/test_contracts.py checks the types against the server).
+// Default skills come from the skill catalogue (src/model/catalogue.ts).
 
 export const CHARACTER_TYPES = {
   student: {

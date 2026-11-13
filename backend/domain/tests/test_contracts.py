@@ -21,17 +21,12 @@ class ContractTests(APICase):
         self.assertEqual(target.read_text(encoding="utf-8"), generated_source())
         self.assertEqual(self.read(self.client_for(self.alice), "schema"), schema_contract())
 
-    def test_registry_covers_current_local_fields_and_archetypes(self):
-        source = (settings.BASE_DIR.parent / "src/types.ts").read_text(encoding="utf-8")
-        # Fields the server dropped in registry version 2 stay in the old local types until R3.6 retires them.
-        retired = {"lema", "escudoText", "notas", "clubes", "equipo", "estresMentalConsecuencia"}
-        for name, kind, metadata in [("Character", "character", {"id", "tempId", "familiarId", "createdAt", "updatedAt"} | retired),
-                                     ("Familiar", "familiar", {"id", "studentId", "createdAt", "updatedAt"})]:
-            block = re.search(r"export interface " + name + r" \{(.*?)\n\}", source, re.S).group(1)
-            fields = set(re.findall(r"^  (\w+)\??:", block, re.M))
-            self.assertEqual(fields - metadata, set(REGISTRY[kind]))
-        choices = re.search(r"export type CharacterType = (.*?);", source).group(1)
-        self.assertEqual(re.findall(r'"([^"]+)"', choices), REGISTRY["character"]["characterType"]["choices"])
+    def test_screens_offer_exactly_the_server_character_types(self):
+        # The old hand-written local types were compared here until R3.6 deleted them;
+        # the generated contract above now covers the fields.
+        source = (settings.BASE_DIR.parent / "src/data/gameData.ts").read_text(encoding="utf-8")
+        block = re.search(r"export const CHARACTER_TYPES = \{(.*?)\n\} as const;", source, re.S).group(1)
+        self.assertEqual(re.findall(r"^  (\w+): \{", block, re.M), REGISTRY["character"]["characterType"]["choices"])
 
     def test_projection_query_count_does_not_grow_per_field_or_item(self):
         self.sheet.data["habilidades"] = [{"id": f"skill-{i}", "nombre": f"Demo {i}", "valor": i % 6, "categoria": "mentales"} for i in range(100)]

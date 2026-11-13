@@ -15,7 +15,41 @@ The place to design a change before building it (owner request, 8 November 2026)
 - **One control per situation:** choices use the shared controls and rules in [Controls](#controls), never browser-drawn selectors.
 - **Hidden is not deleted:** a field a viewer may not see is not drawn, and hiding something (Magia intuitiva above 14, a switch turned off) keeps its stored value.
 - **Better safe than sorry:** removing something asks for confirmation (target, R3.4 polish pass).
-- **Words:** a **campaña** is the GM's universe; its **partidas** (the tables, decision 9) are labels on sheets. Only one campaign is in use, with two partidas.
+- **One name for each thing:** every screen, collection and role has one Spanish name, used the same way in titles, buttons, hints and messages; see [Words](#words).
+
+## Words
+
+Owner decisions of 13 November 2026. Each thing the interface shows has **one** Spanish name; titles, buttons, hints, messages and confirmations all use it. A new text uses these words; a new kind of thing gets its word here first.
+
+| Thing | Word | Not |
+|---|---|---|
+| The GM's universe | **campaña** | «universo» |
+| Each table within it (decision 9; labels on sheets from R4) | **partida** | «mesa» |
+| The person who runs the campaign | **Máster** (as in «Biblioteca del Máster») | «GM» |
+| The setting's school and what belongs to it | **escuela** («Escudo de la escuela», «Profesor de la escuela») | «academia» (the GM's preferred word) |
+| Any character, whatever its type | **personaje** | «Mago» or «alumno» for characters in general |
+| The character types | **alumno** (student) and **mago adulto** (adult wizard), only when the type is meant | |
+| A character's or familiar's record | **ficha** | «hoja» |
+| The shared journal on a sheet | **Bitácora** (characters: «Bitácora Celestial»; familiars: «**Bitácora del Familiar**») | «Bitácora» for anything else; «diario»; «Notas del Familiar» |
+| One item of the Bitácora | **entrada** («Añadir entrada», «¿Eliminar esta entrada?», «Texto de la entrada», «Entrada del…») | «nota» |
+| Private notes | **Notas privadas** (about one sheet, on that sheet) and **Mis notas** (all of yours, from the main list); one of them is a **nota** | «notas personales» |
+| Moving a private note into the journal | **Mover a la bitácora** | «Mover al diario» |
+| The spells list | **Grimorio** («Grimorio de Conjuros») | «grimorio» for the app or any other list |
+| One spell | **conjuro** («Añadir conjuro», «Nuevo conjuro») | «hechizo» |
+| Equipment | **equipo**; one item is an **objeto** | «inventario», «posesiones» |
+| The tab with clubs, equipment, the Bitácora and private notes | **Equipo y Bitácora** | «Inventario y Notas» |
+| The form tab with aspects and equipment | **Aspectos y equipo** | «Aspectos y posesiones» |
+| A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
+| Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
+| Adding an item to a list on a sheet | **Añadir** X | «Registrar» X |
+| Creating a sheet or a note | **Nuevo** X / **Nueva** X | |
+| A sheet's images | **Galería** (familiars: «Galería de Recuerdos») | |
+
+**Elsewhere:**
+
+- The main list with no characters says «Aún no hay personajes», not «Bitácora Vacía».
+- The loading text names no collection; its wording is still to be chosen by the owner.
+- The new-character form and an edited sheet each have their own hint for the concept box (`placeholderConcepto`, `placeholderConceptoEdit`); both write the same stored «concepto».
 
 ## Roles
 

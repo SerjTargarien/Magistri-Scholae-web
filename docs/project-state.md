@@ -796,6 +796,18 @@ Further answers: the GM chooses NPC or player character when confirming a draft;
 
 **Next:** R6, the testers' own backend, published with the finished R3 as milestone 1 (needs the owner's approval).
 
+## R6 steps 1–4: the testers' own backend, milestone 1 published — 13 November 2026
+
+Owner decisions the same morning: move before the testers' in-person session (14–15 November); staging keeps a copy of the data in which testers cannot sign in; the agent changes the Backblaze retention rule through the API after showing the owner the new rules (step 5).
+
+- **Step 1 (PR #83):** `db-production` and `api-production` with their own network, volumes and secrets; `deploy/restore.sh` (restores an archive into either backend, backing up what it replaces); backups and the restore drill for production; `make_development_copy`, which refuses to run outside staging (`MAGISTRI_ENVIRONMENT`). Runbook: [deploy/README.md](../deploy/README.md) section 9.
+- **Step 2, rehearsal:** production secrets (a new secret key and database password; the fingerprint key copied from staging, so the testers' unused invitation links keep working); the newest staging backup restored into production; all 21 tables matched live staging; `check --deploy` only W021 (HSTS preload, intentional).
+- **Step 3, the move (PR #84):** staging's API stopped, staging backed up, restored into production, Caddy sends the public site's `/api` to production, staging serves only its own host. The API was down for 26 seconds. A failed login on the public site was counted in production's database only. **Milestone 1 published:** the public site serves `main` (`d127e58`): the finished R3 screens, with private notes. Production's nightly backup (03:45) and housekeeping (04:27) are scheduled; the first production backup restored in the drill with every table and image matching. A scripted session on the live site with the fictional test account passed 15 of 15 steps (sign-in, create, edit, portrait upload and download, a private note created, edited and deleted, list, sign-out); its fictional sheet and image were then removed.
+- **Step 4, staging's development copy:** staging's backend rebuilt at `d127e58` (no migrations); only the administrator and the two fictional test accounts can sign in there; the other accounts' personal notes and all unused invitations were removed from the copy (production keeps them); staging has new keys. Production: 5 accounts, 6 sheets, 8 images, 7 unused invitations (still expiring on 29 November).
+- Still to check by the owner: in a browser that had the old app, the new service worker takes over (R3.6 renamed its cache).
+
+**Next:** R6 step 5, backups that store each image once (with the Backblaze retention rule); then the release tag closes R6, and R4 follows.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

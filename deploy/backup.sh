@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Nightly backup of one environment's database and media (release R2.4).
 #
-#   deploy/backup.sh [--target staging]   back up, verify, upload to Backblaze B2
+#   deploy/backup.sh [--target staging|production]   back up, verify, upload to Backblaze B2
 #
 # The archive (pg_dump custom format + a tar of the media volume) is encrypted
 # with GnuPG (AES-256) using BACKUP_PASSPHRASE from deploy/.env.backup, checked
@@ -17,7 +17,8 @@ TARGET=staging
 if [[ "${1:-}" == "--target" ]]; then TARGET="${2:?target required}"; fi
 case "$TARGET" in
   staging) DB=db-staging; API=api-staging ;;
-  *) echo "Unknown target '$TARGET' (only staging exists until R6)" >&2; exit 1 ;;
+  production) DB=db-production; API=api-production ;;
+  *) echo "Unknown target '$TARGET' (use staging or production)" >&2; exit 1 ;;
 esac
 BACKUP_DIR="${BACKUP_DIR:-/opt/magistri/backups}/$TARGET"
 KEEP_LOCAL="${KEEP_LOCAL:-7}"
@@ -36,7 +37,9 @@ log() { echo "$(date '+%F %T') $*"; }
 log "backing up $TARGET as $name"
 "${COMPOSE[@]}" exec -T "$DB" sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom --no-owner' \
   </dev/null > "$WORK/database.dump"
-"${COMPOSE[@]}" exec -T "$API" tar -C /data/media -cf - . </dev/null > "$WORK/media.tar"
+# A one-off container with the backend's image and media volume, so this also
+# works while the backend is stopped (the R6 move freezes writes that way).
+"${COMPOSE[@]}" run --rm --no-deps -T "$API" tar -C /data/media -cf - . </dev/null > "$WORK/media.tar"
 {
   echo "target=$TARGET"
   echo "created_utc=$stamp"

@@ -1,4 +1,4 @@
-# Server runbook — release R1 (static hosting on Contabo)
+# Server runbook — releases R1, R2 and R6 (hosting, staging and production on Contabo)
 
 R1 serves the current app (local browser storage, no backend) from the Contabo VPS with Caddy and automatic HTTPS: first on `staging.magistrischolae.fyi`, then on `magistrischolae.fyi`. The origin stays the same, so every player's browser data remains readable. R2 adds Django and PostgreSQL to this stack. See [the roadmap](../docs/implementation-plan.md) for exit criteria.
 
@@ -10,6 +10,9 @@ Server specifics (IP address, resources, existing containers, access method) liv
 | `caddy/Caddyfile` | HTTPS, compression, security headers, cache rules, single-page-app fallback. |
 | `release.sh` | Builds a Git ref in a pinned Node container and switches releases atomically. |
 | `.env.example` | Copy to `deploy/.env` on the server (git-ignored). No secrets in R1. |
+| `.env.staging.example`, `.env.production.example` | Templates for each backend's server-only secrets file (sections 6 and 9). |
+| `backup.sh`, `restore-check.sh` | Nightly encrypted backups to Backblaze B2 and the restore drill (section 7). |
+| `restore.sh` | Restores an archive into staging or production: the R6 move and later copies (section 9). |
 
 ## 1. Inventory (read-only)
 
@@ -168,12 +171,12 @@ docker compose -f deploy/compose.yaml up -d api-staging
 
 ## 7. Backups to Backblaze B2 (release R2.4)
 
-- **What runs:** `deploy/backup.sh --target staging` dumps the database (`pg_dump`, custom format) and tars the media volume. It encrypts the bundle with GnuPG (AES-256), checks that the result decrypts, uploads it with `deploy/b2_upload.py` (B2 native API, Python standard library only), and keeps the newest 7 archives in `/opt/magistri/backups/<target>/` (readable by `deploy` only).
+- **What runs:** `deploy/backup.sh --target staging` (or `--target production`, since R6) dumps the database (`pg_dump`, custom format) and tars the media volume. It encrypts the bundle with GnuPG (AES-256), checks that the result decrypts, uploads it with `deploy/b2_upload.py` (B2 native API, Python standard library only), and keeps the newest 7 archives in `/opt/magistri/backups/<target>/` (readable by `deploy` only).
 - **Secrets:** `deploy/.env.backup` (server-only, git-ignored, mode 600) holds `BACKUP_PASSPHRASE`, generated on the server, plus `B2_BUCKET`, `B2_KEY_ID` and `B2_APP_KEY`, entered by the owner. The owner keeps a **paper copy of the passphrase**; without it, backups cannot be opened if the server is lost. The passphrase reaches GnuPG through a file descriptor, never the command line.
 - **Retention:** the bucket's lifecycle rule hides files 30 days after upload and deletes them 30 days after hiding. The server's key can write, delete and change lifecycle rules (Backblaze's web "Write Only" key includes those). The owner accepted this: an intruder on the server could destroy the backup history. A stricter key (`writeFiles` and `listBuckets` only) would need the B2 API and a master key.
 - **Schedule:** the `deploy` crontab runs it nightly at 03:30 server time and logs to `~/backup-staging.log`.
 - **Restore drill:** `deploy/restore-check.sh --target staging [archive]` decrypts an archive (default: the newest local one), restores it into a throwaway PostgreSQL on an isolated network, and compares every table's row count and the media file count with the live environment. It then removes everything temporary.
-- **Restoring for real** (not yet needed): decrypt with `gpg --decrypt` using the passphrase, then `pg_restore` the `database.dump` into the target database and untar `media.tar` into the media volume, with the backend stopped. Write the exact steps the first time it is needed.
+- **Restoring for real:** `deploy/restore.sh --target <environment> [--replace] <archive>` (section 9): with the backend stopped, it restores `database.dump` into the target database and `media.tar` into its media volume, after backing up any data it replaces.
 - **If the server is lost:** download the archive from the Backblaze web console. Decrypt it on any computer with GnuPG (Gpg4win on Windows) and the paper passphrase: `gpg --decrypt archive.tar.gpg > archive.tar`.
 
 ## 8. Other websites on this server
@@ -207,15 +210,70 @@ docker compose -f deploy/compose.yaml exec web caddy reload --config /etc/caddy/
 
 To remove a site, delete its folder, then validate and reload.
 
-## 9. Public site on the staging backend (8 November 2026, temporary)
+## 9. Production backend (release R6)
 
-Owner decision: testers use one address. The public site (`SITE_ADDRESS`) serves the account app (`release.sh --target production` builds `build:remote`) and its Caddy block sends `/api/*` to `api-staging`, so the public site and the staging site share the staging backend and database. One-time server steps:
+From 8 November 2026 the public site (`SITE_ADDRESS`) served the account app with its `/api/*` sent to `api-staging`, so testers had one address and the staging database held their data. R6 gives the public site its own backend: `db-production` and `api-production` (profile `production-backend`), with their own network, volumes and secrets. Staging then keeps a development copy of the data, in which only named accounts can sign in.
 
-1. Add the public addresses to `DJANGO_ALLOWED_HOSTS` in `deploy/.env.staging` (comma-separated, after `staging.magistrischolae.fyi`) and recreate `api-staging` (`docker compose -f deploy/compose.yaml up -d api-staging`).
-2. `git pull`, then reload Caddy: `docker compose -f deploy/compose.yaml exec -T web caddy reload --config /etc/caddy/Caddyfile`.
-3. `deploy/release.sh --target production main`. Roll back with `--activate` (the previous release is the old local-storage app).
+**Both backends build from this one checkout.** Rebuild `api-production` only at a milestone the owner approved; staging is rebuilt whenever a change needs trying, and production's image stays as it was built until then.
 
-The nightly staging backup now protects the testers' data. When the production backend exists (R6), restore the latest staging backup into it, point this block's `/api/*` at it, and remove the staging hosts from it.
+### Setting up (once)
+
+Commands run in `/opt/magistri/app` as `deploy`.
+
+1. Secrets: a new `DJANGO_SECRET_KEY` and database password, generated on the server and never printed. `DJANGO_HMAC_KEY` is **copied from `deploy/.env.staging`**: it fingerprints invitation tokens, so a new key would break the testers' unused invitation links. Template: `.env.production.example`.
+
+   ```bash
+   (umask 077; {
+     echo "DJANGO_SECRET_KEY=$(openssl rand -hex 40)"
+     grep '^DJANGO_HMAC_KEY=' deploy/.env.staging
+     echo "DJANGO_ALLOWED_HOSTS=magistrischolae.fyi,www.magistrischolae.fyi"
+     echo "POSTGRES_DB=magistri_production"
+     echo "POSTGRES_USER=magistri"
+     echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+   } > deploy/.env.production)
+   ```
+
+2. Add the profile in `deploy/.env`: `COMPOSE_PROFILES=staging-backend,production-backend`.
+3. Build and start the database: `docker compose -f deploy/compose.yaml build api-production`, then `docker compose -f deploy/compose.yaml up -d db-production`.
+4. **Rehearse the move:** `deploy/restore.sh --target production <newest staging archive>`. It restores the database and media, applies migrations, starts `api-production` and compares counts. Nothing public points at production yet, so it can be repeated (`--replace`).
+5. Check it from inside: `docker compose -f deploy/compose.yaml exec -T api-production python manage.py check --deploy`.
+
+### The move (a few minutes without the API)
+
+1. Freeze writes: `docker compose -f deploy/compose.yaml stop api-staging`. Both sites' API answers 502 until step 5; the app keeps unsent changes and retries.
+2. Back up staging: `deploy/backup.sh --target staging` (works with the backend stopped).
+3. Restore it into production: `deploy/restore.sh --target production --replace <that archive>`. The rehearsal data is backed up first, then replaced.
+4. `git pull --ff-only` to the commit whose Caddyfile sends the public site's `/api/*` to `api-production`, then reload Caddy (no downtime):
+
+   ```bash
+   docker compose -f deploy/compose.yaml exec -T web caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+   ```
+
+5. In `deploy/.env.staging`, set `DJANGO_ALLOWED_HOSTS` back to `staging.magistrischolae.fyi` only, then `docker compose -f deploy/compose.yaml up -d api-staging`.
+6. Publish the frontend if the milestone includes it: `deploy/release.sh --target production main`.
+7. Schedule production's backup and housekeeping in the `deploy` crontab, next to staging's:
+
+   ```text
+   45 3 * * * /opt/magistri/app/deploy/backup.sh --target production >> $HOME/backup-production.log 2>&1
+   27 4 * * * cd /opt/magistri/app && docker compose -f deploy/compose.yaml exec -T api-production python manage.py maintenance >> $HOME/maintenance-production.log 2>&1
+   ```
+
+8. Run the first production backup by hand and `deploy/restore-check.sh --target production`.
+
+**Rollback:** undo step 4 (check out the previous Caddyfile and reload) and step 5, then start `api-staging`. Staging holds the data as it was at the move only until its development copy is made (below) and as long as nobody wrote to production; otherwise copy production back first: `deploy/backup.sh --target production`, then `deploy/restore.sh --target staging --replace <that archive>`.
+
+### Staging's development copy
+
+Right after the move, lock the testers out of staging's copy (only the named accounts keep signing in; their sheets, campaigns and images stay; the other accounts' personal notes, unused invitations and reset codes are removed; counts only are printed):
+
+```bash
+docker compose -f deploy/compose.yaml exec -T api-staging python manage.py make_development_copy --keep <admin>,<test accounts> --dry-run
+docker compose -f deploy/compose.yaml exec -T api-staging python manage.py make_development_copy --keep <admin>,<test accounts>
+```
+
+Then give staging new keys, so nothing signed or fingerprinted on staging matches production: replace `DJANGO_SECRET_KEY` and `DJANGO_HMAC_KEY` in `deploy/.env.staging` with new `openssl rand -hex 40` values and recreate `api-staging`. The command refuses to run anywhere but staging (`MAGISTRI_ENVIRONMENT`, set in `compose.yaml`).
+
+**Refreshing the copy later:** `deploy/backup.sh --target production`, then `deploy/restore.sh --target staging --replace <that archive>`, then `make_development_copy` again. The restored rows carry production's fingerprints, which staging's own keys no longer match, so nothing from production works there.
 
 ## Releasing and rolling back
 

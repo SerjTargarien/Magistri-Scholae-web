@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
+# Which server this is: "production" or "staging" (set by deploy/compose.yaml).
+# Unset elsewhere; commands that change data in bulk check it (R6).
+ENVIRONMENT = os.getenv("MAGISTRI_ENVIRONMENT", "")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
     raise ImproperlyConfigured("Set DJANGO_SECRET_KEY in backend/.env or the environment")

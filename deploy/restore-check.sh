@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Restore drill (release R2.4): prove that a backup can be brought back.
 #
-#   deploy/restore-check.sh [--target staging] [archive.tar.gpg]
+#   deploy/restore-check.sh [--target staging|production] [archive.tar.gpg]
 #
 # Decrypts the archive (default: the newest local one), restores the database
 # into a throwaway PostgreSQL container on an isolated network, and compares
@@ -15,7 +15,8 @@ TARGET=staging
 if [[ "${1:-}" == "--target" ]]; then TARGET="${2:?target required}"; shift 2; fi
 case "$TARGET" in
   staging) DB=db-staging; API=api-staging ;;
-  *) echo "Unknown target '$TARGET'" >&2; exit 1 ;;
+  production) DB=db-production; API=api-production ;;
+  *) echo "Unknown target '$TARGET' (use staging or production)" >&2; exit 1 ;;
 esac
 BACKUP_DIR="${BACKUP_DIR:-/opt/magistri/backups}/$TARGET"
 ARCHIVE="${1:-$(ls -1 "$BACKUP_DIR"/magistri-"$TARGET"-*.tar.gpg | sort | tail -1)}"

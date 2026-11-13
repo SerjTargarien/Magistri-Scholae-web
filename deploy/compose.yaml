@@ -3,6 +3,9 @@
 # Release R1: Caddy serves the public site with automatic HTTPS.
 # Release R2: the staging backend (Django + PostgreSQL) runs only when the
 # "staging-backend" profile is enabled (COMPOSE_PROFILES in deploy/.env).
+# Release R6: the testers' production backend, with its own database, media and
+# secrets, runs with the "production-backend" profile. Both backends build from
+# this checkout: rebuild production only at a milestone (deploy/README.md).
 name: magistri
 
 networks:
@@ -14,6 +17,9 @@ networks:
         - subnet: 172.30.0.0/24
   # Staging database network: no internet access, only the staging backend.
   staging-db:
+    internal: true
+  # Production database network: no internet access, only the production backend.
+  production-db:
     internal: true
 
 services:
@@ -76,6 +82,7 @@ services:
     environment:
       DJANGO_DEBUG: "false"
       DJANGO_TRUSTED_PROXIES: 172.30.0.0/24
+      MAGISTRI_ENVIRONMENT: staging
       POSTGRES_HOST: db-staging
       POSTGRES_PORT: "5432"
     volumes:
@@ -87,8 +94,53 @@ services:
     labels:
       com.centurylinklabs.watchtower.enable: "false"
 
+  db-production:
+    profiles: ["production-backend"]
+    image: postgres:18.6
+    restart: unless-stopped
+    # POSTGRES_DB, POSTGRES_USER and POSTGRES_PASSWORD (server-only file).
+    env_file:
+      - path: .env.production
+        required: false
+    volumes:
+      - pg_production:/var/lib/postgresql
+    networks: [production-db]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+
+  api-production:
+    profiles: ["production-backend"]
+    build: ../backend
+    image: magistri-api:production
+    restart: unless-stopped
+    # Django keys, allowed hosts and the database credentials (server-only file).
+    env_file:
+      - path: .env.production
+        required: false
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_TRUSTED_PROXIES: 172.30.0.0/24
+      MAGISTRI_ENVIRONMENT: production
+      POSTGRES_HOST: db-production
+      POSTGRES_PORT: "5432"
+    volumes:
+      - media_production:/data/media
+    networks: [edge, production-db]
+    depends_on:
+      db-production:
+        condition: service_healthy
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+
 volumes:
   caddy_data:
   caddy_config:
   pg_staging:
   media_staging:
+  pg_production:
+  media_production:

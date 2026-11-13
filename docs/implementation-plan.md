@@ -382,14 +382,20 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 
 **Work:**
 
-- Since 8 November 2026 the public site already serves the account app on the staging backend (owner decision): this release gives it its own production backend and moves the testers' data there from the latest staging backup, then points the public site's `/api` at it (deploy/README.md section 9). Staging then gets a development copy of that data.
-- Run the production stack on the VPS, with its database and media separate from staging.
-- Generate production secrets and bootstrap the administrator.
-- Create the universe campaign and its two tables. The owner invites the GM, then the players (or the GM does it, if the screens suit him).
+- Since 8 November 2026 the public site already serves the account app on the staging backend (owner decision): this release gives it its own production backend and moves the testers' data there from the latest staging backup, then points the public site's `/api` at it ([deploy/README.md](../deploy/README.md) section 9). Staging then keeps a development copy of that data.
+- The administrator, the universe campaign, its tables and the testers' accounts and invitations already exist on staging, so they move with the data: nothing is recreated. Production gets a new secret key and database password; the fingerprint key is copied, so the testers' unused invitation links keep working.
 - ~~Switch the apex frontend from the old local-mode app to the account app~~ (done 8 November 2026, on the staging backend). Check in a browser that had the old app that its service worker hands over to the new one (R3.6 renames its cache).
 - Before launch, backups store each image once (owner decision, 8 November 2026): the database is dumped nightly as now, but images are uploaded to Backblaze only when new, so the 30-day history does not multiply image storage. The restore drill covers it.
 - Run the first production backup and check it restores.
 - Tag the release.
+
+**Steps (owner decisions, 13 November 2026):** the move happens before the testers' in-person session of 14–15 November; staging's copy keeps sheets, campaigns and images but only the administrator and the fictional test accounts can sign in there (the testers' personal notes, unused invitations and reset codes are removed from it, and staging gets new keys); the agent changes the Backblaze retention rule through the API after showing the owner the new rules.
+
+1. **Production stack** (pull request): `db-production` and `api-production` with their own network, volumes and secrets; `deploy/restore.sh` for the move and later copies; backups and the restore drill for either environment; `make_development_copy`, which refuses to run outside staging.
+2. **Rehearsal** on the server: secrets, build, restore the newest staging backup into production, `check --deploy`. Nothing public points at it yet.
+3. **The move** (pull request plus server, a few minutes without the API): freeze staging's API, back it up, restore into production, point the public site's `/api` at production, publish the finished R3 screens (milestone 1), schedule production's backups and housekeeping, first backup and restore drill, checks.
+4. **Staging's development copy:** lock the testers out of it and give staging new keys.
+5. **Backups that store each image once** (pull request plus the Backblaze rule). The move does not wait for it: today's full archives back production up meanwhile (media is about 9 MB), and R6 closes only when it is done.
 
 **Launch checklist:**
 

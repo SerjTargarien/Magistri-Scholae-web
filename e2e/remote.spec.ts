@@ -54,7 +54,9 @@ test("assigned player: edits and private notes are kept by the server; a GM-only
   await page.reload();
   await expect(page.locator("#character-list-container")).toBeVisible();
   await openCharacter(page, "Fictional Luna");
+  await setEditMode(page, true); // the concept box exists only in edit mode
   await expect(page.locator("#input-sheet-concepto")).toHaveValue(CONCEPT);
+  await setEditMode(page, false);
   await openTab(page, "notas");
   await expect(page.locator("#private-notes")).toContainText(NOTE);
 
@@ -65,7 +67,9 @@ test("assigned player: edits and private notes are kept by the server; a GM-only
 test("GM: reads the player's edit and the GM-only field, but not the player's private note", async ({ page }) => {
   const sheets = await signIn(page, "preview_gm");
   await openCharacter(page, "Fictional Luna");
+  await setEditMode(page, true);
   await expect(page.locator("#input-sheet-concepto")).toHaveValue(CONCEPT);
+  await setEditMode(page, false);
   expect(sheets.some(body => body.includes(GM_ONLY_CLUE))).toBe(true);
   await openTab(page, "notas");
   await expect(page.locator("#private-notes")).toBeVisible();

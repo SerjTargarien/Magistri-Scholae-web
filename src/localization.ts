@@ -44,7 +44,6 @@ export interface TranslationDict {
   puestoClase: string;
   concepto: string;
   lema: string;
-  escudoText: string;
   complicaciones: string;
   linaje: string;
   puntosDestino: number | string;
@@ -70,7 +69,6 @@ export interface TranslationDict {
   placeholderEconomia: string;
   placeholderComplicaciones: string;
   placeholderVaritaSintonia: string;
-  placeholderConceptoEdit: string;
 
   // 5. Dashboard / List View Elements
   filterAllHouses: string;
@@ -100,7 +98,6 @@ export interface TranslationDict {
   // 7. Stress Systems, Counters & Health Labels
   estresFisico: string;
   estresMental: string;
-  estresMentalConsecuencia: string;
   estresSocial: string;
   consecuenciasFisicas: string;
   consecuenciasMentales: string;
@@ -192,8 +189,6 @@ export interface TranslationDict {
   // 10. Spellbooks, Brews & Grimoires
   specialized: string;
   level: string;
-  addSpell: string;
-  addPotion: string;
   placeholderConjuroName: string;
   placeholderPocionName: string;
   labelSpellsEmpty: string;
@@ -347,7 +342,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     add: "Añadir",
     noName: "Sin Nombre",
     studentPrefix: "ALUMNO",
-    loadingMessage: "Abriendo el grimorio...",
+    loadingMessage: "Consultando el libro de matrículas…",
     errorStoringStudent: "Error al guardar el personaje.",
     btnFinish: "Finalizar Edición",
     confirmDelete: "Eliminar Personaje permanentemente",
@@ -358,7 +353,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     sesion: "Sesión",
     habilidades: "Habilidades",
     hechizos: "Conjuros y Pociones",
-    notas: "Inventario y Notas",
+    notas: "Equipo y Bitácora",
     galeria: "Galería",
 
     // 3. Student Personal Details & Fields
@@ -370,7 +365,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     puestoClase: "Puesto en la Clase",
     concepto: "Concepto",
     lema: "Lema de la Casa",
-    escudoText: "Escudo y Emblema",
     complicaciones: "Complicaciones",
     linaje: "Linaje Familiar",
     puntosDestino: "Puntos de Destino",
@@ -396,13 +390,12 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderEconomia: "Precaria",
     placeholderComplicaciones: "Miedo al fuego",
     placeholderVaritaSintonia: "Sauce con núcleo pluma de fénix",
-    placeholderConceptoEdit: "Rastreadora de nieblas con un cuaderno prohibido",
 
     // 5. Dashboard / List View Elements
     filterAllHouses: "Todas las Casas",
-    noCharacters: "No se encontraron personajes. ¡Crea el primero!",
+    noCharacters: "¡Crea el primero!",
     addCharacter: "Nuevo Personaje",
-    emptyRecords: "Bitácora Vacía",
+    emptyRecords: "Aún no hay personajes",
     lblDestino: "Destino",
     lblExp: "Exp",
 
@@ -417,7 +410,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     titleHouseHeraldry: "Casa y heráldica",
     titleMaxStress: "Máximos de Estrés",
     titleSkillsExpedient: "Habilidades",
-    titleAspectsPossessions: "Aspectos y posesiones",
+    titleAspectsPossessions: "Aspectos y equipo",
     validationErrorName: "El nombre es obligatorio.",
     validationErrorGeneric: "Por favor, corrige los errores antes de continuar.",
     draftDiscardConfirm: "¿Descartar los cambios? No se guardarán.",
@@ -426,7 +419,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Estrés Físico",
     estresMental: "Estrés Mental",
-    estresMentalConsecuencia: "Consecuencia Mental",
     estresSocial: "Estrés Social",
     consecuenciasFisicas: "Consecuencias Físicas",
     consecuenciasMentales: "Consecuencias Mentales",
@@ -447,7 +439,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     imageViewerClose: "Cerrar",
     imageViewerHintPc: "Flechas o ‹ › para cambiar · rueda o doble clic para ampliar · clic para cerrar",
     imageViewerHintTouch: "Desliza para cambiar · pellizca para ampliar · toca o desliza abajo para cerrar",
-    crestAlt: "Escudo de la academia",
+    crestAlt: "Escudo de la escuela",
     labelSalud: "SANO",
     labelHerido: "HERIDO",
     labelSereno: "INTEGRADO",
@@ -488,7 +480,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     deleteItem: "Eliminar objeto",
     emptyInventory: "Sin equipo.",
     addItem: "Añadir objeto",
-    addClub: "Registrar Club",
+    addClub: "Añadir club",
     emptyClubs: "Sin clubes.",
     labelQuantity: "Cantidad",
     labelAspectsEmpty: "Sin aspectos.",
@@ -518,8 +510,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 10. Spellbooks, Brews & Grimoires
     specialized: "Especialista",
     level: "Grado",
-    addSpell: "Registrar Hechizo",
-    addPotion: "Registrar Poción",
     placeholderConjuroName: "Revelio",
     placeholderPocionName: "Poción del Olvido",
     labelSpellsEmpty: "GRIMORIO VACÍO",
@@ -527,16 +517,16 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmDeleteSpell: "¿Eliminar este conjuro?",
     confirmDeletePotion: "¿Eliminar esta poción?",
     grimoireOfSpells: "Grimorio de Conjuros",
-    registerNewSpell: "Nuevo hechizo",
-    register: "Registrar",
+    registerNewSpell: "Nuevo conjuro",
+    register: "Añadir",
     catalogOfPotions: "Catálogo de Pociones",
     registerNewPotion: "Nueva poción",
     labelDificultad: "Dificultad",
 
     // 11. Journal / Chronicles Notes
     emptyNotes: "Bitácora vacía.",
-    addNote: "Añadir nota",
-    confirmDeleteNote: "¿Eliminar esta nota?",
+    addNote: "Nueva entrada",
+    confirmDeleteNote: "¿Eliminar esta entrada?",
     remove: "Quitar",
     confirmDeleteAspect: "¿Eliminar este aspecto?",
     confirmDeleteComplication: "¿Eliminar esta complicación?",
@@ -546,10 +536,10 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     confirmRemoveSubject: "¿Quitar esta asignatura?",
     confirmRemovePortrait: "¿Quitar el retrato?",
     placeholderNoteTitle: "Título (opcional)",
-    placeholderNoteContent: "Texto de la nota",
+    placeholderNoteContent: "Texto de la entrada",
     labelNotesChronicleTitle: "Bitácora Celestial",
-    notesLabel: "Notas",
-    registerNote: "Registrar Entrada",
+    notesLabel: "Entradas",
+    registerNote: "Añadir entrada",
     entryFrom: "Entrada del ",
 
     // 12. Gallery, Portrait Fitting & Cropping
@@ -586,7 +576,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     adultWizardProfileSection: "Perfil de Mago Adulto",
     adultWizardRole: "Rol / Título",
     adultWizardInstitution: "Institución",
-    adultWizardIsTeacher: "Profesor de la Academia",
+    adultWizardIsTeacher: "Profesor de la escuela",
     adultWizardTeachingSubjects: "Asignaturas que imparte",
     adultWizardFormerHouse: "Antigua casa",
     adultWizardReputation: "Reputación",
@@ -612,15 +602,15 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelTotem: "Tótem",
     labelMotto: "Lema",
     filterAdultWizards: "Magos Adultos",
-    editNote: "Editar nota",
+    editNote: "Editar entrada",
     saveNote: "Guardar cambios",
-    discardDraftTitle: "Descartar Borrador",
+    discardDraftTitle: "Descartar cambios",
     discardDraftConfirmBtn: "Descartar Cambios",
     removeAvatar: "Quitar retrato",
     deleteCustomField: "Eliminar campo",
     emptyCustomFields: "Sin campos personalizados.",
     familiarEditorCardTitle: "Familiar",
-    familiarEditorCardDescription: "Familiares mágicos asignables a los alumnos de la academia.",
+    familiarEditorCardDescription: "Familiares mágicos asignables a los personajes de la escuela.",
     familiarEditorTitle: "Registro de Familiares",
     familiarEditorSubtitle: "Retrato, nombre, especie y descripción del familiar.",
     familiarName: "Nombre del Familiar",
@@ -647,11 +637,11 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarBondStudent: "Vincular personaje",
     familiarBackToList: "Volver a Personajes",
     familiarViewDetail: "Ver Ficha de Familiar",
-    wizardViewDetail: "Ver Ficha del Mago",
+    wizardViewDetail: "Ver Ficha del Personaje",
     tabFamiliarProfile: "Perfil y Vínculo",
-    tabFamiliarNotes: "Notas del Familiar",
+    tabFamiliarNotes: "Bitácora del Familiar",
     familiarNotePlaceholder: "Encontró una llave en el jardín",
-    familiarNotesEmpty: "Sin notas.",
+    familiarNotesEmpty: "Bitácora vacía.",
     tabFamiliarGallery: "Galería de Recuerdos",
     archetypeFamiliar: "Familiar Mágico",
     bondExistingFamiliar: "Vincular",
@@ -696,7 +686,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     puestoClase: "Class Rank / Assignment",
     concepto: "Archetype or Concept",
     lema: "House Motto",
-    escudoText: "Emblem & Insignia",
     complicaciones: "Flaws & Hardships",
     linaje: "Heritage / Bloodline",
     puntosDestino: "Destiny Points",
@@ -722,7 +711,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderEconomia: "e.g., Normal, Poor, Rich",
     placeholderComplicaciones: "e.g. Afraid of fire",
     placeholderVaritaSintonia: "e.g. Willow and phoenix feather",
-    placeholderConceptoEdit: "Character concept",
 
     // 5. Dashboard / List View Elements
     filterAllHouses: "All Houses",
@@ -752,7 +740,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 7. Stress Systems, Counters & Health Labels
     estresFisico: "Physical Stress",
     estresMental: "Mental Stress",
-    estresMentalConsecuencia: "Severe Mental Scar",
     estresSocial: "Social Stress",
     consecuenciasFisicas: "Physical Consequences",
     consecuenciasMentales: "Mental Consequences",
@@ -844,8 +831,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 10. Spellbooks, Brews & Grimoires
     specialized: "Specialist",
     level: "Grade",
-    addSpell: "Scribe Spell",
-    addPotion: "Elabor Potion",
     placeholderConjuroName: "e.g., Ignis Fatuus",
     placeholderPocionName: "e.g. Calming draught",
     labelSpellsEmpty: "NO SPELLS INDEXED",
@@ -975,7 +960,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarViewDetail: "View Familiar Sheet",
     wizardViewDetail: "View Wizard Sheet",
     tabFamiliarProfile: "Profile & Bond",
-    tabFamiliarNotes: "Familiar Notes",
+    tabFamiliarNotes: "Familiar's Journal",
     familiarNotePlaceholder: "e.g. Found a key in the garden",
     familiarNotesEmpty: "No notes.",
     tabFamiliarGallery: "Memory Gallery",
@@ -1173,7 +1158,7 @@ export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
 }> = {
   es: {
     title: "Habilidades de la campaña",
-    intro: "La lista de habilidades de este universo, compartida por todas sus mesas. Las marcadas como «Inicial» aparecen en los personajes nuevos; los jugadores añaden las demás con «+ Añadir de la lista». Solo tú puedes cambiar esta lista.",
+    intro: "La lista de habilidades de esta campaña, compartida por todas sus partidas. Las marcadas como «Inicial» aparecen en los personajes nuevos; los jugadores añaden las demás con «+ Añadir de la lista». Solo tú puedes cambiar esta lista.",
     initial: "Inicial",
     initialHint: "Los personajes nuevos empiezan con esta habilidad",
     newSkill: "Nueva habilidad en esta categoría…",
@@ -1188,7 +1173,7 @@ export const CAMPAIGN_SKILLS_TEXT: Record<Language, {
     conflict: "Otra persona cambió la lista de habilidades; se ha vuelto a cargar. Repite el cambio.",
     failed: "No se pudo guardar la lista de habilidades.",
     open: "Abrir la lista",
-    openHint: "Qué habilidades tiene este universo y con cuáles empiezan los personajes nuevos.",
+    openHint: "Qué habilidades tiene esta campaña y con cuáles empiezan los personajes nuevos.",
   },
   en: {
     title: "Campaign skills",
@@ -1246,7 +1231,7 @@ export const SAVE_STATUS_TEXT = {
     notFound: "Esta ficha ya no está disponible para ti.",
     entryGone: "Esa entrada ya no existe: alguien la quitó.",
     archived: "Esta ficha está archivada y ya no se puede cambiar.",
-    gmOnlySkill: "Solo el GM puede crear o cambiar habilidades propias.",
+    gmOnlySkill: "Solo el Máster puede crear o cambiar habilidades propias.",
     signedOut: "Tu sesión ha terminado. Vuelve a iniciar sesión.",
     rateLimited: "Demasiados cambios seguidos. Se reintentará en unos segundos.",
     connection: "No hay conexión con el servidor. Se reintentará solo.",
@@ -1352,48 +1337,38 @@ export const SIGN_IN_ERRORS: Record<Language, Record<string, string>> = {
 /** Account screens (sign-in, invitations, reset) and texts kept for R3.5's personal notes. */
 export const remoteText = {
   en: {
-    remote: "Account storage", login: "Sign in", logout: "Sign out", username: "Username", password: "Password", repeatPassword: "Repeat the password",
-    register: "Accept invitation", invitation: "Invitation token", reset: "Reset password", code: "Reset code",
-    campaign: "Campaign", choose: "Choose a campaign", characters: "Characters", familiars: "Familiars", create: "Create",
-    personal: "My personal notes", private: "Only you can read these notes. They stay yours after reassignment.",
-    title: "Title", content: "Content", label: "Personal label", newNote: "New personal note", notesEmpty: "No personal notes.",
-    promote: "Move to this sheet's journal", promotion: "This will delete the personal note and publish it in the selected journal.",
-    audience: "Audience", confirm: "Confirm move", cancel: "Cancel", save: "Save", back: "Back", delete: "Delete",
-    saved: "Saved", saving: "Saving…", unsaved: "Unsaved", offline: "Offline — changes are kept and sent when the connection returns", conflict: "Someone else changed the same field", error: "Save failed",
-    keepMine: "Keep mine", keepTheirs: "Keep theirs", demoBanner: "DEMO — Fictional data and a simulated server in your browser. Nothing reaches a real server.", notAccepted: "Not accepted", dropped: "Discarded (no longer editable)",
-    retry: "Retry the same operation", reload: "Discard draft and reload", reapply: "Reapply these visible changes", mine: "Your draft", current: "Current value",
-    reconcile: "These fields were changed by someone else while you edited them. Choose which value to keep; your other changes were saved.",
-    failed: "Request failed", network_error: "Connection interrupted. Your draft is retained in this tab. Retry when online.",
-    empty: "No accessible records.", hidden: "Not available in your current view", readonly: "Read only", add: "Add", remove: "Remove",
-    bond: "Bond", unbond: "Unlink", link: "Link", noBond: "No visible bond", viewBond: "Open linked sheet", upload: "Upload image", crop: "Crop and upload",
-    cropHelp: "Drag to position the image and adjust zoom.", imageTooLarge: "Choose an image under 4 MiB.",
-    archive: "Archive", restore: "Restore", confirmDelete: "Delete this personal note?", unsavedLeave: "Resolve unsaved changes before leaving this sheet.",
-    registered: "Account created. Sign in to continue.", resetDone: "Password updated. Sign in again.",
-    loadMore: "Load more", noCampaign: "No campaign memberships yet. Ask the administrator for an invitation.",
-    gm: "Campaign GMs", assigned: "Campaign GMs and assigned player", shared: "Campaign GMs, assigned player and explicit shared readers",
-    sessionExpired: "Your session ended. Sign in again.", gmNotes: "GM notes",
+    login: "Sign in",
+    logout: "Sign out",
+    username: "Username",
+    password: "Password",
+    repeatPassword: "Repeat the password",
+    register: "Accept invitation",
+    invitation: "Invitation token",
+    reset: "Reset password",
+    code: "Reset code",
+    campaign: "Campaign",
+    choose: "Choose a campaign",
+    failed: "Request failed",
+    registered: "Account created. Sign in to continue.",
+    resetDone: "Password updated. Sign in again.",
+    noCampaign: "No campaign memberships yet. Ask the administrator for an invitation.",
   },
   es: {
-    remote: "Datos de cuenta", login: "Iniciar sesión", logout: "Cerrar sesión", username: "Usuario", password: "Contraseña", repeatPassword: "Repite la contraseña",
-    register: "Aceptar invitación", invitation: "Código de invitación", reset: "Restablecer contraseña", code: "Código de recuperación",
-    campaign: "Campaña", choose: "Elige una campaña", characters: "Personajes", familiars: "Familiares", create: "Crear",
-    personal: "Mis notas personales", private: "Solo tú puedes leer estas notas. Siguen siendo tuyas tras una reasignación.",
-    title: "Título", content: "Contenido", label: "Etiqueta personal", newNote: "Nueva nota personal", notesEmpty: "No hay notas personales.",
-    promote: "Mover al diario de esta ficha", promotion: "Se eliminará la nota personal y se publicará en el diario seleccionado.",
-    audience: "Audiencia", confirm: "Confirmar traslado", cancel: "Cancelar", save: "Guardar", back: "Volver", delete: "Eliminar",
-    saved: "Guardado", saving: "Guardando…", unsaved: "Sin guardar", offline: "Sin conexión — los cambios se guardan y se enviarán al volver la conexión", conflict: "Otra persona cambió el mismo campo", error: "Error al guardar",
-    keepMine: "Mantener el mío", keepTheirs: "Mantener el suyo", demoBanner: "DEMO — Datos ficticios y un servidor simulado en tu navegador. Nada llega a un servidor real.", notAccepted: "No aceptado", dropped: "Descartado (ya no es editable)",
-    retry: "Reintentar la misma operación", reload: "Descartar borrador y recargar", reapply: "Volver a aplicar estos cambios visibles", mine: "Tu borrador", current: "Valor actual",
-    reconcile: "Otra persona cambió estos campos mientras los editabas. Elige qué valor conservar; tus otros cambios ya se guardaron.",
-    failed: "La solicitud ha fallado", network_error: "Conexión interrumpida. El borrador permanece en esta pestaña. Reintenta al recuperar la conexión.",
-    empty: "No hay fichas accesibles.", hidden: "No disponible en tu vista actual", readonly: "Solo lectura", add: "Añadir", remove: "Quitar",
-    bond: "Vínculo", unbond: "Desvincular", link: "Vincular", noBond: "Sin vínculo visible", viewBond: "Abrir ficha vinculada", upload: "Subir imagen", crop: "Recortar y subir",
-    cropHelp: "Arrastra para colocar la imagen y ajusta el zoom.", imageTooLarge: "Elige una imagen de menos de 4 MiB.",
-    archive: "Archivar", restore: "Restaurar", confirmDelete: "¿Eliminar esta nota personal?", unsavedLeave: "Resuelve los cambios sin guardar antes de salir de esta ficha.",
-    registered: "Cuenta creada. Inicia sesión para continuar.", resetDone: "Contraseña actualizada. Vuelve a iniciar sesión.",
-    loadMore: "Cargar más", noCampaign: "Aún no perteneces a ninguna campaña. Pide una invitación al administrador.",
-    gm: "GM de la campaña", assigned: "GM y jugador asignado", shared: "GM, jugador asignado y lectores con acceso explícito",
-    sessionExpired: "Tu sesión ha terminado. Vuelve a iniciar sesión.", gmNotes: "Notas del GM",
+    login: "Iniciar sesión",
+    logout: "Cerrar sesión",
+    username: "Usuario",
+    password: "Contraseña",
+    repeatPassword: "Repite la contraseña",
+    register: "Aceptar invitación",
+    invitation: "Código de invitación",
+    reset: "Restablecer contraseña",
+    code: "Código de recuperación",
+    campaign: "Campaña",
+    choose: "Elige una campaña",
+    failed: "La solicitud ha fallado",
+    registered: "Cuenta creada. Inicia sesión para continuar.",
+    resetDone: "Contraseña actualizada. Vuelve a iniciar sesión.",
+    noCampaign: "Aún no perteneces a ninguna campaña. Pide una invitación al administrador.",
   },
 };
 
@@ -1449,7 +1424,7 @@ export const FAMILIAR_ARCHIVE_TEXT = {
   es: {
     button: "Archivar",
     title: "Archivar familiar",
-    prompt: "¿Seguro que quieres archivar a este familiar? Dejará de aparecer en la campaña; su ficha, notas y galería se conservan.",
+    prompt: "¿Seguro que quieres archivar a este familiar? Dejará de aparecer en la campaña; su ficha, bitácora y galería se conservan.",
     checkbox: "Entiendo que el familiar dejará de estar visible en la campaña.",
     confirm: "Archivar",
     bondError: "No se pudo cambiar el vínculo.",
@@ -1471,7 +1446,7 @@ export const SAVE_FAILED_TEXT = { es: "No se pudo guardar el personaje", en: "Co
 export const NOTES_TEXT = {
   es: {
     privateTitle: "Notas privadas",
-    onlyYou: "Solo tú las ves. Ni el GM puede leerlas.",
+    onlyYou: "Solo tú las ves. Ni el Máster puede leerlas.",
     onlyYouGM: "Solo tú las ves. Los jugadores no pueden leerlas.",
     newNote: "Nueva nota privada",
     empty: "Sin notas privadas sobre esta ficha.",
@@ -1491,8 +1466,8 @@ export const NOTES_TEXT = {
     loadFailed: "No se pudieron cargar tus notas privadas.",
     moveTitle: "Mover a la {journal} de {sheet}",
     readersIntro: "Después de moverla, la leerán:",
-    readerGM: "el GM",
-    readerYouGM: "tú, como GM",
+    readerGM: "el Máster",
+    readerYouGM: "tú, como Máster",
     readerYouPlayer: "tú, como jugador asignado",
     readerAssigned: "{name}, que tiene la ficha asignada",
     readerAssignedUnnamed: "quien tenga la ficha asignada",

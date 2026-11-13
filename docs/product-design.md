@@ -31,18 +31,18 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The character types | **alumno** (student) and **mago adulto** (adult wizard), only when the type is meant | |
 | A character's or familiar's record | **ficha** | «hoja» |
 | The shared journal on a sheet | **Bitácora** (characters: «Bitácora Celestial»; familiars: «**Bitácora del Familiar**») | «Bitácora» for anything else; «diario»; «Notas del Familiar» |
-| One item of the Bitácora | **entrada** («Añadir entrada», «¿Eliminar esta entrada?», «Texto de la entrada», «Entrada del…») | «nota» |
+| One item of the Bitácora | **entrada** (the form «Nueva entrada» with its button «Añadir entrada»; «¿Eliminar esta entrada?», «Texto de la entrada», «Entrada del…») | «nota» |
 | Private notes | **Notas privadas** (about one sheet, on that sheet) and **Mis notas** (all of yours, from the main list); one of them is a **nota** | «notas personales» |
 | Moving a private note into the journal | **Mover a la bitácora** | «Mover al diario» |
 | The spells list | **Grimorio** («Grimorio de Conjuros») | «grimorio» for the app or any other list |
-| One spell | **conjuro** («Añadir conjuro», «Nuevo conjuro») | «hechizo» |
+| One spell | **conjuro** (the form «Nuevo conjuro» with its button «Añadir») | «hechizo» |
 | Equipment | **equipo**; one item is an **objeto** | «inventario», «posesiones» |
 | The tab with clubs, equipment, the Bitácora and private notes | **Equipo y Bitácora** | «Inventario y Notas» |
 | The form tab with aspects and equipment | **Aspectos y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
 | Adding an item to a list on a sheet | **Añadir** X | «Registrar» X |
-| Creating a sheet or a note | **Nuevo** X / **Nueva** X | |
+| Creating a sheet or a note, and the title of a form that adds an item | **Nuevo** X / **Nueva** X | |
 | A sheet's images | **Galería** (familiars: «Galería de Recuerdos») | |
 
 **Elsewhere:**

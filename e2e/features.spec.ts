@@ -703,7 +703,7 @@ test("private notes: only their author reads them; «Mover a la bitácora» with
 
   await openCharacter(page, "Luna de Bruma");
   await openTab(page, "notas");
-  await expect(privateNotes).toContainText("Solo tú las ves. Ni el GM puede leerlas.");
+  await expect(privateNotes).toContainText("Solo tú las ves. Ni el Máster puede leerlas.");
   await newNote("Sospechas", "Diego oculta algo sobre el mapa."); // saved as typed, no edit mode
   await page.locator("#btn-new-private-note").click(); // a note left empty goes away by itself
   await page.locator('[id^="btn-private-note-done-"]').click();

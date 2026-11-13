@@ -20,7 +20,7 @@ test("every top-level field of both sheets has a plain label", () => {
 test("list entries are named by their section and field, never by their ID", () => {
   assert.equal(fieldLabel("character", "camposPersonalizados/custom-1/nombre", "es"), "Campos Personalizados (nombre)");
   assert.equal(fieldLabel("character", "notasList/abc123/contenido", "es"), "Bitácora Celestial (texto)");
-  assert.equal(fieldLabel("familiar", "notasList/abc123/contenido", "es"), "Notas del Familiar (texto)");
+  assert.equal(fieldLabel("familiar", "notasList/abc123/contenido", "es"), "Bitácora del Familiar (texto)");
   assert.equal(fieldLabel("familiar", "nombre", "es"), "Nombre del Familiar");
   assert.equal(fieldLabel("character", "adultWizardProfile/role", "es"), "Rol / Título");
 });

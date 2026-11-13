@@ -20,7 +20,7 @@ import { errorText } from "../../account/saveMessages";
 import { DateTimeField } from "../DateTimeField";
 import { noteTitle, noteWhen } from "./NoteCard";
 
-/** The journal's name on a sheet: «Bitácora Celestial» or «Notas del Familiar». */
+/** The journal's name on a sheet: «Bitácora Celestial» or «Bitácora del Familiar». */
 export const journalName = (sheet: ApiSheetProjection, lang: Language) =>
   sheet.entityType === "character" ? TRANSLATIONS[lang].labelNotesChronicleTitle : TRANSLATIONS[lang].tabFamiliarNotes;
 

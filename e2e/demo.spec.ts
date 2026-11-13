@@ -6,8 +6,8 @@ import type { Page } from "@playwright/test";
 import { expect, openApp, openCharacter, openTab, reloadApp, setEditMode, storedSheet, test, viewAs } from "./helpers";
 
 const status = (page: Page) => page.locator("#save-status");
-const nameInput = (page: Page) => page.getByPlaceholder("p. ej. Leonora Vance").first();
-const conceptInput = (page: Page) => page.getByPlaceholder("Concepto del personaje");
+const nameInput = (page: Page) => page.getByPlaceholder("Leonora Vance").first();
+const conceptInput = (page: Page) => page.locator("#input-sheet-concepto");
 
 async function openLuna(page: Page, role?: "gm" | "reader") {
   await openApp(page);

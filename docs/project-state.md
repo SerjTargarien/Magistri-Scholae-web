@@ -817,6 +817,13 @@ Owner decisions the same morning: move before the testers' in-person session (14
 
 **Next:** R4, administration and roles, starting with (a) the administrator screens for invitations, reset codes and users. Migrations are rehearsed on staging's development copy and reach production only at milestone 2.
 
+## Spanish texts: the owner's revision and the glossary — 13 November 2026
+
+- The owner revised the Spanish texts in `src/localization.ts` (hints are plain examples, without «p. ej.»; new tagline, «Acerca de», type chooser title and others).
+- The glossary ([product-design.md](product-design.md#words)) applied to the rest: «escuela», «Máster», «campaña» / «partida», «Bitácora» only for the journal and «entrada» for its items («Bitácora del Familiar»), «conjuro», «equipo» («Equipo y Bitácora», «Aspectos y equipo»), «Ver Ficha del Personaje», «Descartar cambios», «Añadir» for adding to a list; the loading text «Consultando el libro de matrículas…»; the empty list «Aún no hay personajes».
+- One concept hint for both boxes (`placeholderConceptoEdit` removed). Texts nothing showed were deleted: four in the main table and 46 old account-screen texts (the sign-in screen keeps its 15).
+- Checks: type check; 42 unit tests; both builds; 59 browser tests (three selectors followed the new wording).
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

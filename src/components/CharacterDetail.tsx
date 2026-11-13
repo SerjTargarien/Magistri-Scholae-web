@@ -342,7 +342,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                   disabled={!writable("concepto")}
                   onChange={(e) => edit("concepto", e.target.value)}
                   className="w-full text-xs font-mono bg-neutral-950 text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  placeholder={t.placeholderConceptoEdit}
+                  placeholder={t.placeholderConcepto}
                 />
               </div>
               )}

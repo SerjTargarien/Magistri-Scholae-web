@@ -842,6 +842,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - Owner's request: the tab had a card with only the portrait and the species, beside «Datos y retrato». Now there are two cards: **«Datos y retrato»** (name and species, the portrait, the description; in edit mode the portrait's fit and «Quitar retrato» stay under it) and **«Vínculo Mágico»**, which gets the wider column on wide screens so its button fits on one line. The species no longer repeats under the portrait or in the empty portrait. No stored field changed.
 - Code: `src/components/familiar/FamiliarProfileTab.tsx`.
 - Checks: type check; 42 unit tests; 59 browser tests; screenshots of a familiar with and without a portrait, desktop and phone, in view and edit mode.
+- Then, after seeing it (owner, same day): the portrait goes first, then name and species side by side (in edit mode too), then the description. Checked with the browser tests and the same screenshots.
 
 ## Updating this handoff
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The familiar sheet's "perfil" tab (R3.4): «Datos y retrato» (name, species, portrait, description)
+// The familiar sheet's "perfil" tab (R3.4): «Datos y retrato» (portrait, then name and species, then description)
 // and «Vínculo Mágico» (owner, 14 November 2026).
 import React from "react";
 import { CompassStarDivider } from "../AcademyOrnaments";
@@ -25,7 +25,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   // As on the character sheet: tap the portrait in edit mode to change it (no hover, so phones can too).
   const editImage = isQuickEditing && canEditImage;
   const editBond = isQuickEditing && canBond;
-  // The portrait, between the species and the description (owner, 14 November 2026), in both modes.
+  // The portrait, first in «Datos y retrato» (owner, 14 November 2026), in both modes.
   const portrait = (
     <div
       id="familiar-portrait"
@@ -74,36 +74,6 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
 
               {isQuickEditing ? (
                 <div className="space-y-4 text-xs font-mono">
-                  <div>
-                    <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
-                      {t.familiarName}
-                    </label>
-                    <RequiredTextInput
-                      maxLength={maxLengthOf("familiar", "nombre")}
-                      id="input-familiar-nombre"
-                      value={familiar.nombre ?? ""}
-                      disabled={!canEditName}
-                      onSave={(text) => edit("nombre", text)}
-                      emptyHint={t.requiredKeepsSaved}
-                      className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
-                      {t.familiarSpecies}
-                    </label>
-                    <RequiredTextInput
-                      maxLength={maxLengthOf("familiar", "especie")}
-                      id="input-familiar-especie"
-                      value={familiar.especie ?? ""}
-                      disabled={!canEditSpecies}
-                      onSave={(text) => edit("especie", text)}
-                      emptyHint={t.requiredKeepsSaved}
-                      className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
-                    />
-                  </div>
-
                   <div>{/* the portrait; in edit mode tap it to change it, fit and removal below */}
                     {portrait}
                     <input id="input-familiar-portrait" type="file" accept="image/*" className="hidden" ref={avatarInputRef} onChange={handleAvatarChange} />
@@ -129,6 +99,38 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     )}
                   </div>
 
+                  {/* Name and species side by side, as when reading */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
+                        {t.familiarName}
+                      </label>
+                      <RequiredTextInput
+                        maxLength={maxLengthOf("familiar", "nombre")}
+                        id="input-familiar-nombre"
+                        value={familiar.nombre ?? ""}
+                        disabled={!canEditName}
+                        onSave={(text) => edit("nombre", text)}
+                        emptyHint={t.requiredKeepsSaved}
+                        className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
+                        {t.familiarSpecies}
+                      </label>
+                      <RequiredTextInput
+                        maxLength={maxLengthOf("familiar", "especie")}
+                        id="input-familiar-especie"
+                        value={familiar.especie ?? ""}
+                        disabled={!canEditSpecies}
+                        onSave={(text) => edit("especie", text)}
+                        emptyHint={t.requiredKeepsSaved}
+                        className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 rounded-lg p-2.5 focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
                       {t.familiarDescription}
@@ -146,6 +148,8 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {portrait}
+
                   <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                     <div className="bg-neutral-950/60 p-3 rounded-xl border border-neutral-800/80">
                       <div className="text-[10px] text-neutral-500 uppercase tracking-wider">{t.familiarName}</div>
@@ -156,8 +160,6 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                       <div className="text-sm font-bold text-emerald-300 mt-1">{familiar.especie}</div>
                     </div>
                   </div>
-
-                  {portrait}
 
                   <div className="bg-neutral-950/60 p-4 rounded-xl border border-neutral-800/80">
                     <div className="text-[10px] text-neutral-500 uppercase tracking-wider font-mono mb-2">

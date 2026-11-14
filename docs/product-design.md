@@ -377,7 +377,7 @@ Tabs:
 ### 7. Familiar sheet
 
 - **Header:** the character sheet's top bar: «Volver a Personajes» («Volver» on phones), «Editar» / «Finalizar Edición», «Archivar» for the GM.
-- **Perfil y Vínculo:** two cards (owner, 14 November 2026): «Datos y retrato» (name and species, then the portrait, then the description) and «Vínculo Mágico», side by side on wide screens, one above the other on a phone.
+- **Perfil y Vínculo:** two cards (owner, 14 November 2026): «Datos y retrato» (the portrait, then name and species side by side, then the description) and «Vínculo Mágico», side by side on wide screens, one above the other on a phone.
 - **Notas del Familiar**, **Galería de Recuerdos**.
 
 **Target** (R3.4 polish pass):

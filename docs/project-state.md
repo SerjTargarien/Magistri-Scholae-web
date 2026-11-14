@@ -857,7 +857,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **App:** `src/account/AdminScreen.tsx` with its adapter `src/account/admin.ts`: campaigns (members with a tag menu for «Máster» / «Jugador», «×» to remove, «Añadir usuario» with the picker, «Invitar jugador» / «Invitar Máster», pending invitations with «Anular», «Nueva campaña») and users («Enlace de recuperación», the «Cuenta activa» switch). Links are shown once, whole and wrapping, with «Copiar enlace», the bare code and the expiry. Confirmations use the shared dialog. The app's lists and chooser now show only campaigns the viewer belongs to (the server still lists every campaign to the administrator), and the chooser offers «Administración».
 - **Demo:** the mock server answers the same administration API; the test panel has a fourth viewer, «Administración» (an administrator who is a player with no sheets, as the owner). Invitations and recovery codes issued in the demo work once; accounts registered there cannot sign in.
 - **Checks:** type check; 42 unit tests; 60 demo browser tests (a new one runs the whole screen); the backend suite (158 tests, 5 of them new); the 4 real-backend browser tests locally (a new one: the administrator invites a player, who registers from the link in another browser and appears in «Usuarios»); both builds; screenshots on desktop and phone.
-- **Not yet on staging or production.** The server change needs a backend release: staging when the owner asks to try it (after a backup), production at milestone 2.
+- **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `67e03f6` (no migrations), staging frontend released. Production waits for milestone 2.
 
 ## Updating this handoff
 

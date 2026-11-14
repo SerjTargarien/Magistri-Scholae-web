@@ -175,10 +175,8 @@ def admin_invitation(request, body, invitation_id):
 @endpoint(["GET", "POST"])
 def campaigns(request, body):
     if request.method == "POST":
-        accounts.administrator(request.user)
         keys(body, ["name"], ["name"])
-        campaign = Campaign.objects.create(name=text(body["name"], 120))
-        return {"id": str(campaign.pk), "name": campaign.name, "policyRevision": campaign.policy_revision}
+        return accounts.create_campaign(request.user, body["name"])
     query_keys(request, ["limit", "offset"])
     limit, offset = pagination(request)
     query = Campaign.objects.all() if request.user.is_superuser else Campaign.objects.filter(membership__user=request.user)
@@ -186,6 +184,26 @@ def campaigns(request, body):
     roles = dict(Membership.objects.filter(user=request.user).values_list("campaign_id", "role"))
     return {"items": [{"id": str(c.pk), "name": c.name, "policyRevision": c.policy_revision, "role": roles.get(c.pk)}
                        for c in query.order_by("id")[offset:offset + limit]]}
+
+
+@endpoint(["PATCH"])
+def campaign(request, body, campaign_id):
+    keys(body, ["name"], ["name"])
+    return accounts.rename_campaign(request.user, campaign_id, body["name"])
+
+
+@endpoint(["GET"])
+def campaign_invitations(request, body, campaign_id):
+    query_keys(request, ["limit", "offset"])
+    limit, offset = pagination(request)
+    return {"items": accounts.campaign_invitations(request.user, campaign_id, limit, offset)}
+
+
+@endpoint(["DELETE"])
+def campaign_invitation(request, body, campaign_id, invitation_id):
+    keys(body, [])
+    accounts.revoke_campaign_invitation(request.user, campaign_id, invitation_id)
+    return {}
 
 
 @endpoint(["GET", "POST"])
@@ -254,10 +272,12 @@ def sheets(request, body, kind):
     return {"items": [projection(request.user, s) for s in query]}
 
 
-@endpoint(["GET", "PATCH"], outcome="sheet")
+@endpoint(["GET", "PATCH", "DELETE"], outcome="sheet")
 def sheet_detail(request, body, sheet_id, kind):
     if request.method == "PATCH":
         return services.patch_sheet(request.user, sheet_id, kind, body)
+    if request.method == "DELETE":
+        return services.delete_sheet(request.user, sheet_id, kind, body)
     query_keys(request)
     return projection(request.user, sheet_for(request.user, sheet_id, kind))
 

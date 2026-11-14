@@ -10,7 +10,7 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, STATUS_TEXT, TRANSLATIONS } from "../localization";
+import { CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, STATUS_TEXT, TRANSLATIONS } from "../localization";
 import { FilterBar, selectionOf, type FilterSection, type FilterState, type SortField } from "./FilterBar";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
@@ -20,6 +20,7 @@ import {
   Settings,
   NotebookPen,
   ListChecks,
+  Users,
   Dices,
   ChevronDown,
   Search,
@@ -52,15 +53,16 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onOpenNotes,
   onOpenCampaignSkills,
   onOpenPartidas,
+  onOpenPlayers,
   partidas,
   filter,
   onFilterChange,
 }) => {
   const t = TRANSLATIONS[lang];
 
-  /** The character a familiar is bonded to, when this viewer can see it. */
+  /** The character a familiar is bonded to, when this viewer can see it (an archived one is off the campaign). */
   const bondedCharacter = (familiar: ApiSheetProjection) =>
-    familiar.bondId ? characters.find((c) => c.id === familiar.bondId) : undefined;
+    familiar.bondId ? characters.find((c) => c.id === familiar.bondId && !c.archived) : undefined;
   /** A familiar follows the character it is bonded to (house and partida). */
   const ownerOf = (item: ApiSheetProjection) => (item.entityType === "character" ? item : bondedCharacter(item));
 
@@ -72,9 +74,10 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   // R4 (c): a draft, a proposal or an inactive sheet says so on its card.
   const st = STATUS_TEXT[lang];
   const statusOf = (item: ApiSheetProjection) =>
-    item.status === "draft" || item.status === "proposed" ? item.status : item.active === false ? "inactive" : "active";
+    item.archived ? "archived" : item.status === "draft" || item.status === "proposed" ? item.status : item.active === false ? "inactive" : "active";
   const STATUS_TONE: Record<string, string> = {
     draft: "text-sky-200 border-sky-400/60", proposed: "text-amber-200 border-amber-400/70", inactive: "text-neutral-300 border-neutral-500/70",
+    archived: "text-rose-200 border-rose-400/60",
   };
   /** The card's corner tags: the Máster's partida, and the sheet's status when it is not simply active. */
   const partidaTag = (item: ApiSheetProjection) => {
@@ -122,7 +125,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     // Inactive sheets leave the list unless chosen here (R4 c); drafts and proposals show for whoever sees them.
     { id: "estado", title: st.state, defaultSelected: ["active", "draft", "proposed"], defaultNote: st.hiddenNote,
       options: [{ value: "active", label: st.active }, { value: "inactive", label: st.inactive },
-        ...(["draft", "proposed"] as const).filter((v) => [...characters, ...familiars].some((i) => statusOf(i) === v)).map((v) => ({ value: v, label: st[v] }))] },
+        ...(["draft", "proposed", "archived"] as const).filter((v) => [...characters, ...familiars].some((i) => statusOf(i) === v)).map((v) => ({ value: v, label: st[v] }))] },
   ];
   const sortFields: SortField[] = [
     { value: "nombre", label: ft.name }, { value: "xp", label: ft.xp, descFirst: true }, { value: "curso", label: ft.course },
@@ -219,6 +222,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             >
               <Dices className="w-4 h-4 mr-1 md:mr-2 text-amber-400" />
               <span className="hidden md:inline">{pt.button}</span>
+            </button>
+          )}
+
+          {onOpenPlayers && (
+            <button
+              id="btn-campaign-players"
+              onClick={onOpenPlayers}
+              className="academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-amber-200 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
+              title={CAMPAIGN_GM_TEXT[lang].playersTitle}
+            >
+              <Users className="w-4 h-4 mr-1 md:mr-2 text-amber-400" />
+              <span className="hidden md:inline">{CAMPAIGN_GM_TEXT[lang].players}</span>
             </button>
           )}
 

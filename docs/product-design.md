@@ -48,6 +48,8 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The creation form's tabs | today «Identificación», **Aspectos y equipo**, «Casa», «Habilidades», «Estrés»; from R4.5 the sheet's names: **Perfil**, **Institución**, **Habilidades**, **Magia y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador**; once proposed, a **propuesta** («Proponer al Máster», «Retirar propuesta»; the Máster's «Confirmar» or «Devolver») | «borrador» for unsaved changes |
 | What a confirmed proposal becomes | **Personaje del jugador (PJ)** or **Personaje no jugador (PNJ)** | |
+| Who a sheet belongs to | **Jugador asignado**: a player, **Yo (PNJ)** for the Máster, or **Sin asignar** | «dueño» |
+| Bringing an archived sheet back; removing it for good | **Restaurar**; **Eliminar definitivamente** | «borrar» |
 | A sheet in play or set aside | **activa** / **inactiva** («Ficha activa»), by the Máster | «archivada» for this |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
 | Adding an item to a list on a sheet | **Añadir** X | «Registrar» X |
@@ -64,7 +66,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 
 **Today:**
 
-- **GM:** sees and edits every character and familiar in the campaign, whoever created them and whenever they registered. Owns the campaign's skill list («Habilidades de la campaña»). Archives sheets (no one deletes).
+- **GM:** sees and edits every character and familiar in the campaign, whoever created them and whenever they registered (except players' drafts, R4 c). Owns the campaign's skill list («Habilidades de la campaña»). **Since R4 (d), 14 November 2026:** archives, restores and deletes archived sheets for good; assigns sheets to players; invites players from «Jugadores»; renames his campaign and creates new ones.
 - **Player:** sees and edits only the sheets they created (assigned to them). Picks skills from the campaign's list. **Since R4 (c), 14 November 2026:** a new sheet is a borrador only they see, until they propose it and the Máster confirms it (details in the target below, now built).
 - **Shared reader:** read-only access to a sheet shared with them; there is no screen to share yet.
 - **Administrator** (the owner's separate account): «Administración» (R4 a, 14 November 2026): campaigns, their members and roles, invitations, recovery links and accounts. It shows usernames and roles only, never sheet content.
@@ -167,7 +169,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Bonded familiar | Dialog with a list | Picker (9), the same component | Done (9 November 2026) |
 | Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | Done (R4 c) |
 | Active / inactive | — | Switch (3), GM only | Done (R4 c) |
-| Assigned player | — | Picker (9) | R4 |
+| Assigned player | — | Picker (9) | Done (R4 d) |
 | A skill's category | — | Tag menu (7) | R4 |
 | Age group; Mago, Alumno | — | Segmented (5); switches (3) | R4.5 |
 | Type change by the GM | — | Option cards in a dialog (8) | R4.5 |
@@ -408,7 +410,7 @@ Tabs:
 
 ### 9. Settings («Ajustes»)
 
-- «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; site administrator only: «Administración» → «Abrir administración» (R4 a). «Habilidades de la campaña» opens from the main list (Máster only, 13 November 2026). Language card hidden.
+- «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; Máster only: «Campaña» (R4 d: the campaign's name with «Guardar nombre», and «Nueva campaña» with «Crear», of which he will be the Máster); site administrator only: «Administración» → «Abrir administración» (R4 a). «Habilidades de la campaña» opens from the main list (Máster only, 13 November 2026). Language card hidden.
 
 «Estilo Visual» went with the Classic style (owner, 9 November 2026; done in the R3.4 polish pass). **Target:** The campaign skills move to the Biblioteca del Máster (R5).
 
@@ -426,6 +428,15 @@ Opened from a card in «Ajustes» and from the campaign chooser, so it works for
   - **«Enlace de recuperación»:** the recovery link (`/#recuperacion=CÓDIGO`) and its code, shown once with «Copiar enlace»; it lasts 24 hours (owner, 14 November 2026), works once and cancels the previous one.
   - **«Cuenta activa»:** a switch; turning it off asks first (sessions end; sheets and notes are kept). Never on one's own account.
 - The app's own lists and chooser show only campaigns the viewer belongs to; the others are reached here.
+
+### 10c. Jugadores de la campaña (Máster only; R4 d, 14 November 2026)
+
+- Opened from «Jugadores» on the main list.
+- The campaign's members with «Máster» or «Jugador» tags; «×» removes a player after asking (their sheets are kept).
+- «Invitar jugador»: the invitation link shown once, with «Copiar enlace», the bare code and the expiry (7 days), as in «Administración».
+- «Invitaciones pendientes» with «×» to cancel a player invitation («Anular»); GM invitations show but stay with the administrator.
+
+**Assignment, archive and delete (R4 d):** on a confirmed sheet in edit mode, the Máster's panel under the top bar has «Jugador asignado», a picker with «Yo (PNJ)», the campaign's members and «Sin asignar» (only he sees it); taking a sheet from a player asks first, and the player's private notes about it stay theirs. The creation form has the same choice beside «Guardar» (the default is «Yo (PNJ)»). An archived sheet stays in the Máster's list, hidden unless «Estado» shows «Archivada»; opened, it says «Ficha archivada» with «Restaurar» and «Eliminar definitivamente», which asks for a tick («Entiendo que se borra para siempre») and the sheet's name typed in full. A familiar's card does not name an archived character as its bond.
 
 ### 10b. Partidas de la campaña (Máster only; R4 b, 14 November 2026)
 

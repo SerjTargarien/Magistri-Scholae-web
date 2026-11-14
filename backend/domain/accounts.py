@@ -163,14 +163,76 @@ def list_users(actor, limit, offset):
     return [{**user_view(u), "isActive": u.is_active, "campaigns": memberships.get(u.pk, [])} for u in users]
 
 
+def campaign_manager(actor, campaign):
+    """The site administrator, or the campaign's GM (R4 d)."""
+    require(actor.is_authenticated and actor.is_active, "authentication_required", 401)
+    require(actor.is_superuser or is_gm(actor, campaign), "forbidden", 403)
+
+
+@transaction.atomic
+def create_campaign(actor, name):
+    """The site administrator, or any GM (R4 d). A GM becomes the new campaign's GM; the
+    administrator does not join it (he invites its GM)."""
+    require(actor.is_authenticated and actor.is_active, "authentication_required", 401)
+    gm_somewhere = Membership.objects.filter(user=actor, role="gm").exists()
+    require(actor.is_superuser or gm_somewhere, "forbidden", 403)
+    name = text(name, 120).strip()
+    require(name, "field_required")
+    campaign = Campaign.objects.create(name=name)
+    role = None
+    if not actor.is_superuser:
+        Membership.objects.create(campaign=campaign, user=actor, role="gm")
+        role = "gm"
+    AuditEvent.objects.create(actor=actor, action="campaign.created", target_id=str(campaign.pk))
+    return {"id": str(campaign.pk), "name": campaign.name, "policyRevision": campaign.policy_revision, "role": role}
+
+
+@transaction.atomic
+def rename_campaign(actor, campaign_id, name):
+    campaign = Campaign.objects.select_for_update().get(pk=campaign_id)
+    campaign_manager(actor, campaign)
+    name = text(name, 120).strip()
+    require(name, "field_required")
+    campaign.name = name
+    campaign.save(update_fields=["name"])
+    AuditEvent.objects.create(actor=actor, action="campaign.renamed", target_id=str(campaign.pk))
+    role = Membership.objects.filter(campaign=campaign, user=actor).values_list("role", flat=True).first()
+    return {"id": str(campaign.pk), "name": campaign.name, "policyRevision": campaign.policy_revision, "role": role}
+
+
+def invitation_view(invite):
+    return {"id": str(invite.pk), "campaignId": str(invite.campaign_id), "campaignName": invite.campaign.name, "role": invite.role,
+            "issuer": invite.issuer.username, "expiresAt": invite.expires_at.isoformat()}
+
+
+def campaign_invitations(actor, campaign_id, limit, offset):
+    """A campaign's unused invitations, for its GM or the administrator (R4 d)."""
+    campaign = Campaign.objects.get(pk=campaign_id)
+    campaign_manager(actor, campaign)
+    pending = (Invitation.objects.filter(campaign=campaign, consumed_at__isnull=True, expires_at__gt=timezone.now())
+               .select_related("campaign", "issuer").order_by("expires_at", "id")[offset:offset + limit])
+    return [invitation_view(i) for i in pending]
+
+
+@transaction.atomic
+def revoke_campaign_invitation(actor, campaign_id, invitation_id):
+    """The GM cancels his campaign's player invitations; GM invitations stay with the administrator."""
+    campaign = Campaign.objects.select_for_update().get(pk=campaign_id)
+    campaign_manager(actor, campaign)
+    invite = Invitation.objects.select_for_update().filter(pk=invitation_id, campaign=campaign, consumed_at__isnull=True).first()
+    require(invite is not None, "not_found", 404)
+    require(actor.is_superuser or invite.role == "player", "forbidden", 403)
+    AuditEvent.objects.create(actor=actor, action="invitation.revoked", target_id=str(invite.pk))
+    invite.delete()
+
+
 def list_invitations(actor, limit, offset):
     """Unused invitations that have not expired, soonest to expire first. The codes are stored
     hashed, so the list cannot show them again; an invitation can only be cancelled."""
     administrator(actor)
     pending = (Invitation.objects.filter(consumed_at__isnull=True, expires_at__gt=timezone.now())
                .select_related("campaign", "issuer").order_by("expires_at", "id")[offset:offset + limit])
-    return [{"id": str(i.pk), "campaignId": str(i.campaign_id), "campaignName": i.campaign.name, "role": i.role,
-             "issuer": i.issuer.username, "expiresAt": i.expires_at.isoformat()} for i in pending]
+    return [invitation_view(i) for i in pending]
 
 
 @transaction.atomic

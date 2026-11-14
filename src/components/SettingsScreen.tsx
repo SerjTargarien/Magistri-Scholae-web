@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { ADMIN_TEXT, Language, SETTINGS_TEXT, TRANSLATIONS } from "../localization";
+import { ADMIN_TEXT, CAMPAIGN_GM_TEXT, Language, SETTINGS_TEXT, TRANSLATIONS } from "../localization";
 import type { SettingsScreenProps } from "../account/screens";
 import { Picker, pickerTexts } from "./Picker";
 import { 
@@ -24,10 +24,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onBack,
   account,
   onOpenAdmin,
+  campaignSettings,
 }) => {
   const t = TRANSLATIONS[lang];
   const s = SETTINGS_TEXT[lang];
   const [choosingCampaign, setChoosingCampaign] = useState(false);
+  const g = CAMPAIGN_GM_TEXT[lang];
+  const [campaignName, setCampaignName] = useState(campaignSettings?.name ?? "");
+  const [newCampaign, setNewCampaign] = useState("");
+  const [savingCampaign, setSavingCampaign] = useState(false);
+  const campaignBox = "flex-1 min-w-0 text-sm bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none";
+  const campaignButton = "shrink-0 px-3 py-1.5 bg-violet-900 border border-violet-500/35 hover:bg-violet-800 text-violet-100 rounded-lg text-xs font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+  const campaignAct = async (run: () => Promise<void>) => { setSavingCampaign(true); try { await run(); } finally { setSavingCampaign(false); } };
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-6" id="settings-screen">
@@ -156,6 +164,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </button>
           </div>
         </div>
+
+        {/* The Máster's campaign (R4 d): its name, and a new campaign of which he will be the Máster */}
+        {campaignSettings && (
+          <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2" id="settings-card-campaign">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">{g.campaign}</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <form className="grid gap-1.5" onSubmit={(e) => { e.preventDefault(); const name = campaignName.trim(); if (name && name !== campaignSettings.name) void campaignAct(() => campaignSettings.onRename(name)); }}>
+                <label htmlFor="input-campaign-name" className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold">{g.campaignName}</label>
+                <div className="flex gap-2">
+                  <input id="input-campaign-name" type="text" maxLength={120} value={campaignName} onChange={(e) => setCampaignName(e.target.value)} className={campaignBox} />
+                  <button id="btn-rename-campaign" type="submit" disabled={savingCampaign || !campaignName.trim() || campaignName.trim() === campaignSettings.name} className={campaignButton}>{g.rename}</button>
+                </div>
+              </form>
+              <form className="grid gap-1.5" onSubmit={(e) => { e.preventDefault(); const name = newCampaign.trim(); if (name) void campaignAct(async () => { await campaignSettings.onCreate(name); setNewCampaign(""); }); }}>
+                <label htmlFor="input-new-campaign-gm" className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold">{g.newCampaign}</label>
+                <div className="flex gap-2">
+                  <input id="input-new-campaign-gm" type="text" maxLength={120} value={newCampaign} placeholder={g.campaignName} onChange={(e) => setNewCampaign(e.target.value)} className={campaignBox} />
+                  <button id="btn-create-campaign-gm" type="submit" disabled={savingCampaign || !newCampaign.trim()} className={campaignButton}>{g.create}</button>
+                </div>
+                <p className="text-[11px] text-neutral-500">{g.newCampaignHint}</p>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* «Administración»: the site administrator only (R4 a) */}
         {onOpenAdmin && (

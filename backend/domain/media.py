@@ -60,6 +60,14 @@ def decode_image(encoded):
 
 
 @transaction.atomic
+def delete_files(names):
+    """Removes stored image files after their sheet was deleted (R4 d); a missing file is fine."""
+    storage = FileSystemStorage(location=settings.PRIVATE_MEDIA_ROOT)
+    for name in names:
+        if name:
+            storage.delete(name)
+
+
 def upload(actor, sheet_id, kind, body):
     keys(body, ["expectedRevision", "path", "imageBase64"], ["expectedRevision", "path", "imageBase64"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)

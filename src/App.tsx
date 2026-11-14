@@ -8,8 +8,8 @@
 // signed in so leaving a sheet never drops unsent changes. The layout,
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
-import { CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
+import type { ApiMember, ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
+import { ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
 import type { SheetStatusProps, StatusAction } from "./components/SheetStatusBar";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
@@ -29,6 +29,8 @@ import { AdminScreen } from "./account/AdminScreen";
 import { remoteAdmin } from "./account/admin";
 import { CampaignPartidas } from "./account/CampaignPartidas";
 import { remotePartidas } from "./account/partidas";
+import { CampaignPlayers } from "./account/CampaignPlayers";
+import { remotePlayers } from "./account/players";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
@@ -45,7 +47,7 @@ const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.p
 /** Whether viewers may switch the interface language (false: Spanish only for the first version). */
 const LANGUAGE_CHOICE = false;
 
-type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES" | "ADMIN" | "PARTIDAS";
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES" | "ADMIN" | "PARTIDAS" | "PLAYERS";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
@@ -144,8 +146,9 @@ export default function App() {
     try {
       const [chars, fams] = await Promise.all([list("character"), list("familiar")]);
       // Archived sheets leave the list (the GM restores them from R4's screens).
-      setCharacters(chars.items.filter(s => !s.archived));
-      setFamiliars(fams.items.filter(s => !s.archived));
+      // Archived sheets reach only the GM; the list leaves them out unless «Estado» shows them (R4 d).
+      setCharacters(chars.items);
+      setFamiliars(fams.items);
     } catch {
       showToast("error", t.storageLoadError);
     }
@@ -285,8 +288,43 @@ export default function App() {
   const statusFor = (store: SheetStore): SheetStatusProps => ({
     onAction: (action, as) => changeStatus(store, action, as),
     onSetActive: isGM(store) && store.sheet.status !== "proposed" ? active => setActive(store, active) : undefined,
+    assignment: isGM(store) && confirmed(store) ? { options: assignOptions, onAssign: userId => manageSheet(store, { assignedPlayerId: userId }) } : undefined,
+    onRestore: isGM(store) && store.sheet.archived ? () => manageSheet(store, { archived: false }) : undefined,
+    onDelete: isGM(store) && store.sheet.archived ? () => deleteSheet(store) : undefined,
   });
   const confirmed = (store: SheetStore) => (store.sheet.status ?? "confirmed") === "confirmed";
+
+  // The Máster's players and assignment (R4 d).
+  const playersApi = useMemo(() => (campaignId ? remotePlayers(client, campaignId) : undefined), [client, campaignId]);
+  const [members, setMembers] = useState<ApiMember[]>([]);
+  const loadMembers = useCallback(async () => {
+    if (!playersApi || !isCampaignGM) { setMembers([]); return; }
+    try { setMembers(await playersApi.members()); } catch { /* the picker then offers only «Sin asignar» */ }
+  }, [playersApi, isCampaignGM]);
+  useEffect(() => { void loadMembers(); }, [loadMembers]);
+  const assignOptions = useMemo(() => {
+    const st = STATUS_TEXT[lang];
+    const me = members.find(m => m.userId === user?.id);
+    return [
+      ...(me ? [{ id: me.userId as string | null, label: st.me, isPlayer: false }] : []),
+      ...members.filter(m => m.userId !== user?.id).map(m => ({ id: m.userId as string | null, label: m.displayName || m.username,
+        detail: m.role === "gm" ? `@${m.username} · ${ADMIN_TEXT[lang].gm}` : `@${m.username}`, isPlayer: m.role === "player" })),
+      { id: null as string | null, label: st.nobody, detail: st.nobodyHint, isPlayer: false },
+    ];
+  }, [members, user, lang]);
+  const manageSheet = async (store: SheetStore, body: object) => {
+    try { await mutate(store, "manage", body); void loadLists(); }
+    catch { showToast("error", STATUS_TEXT[lang].failed); }
+  };
+  const deleteSheet = async (store: SheetStore) => {
+    try {
+      await settle(store);
+      await client.mutation(entityPath(store.sheet), { expectedRevision: store.sheet.revision }, "DELETE")();
+    } catch { showToast("error", STATUS_TEXT[lang].failed); return; }
+    store.dispose(); stores.current.delete(store.sheet.id);
+    setSelectedCharId(null); setSelectedFamiliarId(null); setScreen("LIST");
+    void loadLists();
+  };
 
   const setPartida = async (store: SheetStore, tableId: string | null) => {
     try {
@@ -341,19 +379,20 @@ export default function App() {
     await loadLists();
   };
 
-  const create = async <T extends CharacterSheet | FamiliarSheet>(kind: EntityKind, fields: T, image?: { path: string; dataUrl: string }) => {
-    const created = await client.mutation<ApiSheetProjection>(kind === "character" ? "characters" : "familiars", { campaignId, fields })();
+  const create = async <T extends CharacterSheet | FamiliarSheet>(kind: EntityKind, fields: T, image?: { path: string; dataUrl: string }, assignedPlayerId?: string | null) => {
+    const created = await client.mutation<ApiSheetProjection>(kind === "character" ? "characters" : "familiars",
+      { campaignId, fields, ...(assignedPlayerId !== undefined ? { assignedPlayerId } : {}) })();
     const store = storeFor(created);
     if (image) await uploadImage(store)(image.path, image.dataUrl).catch(() => {});
     return store;
   };
 
-  const handleSaveForm = async (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar) => {
-    const store = await create("character", fields, avatar ? { path: "avatarImage", dataUrl: avatar } : undefined);
+  const handleSaveForm = async (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar, assignedPlayerId?: string | null) => {
+    const store = await create("character", fields, avatar ? { path: "avatarImage", dataUrl: avatar } : undefined, assignedPlayerId);
     // A familiar confirmed in the form is created only now, with its character, and linked to it.
     if (familiar) {
       try {
-        const created = await createFamiliar(familiar.fields, familiar.image);
+        const created = await createFamiliar(familiar.fields, familiar.image, assignedPlayerId);
         await bond(store, created.sheet.id);
       } catch { showToast("error", t.errorStoringStudent); }
     }
@@ -362,8 +401,8 @@ export default function App() {
     setScreen("DETAIL");
   };
 
-  const createFamiliar = async (fields: FamiliarSheet, image?: string) => {
-    const store = await create("familiar", fields, image ? { path: "imagen", dataUrl: image } : undefined);
+  const createFamiliar = async (fields: FamiliarSheet, image?: string, assignedPlayerId?: string | null) => {
+    const store = await create("familiar", fields, image ? { path: "imagen", dataUrl: image } : undefined, assignedPlayerId);
     await loadLists();
     return store;
   };
@@ -436,6 +475,7 @@ export default function App() {
               onOpenNotes={() => setScreen("NOTES")}
               onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
               onOpenPartidas={isCampaignGM ? () => setScreen("PARTIDAS") : undefined}
+              onOpenPlayers={isCampaignGM ? () => setScreen("PLAYERS") : undefined}
               partidas={isCampaignGM ? partidas : undefined}
               filter={listFilter}
               onFilterChange={setListFilter}
@@ -538,6 +578,7 @@ export default function App() {
               isGM={isCampaignGM}
               onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               catalogue={catalogue}
+              assignOptions={isCampaignGM ? assignOptions : undefined}
               onSave={handleSaveForm}
               onCancel={() => setScreen("LIST")}
             />
@@ -549,6 +590,17 @@ export default function App() {
               onLanguageChange={LANGUAGE_CHOICE ? handleLanguageChange : undefined}
               onBack={() => setScreen("LIST")}
               onOpenAdmin={openAdmin}
+              campaignSettings={isCampaignGM ? {
+                name: campaigns.find(c => c.id === campaignId)?.name ?? "",
+                onRename: async name => {
+                  try { await client.request(`campaigns/${campaignId}`, "PATCH", { name }); showToast("success", CAMPAIGN_GM_TEXT[lang].renamed); setCampaignsLoaded(n => n + 1); }
+                  catch { showToast("error", STATUS_TEXT[lang].failed); }
+                },
+                onCreate: async name => {
+                  try { await client.request("campaigns", "POST", { name }); showToast("success", CAMPAIGN_GM_TEXT[lang].created); setCampaignsLoaded(n => n + 1); }
+                  catch { showToast("error", STATUS_TEXT[lang].failed); }
+                },
+              } : undefined}
               account={{
                 displayName: user.displayName || user.username,
                 username: user.username,
@@ -557,6 +609,17 @@ export default function App() {
                 onChangeCampaign: id => { for (const store of stores.current.values()) store.dispose(); stores.current.clear(); setCampaignId(id); setScreen("LIST"); },
                 onLogout: () => void logout(),
               }}
+            />
+          )}
+
+          {screen === "PLAYERS" && isCampaignGM && playersApi && user && (
+            <CampaignPlayers
+              lang={lang}
+              api={playersApi}
+              meId={user.id}
+              campaignName={campaigns.find(c => c.id === campaignId)?.name ?? ""}
+              onBack={() => { setScreen("LIST"); void loadMembers(); }}
+              onShowToast={showToast}
             />
           )}
 

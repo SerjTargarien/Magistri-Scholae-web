@@ -61,8 +61,11 @@ export interface CharacterFormProps {
    * after creation; `familiarId` is a familiar created from the form, bonded after.
    * Rejects with the server's error (ApiFailure, with details naming the rule).
    */
-  /** Creates the character; a familiar confirmed in the form's dialog is created and linked with it (nothing is created on «Cancelar»). */
-  onSave: (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar) => Promise<void>;
+  /** Creates the character; a familiar confirmed in the form's dialog is created and linked with it (nothing is created on «Cancelar»).
+   * The Máster also chooses who it belongs to (R4 d): an account id, or null for «Sin asignar». */
+  onSave: (fields: CharacterSheet, avatar?: string, familiar?: PendingFamiliar, assignedPlayerId?: string | null) => Promise<void>;
+  /** The Máster only (R4 d): who a new character may belong to, the first being the default. */
+  assignOptions?: { id: string | null; label: string; detail?: string }[];
   onCancel: () => void;
 }
 
@@ -118,6 +121,8 @@ export interface CharacterListProps {
   onOpenCampaignSkills?: () => void;
   /** The campaign's Máster only: «Partidas de la campaña» (R4 b). */
   onOpenPartidas?: () => void;
+  /** The campaign's Máster only: «Jugadores de la campaña» (R4 d). */
+  onOpenPlayers?: () => void;
   /** The Máster only: the campaign's partidas, for each card's tag and the filter. Players never get them. */
   partidas?: ApiTable[];
   /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */
@@ -143,4 +148,6 @@ export interface SettingsScreenProps {
   account: AccountInfo;
   /** The site administrator only: opens «Administración» (R4 a). */
   onOpenAdmin?: () => void;
+  /** The campaign's Máster only (R4 d): rename it, or create a new campaign of which he will be the Máster. */
+  campaignSettings?: { name: string; onRename: (name: string) => Promise<void>; onCreate: (name: string) => Promise<void> };
 }

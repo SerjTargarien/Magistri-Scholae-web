@@ -9,11 +9,13 @@
 // character or as his own NPC (option cards, Controls 8) or returns it. The Máster marks a
 // confirmed sheet active or inactive with a switch in edit mode (Controls 3).
 import React, { useState } from "react";
-import { EyeOff, FileClock, PauseCircle, Send, Undo2, UserCheck, UserCog } from "lucide-react";
+import { Archive, ChevronDown, EyeOff, FileClock, PauseCircle, RotateCcw, Send, Trash2, Undo2, UserCheck, UserCog } from "lucide-react";
 import type { SheetStore } from "../store/sheetStore";
 import { STATUS_TEXT, type Language } from "../localization";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { Switch } from "./Toggle";
+import { Check, Switch } from "./Toggle";
+import { Picker, pickerTexts } from "./Picker";
+import { TRANSLATIONS } from "../localization";
 
 export type StatusAction = "propose" | "withdraw" | "return" | "confirm";
 export interface SheetStatusProps {
@@ -21,7 +23,18 @@ export interface SheetStatusProps {
   onAction: (action: StatusAction, as?: "player" | "npc") => Promise<void>;
   /** The Máster only, on confirmed sheets. */
   onSetActive?: (active: boolean) => Promise<void>;
+  /** The Máster only, on confirmed sheets (R4 d): who the sheet belongs to. */
+  assignment?: {
+    /** The campaign's members to choose from; null is «Sin asignar». */
+    options: { id: string | null; label: string; detail?: string; isPlayer: boolean }[];
+    onAssign: (userId: string | null) => Promise<void>;
+  };
+  /** The Máster only, on archived sheets (R4 d). */
+  onRestore?: () => Promise<void>;
+  onDelete?: () => Promise<void>;
 }
+
+const NOBODY = "__none";
 
 const BUTTON = "inline-flex items-center justify-center gap-1.5 min-h-10 px-3.5 rounded-lg border text-xs font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500";
 const PRIMARY = `${BUTTON} border-[#9b7424] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] text-[#1a1105]`;
@@ -33,9 +46,24 @@ export function SheetStatusBar({ lang, store, editing, status }: { lang: Languag
   const [confirming, setConfirming] = useState(false);
   const [choice, setChoice] = useState<"player" | "npc">("player");
   const [givingBack, setGivingBack] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [taking, setTaking] = useState<string | null | undefined>(undefined);
+  const [removing, setRemoving] = useState(false);
+  const [ticked, setTicked] = useState(false);
+  const [typed, setTyped] = useState("");
   const sheet = store.sheet;
   const gm = sheet.capabilities.isGM;
   const state = sheet.status ?? "confirmed";
+  const name = String((sheet.fields as { nombre?: string }).nombre ?? "");
+  const current = status?.assignment?.options.find((o) => o.id === (sheet.assignedPlayerId ?? null));
+  /** Taking a sheet from a player asks first; their private notes stay theirs. */
+  const assign = (userId: string | null) => {
+    setChoosing(false);
+    if (userId === (sheet.assignedPlayerId ?? null)) return;
+    if (current?.isPlayer) setTaking(userId);
+    else void busyWhile(() => status!.assignment!.onAssign(userId));
+  };
+  const busyWhile = async (work: () => Promise<void>) => { setBusy(true); try { await work(); } finally { setBusy(false); } };
   const run = async (action: StatusAction, as?: "player" | "npc") => {
     if (!status) return;
     setBusy(true);
@@ -80,15 +108,86 @@ export function SheetStatusBar({ lang, store, editing, status }: { lang: Languag
         </>
       ), PROPOSED_TONE)}
 
-      {state === "confirmed" && gm && editing && status?.onSetActive && (
-        <div id="sheet-status" data-status="confirmed" className="mb-5 p-3 rounded-xl border border-[#c8a248]/35 bg-[#120e1c]/90">
-          <Switch id="switch-sheet-active" checked={sheet.active !== false} disabled={busy}
-            onChange={(on) => { setBusy(true); void status.onSetActive!(on).finally(() => setBusy(false)); }}
-            label={s.activeSwitch} hint={s.activeHint} labelClassName="text-xs font-bold text-neutral-100" />
+      {state === "confirmed" && gm && editing && !sheet.archived && (status?.onSetActive || status?.assignment) && (
+        <div id="sheet-status" data-status="confirmed" className="mb-5 p-3 rounded-xl border border-[#c8a248]/35 bg-[#120e1c]/90 grid gap-3 md:grid-cols-2 md:items-center">
+          {status.assignment && (
+            <div className="flex flex-wrap items-center gap-2 px-2.5">
+              <span className="text-xs font-bold text-neutral-100">{s.assigned}</span>
+              <button type="button" id="btn-sheet-assigned" disabled={busy} aria-haspopup="dialog" onClick={() => setChoosing(true)}
+                className="inline-flex items-center gap-2 min-h-10 px-3 rounded-lg border border-amber-600/50 bg-gradient-to-b from-[#231c35] to-[#130f1e] text-amber-300 text-sm font-medium cursor-pointer hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-50">
+                <span className="break-words text-left">{current?.label ?? s.nobody}</span>
+                <ChevronDown className="w-4 h-4 shrink-0" />
+              </button>
+            </div>
+          )}
+          {status.onSetActive && (
+            <Switch id="switch-sheet-active" checked={sheet.active !== false} disabled={busy}
+              onChange={(on) => { setBusy(true); void status.onSetActive!(on).finally(() => setBusy(false)); }}
+              label={s.activeSwitch} hint={s.activeHint} labelClassName="text-xs font-bold text-neutral-100" />
+          )}
         </div>
       )}
 
-      {state === "confirmed" && sheet.active === false && !(gm && editing) &&
+      {state === "confirmed" && gm && sheet.archived && panel(Archive, s.archivedTitle, s.archivedText, (status?.onRestore || status?.onDelete) && (
+        <>
+          {status?.onRestore && (
+            <button type="button" id="btn-status-restore" disabled={busy} onClick={() => void busyWhile(status.onRestore!)} className={QUIET}>
+              <RotateCcw className="w-4 h-4" />{s.restore}
+            </button>
+          )}
+          {status?.onDelete && (
+            <button type="button" id="btn-status-delete" disabled={busy} onClick={() => { setTicked(false); setTyped(""); setRemoving(true); }}
+              className={`${BUTTON} border-rose-500/50 bg-[#4c1420] text-rose-100 hover:border-rose-300`}>
+              <Trash2 className="w-4 h-4" />{s.remove}
+            </button>
+          )}
+        </>
+      ), "border-rose-500/40 bg-rose-950/20 text-rose-200")}
+
+      {choosing && status?.assignment && (
+        <Picker
+          id="assign-picker"
+          title={s.assigned}
+          items={status.assignment.options.map((o) => ({ id: o.id ?? NOBODY, label: o.label, detail: o.detail }))}
+          selected={sheet.assignedPlayerId ?? NOBODY}
+          onPick={(id) => assign(id === NOBODY ? null : id)}
+          onClose={() => setChoosing(false)}
+          texts={pickerTexts(TRANSLATIONS[lang])}
+        />
+      )}
+
+      {taking !== undefined && (
+        <ConfirmDialog id="take-sheet" kind="discard" title={s.takeTitle} message={s.takeText.replace("{name}", current?.label ?? "")}
+          confirmLabel={s.change} cancelLabel={s.cancel}
+          onConfirm={() => { const userId = taking; setTaking(undefined); void busyWhile(() => status!.assignment!.onAssign(userId)); }}
+          onCancel={() => setTaking(undefined)} />
+      )}
+
+      {removing && status?.onDelete && (
+        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="status-delete-title" id="modal-delete-sheet"
+          onKeyDown={(e) => { if (e.key === "Escape") setRemoving(false); }}>
+          <div className="w-full max-w-md rounded-2xl border border-rose-500/50 bg-[#150f22] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-4">
+            <h3 id="status-delete-title" className="font-magic text-sm font-bold uppercase tracking-[0.1em] text-rose-300 flex items-center gap-2"><Trash2 className="w-4 h-4" />{s.remove}</h3>
+            <p className="text-sm text-neutral-300 leading-relaxed">{s.removeText}</p>
+            <Check id="check-delete-sheet" checked={ticked} onChange={setTicked}>{s.removeTick}</Check>
+            <label className="grid gap-1.5 text-xs text-neutral-300">
+              <span>{s.removeType.replace("{name}", name)}</span>
+              <input id="input-delete-sheet-name" type="text" value={typed} disabled={!ticked} autoComplete="off" onChange={(e) => setTyped(e.target.value)}
+                className="w-full text-sm bg-neutral-950 border border-neutral-800 text-neutral-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-rose-500 focus:outline-none disabled:opacity-50" />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button type="button" id="btn-delete-sheet-cancel" onClick={() => setRemoving(false)} className={QUIET}>{s.cancel}</button>
+              <button type="button" id="btn-delete-sheet-confirm" disabled={!ticked || typed.trim() !== name.trim()}
+                onClick={() => { setRemoving(false); void busyWhile(status.onDelete!); }}
+                className={`${BUTTON} border-rose-400 bg-rose-700 text-white`}>
+                <Trash2 className="w-4 h-4" />{s.remove}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {state === "confirmed" && sheet.active === false && !sheet.archived && !(gm && editing) &&
         panel(PauseCircle, s.inactiveTitle, s.inactiveText, null, "border-neutral-600/60 bg-neutral-900/60 text-neutral-200")}
 
       {givingBack && (

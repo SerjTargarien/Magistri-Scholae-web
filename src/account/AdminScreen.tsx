@@ -10,11 +10,12 @@
 // for a member's role, a picker to add an account, a switch for an active account, and
 // the one confirmation dialog before removing, cancelling or disabling.
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Check as CheckIcon, Copy, KeyRound, Link as LinkIcon, Plus, ShieldCheck, UserPlus, X } from "lucide-react";
+import { ArrowLeft, KeyRound, Link as LinkIcon, Plus, ShieldCheck, UserPlus, X } from "lucide-react";
 import type { ApiAdminUser, ApiCampaign, ApiInvitation, ApiMember, ApiRole, ApiUser } from "../contracts/api-v1";
 import { ADMIN_TEXT, TRANSLATIONS, type Language } from "../localization";
 import { ApiFailure } from "../remote/client";
 import type { AdminApi, IssuedLink } from "./admin";
+import { IssuedLinkPanel } from "./IssuedLinkPanel";
 import { CompassStarDivider, FiligreeCorner } from "../components/AcademyOrnaments";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Picker, pickerTexts } from "../components/Picker";
@@ -54,7 +55,6 @@ export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged }: A
   const [invitations, setInvitations] = useState<ApiInvitation[]>([]);
   const [failed, setFailed] = useState(false);
   const [shown, setShown] = useState<Shown | null>(null);
-  const [copied, setCopied] = useState(false);
   const [adding, setAdding] = useState<ApiCampaign | null>(null);
   const [asking, setAsking] = useState<Asking | null>(null);
   const [newName, setNewName] = useState("");
@@ -93,36 +93,9 @@ export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged }: A
     }
   };
 
-  const show = (key: string, title: string, note: string, issued: IssuedLink) => { setCopied(false); setShown({ key, title, note, ...issued }); };
-  const copy = async () => {
-    if (!shown) return;
-    try { await navigator.clipboard.writeText(shown.link); setCopied(true); }
-    catch {
-      // No clipboard (an old browser or an insecure page): select the link so it can be copied by hand.
-      const node = document.getElementById("admin-issued-link");
-      if (node) window.getSelection()?.selectAllChildren(node);
-    }
-  };
-
+  const show = (key: string, title: string, note: string, issued: IssuedLink) => setShown({ key, title, note, ...issued });
   const issuedPanel = (key: string) => shown?.key === key && (
-    <div className="mt-3 p-3 rounded-lg border border-amber-500/40 bg-amber-950/20 space-y-2" id="admin-issued" role="status">
-      <div className="flex items-start justify-between gap-2">
-        <h4 className="text-[10px] font-mono uppercase tracking-wider text-amber-300 font-bold flex items-center gap-1.5">
-          <LinkIcon className="w-3.5 h-3.5 shrink-0" />{shown.title}
-        </h4>
-        <button type="button" id="btn-admin-issued-close" onClick={() => setShown(null)} title={a.close} aria-label={a.close}
-          className={`${HIT} text-neutral-500 hover:text-amber-300 cursor-pointer shrink-0`}><X className="w-4 h-4" /></button>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-start gap-2">
-        {/* The whole link, wrapping on narrow screens (no cut words) */}
-        <p id="admin-issued-link" className="flex-1 min-w-0 text-xs font-mono text-neutral-100 bg-neutral-950 border border-neutral-800 rounded px-2 py-1.5 break-all select-all">{shown.link}</p>
-        <button type="button" id="btn-admin-copy" onClick={() => void copy()} className={`${STRONG} justify-center shrink-0`}>
-          {copied ? <CheckIcon className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}{copied ? a.copied : a.copy}
-        </button>
-      </div>
-      <p className="text-[11px] text-neutral-400 font-sans break-all" id="admin-issued-code">{fill(a.code, { code: shown.link.slice(shown.link.indexOf("=") + 1) })}</p>
-      <p className="text-[11px] text-amber-200/80 font-sans leading-relaxed">{fill(shown.note, { date: when(shown.expiresAt) })}</p>
-    </div>
+    <IssuedLinkPanel id="admin-issued" lang={lang} title={shown.title} note={shown.note} issued={shown} onClose={() => setShown(null)} />
   );
 
   const heading = (text: string, Icon: typeof KeyRound) => (

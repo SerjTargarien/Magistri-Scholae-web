@@ -282,7 +282,7 @@ test("drafts: the Máster never sees them; a proposal is read-only; confirmed as
   await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "confirmed");
   await page.locator("#btn-detail-back").click();
   await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" })).toHaveCount(0);
-  await expect(page.locator("#list-filter-summary")).toContainText("sin las inactivas (por defecto)");
+  await expect(page.locator("#list-filter-summary")).toContainText("sin las inactivas ni las archivadas (por defecto)");
   await page.locator("#list-filter-open").click();
   await page.locator("#list-filter-sheet-estado-inactive").click();
   await page.locator("#list-filter-sheet-apply").click();
@@ -317,4 +317,84 @@ test("drafts: a proposal confirmed as the Máster's NPC leaves its author", asyn
   await expect(page.locator("#btn-detail-edit")).toBeVisible(); // now the Máster's own sheet
   await viewAs(page, "player");
   await expect(page.locator('[id^="character-card-"]', { hasText: "Futuro PNJ" })).toHaveCount(0);
+});
+
+// The Máster's tools (R4 d): players, assignment, archived sheets, the campaign.
+test("Máster: invites a player, assigns sheets, restores and deletes an archived one, renames and creates a campaign", async ({ page }) => {
+  await openApp(page);
+  await expect(page.locator("#btn-campaign-players")).toHaveCount(0); // players have no «Jugadores»
+  await viewAs(page, "gm");
+
+  // «Jugadores»: an invitation shown once, pending until cancelled.
+  await page.locator("#btn-campaign-players").click();
+  await expect(page.locator("#campaign-players-screen")).toContainText("@demo_player");
+  await page.locator("#btn-invite-player").click();
+  await expect(page.locator("#players-issued-link")).toContainText("/#invitacion=");
+  await page.locator('[id^="btn-cancel-player-invitation-"]').click();
+  await page.locator("#btn-cancel-player-invitation-confirm").click();
+  await expect(page.locator("#players-card")).toContainText("Ninguna.");
+  await page.locator("#btn-campaign-players-back").click();
+
+  // Taking Diego from his player asks first; he becomes the Máster's own NPC.
+  await openCharacter(page, "Diego Marés");
+  await setEditMode(page, true);
+  await page.locator("#btn-sheet-assigned").click();
+  await page.locator("#assign-picker").getByText("Yo (PNJ)").click();
+  await expect(page.locator("#modal-take-sheet")).toContainText("dejará de ver esta ficha");
+  await page.locator("#btn-take-sheet-confirm").click();
+  await expect(page.locator("#btn-sheet-assigned")).toContainText("Yo (PNJ)");
+  await setEditMode(page, false);
+  await viewAs(page, "player");
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Diego Marés" })).toHaveCount(0);
+
+  // The creation form: the Máster gives a new character to the player.
+  await viewAs(page, "gm");
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#input-nombre").fill("Regalo del Máster");
+  await page.locator("#btn-form-assigned").click();
+  await page.locator("#form-assign-picker").getByText("Jugadora (demo)").click();
+  await page.locator("#btn-form-save").click();
+  await expect(page.locator("#character-detail-screen")).toBeVisible();
+  await viewAs(page, "player");
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Regalo del Máster" })).toHaveCount(1);
+
+  // Archived: hidden, shown by «Estado», restored, archived again and deleted for good.
+  await viewAs(page, "gm");
+  await openCharacter(page, "Regalo del Máster");
+  await page.locator("#btn-detail-delete").click();
+  await page.locator("#check-archive").click();
+  await page.locator("#btn-archive-confirm").click();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Regalo del Máster" })).toHaveCount(0);
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-estado-archived").click();
+  await page.locator("#list-filter-sheet-apply").click();
+  await openCharacter(page, "Regalo del Máster");
+  await page.locator("#btn-status-restore").click();
+  await expect(page.locator("#btn-status-restore")).toHaveCount(0);
+  await page.locator("#btn-detail-delete").click();
+  await page.locator("#check-archive").click();
+  await page.locator("#btn-archive-confirm").click();
+  await openCharacter(page, "Regalo del Máster");
+  await page.locator("#btn-status-delete").click();
+  await expect(page.locator("#btn-delete-sheet-confirm")).toBeDisabled();
+  await page.locator("#check-delete-sheet").click();
+  await page.locator("#input-delete-sheet-name").fill("Regalo del");
+  await expect(page.locator("#btn-delete-sheet-confirm")).toBeDisabled(); // the whole name
+  await page.locator("#input-delete-sheet-name").fill("Regalo del Máster");
+  await page.locator("#btn-delete-sheet-confirm").click();
+  await expect(page.locator("#character-list-container")).toBeVisible();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Regalo del Máster" })).toHaveCount(0);
+
+  // «Ajustes»: the campaign's name, and a new campaign.
+  await page.locator("#btn-settings").click();
+  await page.locator("#input-campaign-name").fill("Universo renombrado");
+  await page.locator("#btn-rename-campaign").click();
+  await expect(page.locator("#app-global-toast")).toContainText("Nombre guardado.");
+  await page.locator("#input-new-campaign-gm").fill("Segunda crónica");
+  await page.locator("#btn-create-campaign-gm").click();
+  await expect(page.locator("#app-global-toast")).toContainText("Campaña creada");
+  await page.locator("#settings-campaign-select").click();
+  await expect(page.locator("#campaign-picker")).toContainText("Segunda crónica");
+  await expect(page.locator("#campaign-picker")).toContainText("Universo renombrado");
 });

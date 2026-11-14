@@ -877,6 +877,15 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Tests:** three feature tests now propose and confirm before the Máster opens a player's new sheet (`proposeAndConfirm` in `e2e/helpers.ts`); two new demo tests run the whole flow (PJ, return, inactive and still editable; PNJ). Type check; 42 unit tests; 64 demo browser tests; 4 real-backend browser tests; both builds; screenshots on desktop and phone.
 - **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `d5c546f` with migration `0010_drafts_and_active` applied (6 sheets, all confirmed and active), staging frontend released. Production waits for milestone 2.
 
+## R4 (d): assignment, campaigns and deleting archived sheets — 14 November 2026
+
+- **Owner's decisions:** deleting asks for a tick and the sheet's name typed in full; the Máster invites players himself from a «Jugadores» screen; reassigning uses a picker and asks before taking a sheet from a player.
+- **Server:** any GM creates campaigns (becoming their GM; the administrator does not join his); the GM or the administrator renames one (`PATCH campaigns/{id}`); `campaigns/{id}/invitations` lists a campaign's unused invitations for its GM and cancels his player invitations; `DELETE /{id}` deletes an archived, confirmed sheet for good, with its image files after the commit (`media.delete_files`); private notes about it stay with their authors (already `SET_NULL`). No migration. 5 new backend tests (179 in all).
+- **App:** «Jugadores de la campaña» (`src/account/CampaignPlayers.tsx`, adapter `players.ts`); the shared `IssuedLinkPanel` (also in «Administración»); the sheet's Máster panel gains «Jugador asignado» (picker, asks before taking a sheet from a player), «Restaurar» and «Eliminar definitivamente» on archived sheets; the creation form's «Jugador asignado»; the Máster's «Campaña» card in «Ajustes» (rename, new campaign). Archived sheets stay in the Máster's list behind «Estado: Archivada»; a familiar's card no longer names an archived bond.
+- **Demo:** the mock server follows the same rules (and honours the GM's assignment at creation, as the server always did).
+- **Checks:** type check; 42 unit tests; 65 demo browser tests (one new, the whole set of Máster tools); 4 real-backend browser tests; backend suite 179; both builds; screenshots.
+- Not released: it changes the server (no migration), so it reaches staging when the owner asks, production at milestone 2.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

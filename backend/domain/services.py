@@ -245,6 +245,26 @@ def change_status(actor, sheet_id, kind, body):
 
 
 @transaction.atomic
+def delete_sheet(actor, sheet_id, kind, body):
+    """The GM deletes an archived sheet for good (R4 d; owner, 8 and 14 November 2026), to free
+    space. Its images go with it; private notes about it stay with their authors, unlinked
+    (PersonalNote.sheet is SET_NULL); a bonded counterpart simply loses the bond. Backups keep
+    it for their 30 days."""
+    keys(body, ["expectedRevision"], ["expectedRevision"])
+    sheet = sheet_for(actor, sheet_id, kind, lock=True)
+    member(actor, sheet.campaign, gm=True)
+    require(sheet.status == "confirmed" and sheet.archived, "not_archived", 409)
+    check_revision(actor, sheet, body["expectedRevision"])
+    from .media import delete_files
+    from .models import MediaAsset
+    names = list(MediaAsset.objects.filter(sheet=sheet).values_list("storage_name", flat=True))
+    AuditEvent.objects.create(actor=actor, action=f"{kind}.deleted", target_id=str(sheet.pk))
+    sheet.delete()
+    transaction.on_commit(lambda: delete_files(names))
+    return {}
+
+
+@transaction.atomic
 def share_sheet(actor, sheet_id, kind, body):
     keys(body, ["expectedRevision", "recipientId", "grant"], ["expectedRevision", "recipientId", "grant"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)

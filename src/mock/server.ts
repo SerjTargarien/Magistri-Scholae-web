@@ -169,7 +169,7 @@ export class MockServer {
       status: sheet.status ?? "confirmed", active: sheet.active !== false,
       capabilities: { readablePaths, writablePaths: writable, collectionPaths, removablePaths: removable, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),
-      ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId, archived: sheet.archived } : {}),
+      ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId || null, archived: sheet.archived } : {}),
       // The partida: the GM's only, characters only (R4 b).
       ...(access === "gm" && sheet.kind === "character" ? { tableId: sheet.tableId ?? null } : {}),
     };
@@ -215,7 +215,7 @@ export class MockServer {
     if (path === "auth/logout" && method === "POST") { this.state.viewer = null; this.save(); return new Reply(200, {}); }
     if (!user) return fail(401, "authentication_required");
     if (path === "auth/me") return new Reply(200, this.userView(user));
-    if (path === "campaigns" || path.startsWith("campaigns/") && path.endsWith("/members") || path.startsWith("admin/") || path === "auth/invitations" || path === "auth/reset-codes") {
+    if (path === "campaigns" || /^campaigns\/[^/]+(\/members|\/invitations(\/[^/]+)?)?$/.test(path) || path.startsWith("admin/") || path === "auth/invitations" || path === "auth/reset-codes") {
       const reply = this.directoryRoute(method, path, query, body, user);
       if (reply) return reply;
     }
@@ -243,6 +243,7 @@ export class MockServer {
     return this.receipt(body, () => {
       if (body.expectedRevision !== this.projection(sheet, user).revision) return fail(409, "revision_conflict");
       if (!action && method === "PATCH") return this.patch(sheet, body, user);
+      if (!action && method === "DELETE") return this.deleteSheet(sheet, user);
       if (action === "assets" && method === "POST") return this.upload(sheet, body, user);
       if (action === "bond" && method === "POST") return this.bond(sheet, body, user);
       if (action === "manage" && method === "POST") return this.manage(sheet, body, user);
@@ -271,12 +272,42 @@ export class MockServer {
         .map(c => ({ ...c, policyRevision: 1, role: this.roleIn(c.id, user.id) ?? null })) });
     }
     if (path === "campaigns" && method === "POST") {
-      if (!admin) return fail(403, "forbidden");
+      // Like accounts.create_campaign (R4 d): the administrator, or any GM, who becomes its GM.
+      const gmSomewhere = d.members.some(m => m.userId === user.id && m.role === "gm");
+      if (!admin && !gmSomewhere) return fail(403, "forbidden");
       const name = typeof body.name === "string" ? body.name.trim() : "";
       if (!name || name.length > 120) return fail(400, "invalid_request");
       const campaign = { id: `demo-campaign-${crypto.randomUUID()}`, name };
       d.campaigns.push(campaign);
-      return done(new Reply(200, { ...campaign, policyRevision: 1 }));
+      if (!admin) d.members.push({ campaignId: campaign.id, userId: user.id, role: "gm" });
+      return done(new Reply(200, { ...campaign, policyRevision: 1, role: admin ? null : "gm" }));
+    }
+    const one = path.match(/^campaigns\/([^/]+)$/);
+    if (one && method === "PATCH") {
+      const campaign = d.campaigns.find(c => c.id === one[1]);
+      if (!campaign) return fail(404, "not_found");
+      if (!admin && this.roleIn(campaign.id, user.id) !== "gm") return fail(403, "forbidden");
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      if (!name || name.length > 120) return fail(400, "invalid_request");
+      campaign.name = name;
+      return done(new Reply(200, { ...campaign, policyRevision: 1, role: this.roleIn(campaign.id, user.id) ?? null }));
+    }
+    const invitations = path.match(/^campaigns\/([^/]+)\/invitations(?:\/([^/]+))?$/);
+    if (invitations) {
+      // Like accounts.campaign_invitations: the campaign's GM or the administrator; the GM cancels player invitations.
+      const campaign = d.campaigns.find(c => c.id === invitations[1]);
+      if (!campaign) return fail(404, "not_found");
+      if (!admin && this.roleIn(campaign.id, user.id) !== "gm") return fail(403, "forbidden");
+      if (!invitations[2] && method === "GET") {
+        const pending = d.invitations.filter(i => i.campaignId === campaign.id && !i.used && i.expiresAt > Date.now()).sort((a, b) => a.expiresAt - b.expiresAt);
+        return new Reply(200, { items: pending.map(i => ({ id: i.id, campaignId: i.campaignId, campaignName: campaign.name, role: i.role,
+          issuer: i.issuer, expiresAt: new Date(i.expiresAt).toISOString() })) });
+      }
+      const target = d.invitations.find(i => i.id === invitations[2] && i.campaignId === campaign.id && !i.used);
+      if (!target || method !== "DELETE") return fail(404, "not_found");
+      if (!admin && target.role !== "player") return fail(403, "forbidden");
+      d.invitations = d.invitations.filter(i => i !== target);
+      return done(new Reply(200, {}));
     }
     const members = path.match(/^campaigns\/([^/]+)\/members$/);
     if (members) {
@@ -429,7 +460,12 @@ export class MockServer {
     const refused = this.problems(kind, body.fields);
     if (refused) return refused;
     if (user.role !== "gm" && ownSkillsKey((body.fields as any).habilidades) !== "[]") return fail(403, "gm_only_skill");
-    const sheet: DemoSheet = { id: `demo-${crypto.randomUUID()}`, kind, fields: structuredClone(body.fields), assignedPlayerId: user.id,
+    // Like services.create_sheet: the GM may give it to an active member, or to nobody (R4 d).
+    if (body.assignedPlayerId !== undefined && user.role !== "gm") return fail(403, "forbidden");
+    if (body.assignedPlayerId && !this.directory.members.some(m => m.campaignId === CAMPAIGN.id && m.userId === body.assignedPlayerId && this.account(m.userId)?.active))
+      return fail(400, "invalid_assignment");
+    const owner = user.role === "gm" ? body.assignedPlayerId ?? "" : user.id;
+    const sheet: DemoSheet = { id: `demo-${crypto.randomUUID()}`, kind, fields: structuredClone(body.fields), assignedPlayerId: owner,
       archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [],
       // Like services.create_sheet: a player's new sheet is a draft only they see (R4 c).
       status: user.role === "gm" ? "confirmed" : "draft" };
@@ -523,8 +559,25 @@ export class MockServer {
       if (body.tableId === null) delete sheet.tableId; else sheet.tableId = body.tableId;
     }
     if (typeof body.archived === "boolean") sheet.archived = body.archived;
+    if ("assignedPlayerId" in body) {
+      // Like services.assigned_member: an active member of the campaign, or nobody.
+      const member = body.assignedPlayerId === null ? undefined
+        : this.directory.members.find(m => m.campaignId === CAMPAIGN.id && m.userId === body.assignedPlayerId && this.account(m.userId)?.active);
+      if (body.assignedPlayerId !== null && !member) return fail(400, "invalid_assignment");
+      sheet.assignedPlayerId = body.assignedPlayerId ?? "";
+    }
     sheet.revision++;
     return new Reply(200, this.projection(sheet, user));
+  }
+
+  /** Like services.delete_sheet (R4 d): the GM deletes an archived sheet for good; notes about it stay with their authors. */
+  private deleteSheet(sheet: DemoSheet, user: DemoUser): Reply {
+    if (user.role !== "gm") return fail(403, "forbidden");
+    if (!sheet.archived || (sheet.status ?? "confirmed") !== "confirmed") return fail(409, "not_archived");
+    for (const other of this.state.sheets) if (other.bondId === sheet.id) { delete other.bondId; other.revision++; }
+    for (const note of this.state.notes) if (note.sheetId === sheet.id) note.sheetId = null;
+    this.state.sheets = this.state.sheets.filter(s => s !== sheet);
+    return new Reply(200, {});
   }
 
   /** The campaign's partidas (R4 b), like services.create_table and friends: the GM's only. */

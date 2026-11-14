@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
+import React, { useState } from "react";
+import { Picker, pickerTexts } from "./Picker";
+import { STATUS_TEXT, TRANSLATIONS } from "../localization";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import {
@@ -14,7 +16,8 @@ import {
   Activity,
   Award,
   BookOpen,
-  PawPrint
+  PawPrint,
+  ChevronDown,
 } from "lucide-react";
 import { FamiliarEditor } from "./FamiliarEditor";
 import type { CharacterFormProps } from "../account/screens";
@@ -29,7 +32,13 @@ import { FormStressTab } from "./form/FormStressTab";
 export type { CharacterFormProps };
 
 export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
-  const ctx = useCharacterForm(screenProps);
+  // The Máster chooses who a new character belongs to (R4 d); the first option is the default.
+  const [assigned, setAssigned] = useState<string | null>(screenProps.assignOptions?.[0]?.id ?? null);
+  const [choosingPlayer, setChoosingPlayer] = useState(false);
+  const ctx = useCharacterForm({
+    ...screenProps,
+    onSave: (fields, avatar, familiar) => screenProps.onSave(fields, avatar, familiar, screenProps.assignOptions ? assigned : undefined),
+  });
   const {
     lang, onCancel, t, activeFormTab, setActiveFormTab, characterType, formError, showDiscardModal, setShowDiscardModal,
     showFamiliarEditorModal, setShowFamiliarEditorModal, cropImageSrc, setCropImageSrc, isCropperOpen, setIsCropperOpen,
@@ -155,7 +164,23 @@ export const CharacterForm: React.FC<CharacterFormProps> = (screenProps) => {
       </div>
 
       {/* Primary bottom controller buttons */}
-      <div className="mt-8 flex justify-end gap-3 border-t border-violet-500/10 pt-4">
+      <div className="mt-8 flex flex-wrap justify-end items-center gap-3 border-t border-violet-500/10 pt-4">
+        {screenProps.assignOptions && (
+          <div className="flex flex-wrap items-center gap-2 mr-auto" id="form-assigned">
+            <span className="text-xs font-bold text-neutral-200">{STATUS_TEXT[lang].assigned}</span>
+            <button type="button" id="btn-form-assigned" aria-haspopup="dialog" onClick={() => setChoosingPlayer(true)}
+              className="inline-flex items-center gap-2 min-h-10 px-3 rounded-lg border border-amber-600/50 bg-gradient-to-b from-[#231c35] to-[#130f1e] text-amber-300 text-sm font-medium cursor-pointer hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+              <span className="break-words text-left">{screenProps.assignOptions.find((o) => o.id === assigned)?.label}</span>
+              <ChevronDown className="w-4 h-4 shrink-0" />
+            </button>
+            {choosingPlayer && (
+              <Picker id="form-assign-picker" title={STATUS_TEXT[lang].assigned}
+                items={screenProps.assignOptions.map((o) => ({ id: o.id ?? "__none", label: o.label, detail: o.detail }))}
+                selected={assigned ?? "__none"} onPick={(id) => { setAssigned(id === "__none" ? null : id); setChoosingPlayer(false); }}
+                onClose={() => setChoosingPlayer(false)} texts={pickerTexts(TRANSLATIONS[lang])} />
+            )}
+          </div>
+        )}
         <button
           id="btn-form-bottom-cancel"
           type="button"

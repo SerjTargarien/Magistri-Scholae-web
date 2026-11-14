@@ -152,6 +152,12 @@ Not sheet fields: the server keeps them beside the sheet and shows them in every
 | Status | A player's new sheet is a **borrador** only they see (the Máster does not see it at all); «Proponer al Máster» makes it a **propuesta**, read-only for everyone; the player can withdraw it; the Máster confirms it as the player's character (PJ) or as his own NPC (PNJ; the author loses it) or returns it to the drafts. The Máster's own sheets are confirmed at once; existing sheets are confirmed. A bonded counterpart in the same state moves with it. | **draft → proposed → confirmed** (or back to draft); a draft bonds only with another draft |
 | Active | The Máster's «Ficha activa» switch on a confirmed sheet, in edit mode. An inactive sheet leaves the main list unless «Estado» shows it; its player still edits it. | **Yes / no**; default yes |
 
+## Campaign (R4 d)
+
+| Field | Today | Rule |
+|---|---|---|
+| Campaign name | Created by the administrator or any Máster («Nueva campaña» in «Ajustes» or «Administración»); renamed by its Máster in «Ajustes» or by the administrator. | **Required, text 120** |
+
 ## Partidas (the Máster's «Partidas de la campaña»; R4 b)
 
 Campaign records, not sheet fields; only the campaign's Máster sees and changes them (owner, 14 November 2026: players never see which partida a sheet belongs to).

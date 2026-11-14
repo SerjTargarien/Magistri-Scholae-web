@@ -8,13 +8,13 @@ import type { DemoRole } from "./fixtures";
 
 const TEXT = {
   es: {
-    title: "Panel de pruebas (demo)", viewAs: "Ver como", gm: "Directora (GM)", player: "Jugadora asignada", reader: "Lector compartido",
+    title: "Panel de pruebas (demo)", viewAs: "Ver como", gm: "Directora (GM)", player: "Jugadora asignada", reader: "Lector compartido", admin: "Administración",
     connection: "Conexión", offline: "Sin conexión", online: "Con conexión", slow: "Respuestas lentas",
     nextSave: "Próximo guardado", failNetwork: "Se corta antes de llegar", failServer: "Error del servidor", loseReply: "Se pierde la respuesta",
     other: "Otra persona cambia", concepto: "el concepto", nombre: "el nombre", reset: "Restablecer datos de demostración", noSheet: "Abre una ficha primero",
   },
   en: {
-    title: "Test panel (demo)", viewAs: "View as", gm: "GM", player: "Assigned player", reader: "Shared reader",
+    title: "Test panel (demo)", viewAs: "View as", gm: "GM", player: "Assigned player", reader: "Shared reader", admin: "Administrator",
     connection: "Connection", offline: "Offline", online: "Online", slow: "Slow replies",
     nextSave: "Next save", failNetwork: "Lost before arriving", failServer: "Server error", loseReply: "Reply lost",
     other: "Someone else changes", concepto: "the concept", nombre: "the name", reset: "Reset demo data", noSheet: "Open a sheet first",
@@ -33,7 +33,7 @@ export default function DemoPanel({ lang }: { lang: Language }) {
   const role = server.state.viewer;
   return <aside className="demo-panel" aria-label={t.title}>
     <strong>{t.title}</strong>
-    <div>{t.viewAs}: {(["gm", "player", "reader"] as const).map(r =>
+    <div>{t.viewAs}: {(["gm", "player", "reader", "admin"] as const).map(r =>
       <button key={r} id={`demo-role-${r}`} aria-pressed={role === r} onClick={() => viewAs(r)}>{t[r]}</button>)}</div>
     <div>{t.connection}: <button id="demo-offline" aria-pressed={server.offline} onClick={() => { setOffline(!server.offline); refresh(); }}>
       {server.offline ? t.offline : t.online}</button>

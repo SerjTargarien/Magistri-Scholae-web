@@ -43,7 +43,7 @@ backend/.venv/Scripts/python.exe backend/manage.py runserver 127.0.0.1:8000 --se
 npm run dev:remote
 ```
 
-Run the final two commands in separate terminals. The preparation command creates only loopback `magistri_preview`, applies migrations and seeds fictional `preview_gm`, `preview_alice` and `preview_bob`, with public test password `Fictional-preview-only-42!`. It refuses ordinary settings and preserves an existing preview rather than resetting it. Alice owns a student, an adult wizard and a familiar; Bob has a read-only student share. A reputation field is GM-only. Media is isolated in ignored `backend/.tmp/preview-media/`. Never enter real data or use these credentials outside this fictional loopback preview. This is a real API preview, distinct from backend-independent `npm run dev:mock`.
+Run the final two commands in separate terminals. The preparation command creates only loopback `magistri_preview`, applies migrations and seeds fictional `preview_gm`, `preview_alice`, `preview_bob` and the site administrator `preview_admin` (in no campaign), with public test password `Fictional-preview-only-42!`. It refuses ordinary settings and preserves an existing preview rather than resetting it. Alice owns a student, an adult wizard and a familiar; Bob has a read-only student share. A reputation field is GM-only. Media is isolated in ignored `backend/.tmp/preview-media/`. Never enter real data or use these credentials outside this fictional loopback preview. This is a real API preview, distinct from backend-independent `npm run dev:mock`.
 
 ## Verification
 

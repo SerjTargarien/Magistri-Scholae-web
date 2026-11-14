@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from django.conf import settings
 from django.test import Client, override_settings
@@ -157,3 +158,57 @@ class AuthenticationTests(APICase):
         user = User.objects.create_user("realhash", password=PASSWORD)
         self.assertTrue(user.password.startswith("pbkdf2_sha256$"))
         self.assertTrue(user.check_password(PASSWORD))
+
+
+class AdministrationTests(APICase):
+    """The administrator screens' server side (R4 a): users, unused invitations, member lists."""
+
+    def test_reset_link_lasts_a_day(self):
+        before = timezone.now()
+        _, reset = accounts.issue_reset(self.admin, self.alice.pk)
+        self.assertGreaterEqual(reset.expires_at, before + timedelta(hours=24))
+        self.assertLess(reset.expires_at, before + timedelta(hours=24, minutes=1))
+
+    def test_user_list_is_administrator_only_and_holds_no_sheet_content(self):
+        for actor in (self.gm, self.alice):
+            self.read(self.client_for(actor), "admin/users", status=403)
+        items = self.read(self.client_for(self.admin), "admin/users?limit=100")["items"]
+        by_name = {u["username"]: u for u in items}
+        self.assertEqual(sorted(by_name), ["alice", "bob", "gamemaster", "operator", "outsider"])
+        self.assertTrue(by_name["operator"]["isAdministrator"])
+        self.assertEqual({(c["name"], c["role"]) for c in by_name["gamemaster"]["campaigns"]},
+                         {("Fictional academy", "gm"), ("Other fictional academy", "player")})
+        self.assertEqual(set(by_name["alice"]), {"id", "username", "displayName", "isAdministrator", "isActive", "campaigns"})
+        self.assertNotIn("Fictional Luna", json.dumps(items))
+
+    def test_user_list_shows_disabled_accounts(self):
+        accounts.account_state(self.admin, self.bob.pk, False)
+        items = self.read(self.client_for(self.admin), "admin/users")["items"]
+        self.assertFalse(next(u for u in items if u["username"] == "bob")["isActive"])
+
+    def test_unused_invitations_listed_and_cancelled(self):
+        token, invite = accounts.issue_invitation(self.gm, self.campaign.pk, "player")
+        used, _ = accounts.issue_invitation(self.admin, self.campaign.pk, "player")
+        self.send(Client(), "auth/register", {"invitationToken": used, "username": "newcomer", "password": PASSWORD})
+        expired_token, expired = accounts.issue_invitation(self.admin, self.other.pk, "gm")
+        expired.expires_at = timezone.now() - timedelta(seconds=1)
+        expired.save()
+        self.read(self.client_for(self.gm), "admin/invitations", status=403)
+        operator = self.client_for(self.admin)
+        items = self.read(operator, "admin/invitations")["items"]
+        self.assertEqual([i["id"] for i in items], [str(invite.pk)])
+        self.assertEqual(items[0]["campaignName"], "Fictional academy")
+        self.assertEqual(items[0]["issuer"], "gamemaster")
+        self.assertNotIn(token, json.dumps(items))
+        self.send(self.client_for(self.gm), f"admin/invitations/{invite.pk}", method="delete", status=403)
+        self.send(operator, f"admin/invitations/{invite.pk}", method="delete")
+        self.assertTrue(AuditEvent.objects.filter(action="invitation.revoked", target_id=str(invite.pk)).exists())
+        self.send(Client(), "auth/register", {"invitationToken": token, "username": "latecomer", "password": PASSWORD}, status=400)
+        self.send(operator, f"admin/invitations/{invite.pk}", method="delete", status=404)
+        self.assertEqual(self.read(operator, "admin/invitations")["items"], [])
+
+    def test_administrator_reads_any_member_list_without_being_gm(self):
+        self.read(self.client_for(self.alice), f"campaigns/{self.campaign.pk}/members", status=403)
+        items = self.read(self.client_for(self.admin), f"campaigns/{self.campaign.pk}/members")["items"]
+        self.assertEqual({(m["username"], m["role"]) for m in items}, {("gamemaster", "gm"), ("alice", "player"), ("bob", "player")})
+        self.assertEqual(set(items[0]), {"userId", "username", "displayName", "role"})

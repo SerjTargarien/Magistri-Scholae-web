@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { Language, SETTINGS_TEXT, TRANSLATIONS } from "../localization";
+import { ADMIN_TEXT, Language, SETTINGS_TEXT, TRANSLATIONS } from "../localization";
 import type { SettingsScreenProps } from "../account/screens";
 import { Picker, pickerTexts } from "./Picker";
 import { 
@@ -15,6 +15,7 @@ import {
   ChevronDown,
   CircleUser,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -22,6 +23,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onLanguageChange,
   onBack,
   account,
+  onOpenAdmin,
 }) => {
   const t = TRANSLATIONS[lang];
   const s = SETTINGS_TEXT[lang];
@@ -154,6 +156,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </button>
           </div>
         </div>
+
+        {/* «Administración»: the site administrator only (R4 a) */}
+        {onOpenAdmin && (
+          <div className="glass-panel p-6 rounded-xl border border-amber-500/25 md:col-span-2" id="settings-card-admin">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-5 h-5 text-amber-500" />
+              <h2 className="font-magic text-md text-neutral-200 uppercase tracking-wider">{ADMIN_TEXT[lang].title}</h2>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="text-xs text-neutral-400 font-sans leading-relaxed flex-1">{ADMIN_TEXT[lang].openHint}</p>
+              <button
+                type="button"
+                id="btn-settings-admin"
+                onClick={onOpenAdmin}
+                className="flex items-center justify-center gap-2 text-sm text-amber-300 hover:text-amber-200 bg-violet-950/60 hover:bg-violet-900/70 px-3 py-1.5 rounded-lg border border-amber-500/40 transition-all font-mono cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                {ADMIN_TEXT[lang].open}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* About App - Bottom-most section in full width */}
         <div className="glass-panel p-6 rounded-xl border border-violet-500/15 md:col-span-2" id="settings-card-about">

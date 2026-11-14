@@ -12,6 +12,10 @@ from .errors import APIError, require, text
 from .models import AuditEvent, Campaign, Invitation, Membership, PasswordReset, RateBucket, User, normalized_username
 from .permissions import is_gm
 
+# A recovery link is sent by text message, so it lasts a day (owner, 14 November 2026; was 15 minutes).
+RESET_LIFETIME = timedelta(hours=24)
+INVITATION_LIFETIME = timedelta(days=7)
+
 
 def digest(value):
     return hmac.new(settings.HMAC_KEY.encode(), value.encode(), hashlib.sha256).hexdigest()
@@ -66,7 +70,7 @@ def issue_invitation(actor, campaign_id, role):
     require(role != "gm" or actor.is_superuser, "forbidden", 403)
     token = secrets.token_urlsafe(32)
     invite = Invitation.objects.create(token_hash=digest(token), campaign=campaign, issuer=actor,
-                                       role=role, expires_at=timezone.now() + timedelta(days=7))
+                                       role=role, expires_at=timezone.now() + INVITATION_LIFETIME)
     AuditEvent.objects.create(actor=actor, action="invitation.issued", target_id=str(invite.pk))
     return token, invite
 
@@ -106,7 +110,7 @@ def issue_reset(actor, user_id):
     PasswordReset.objects.filter(user=user, consumed_at__isnull=True).update(consumed_at=timezone.now())
     code = secrets.token_urlsafe(32)
     reset = PasswordReset.objects.create(user=user, issuer=actor, code_hash=digest(code),
-                                        expires_at=timezone.now() + timedelta(minutes=15))
+                                        expires_at=timezone.now() + RESET_LIFETIME)
     AuditEvent.objects.create(actor=actor, action="password_reset.issued", target_id=str(user.pk))
     return code, reset
 
@@ -147,6 +151,35 @@ def account_state(actor, user_id, active):
     user.auth_epoch += 1
     user.save(update_fields=["is_active", "auth_epoch"])
     AuditEvent.objects.create(actor=actor, action="account.enabled" if active else "account.disabled", target_id=str(user.pk))
+
+
+def list_users(actor, limit, offset):
+    """Every account with its campaigns and roles (R4): usernames and roles only, no sheet content."""
+    administrator(actor)
+    users = list(User.objects.order_by("username")[offset:offset + limit])
+    memberships = {}
+    for m in Membership.objects.filter(user__in=users).select_related("campaign").order_by("campaign__name", "campaign_id"):
+        memberships.setdefault(m.user_id, []).append({"id": str(m.campaign_id), "name": m.campaign.name, "role": m.role})
+    return [{**user_view(u), "isActive": u.is_active, "campaigns": memberships.get(u.pk, [])} for u in users]
+
+
+def list_invitations(actor, limit, offset):
+    """Unused invitations that have not expired, soonest to expire first. The codes are stored
+    hashed, so the list cannot show them again; an invitation can only be cancelled."""
+    administrator(actor)
+    pending = (Invitation.objects.filter(consumed_at__isnull=True, expires_at__gt=timezone.now())
+               .select_related("campaign", "issuer").order_by("expires_at", "id")[offset:offset + limit])
+    return [{"id": str(i.pk), "campaignId": str(i.campaign_id), "campaignName": i.campaign.name, "role": i.role,
+             "issuer": i.issuer.username, "expiresAt": i.expires_at.isoformat()} for i in pending]
+
+
+@transaction.atomic
+def revoke_invitation(actor, invitation_id):
+    administrator(actor)
+    invite = Invitation.objects.select_for_update().filter(pk=invitation_id, consumed_at__isnull=True).first()
+    require(invite is not None, "not_found", 404)
+    AuditEvent.objects.create(actor=actor, action="invitation.revoked", target_id=str(invite.pk))
+    invite.delete()
 
 
 def user_view(user):

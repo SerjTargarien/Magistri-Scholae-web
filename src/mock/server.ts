@@ -2,8 +2,9 @@
 // backend for development and tests: each viewer's projection (GM, assigned
 // player, shared reader) with hidden fields absent, capabilities, revisions,
 // the field rules and the skill catalogue, operation receipts, images, bonds
-// and GM notes. A test panel simulates failures, other editors and connection
-// drops. It is a development simulation, never authorization: it exists only
+// and GM notes, and the site administrator's accounts, campaigns, members,
+// invitations and recovery codes (R4 a). A test panel simulates failures, other
+// editors and connection drops. It is a development simulation, never authorization: it exists only
 // in demo builds (VITE_MOCK_SERVER) and always shows the DEMO banner.
 import type { ApiSheetProjection, EntityKind } from "../contracts/api-v1";
 import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
@@ -22,10 +23,29 @@ const CODES: Record<string, string> = {
 };
 
 interface PersonalNote { id: string; author: string; sheetId: string | null; label: string; title: string; content: string; revision: number; createdAt: number; updatedAt: number }
+type Role = "gm" | "player";
+interface Account { id: string; username: string; displayName: string; admin: boolean; active: boolean }
+interface Invite { id: string; token: string; campaignId: string; role: Role; issuer: string; expiresAt: number; used: boolean }
+/** Accounts, campaigns and invitations (R4 a). Accounts registered in the demo appear here but cannot sign in. */
+interface Directory {
+  accounts: Account[]; campaigns: { id: string; name: string }[];
+  members: { campaignId: string; userId: string; role: Role }[];
+  invitations: Invite[]; resets: { code: string; userId: string; expiresAt: number }[];
+}
 interface State {
   viewer: DemoRole | null; sheets: DemoSheet[]; notes: PersonalNote[]; uploads: Record<string, string>;
   /** The campaign's skill list, which the demo GM can change (C2). */
   catalogue: SkillCatalogue; catalogueRevision: number;
+  directory: Directory;
+}
+const DAY = 24 * 60 * 60 * 1000;
+function freshDirectory(): Directory {
+  return {
+    accounts: Object.values(USERS).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, admin: u.role === "admin", active: true })),
+    campaigns: [{ id: CAMPAIGN.id, name: CAMPAIGN.name }],
+    members: Object.values(USERS).map(u => ({ campaignId: CAMPAIGN.id, userId: u.id, role: u.role === "gm" ? "gm" as const : "player" as const })),
+    invitations: [], resets: [],
+  };
 }
 export type Failure = "network" | "server" | "lostReply";
 
@@ -54,13 +74,13 @@ export class MockServer {
   }
 
   private fresh(): State {
-    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1 };
+    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory() };
   }
   private load(): State | undefined {
     try {
       const state = JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null");
       // Demo data saved before the GM could change the list has none.
-      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, ...state } : undefined;
+      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), ...state } : undefined;
     } catch { return undefined; }
   }
   private save() { try { this.storage?.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch { /* storage full: keep in memory */ } }
@@ -176,19 +196,22 @@ export class MockServer {
       // Like the server (models.normalized_username): letters, digits, _ and -, compared in lowercase.
       const name = typeof body.username === "string" && /^[A-Za-z0-9_-]{3,30}$/.test(body.username) ? body.username.toLowerCase() : "";
       const user = Object.values(USERS).find(u => u.username === name);
-      if (!user) return fail(401, "invalid_credentials"); // like the server
+      // Like the server: unknown and disabled accounts are refused alike.
+      if (!user || !this.account(user.id)?.active) return fail(401, "invalid_credentials");
       this.signInAs(user.role);
       return new Reply(200, { user: this.userView(user), csrfToken: "demo-csrf" });
     }
-    // The demo has no invitations or reset codes: every code is refused, as the server refuses a bad one.
-    if (path === "auth/register" && method === "POST") return fail(400, "invalid_invitation");
-    if (path === "auth/password-reset" && method === "POST") return fail(400, "invalid_reset_code");
+    // Codes issued in this demo work once, like the server's (an account registered here cannot sign in).
+    if (path === "auth/register" && method === "POST") return this.register(body);
+    if (path === "auth/password-reset" && method === "POST") return this.passwordReset(body);
     const user = this.viewer();
     if (path === "auth/logout" && method === "POST") { this.state.viewer = null; this.save(); return new Reply(200, {}); }
     if (!user) return fail(401, "authentication_required");
     if (path === "auth/me") return new Reply(200, this.userView(user));
-    if (path === "campaigns" && method === "GET")
-      return pageOf(query) ? new Reply(200, { items: [{ ...CAMPAIGN, role: user.role === "gm" ? "gm" : "player" }] }) : fail(400, "invalid_request");
+    if (path === "campaigns" || path.startsWith("campaigns/") && path.endsWith("/members") || path.startsWith("admin/") || path === "auth/invitations" || path === "auth/reset-codes") {
+      const reply = this.directoryRoute(method, path, query, body, user);
+      if (reply) return reply;
+    }
     if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return method === "POST" ? this.saveCatalogue(body, user)
       : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
@@ -219,7 +242,134 @@ export class MockServer {
     });
   }
 
-  private userView(user: DemoUser) { return { id: user.id, username: user.username, displayName: user.displayName, isAdministrator: false }; }
+  private userView(user: DemoUser) { return { id: user.id, username: user.username, displayName: user.displayName, isAdministrator: user.role === "admin" }; }
+
+  // ---- administration (R4 a), like accounts.py and the membership service -----
+
+  private get directory() { return this.state.directory; }
+  private account(id: string) { return this.directory.accounts.find(a => a.id === id); }
+  private roleIn(campaignId: string, userId: string) { return this.directory.members.find(m => m.campaignId === campaignId && m.userId === userId)?.role; }
+
+  private directoryRoute(method: string, path: string, query: URLSearchParams, body: any, user: DemoUser): Reply | undefined {
+    const admin = user.role === "admin";
+    const d = this.directory;
+    const page = pageOf(query);
+    const done = (reply: Reply) => { if (reply.status < 300) this.save(); return reply; };
+    if (path === "campaigns" && method === "GET") {
+      if (!page) return fail(400, "invalid_request");
+      const visible = d.campaigns.filter(c => admin || this.roleIn(c.id, user.id));
+      return new Reply(200, { items: visible.slice(page.offset, page.offset + page.limit)
+        .map(c => ({ ...c, policyRevision: 1, role: this.roleIn(c.id, user.id) ?? null })) });
+    }
+    if (path === "campaigns" && method === "POST") {
+      if (!admin) return fail(403, "forbidden");
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      if (!name || name.length > 120) return fail(400, "invalid_request");
+      const campaign = { id: `demo-campaign-${crypto.randomUUID()}`, name };
+      d.campaigns.push(campaign);
+      return done(new Reply(200, { ...campaign, policyRevision: 1 }));
+    }
+    const members = path.match(/^campaigns\/([^/]+)\/members$/);
+    if (members) {
+      const campaign = d.campaigns.find(c => c.id === members[1]);
+      if (!campaign) return fail(404, "not_found");
+      const gm = this.roleIn(campaign.id, user.id) === "gm";
+      if (method === "GET") {
+        if (!admin && !gm) return fail(this.roleIn(campaign.id, user.id) ? 403 : 404, this.roleIn(campaign.id, user.id) ? "forbidden" : "not_found");
+        if (!page) return fail(400, "invalid_request");
+        return new Reply(200, { items: d.members.filter(m => m.campaignId === campaign.id).slice(page.offset, page.offset + page.limit).map(m => {
+          const a = this.account(m.userId)!;
+          return { userId: a.id, username: a.username, displayName: a.displayName, role: m.role };
+        }) });
+      }
+      if (!admin && !gm) return fail(403, "forbidden");
+      const target = this.account(body.userId);
+      if (!target || ![null, "gm", "player"].includes(body.role)) return fail(400, "invalid_request");
+      const existing = d.members.find(m => m.campaignId === campaign.id && m.userId === target.id);
+      if ((body.role === "gm" || existing?.role === "gm") && !admin) return fail(403, "forbidden");
+      if (existing?.role === "gm" && body.role !== "gm" && d.members.filter(m => m.campaignId === campaign.id && m.role === "gm").length < 2) return fail(400, "last_gm");
+      if (body.role === null) d.members = d.members.filter(m => m !== existing);
+      else if (!target.active) return fail(400, "invalid_member");
+      else if (existing) existing.role = body.role;
+      else d.members.push({ campaignId: campaign.id, userId: target.id, role: body.role });
+      return done(new Reply(200, {}));
+    }
+    if (path === "auth/invitations" && method === "POST") {
+      const campaign = d.campaigns.find(c => c.id === body.campaignId);
+      if (!campaign) return fail(404, "not_found");
+      if (!["gm", "player"].includes(body.role)) return fail(400, "invalid_role");
+      if (!admin && (body.role === "gm" || this.roleIn(campaign.id, user.id) !== "gm")) return fail(403, "forbidden");
+      const invite: Invite = { id: crypto.randomUUID(), token: crypto.randomUUID().replace(/-/g, ""), campaignId: campaign.id, role: body.role,
+        issuer: user.username, expiresAt: Date.now() + 7 * DAY, used: false };
+      d.invitations.push(invite);
+      return done(new Reply(200, { token: invite.token, expiresAt: new Date(invite.expiresAt).toISOString() }));
+    }
+    if (!admin) return fail(403, "forbidden");
+    if (path === "auth/reset-codes" && method === "POST") {
+      const target = this.account(body.userId);
+      if (!target?.active) return fail(404, "not_found");
+      const code = crypto.randomUUID().replace(/-/g, "");
+      d.resets = [...d.resets.filter(r => r.userId !== target.id), { code, userId: target.id, expiresAt: Date.now() + DAY }];
+      return done(new Reply(200, { code, expiresAt: new Date(Date.now() + DAY).toISOString() }));
+    }
+    if (path === "admin/users" && method === "GET") {
+      if (!page) return fail(400, "invalid_request");
+      const sorted = [...d.accounts].sort((a, b) => a.username.localeCompare(b.username));
+      return new Reply(200, { items: sorted.slice(page.offset, page.offset + page.limit).map(a => ({
+        id: a.id, username: a.username, displayName: a.displayName, isAdministrator: a.admin, isActive: a.active,
+        campaigns: d.members.filter(m => m.userId === a.id).map(m => ({ id: m.campaignId, name: d.campaigns.find(c => c.id === m.campaignId)!.name, role: m.role })),
+      })) });
+    }
+    const state = path.match(/^admin\/users\/([^/]+)\/state$/);
+    if (state && method === "POST") {
+      const target = this.account(state[1]);
+      if (!target) return fail(404, "not_found");
+      if (typeof body.active !== "boolean" || (target.id === user.id && !body.active)) return fail(400, "invalid_account_state");
+      target.active = body.active;
+      return done(new Reply(200, {}));
+    }
+    if (path === "admin/invitations" && method === "GET") {
+      if (!page) return fail(400, "invalid_request");
+      const pending = d.invitations.filter(i => !i.used && i.expiresAt > Date.now()).sort((a, b) => a.expiresAt - b.expiresAt);
+      return new Reply(200, { items: pending.slice(page.offset, page.offset + page.limit).map(i => ({
+        id: i.id, campaignId: i.campaignId, campaignName: d.campaigns.find(c => c.id === i.campaignId)!.name, role: i.role,
+        issuer: i.issuer, expiresAt: new Date(i.expiresAt).toISOString() })) });
+    }
+    const invitation = path.match(/^admin\/invitations\/([^/]+)$/);
+    if (invitation && method === "DELETE") {
+      const target = d.invitations.find(i => i.id === invitation[1] && !i.used);
+      if (!target) return fail(404, "not_found");
+      d.invitations = d.invitations.filter(i => i !== target);
+      return done(new Reply(200, {}));
+    }
+    return undefined;
+  }
+
+  private register(body: any): Reply {
+    const d = this.directory;
+    const invite = d.invitations.find(i => i.token === body.invitationToken && !i.used && i.expiresAt > Date.now());
+    if (!invite) return fail(400, "invalid_invitation");
+    const name = typeof body.username === "string" && /^[A-Za-z0-9_-]{3,30}$/.test(body.username.trim()) ? body.username.trim().toLowerCase() : "";
+    if (!name) return fail(400, "invalid_username");
+    if (d.accounts.some(a => a.username === name)) return fail(409, "username_unavailable");
+    if (typeof body.password !== "string" || body.password.length < 12) return fail(400, "invalid_password");
+    const account = { id: `demo-user-${crypto.randomUUID()}`, username: name, displayName: String(body.displayName ?? ""), admin: false, active: true };
+    d.accounts.push(account);
+    d.members.push({ campaignId: invite.campaignId, userId: account.id, role: invite.role });
+    invite.used = true;
+    this.save();
+    return new Reply(200, { user: { id: account.id, username: account.username, displayName: account.displayName, isAdministrator: false } });
+  }
+
+  private passwordReset(body: any): Reply {
+    const d = this.directory;
+    const reset = d.resets.find(r => r.code === body.code && r.expiresAt > Date.now());
+    if (!reset || !this.account(reset.userId)?.active) return fail(400, "invalid_reset_code");
+    if (typeof body.newPassword !== "string" || body.newPassword.length < 12) return fail(400, "invalid_password");
+    d.resets = d.resets.filter(r => r.userId !== reset.userId);
+    this.save();
+    return new Reply(200, {});
+  }
 
   /** Retrying an operation ID returns its first outcome, like the server's receipts. */
   private receipt(body: any, run: () => Reply): Reply {

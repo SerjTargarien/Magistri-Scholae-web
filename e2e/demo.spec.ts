@@ -98,3 +98,52 @@ test("GM: sees GM-only fields and the GM's own character, and may archive", asyn
   await page.getByRole("button", { name: /Volver|Back/ }).first().click();
   await expect(page.locator('[id^="character-card-"]', { hasText: "Profesor Silvio Niebla" })).toBeVisible();
 });
+
+// «Administración» (R4 a): the site administrator's accounts, campaigns, invitations
+// and recovery links, on the mock server's copy of the server's rules.
+test("administrator: campaigns, members, invitations, recovery links and accounts from «Administración»", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#settings-card-admin")).toHaveCount(0); // a player has no «Administración»
+  await viewAs(page, "admin");
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(0); // the administrator sees no one else's sheet
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-settings-admin").click();
+  await expect(page.locator("#admin-screen")).toContainText("Universo de demostración");
+
+  // A new campaign, an existing account added to it and made its Máster.
+  await page.locator("#input-new-campaign").fill("Campaña de prueba");
+  await page.locator("#btn-create-campaign").click();
+  const campaign = page.locator("section", { has: page.getByRole("heading", { name: "Campaña de prueba" }) });
+  await expect(campaign).toContainText("Sin miembros todavía.");
+  await campaign.getByRole("button", { name: "Añadir usuario" }).click();
+  await page.locator("#admin-add-member").getByText("Jugadora (demo)").click();
+  await expect(campaign).toContainText("@demo_player");
+  await campaign.locator('[id$="-demo_player"][id^="tag-role-"]').click();
+  await page.getByRole("menuitemradio", { name: /Máster/ }).click();
+  await expect(campaign.locator('[id$="-demo_player"][id^="tag-role-"]')).toContainText("Máster");
+
+  // An invitation: its link is shown once, then it is listed as pending until cancelled.
+  await campaign.getByRole("button", { name: "Invitar jugador" }).click();
+  await expect(page.locator("#admin-issued-link")).toContainText("/#invitacion=");
+  await expect(campaign).toContainText(/Jugador · caduca el/);
+  await page.locator("#btn-admin-issued-close").click();
+  await campaign.locator('[id^="btn-cancel-invitation-"]').click();
+  await page.locator("#btn-admin-cancel-invitation-confirm").click();
+  await expect(campaign).toContainText("Ninguna.");
+
+  // A recovery link, and an account disabled after a warning, then enabled again.
+  await page.locator("#btn-recovery-demo_reader").click();
+  await expect(page.locator("#admin-issued-link")).toContainText("/#recuperacion=");
+  await expect(page.locator("#admin-issued")).toContainText("anula el enlace anterior");
+  await page.locator("#switch-active-demo_reader").click();
+  await page.locator("#btn-admin-disable-confirm").click();
+  await expect(page.locator("#admin-user-demo_reader")).toContainText("Desactivada");
+  await expect(page.locator("#switch-active-demo_admin")).toHaveCount(0); // never one's own account
+  await page.locator("#switch-active-demo_reader").click();
+  await expect(page.locator("#admin-user-demo_reader")).not.toContainText("Desactivada");
+
+  // Back on the main list, the administrator's own campaign is still the one open.
+  await page.locator("#btn-admin-back").click();
+  await expect(page.locator("#character-list-container")).toBeVisible();
+});

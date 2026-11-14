@@ -125,4 +125,6 @@ export interface SettingsScreenProps {
   onLanguageChange?: (lang: Language) => void;
   onBack: () => void;
   account: AccountInfo;
+  /** The site administrator only: opens «Administración» (R4 a). */
+  onOpenAdmin?: () => void;
 }

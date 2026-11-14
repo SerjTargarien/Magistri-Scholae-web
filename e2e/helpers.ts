@@ -111,7 +111,7 @@ export function pngFile(name = "portrait.png", size = 96) {
 }
 
 /** Demo builds: signs in as another demo viewer (GM, assigned player, shared reader) and reloads. */
-export async function viewAs(page: Page, role: "gm" | "player" | "reader") {
+export async function viewAs(page: Page, role: "gm" | "player" | "reader" | "admin") {
   await page.evaluate(async role => {
     const mock = await import("/src/mock/server.ts" as string);
     mock.mockServer().signInAs(role);

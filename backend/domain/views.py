@@ -151,6 +151,27 @@ def user_state(request, body, user_id):
     return {}
 
 
+@endpoint(["GET"])
+def admin_users(request, body):
+    query_keys(request, ["limit", "offset"])
+    limit, offset = pagination(request)
+    return {"items": accounts.list_users(request.user, limit, offset)}
+
+
+@endpoint(["GET"])
+def admin_invitations(request, body):
+    query_keys(request, ["limit", "offset"])
+    limit, offset = pagination(request)
+    return {"items": accounts.list_invitations(request.user, limit, offset)}
+
+
+@endpoint(["DELETE"])
+def admin_invitation(request, body, invitation_id):
+    keys(body, [])
+    accounts.revoke_invitation(request.user, invitation_id)
+    return {}
+
+
 @endpoint(["GET", "POST"])
 def campaigns(request, body):
     if request.method == "POST":
@@ -172,10 +193,16 @@ def memberships(request, body, campaign_id):
     if request.method == "POST":
         services.set_membership(request.user, campaign_id, body)
         return {}
-    campaign = services.campaign_for(request.user, campaign_id, gm=True)
+    if request.user.is_superuser:
+        # The site administrator reads any campaign's member list (usernames and roles only, R4),
+        # without being its GM.
+        accounts.administrator(request.user)
+        campaign = Campaign.objects.get(pk=campaign_id)
+    else:
+        campaign = services.campaign_for(request.user, campaign_id, gm=True)
     query_keys(request, ["limit", "offset"])
     limit, offset = pagination(request)
-    return {"items": [{"userId": str(m.user_id), "username": m.user.username, "role": m.role}
+    return {"items": [{"userId": str(m.user_id), "username": m.user.username, "displayName": m.user.display_name, "role": m.role}
                        for m in Membership.objects.filter(campaign=campaign).select_related("user").order_by("id")[offset:offset + limit]]}
 
 

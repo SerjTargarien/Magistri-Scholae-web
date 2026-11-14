@@ -34,4 +34,6 @@ class Command(BaseCommand):
             Sheet.objects.create(campaign=campaign, creator=users["preview_gm"], assigned_player=users["preview_alice"], kind="familiar",
                 data={"nombre": "Fictional Owl", "especie": "Owl", "descripcion": "Fictional familiar"})
             Share.objects.create(sheet=student, recipient=users["preview_bob"])
+            # A fictional site administrator in no campaign, for «Administración» (R4 a).
+            User.objects.create_superuser("preview_admin", password="Fictional-preview-only-42!")
         self.stdout.write("Isolated fictional preview ready. Credentials are documented in backend/README.md.")

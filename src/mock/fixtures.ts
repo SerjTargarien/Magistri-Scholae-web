@@ -5,7 +5,8 @@ import { DEFAULT_SKILL_CATALOGUE } from "../model/catalogue";
 import type { CharacterSheet, FamiliarSheet, SkillEntry } from "../model/sheet";
 import { gradientPng } from "./png";
 
-export type DemoRole = "gm" | "player" | "reader";
+/** «admin»: the site administrator, also a player in the demo campaign with no sheets of their own (as the owner, R4 a). */
+export type DemoRole = "gm" | "player" | "reader" | "admin";
 
 export interface DemoUser { id: string; username: string; displayName: string; role: DemoRole }
 export interface DemoSheet {
@@ -30,6 +31,7 @@ export const USERS: Record<DemoRole, DemoUser> = {
   gm: { id: "demo-gm", username: "demo_gm", displayName: "Directora (demo)", role: "gm" },
   player: { id: "demo-player", username: "demo_player", displayName: "Jugadora (demo)", role: "player" },
   reader: { id: "demo-reader", username: "demo_reader", displayName: "Lector (demo)", role: "reader" },
+  admin: { id: "demo-admin", username: "demo_admin", displayName: "Administración (demo)", role: "admin" },
 };
 
 const CREATED = Date.UTC(2026, 8, 14, 9, 30);

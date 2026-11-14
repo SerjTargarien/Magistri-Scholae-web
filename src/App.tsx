@@ -24,6 +24,8 @@ import { FamiliarEditor } from "./components/FamiliarEditor";
 import { FamiliarDetail } from "./components/FamiliarDetail";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { CampaignSkills } from "./account/CampaignSkills";
+import { AdminScreen } from "./account/AdminScreen";
+import { remoteAdmin } from "./account/admin";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
@@ -40,7 +42,7 @@ const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.p
 /** Whether viewers may switch the interface language (false: Spanish only for the first version). */
 const LANGUAGE_CHOICE = false;
 
-type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES";
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES" | "ADMIN";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
@@ -107,16 +109,23 @@ export default function App() {
     return () => { active = false; };
   }, [client]);
 
-  // Campaigns: the remembered one, or the only one.
+  // Campaigns: the remembered one, or the only one. The server lists every campaign to the
+  // site administrator; the app only opens those the viewer belongs to (R4 a), and the
+  // administrator reaches the rest through «Administración».
+  const [campaignsLoaded, setCampaignsLoaded] = useState(0);
   useEffect(() => {
     if (!user) return;
     client.request<{ items: Campaign[] }>("campaigns?limit=100").then(result => {
-      setCampaigns(result.items);
-      const remembered = localStorage.getItem(CAMPAIGN_KEY);
-      const chosen = result.items.find(c => c.id === remembered) ?? (result.items.length === 1 ? result.items[0] : undefined);
-      setCampaignId(chosen?.id ?? "");
+      const mine = result.items.filter(c => c.role);
+      setCampaigns(mine);
+      setCampaignId(current => {
+        if (mine.some(c => c.id === current)) return current;
+        const remembered = localStorage.getItem(CAMPAIGN_KEY);
+        return (mine.find(c => c.id === remembered) ?? (mine.length === 1 ? mine[0] : undefined))?.id ?? "";
+      });
     }).catch(() => showToast("error", t.storageLoadError));
-  }, [user, client]);
+  }, [user, client, campaignsLoaded]);
+  const adminApi = useMemo(() => remoteAdmin(client), [client]);
 
   const loadLists = useCallback(async () => {
     if (!campaignId) return;
@@ -318,10 +327,12 @@ export default function App() {
     ? <Suspense fallback={null}><DemoPanel lang={lang} /></Suspense> : null;
 
   // Signed out, or not yet in a campaign: these screens share the app's frame.
+  const openAdmin = user?.isAdministrator ? () => setScreen("ADMIN") : undefined;
   const gate = boot ? null
     : !user ? <SignIn client={client} lang={lang} onSignedIn={account => setUser(account)} />
+    : screen === "ADMIN" && user.isAdministrator ? null
     : campaigns.length !== 1 && !campaignId
-      ? <CampaignChooser lang={lang} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} />
+      ? <CampaignChooser lang={lang} campaigns={campaigns} onChoose={setCampaignId} onLogout={() => void logout()} onOpenAdmin={openAdmin} />
       : null;
 
   const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
@@ -340,7 +351,18 @@ export default function App() {
       {panel}
       <AcademyBackground />
 
-      {gate ?? (boot || loading ? (
+      {gate ?? (screen === "ADMIN" && user ? (
+        <main className="relative z-10 w-full">
+          <AdminScreen
+            lang={lang}
+            api={adminApi}
+            me={user}
+            onBack={() => { setScreen("LIST"); setCampaignsLoaded(n => n + 1); }}
+            onShowToast={showToast}
+            onChanged={() => setCampaignsLoaded(n => n + 1)}
+          />
+        </main>
+      ) : boot || loading ? (
         <div className="flex flex-col justify-center items-center h-screen gap-4" id="app-loading-screen">
           <Loader className="w-10 h-10 text-amber-500 animate-spin" />
           <span className="font-magic text-sm tracking-widest text-neutral-400 uppercase animate-pulse">
@@ -465,6 +487,7 @@ export default function App() {
               lang={lang}
               onLanguageChange={LANGUAGE_CHOICE ? handleLanguageChange : undefined}
               onBack={() => setScreen("LIST")}
+              onOpenAdmin={openAdmin}
               account={{
                 displayName: user.displayName || user.username,
                 username: user.username,

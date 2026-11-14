@@ -224,7 +224,7 @@ Normalize usernames consistently; a conservative initial policy is ASCII letters
 
 ### Recovery without email
 
-The administrator verifies the request out of band, then issues a single-use high-entropy reset code. Proposed lifetime is 15 minutes. The user submits the code and chooses a password. Rate-limit attempts, consume the code atomically, invalidate old sessions, and record a metadata-only audit event. Reset codes must not be logged or placed in reusable public links. The administrator does not need to know the user's password or read their notes.
+The administrator verifies the request out of band, then issues a single-use high-entropy reset code. It lasts 24 hours (owner, 14 November 2026: it is sent by text message), and a new code cancels the previous one. The user submits the code and chooses a password. Rate-limit attempts, consume the code atomically, invalidate old sessions, and record a metadata-only audit event. Reset codes must not be logged or placed in reusable links. The app shows a code once, as a link whose code sits after `#` (`/#recuperacion=CODE`): the browser never sends that part to the server, the sign-in screen removes it from the address bar, and the code works once. The administrator does not need to know the user's password or read their notes.
 
 Provide a documented SSH/console recovery procedure for the site administrator's own account. Avoid a circular dependency where the only administrator needs another administrator to recover access.
 

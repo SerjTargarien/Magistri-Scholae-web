@@ -3,9 +3,9 @@
 // (background, crest and title) in the academy or classic style (R3.5 brings
 // these screens forward; owner request, 8 November 2026).
 import { useEffect, useState } from "react";
-import { KeyRound, LogIn, LogOut, Ticket } from "lucide-react";
+import { KeyRound, LogIn, LogOut, ShieldCheck, Ticket } from "lucide-react";
 import type { ApiUser } from "../contracts/api-v1";
-import { type Language, remoteText, SIGN_IN_ERRORS, TRANSLATIONS } from "../localization";
+import { ADMIN_TEXT, type Language, remoteText, SIGN_IN_ERRORS, TRANSLATIONS } from "../localization";
 import { ApiFailure, type RemoteClient } from "../remote/client";
 import { FiligreeCorner } from "../components/AcademyOrnaments";
 
@@ -176,8 +176,10 @@ export function SignIn({ client, lang, onSignedIn }: {
 }
 
 /** Shown when the account belongs to several campaigns and none is chosen yet. */
-export function CampaignChooser({ lang, campaigns, onChoose, onLogout }: {
+export function CampaignChooser({ lang, campaigns, onChoose, onLogout, onOpenAdmin }: {
   lang: Language; campaigns: { id: string; name: string }[]; onChoose: (id: string) => void; onLogout: () => void;
+  /** The site administrator only: «Administración» works without a campaign (R4 a). */
+  onOpenAdmin?: () => void;
 }) {
   const t = remoteText[lang];
   return (
@@ -195,6 +197,13 @@ export function CampaignChooser({ lang, campaigns, onChoose, onLogout }: {
             ))}
           </nav>
         ) : <p className="text-sm text-neutral-400 text-center">{t.noCampaign}</p>}
+        {onOpenAdmin && (
+          <button type="button" id="btn-chooser-admin" onClick={onOpenAdmin}
+            className="mt-6 w-full flex items-center justify-center gap-2 text-sm text-amber-300 hover:text-amber-200 bg-violet-950/60 hover:bg-violet-900/70 px-3 py-2 rounded-lg border border-amber-500/40 transition-all font-mono cursor-pointer">
+            <ShieldCheck className="w-4 h-4" />
+            {ADMIN_TEXT[lang].title}
+          </button>
+        )}
         <button type="button" onClick={onLogout}
           className="mt-6 w-full flex items-center justify-center gap-2 text-sm text-neutral-400 hover:text-amber-400 bg-neutral-900/60 hover:bg-neutral-800/80 px-3 py-1.5 rounded-lg border border-neutral-700/40 transition-all font-mono cursor-pointer">
           <LogOut className="w-4 h-4" />

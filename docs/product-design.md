@@ -31,6 +31,10 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The character types | today **alumno** (student) and **mago adulto** (adult wizard), only when the type is meant; from R4.5 the answers **Menor** / **Adulto**, **Mago**, **Alumno**, **Personal de escuela** («Administración», «Profesor»), **Criatura mágica** | «Niño» |
 | Where a character belongs | **Escuela** (a school) or **Organización** (any other); both are **instituciones** in the Biblioteca (R5) | |
 | A character's or familiar's record | **ficha** | «hoja» |
+| The site administrator's screen | **Administración** (opened from «Ajustes» and the campaign chooser) | «Admin», «Panel de control» |
+| What a person signs in with | **cuenta**; its name **usuario**; turning it off **desactivar la cuenta** | «perfil» |
+| Joining and recovering an account | **enlace de invitación**, **enlace de recuperación** (each with its **código**); cancelling an unused invitation **anular** | «token», «código de reseteo» |
+| A person's part in a campaign | **Máster** or **Jugador** («Papel en la campaña») | «rol» for this |
 | The shared journal on a sheet | **Bitácora** (characters: «Bitácora Celestial»; familiars: «**Bitácora del Familiar**») | «Bitácora» for anything else; «diario»; «Notas del Familiar» |
 | One item of the Bitácora | **entrada** (the form «Nueva entrada» with its button «Añadir entrada»; «¿Eliminar esta entrada?», «Texto de la entrada», «Entrada del…») | «nota» |
 | Private notes | **Notas privadas** (about one sheet, on that sheet) and **Mis notas** (all of yours, from the main list); one of them is a **nota** | «notas personales» |
@@ -61,7 +65,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 - **GM:** sees and edits every character and familiar in the campaign, whoever created them and whenever they registered. Owns the campaign's skill list («Habilidades de la campaña»). Archives sheets (no one deletes).
 - **Player:** sees and edits only the sheets they created (assigned to them). Picks skills from the campaign's list.
 - **Shared reader:** read-only access to a sheet shared with them; there is no screen to share yet.
-- **Administrator** (the owner's separate account): creates campaigns, invitations and recovery codes on the server; no admin screens yet.
+- **Administrator** (the owner's separate account): «Administración» (R4 a, 14 November 2026): campaigns, their members and roles, invitations, recovery links and accounts. It shows usernames and roles only, never sheet content.
 
 **Target** (owner, 9 November 2026):
 
@@ -289,7 +293,7 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 - **Links:** `https://magistrischolae.fyi/#invitacion=CÓDIGO` and `#recuperacion=CÓDIGO` open the right tab with the code filled in; the code is never sent to the server in the address and is removed from the address bar.
 - The username and code ignore surrounding spaces; usernames are stored in lowercase, and the name as typed becomes the display name.
 - Errors are plain messages.
-- **Campaign chooser** («Elige una campaña»): one button per campaign, «Cerrar sesión». Only the administrator sees it today.
+- **Campaign chooser** («Elige una campaña»): one button per campaign the viewer belongs to, «Cerrar sesión», and for the site administrator «Administración». Shown when the viewer belongs to more than one campaign, or to none (an administrator outside every campaign).
 
 **Target:** the GM also sees the chooser and **creates new campaigns** there; players join new campaigns by invitation (R4).
 
@@ -400,9 +404,24 @@ Tabs:
 
 ### 9. Settings («Ajustes»)
 
-- «Estilo Visual», «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; GM only: «Habilidades de la campaña» → «Abrir la lista». Language card hidden.
+- «Información de Almacenamiento», «Cuenta», «Acerca de Magistri Scholae»; site administrator only: «Administración» → «Abrir administración» (R4 a). «Habilidades de la campaña» opens from the main list (Máster only, 13 November 2026). Language card hidden.
 
 «Estilo Visual» went with the Classic style (owner, 9 November 2026; done in the R3.4 polish pass). **Target:** The campaign skills move to the Biblioteca del Máster (R5).
+
+### 9b. Administración (site administrator; R4 a, 14 November 2026)
+
+Opened from a card in «Ajustes» and from the campaign chooser, so it works for an administrator who belongs to no campaign. The app's frame and Academia style; nothing on it shows sheet content.
+
+- **Campañas:** one card per campaign.
+  - **Miembros:** name and @usuario; the part in the campaign as a tag menu («Máster» / «Jugador»; a campaign keeps at least one Máster); «×» removes from the campaign, after asking (the sheets are kept).
+  - **«Añadir usuario»:** a picker of active accounts not yet in the campaign; they join as «Jugador».
+  - **«Invitar jugador» / «Invitar Máster»:** the invitation link (`/#invitacion=CÓDIGO`) and its code, shown once with «Copiar enlace» and the expiry (7 days).
+  - **Invitaciones pendientes:** role, expiry and who created it; «×» cancels it after asking («Anular»).
+  - **Nueva campaña:** a name and «Crear».
+- **Usuarios:** every account with its tags («Administración», «Desactivada») and its campaigns («Jugador en …»).
+  - **«Enlace de recuperación»:** the recovery link (`/#recuperacion=CÓDIGO`) and its code, shown once with «Copiar enlace»; it lasts 24 hours (owner, 14 November 2026), works once and cancels the previous one.
+  - **«Cuenta activa»:** a switch; turning it off asks first (sessions end; sheets and notes are kept). Never on one's own account.
+- The app's own lists and chooser show only campaigns the viewer belongs to; the others are reached here.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 
@@ -497,7 +516,7 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
 
 - **Full-screen image viewer** for portraits; the galleries already enlarge a picture on tap.
 - **The GM renames the campaign** name he sees (R4).
-- **Recovery and invitation links** created from the admin screens (R4); decide how long a recovery code lasts (15 minutes today).
+- **Recovery and invitation links** created from the admin screens (**done**, R4 a: a recovery link lasts 24 hours).
 - **Images from a web address** (downloaded by the server; its own security review).
 - **Testing on a real phone** before each release: a short checklist.
 - **A development copy of the testers' data:** staging now holds their real data, so development needs a separate copy (before or with R6).

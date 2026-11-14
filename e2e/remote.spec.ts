@@ -85,3 +85,36 @@ test("shared reader: sees the shared sheet only, with no way to edit it", async 
   await expect(page.locator("#btn-detail-edit")).toHaveCount(0);
   for (const body of sheets) expect(body).not.toContain(GM_ONLY_CLUE);
 });
+
+test("administrator: invites a player who registers from the link; members and accounts read from the server", async ({ page, browser }) => {
+  // The fictional administrator belongs to no campaign: the chooser offers «Administración».
+  await page.goto("/");
+  await page.locator("#input-sign-in-username").fill("preview_admin");
+  await page.locator("#input-sign-in-password").fill(PASSWORD);
+  await page.locator("#btn-sign-in-submit").click();
+  await page.locator("#btn-chooser-admin").click();
+  const campaign = page.locator("section", { has: page.getByRole("heading", { name: "Fictional preview academy" }) });
+  await expect(campaign).toContainText("@preview_gm");
+  await expect(page.locator("#admin-screen")).not.toContainText("Fictional Luna"); // no sheet content
+  await campaign.getByRole("button", { name: "Invitar jugador" }).click();
+  const link = (await page.locator("#admin-issued-link").innerText()).trim();
+  expect(link).toMatch(/\/#invitacion=[A-Za-z0-9_-]+$/);
+
+  // The invited player opens the link in their own browser and registers.
+  const player = await browser.newContext();
+  const invited = await player.newPage();
+  await invited.goto(link.replace(/^https?:\/\/[^/]+/, ""));
+  const name = `invited_${RUN}`;
+  await invited.locator("#input-sign-in-username").fill(name);
+  await invited.locator("#input-sign-in-password").fill(PASSWORD);
+  await invited.locator("#input-sign-in-password-repeat").fill(PASSWORD);
+  await invited.locator("#btn-sign-in-submit").click();
+  await expect(invited.locator("#input-sign-in-code")).toHaveCount(0); // back to «Iniciar sesión»
+  await player.close();
+
+  await page.reload();
+  await page.locator("#btn-chooser-admin").click();
+  await expect(page.locator(`#admin-user-${name}`)).toContainText("Jugador en Fictional preview academy");
+  await page.locator(`#btn-recovery-${name}`).click();
+  await expect(page.locator("#admin-issued-link")).toContainText("/#recuperacion=");
+});

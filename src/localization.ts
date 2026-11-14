@@ -9,7 +9,6 @@ export interface TranslationDict {
   // 1. General UI Elements & Common Labels
   appName: string;
   tagline: string;
-  searchPlaceholder: string;
   settings: string;
   back: string;
   save: string;
@@ -72,7 +71,6 @@ export interface TranslationDict {
   placeholderVaritaSintonia: string;
 
   // 5. Dashboard / List View Elements
-  filterAllHouses: string;
   noCharacters: string;
   addCharacter: string;
   emptyRecords: string;
@@ -281,7 +279,6 @@ export interface TranslationDict {
   labelElement: string;
   labelTotem: string;
   labelMotto: string;
-  filterAdultWizards: string;
   editNote: string;
   saveNote: string;
   discardDraftTitle: string;
@@ -304,7 +301,6 @@ export interface TranslationDict {
   familiarCreateNewBtn: string;
   familiarSaveNewBtn: string;
   confirmFamiliar: string;
-  filterFamiliars: string;
   familiarSpeciesShort: string;
   familiarBondLabel: string;
   familiarUnbound: string;
@@ -335,7 +331,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 1. General UI Elements & Common Labels
     appName: "Magistri Scholae",
     tagline: "Bienvenidos a la escuela",
-    searchPlaceholder: "Buscar",
     settings: "Ajustes",
     back: "Volver",
     save: "Guardar",
@@ -396,7 +391,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderVaritaSintonia: "Sauce con núcleo pluma de fénix",
 
     // 5. Dashboard / List View Elements
-    filterAllHouses: "Todas las Casas",
     noCharacters: "¡Crea el primero!",
     addCharacter: "Nuevo Personaje",
     emptyRecords: "Aún no hay personajes",
@@ -607,7 +601,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelElement: "Elemento",
     labelTotem: "Tótem",
     labelMotto: "Lema",
-    filterAdultWizards: "Magos Adultos",
     editNote: "Editar entrada",
     saveNote: "Guardar cambios",
     discardDraftTitle: "Descartar cambios",
@@ -630,7 +623,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarCreateNewBtn: "Nuevo Familiar",
     familiarSaveNewBtn: "Guardar Familiar",
     confirmFamiliar: "Confirmar familiar",
-    filterFamiliars: "Familiares",
     familiarSpeciesShort: "Especie",
     familiarBondLabel: "Vínculo",
     familiarUnbound: "Sin asignar",
@@ -659,7 +651,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     // 1. General UI Elements & Common Labels
     appName: "Magistri Scholae",
     tagline: "Offline Character Sheet Manager for Magic Academies",
-    searchPlaceholder: "Search",
     settings: "System Settings",
     back: "Back",
     save: "Save",
@@ -720,7 +711,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     placeholderVaritaSintonia: "e.g. Willow and phoenix feather",
 
     // 5. Dashboard / List View Elements
-    filterAllHouses: "All Houses",
     noCharacters: "No characters found. Create the first one!",
     addCharacter: "Add Character",
     emptyRecords: "Empty Records",
@@ -931,7 +921,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     labelElement: "Element",
     labelTotem: "Totem",
     labelMotto: "Motto",
-    filterAdultWizards: "Adult Wizards",
     editNote: "Edit note",
     saveNote: "Save changes",
     discardDraftTitle: "Discard Draft",
@@ -954,7 +943,6 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familiarCreateNewBtn: "New Familiar",
     familiarSaveNewBtn: "Save Familiar",
     confirmFamiliar: "Confirm familiar",
-    filterFamiliars: "Familiars",
     familiarSpeciesShort: "Species",
     familiarBondLabel: "Bond",
     familiarUnbound: "Unbound",
@@ -1407,6 +1395,84 @@ export const SETTINGS_TEXT: Record<Language, {
     accountTitle: "Account",
     campaignLabel: "Campaign",
     logout: "Sign out",
+  },
+};
+
+/** The filter bar (Controls, control 11), as approved in the controls demo; the main list's fields and sections. */
+export const FILTER_TEXT = {
+  es: {
+    search: "Buscar", searchIn: "Buscar en", everything: "Todo", everythingHint: "Nombre, jugador, concepto, casa, curso y tipo",
+    filters: "Filtros", activeFilters: "Filtros activos", sortBy: "Ordenar por", fieldCount: "{n} campos · toca para elegir",
+    direction: "Dirección", asc: "Ascendente", desc: "Descendente", searchField: "Buscar campo", noField: "Ningún campo coincide con «{q}».",
+    back: "Volver a filtros", clear: "Quitar filtros", show: "Ver {n} resultados", showOne: "Ver 1 resultado",
+    results: "{n} de {total} · por {field}, {dir}", removeFilter: "Quitar filtro {label}", close: "Cerrar",
+    noMatch: "Nadie coincide. Quita algún filtro o cambia dónde buscas.",
+    name: "Nombre", player: "Jugador", concept: "Concepto", house: "Casa", course: "Curso", type: "Tipo",
+    xp: "Experiencia", destiny: "Puntos de destino", age: "Edad",
+    student: "Alumno", adult: "Mago adulto", familiar: "Familiar",
+  },
+  en: {
+    search: "Search", searchIn: "Search in", everything: "Everything", everythingHint: "Name, player, concept, house, year and type",
+    filters: "Filters", activeFilters: "Active filters", sortBy: "Sort by", fieldCount: "{n} fields · tap to choose",
+    direction: "Direction", asc: "Ascending", desc: "Descending", searchField: "Search field", noField: "No field matches «{q}».",
+    back: "Back to filters", clear: "Clear filters", show: "Show {n} results", showOne: "Show 1 result",
+    results: "{n} of {total} · by {field}, {dir}", removeFilter: "Remove filter {label}", close: "Close",
+    noMatch: "Nothing matches. Remove a filter or change where you search.",
+    name: "Name", player: "Player", concept: "Concept", house: "House", course: "Year", type: "Type",
+    xp: "Experience", destiny: "Destiny points", age: "Age",
+    student: "Student", adult: "Adult wizard", familiar: "Familiar",
+  },
+};
+
+/** «Partidas de la campaña» (R4 b): the Máster's tables; players never see them. */
+export const PARTIDAS_TEXT = {
+  es: {
+    title: "Partidas de la campaña",
+    button: "Partidas",
+    intro: "Las mesas de la campaña. Solo tú las ves: los jugadores no saben en qué partida está cada ficha. La partida de cada personaje se elige en su ficha, en modo edición; su familiar la sigue.",
+    empty: "Aún no hay partidas.",
+    name: "Nombre de la partida",
+    newPartida: "Nueva partida",
+    add: "Añadir",
+    characters: "{n} personajes",
+    oneCharacter: "1 personaje",
+    noCharacters: "Ningún personaje",
+    remove: "Quitar partida",
+    removeText: "¿Quitar «{name}»? Sus personajes ({count}) quedarán sin partida; no se borra ninguna ficha.",
+    removeEmpty: "¿Quitar «{name}»? No tiene personajes.",
+    removeConfirm: "Quitar",
+    cancel: "Cancelar",
+    label: "Partida",
+    none: "Sin partida",
+    all: "Todas",
+    filter: "Partida",
+    duplicate: "Ya hay una partida con ese nombre.",
+    full: "Una campaña tiene como máximo 12 partidas.",
+    failed: "No se pudo guardar. Inténtalo de nuevo.",
+  },
+  en: {
+    title: "Campaign tables",
+    button: "Tables",
+    intro: "The campaign's tables. Only you see them: players never learn which table a sheet belongs to. Choose each character's table on its sheet, in edit mode; its familiar follows it.",
+    empty: "No tables yet.",
+    name: "Table name",
+    newPartida: "New table",
+    add: "Add",
+    characters: "{n} characters",
+    oneCharacter: "1 character",
+    noCharacters: "No characters",
+    remove: "Remove table",
+    removeText: "Remove «{name}»? Its characters ({count}) will have no table; no sheet is deleted.",
+    removeEmpty: "Remove «{name}»? It has no characters.",
+    removeConfirm: "Remove",
+    cancel: "Cancel",
+    label: "Table",
+    none: "No table",
+    all: "All",
+    filter: "Table",
+    duplicate: "There is already a table with that name.",
+    full: "A campaign has at most 12 tables.",
+    failed: "That was not saved. Try again.",
   },
 };
 

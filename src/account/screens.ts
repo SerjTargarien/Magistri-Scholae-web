@@ -2,7 +2,8 @@
 // Screens read the server's model (src/model/sheet.ts) through a SheetStore
 // and change it only through store.edit(path, value) and the callbacks below.
 // They never build whole records for existing sheets.
-import type { ApiSheetProjection } from "../contracts/api-v1";
+import type { ApiSheetProjection, ApiTable } from "../contracts/api-v1";
+import type { FilterState } from "../components/FilterBar";
 import type { Language } from "../localization";
 import type { SkillCatalogue } from "../model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "../model/sheet";
@@ -39,6 +40,9 @@ export interface CharacterDetailProps {
   onUploadImage: UploadImage;
   /** The viewer's private notes about this sheet («Notas privadas», below the Bitácora). */
   notes?: NotesApi;
+  /** The Máster only: the campaign's partidas, and placing this character in one (or none) (R4 b). */
+  partidas?: ApiTable[];
+  onSetPartida?: (tableId: string | null) => Promise<void>;
 }
 
 export interface CharacterFormProps {
@@ -107,6 +111,13 @@ export interface CharacterListProps {
   onOpenNotes?: () => void;
   /** The campaign's Máster only: «Habilidades de la campaña» (owner, 13 November 2026; moves to the Biblioteca in R5). */
   onOpenCampaignSkills?: () => void;
+  /** The campaign's Máster only: «Partidas de la campaña» (R4 b). */
+  onOpenPartidas?: () => void;
+  /** The Máster only: the campaign's partidas, for each card's tag and the filter. Players never get them. */
+  partidas?: ApiTable[];
+  /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */
+  filter: FilterState;
+  onFilterChange: (next: FilterState) => void;
   onShowToast: Toast;
 }
 

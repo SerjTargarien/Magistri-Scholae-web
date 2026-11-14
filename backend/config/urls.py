@@ -17,6 +17,8 @@ urlpatterns = [
     path("api/v1/admin/invitations/<uuid:invitation_id>", views.admin_invitation),
     path("api/v1/campaigns", views.campaigns),
     path("api/v1/campaigns/<uuid:campaign_id>/members", views.memberships),
+    path("api/v1/campaigns/<uuid:campaign_id>/tables", views.tables),
+    path("api/v1/campaigns/<uuid:campaign_id>/tables/<uuid:table_id>", views.table),
     path("api/v1/campaigns/<uuid:campaign_id>/skill-catalogue", views.skill_catalogue),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility/preview", views.campaign_visibility_preview),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility", views.campaign_visibility),

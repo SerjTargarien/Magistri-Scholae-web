@@ -147,3 +147,87 @@ test("administrator: campaigns, members, invitations, recovery links and account
   await page.locator("#btn-admin-back").click();
   await expect(page.locator("#character-list-container")).toBeVisible();
 });
+
+// Partidas (R4 b): the Máster's own table management; players never see them.
+test("Máster: names partidas, places a character in one, filters the list; players see none of it", async ({ page }) => {
+  await openApp(page);
+  await expect(page.locator("#btn-campaign-partidas")).toHaveCount(0);
+  await expect(page.locator("[data-partida]")).toHaveCount(0);
+  await page.locator("#list-filter-open").click();
+  await expect(page.locator('[id^="list-filter-sheet-partida-"]')).toHaveCount(0); // no partida section for players
+  await page.locator("#list-filter-sheet-close").click();
+
+  await viewAs(page, "gm");
+  await page.locator("#btn-campaign-partidas").click();
+  await page.locator("#input-new-partida").fill("Mesa del domingo");
+  await page.locator("#btn-add-partida").click();
+  const domingo = page.locator('[id^="input-partida-name-"]').last();
+  await expect(domingo).toHaveValue("Mesa del domingo");
+  await domingo.fill("Los domingos");
+  await domingo.press("Enter");
+  await page.locator("#input-new-partida").fill("mesa del JUEVES");
+  await page.locator("#btn-add-partida").click();
+  await expect(page.locator("#app-global-toast")).toContainText("Ya hay una partida con ese nombre.");
+  await page.locator("#btn-campaign-partidas-back").click();
+
+  // Diego moves from Saturday's table to Sunday's; the filter follows.
+  await openCharacter(page, "Diego Marés");
+  await setEditMode(page, true);
+  await expect(page.locator("#tag-partida")).toContainText("Mesa del sábado");
+  await page.locator("#tag-partida").click();
+  await page.getByRole("menuitemradio", { name: /Los domingos/ }).click();
+  await expect(page.locator("#tag-partida")).toContainText("Los domingos");
+  await setEditMode(page, false);
+  await page.locator("#btn-detail-back").click();
+  const filterBy = async (option: RegExp | string) => {
+    await page.locator("#list-filter-open").click();
+    await page.locator('[id^="list-filter-sheet-partida-"]', { hasText: option }).click();
+    await page.locator("#list-filter-sheet-apply").click();
+  };
+  await filterBy("Los domingos");
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(1);
+  await expect(page.locator('[id^="character-card-"]')).toContainText("Diego Marés");
+  await page.locator('[id^="list-filter-unset-partida-"]').click(); // the chip's «×»
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(3);
+
+  // A familiar follows its character: Ámbar is at Luna's table.
+  await filterBy("Mesa del jueves");
+  await expect(page.locator('[id^="familiar-card-"]')).toContainText("Ámbar");
+  await expect(page.locator("#list-filter-summary")).toContainText("3 de 5");
+  await page.locator('[id^="list-filter-unset-partida-"]').click();
+
+  // Removing a partida keeps its character, «sin partida».
+  await page.locator("#btn-campaign-partidas").click();
+  await page.locator('[id^="btn-remove-partida-"]').last().click();
+  await expect(page.locator("#modal-remove-partida")).toContainText("Sus personajes (1 personaje)");
+  await page.locator("#btn-remove-partida-confirm").click();
+  await expect(page.locator('[id^="input-partida-name-"]')).toHaveCount(2);
+  await page.locator("#btn-campaign-partidas-back").click();
+  await filterBy("Sin partida");
+  await expect(page.locator('[id^="character-card-"]')).toContainText("Diego Marés");
+});
+
+test("filter bar: where to search, sort order and the filters sheet", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#list-filter-search").fill("niebla");
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(1); // Luna's concept
+  await page.locator("#list-filter-field").click();
+  await page.locator("#list-filter-field-option-nombre").click();
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(0); // nobody is named that
+  await page.locator("#list-filter-search").fill("");
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-sortpage").click();
+  await page.locator("#list-filter-sheet-sort-search").fill("expe");
+  await page.locator("#list-filter-sheet-sort-xp").click();
+  await expect(page.locator("#list-filter-sheet-dir-desc")).toHaveAttribute("aria-checked", "true"); // numbers start from the highest
+  await page.locator("#list-filter-sheet-casa-IRATI").click();
+  await expect(page.locator("#list-filter-sheet-apply")).toHaveText("Ver 2 resultados"); // Luna, and Ámbar following her
+  await page.locator("#list-filter-sheet-apply").click();
+  await expect(page.locator("#list-filter-summary")).toContainText("por experiencia, descendente");
+  await expect(page.locator("#list-filter-open")).toContainText("1");
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-clear").click();
+  await page.locator("#list-filter-sheet-apply").click();
+  await expect(page.locator("#list-filter-chips")).toHaveCount(0);
+  await expect(page.locator("#list-filter-summary")).toContainText("por nombre, ascendente");
+});

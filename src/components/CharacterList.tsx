@@ -10,7 +10,8 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { CAMPAIGN_SKILLS_TEXT, NOTES_TEXT, TRANSLATIONS } from "../localization";
+import { CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, TRANSLATIONS } from "../localization";
+import { FilterBar, type FilterSection, type FilterState, type SortField } from "./FilterBar";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import type { Language } from "../model/catalogue";
@@ -19,6 +20,8 @@ import {
   Settings,
   NotebookPen,
   ListChecks,
+  Dices,
+  ChevronDown,
   Search,
   BadgeHelp,
   Coins,
@@ -33,6 +36,9 @@ const cardCount = (value: number | undefined, lang: Language) =>
     : new Intl.NumberFormat(lang === "es" ? "es-ES" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value ?? 0);
 
 const characterFields = (item: ApiSheetProjection) => item.fields as CharacterSheet;
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+/** The main list's filter bar at rest: everything shown, by name. */
+export const DEFAULT_LIST_FILTER: FilterState = { query: "", field: "all", selected: {}, sort: "nombre", dir: "asc" };
 const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarSheet;
 
 export const CharacterList: React.FC<CharacterListProps> = ({
@@ -45,77 +51,92 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onOpenSettings,
   onOpenNotes,
   onOpenCampaignSkills,
+  onOpenPartidas,
+  partidas,
+  filter,
+  onFilterChange,
 }) => {
   const t = TRANSLATIONS[lang];
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedHouseFilter, setSelectedHouseFilter] = useState<string>("ALL");
 
   /** The character a familiar is bonded to, when this viewer can see it. */
   const bondedCharacter = (familiar: ApiSheetProjection) =>
     familiar.bondId ? characters.find((c) => c.id === familiar.bondId) : undefined;
+  /** A familiar follows the character it is bonded to (house and partida). */
+  const ownerOf = (item: ApiSheetProjection) => (item.entityType === "character" ? item : bondedCharacter(item));
 
-  // Filter & Search Logic
-  const filteredCharacters = characters.filter((item) => {
-    if (selectedHouseFilter === "FAMILIARS") {
-      return false;
-    }
+  // Partidas (R4 b), the Máster's only.
+  const pt = PARTIDAS_TEXT[lang];
+  const ft = FILTER_TEXT[lang];
+  const partidaOf = (item: ApiSheetProjection) => ownerOf(item)?.tableId || "NONE";
+  const partidaName = (item: ApiSheetProjection) => partidas?.find((p) => p.id === partidaOf(item))?.name;
+  const partidaTag = (item: ApiSheetProjection) => {
+    const name = partidaName(item);
+    return name ? (
+      <div data-partida className="absolute top-2.5 left-2.5 max-w-[60%] px-2 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 text-violet-200 border border-violet-400/60 rounded-md break-words shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
+        {name}
+      </div>
+    ) : null;
+  };
 
-    const c = characterFields(item);
-    const charType = c.characterType ?? "student";
-
-    // House / Type filter
-    if (selectedHouseFilter === "ADULT_WIZARD") {
-      if (charType !== "adult_wizard") {
-        return false;
-      }
-    } else if (selectedHouseFilter !== "ALL") {
-      if (charType === "adult_wizard") {
-        const formerHouse = (c.adultWizardProfile?.formerHouse || "").trim().toUpperCase();
-        const houseDisplayName = (HOUSES[selectedHouseFilter]?.nombre || "").toUpperCase();
-        if (
-          !formerHouse ||
-          (!formerHouse.includes(selectedHouseFilter) && (!houseDisplayName || !formerHouse.includes(houseDisplayName)))
-        ) {
-          return false;
-        }
-      } else if ((c.casa || "").toUpperCase() !== selectedHouseFilter) {
-        return false;
-      }
-    }
-
-    // Search query matches name, concept, player, or adult wizard role/institution
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase();
-      const matchName = (c.nombre || "").toLowerCase().includes(query);
-      const matchJugador = (c.jugador || "").toLowerCase().includes(query);
-      const matchConcept = (c.concepto || "").toLowerCase().includes(query);
-      const matchRole = (c.adultWizardProfile?.role || "").toLowerCase().includes(query);
-      const matchInst = (c.adultWizardProfile?.institution || "").toLowerCase().includes(query);
-      return matchName || matchJugador || matchConcept || matchRole || matchInst;
-    }
-
-    return true;
-  });
-
-  const filteredFamiliars = familiars.filter((item) => {
-    if (selectedHouseFilter !== "ALL" && selectedHouseFilter !== "FAMILIARS") {
-      return false;
-    }
-
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase();
+  // The filter bar (Controls, control 11): where to search, the sections and the sort order.
+  const typeOf = (item: ApiSheetProjection) =>
+    item.entityType === "familiar" ? "familiar" : characterFields(item).characterType === "adult_wizard" ? "adult" : "student";
+  /** A student's house; an adult's former house when it names one; a familiar's character's. */
+  const houseOf = (item: ApiSheetProjection) => {
+    const owner = ownerOf(item);
+    if (!owner) return "";
+    const c = characterFields(owner);
+    if (c.characterType !== "adult_wizard") return (c.casa || "").toUpperCase();
+    const former = (c.adultWizardProfile?.formerHouse || "").trim().toUpperCase();
+    return former ? Object.keys(HOUSES).find((k) => former.includes(k) || former.includes(HOUSES[k].nombre.toUpperCase())) ?? "" : "";
+  };
+  const typeLabel = { student: ft.student, adult: ft.adult, familiar: ft.familiar };
+  const textOf = (item: ApiSheetProjection, field: string): string => {
+    const owner = ownerOf(item);
+    if (item.entityType === "familiar") {
       const f = familiarFields(item);
-      const linkedStudent = bondedCharacter(item);
-      const matchName = (f.nombre || "").toLowerCase().includes(query);
-      const matchSpecies = (f.especie || "").toLowerCase().includes(query);
-      const matchDesc = (f.descripcion || "").toLowerCase().includes(query);
-      const matchStudent = ((linkedStudent && characterFields(linkedStudent).nombre) || "").toLowerCase().includes(query);
-      return matchName || matchSpecies || matchDesc || matchStudent;
+      return ({ nombre: f.nombre, jugador: owner ? characterFields(owner).jugador : "", concepto: `${f.especie ?? ""} ${f.descripcion ?? ""} ${owner ? characterFields(owner).nombre ?? "" : ""}`,
+        casa: HOUSES[houseOf(item)]?.nombre, curso: "", tipo: ft.familiar } as Record<string, string | undefined>)[field] ?? "";
     }
-
-    return true;
+    const c = characterFields(item);
+    return ({ nombre: c.nombre, jugador: c.jugador, concepto: `${c.concepto ?? ""} ${c.adultWizardProfile?.role ?? ""} ${c.adultWizardProfile?.institution ?? ""}`,
+      casa: HOUSES[houseOf(item)]?.nombre, curso: c.curso, tipo: typeLabel[typeOf(item)] } as Record<string, string | undefined>)[field] ?? "";
+  };
+  const SEARCH = ["nombre", "jugador", "concepto", "casa", "curso", "tipo"];
+  const sections: FilterSection[] = [
+    ...(partidas?.length ? [{ id: "partida", title: pt.filter, options: [...partidas.map((p) => ({ value: p.id, label: p.name })), { value: "NONE", label: pt.none }] }] : []),
+    { id: "casa", title: ft.house, options: Object.keys(HOUSES).map((k) => ({ value: k, label: HOUSES[k].nombre, icon: <HouseCrest house={k} variant="medallion" className="w-6 h-6 shrink-0" /> })) },
+    { id: "tipo", title: ft.type, options: [{ value: "student", label: ft.student }, { value: "adult", label: ft.adult }, { value: "familiar", label: ft.familiar }] },
+  ];
+  const sortFields: SortField[] = [
+    { value: "nombre", label: ft.name }, { value: "xp", label: ft.xp, descFirst: true }, { value: "curso", label: ft.course },
+    { value: "casa", label: ft.house }, { value: "destino", label: ft.destiny, descFirst: true }, { value: "jugador", label: ft.player },
+    { value: "tipo", label: ft.type }, { value: "edad", label: ft.age },
+  ];
+  const sortKey = (item: ApiSheetProjection, field: string): string | number => {
+    const c = item.entityType === "character" ? characterFields(item) : undefined;
+    switch (field) {
+      case "xp": return c?.pxs ?? 0;
+      case "destino": return c?.puntosDestino ?? 0;
+      case "edad": return c?.edad ?? 0;
+      case "curso": { const n = parseInt(c?.curso ?? "", 10); return Number.isFinite(n) ? n : 99; }
+      default: return textOf(item, field);
+    }
+  };
+  const matches = (state: FilterState, item: ApiSheetProjection) => {
+    const q = fold(state.query.trim());
+    if (q && !(state.field === "all" ? SEARCH : [state.field]).some((f) => fold(textOf(item, f)).includes(q))) return false;
+    const has = (section: string, value: string) => !(state.selected[section]?.length) || state.selected[section].includes(value);
+    return has("partida", partidaOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item));
+  };
+  const ordered = (list: ApiSheetProjection[]) => [...list].sort((a, b) => {
+    const ka = sortKey(a, filter.sort), kb = sortKey(b, filter.sort);
+    const r = typeof ka === "number" && typeof kb === "number" ? ka - kb : String(ka).localeCompare(String(kb), "es");
+    return (filter.dir === "desc" ? -r : r) || textOf(a, "nombre").localeCompare(textOf(b, "nombre"), "es");
   });
+  const filteredCharacters = ordered(characters.filter((item) => matches(filter, item)));
+  const filteredFamiliars = ordered(familiars.filter((item) => matches(filter, item)));
+  const countFor = (state: FilterState) => [...characters, ...familiars].filter((item) => matches(state, item)).length;
 
   const hasAnyResults = filteredCharacters.length > 0 || filteredFamiliars.length > 0;
 
@@ -169,6 +190,18 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             </button>
           )}
 
+          {onOpenPartidas && (
+            <button
+              id="btn-campaign-partidas"
+              onClick={onOpenPartidas}
+              className="academy-header-btn flex items-center justify-center px-3.5 py-2 rounded-lg text-neutral-200 hover:text-amber-200 transition-all font-mono text-xs cursor-pointer min-h-[38px]"
+              title={pt.title}
+            >
+              <Dices className="w-4 h-4 mr-1 md:mr-2 text-amber-400" />
+              <span className="hidden md:inline">{pt.button}</span>
+            </button>
+          )}
+
           <button
             id="btn-settings"
             onClick={onOpenSettings}
@@ -200,87 +233,21 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         </>
         
 
-        {/* Query Bar and House filters */}
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search box */}
-            <div className={`relative flex-1 academy-search-frame rounded-xl`}>
-              <>
-                <FiligreeCorner position="tl" size="sm" />
-                <FiligreeCorner position="tr" size="sm" />
-                <FiligreeCorner position="bl" size="sm" />
-                <FiligreeCorner position="br" size="sm" />
-              </>
-              
-              <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-neutral-400" />
-              <input
-                id="search-input"
-                type="text"
-                placeholder={t.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-transparent border-none focus:ring-0 rounded-xl text-sm text-neutral-200 placeholder:text-neutral-400"
-              />
-            </div>
-          </div>
-
-          {/* Quick house badge filter strip (Desktop & Mobile tap grid) */}
-          <div className="flex flex-wrap gap-2 justify-center py-1">
-            <button
-              id="filter-badge-all"
-              onClick={() => setSelectedHouseFilter("ALL")}
-              className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all border cursor-pointer ${
-                selectedHouseFilter === "ALL"
-                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-              }`}
-            >
-              {t.filterAllHouses}
-            </button>
-            {Object.keys(HOUSES).map((hKey) => {
-              const h = HOUSES[hKey];
-              const isSelected = selectedHouseFilter === hKey;
-              return (
-                <button
-                  id={`filter-badge-${hKey}`}
-                  key={hKey}
-                  onClick={() => setSelectedHouseFilter(hKey)}
-                  className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
-                    isSelected
-                      ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                      : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-                  }`}
-                >
-                  <HouseCrest house={hKey} variant="medallion" className="w-4 h-4" />
-                  {h.nombre}
-                </button>
-              );
-            })}
-            <button
-              id="filter-badge-adult-wizard"
-              onClick={() => setSelectedHouseFilter("ADULT_WIZARD")}
-              className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
-                selectedHouseFilter === "ADULT_WIZARD"
-                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-              }`}
-            >
-              <HouseCrest house="ADULT_WIZARD" isAdultWizard variant="medallion" className="w-4 h-4" />
-              {t.filterAdultWizards}
-            </button>
-            <button
-              id="filter-badge-familiars"
-              onClick={() => setSelectedHouseFilter("FAMILIARS")}
-              className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all flex items-center gap-1.5 border cursor-pointer ${
-                selectedHouseFilter === "FAMILIARS"
-                  ? "bg-[#2a1d10]/90 border-[#e5a93c] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]"
-                  : "bg-[#110d1b]/90 border-[#c89d3c]/30 text-neutral-300 hover:border-[#c89d3c]/70 hover:text-amber-200"
-              }`}
-            >
-              <PawPrint className="w-3.5 h-3.5 text-emerald-400" />
-              {t.filterFamiliars}
-            </button>
-          </div>
+        {/* The filter bar (Controls, control 11): search, filters and sort order */}
+        <div className="mb-6">
+          <FilterBar
+            id="list-filter"
+            state={filter}
+            onChange={onFilterChange}
+            searchFields={SEARCH.map((value) => ({ value, label: ({ nombre: ft.name, jugador: ft.player, concepto: ft.concept, casa: ft.house, curso: ft.course, tipo: ft.type } as Record<string, string>)[value] }))}
+            sections={sections}
+            sortFields={sortFields}
+            defaultSort={{ sort: DEFAULT_LIST_FILTER.sort, dir: DEFAULT_LIST_FILTER.dir }}
+            shown={filteredCharacters.length + filteredFamiliars.length}
+            total={characters.length + familiars.length}
+            countFor={countFor}
+            texts={ft}
+          />
         </div>
 
         {/* Characters & Familiars list grid display */}
@@ -331,6 +298,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                         </span>
                       </div>
                     )}
+
+                    {partidaTag(item)}
 
                     {/* Subtle bottom vignette inside portrait so overlapping shield pops */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
@@ -441,6 +410,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                         </span>
                       </div>
                     )}
+
+                    {partidaTag(item)}
 
                     {/* Subtle bottom vignette inside portrait so overlapping medallion pops */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />

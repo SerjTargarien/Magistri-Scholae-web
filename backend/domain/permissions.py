@@ -175,6 +175,9 @@ def projection(actor, sheet, include_bond=True):
     if gm:
         result["assignedPlayerId"] = str(sheet.assigned_player_id) if sheet.assigned_player_id else None
         result["archived"] = sheet.archived
+        if sheet.kind == "character":
+            # The partida is the GM's own table management; players never receive it (R4 b).
+            result["tableId"] = str(sheet.table_id) if sheet.table_id else None
     if include_bond and can_read(actor, sheet, "bond", gm=gm):
         bond = Bond.objects.filter(Q(character=sheet) | Q(familiar=sheet)).select_related("character__campaign", "familiar__campaign").first()
         if bond:

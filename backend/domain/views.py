@@ -207,6 +207,23 @@ def memberships(request, body, campaign_id):
 
 
 @endpoint(["GET", "POST"])
+def tables(request, body, campaign_id):
+    if request.method == "POST":
+        return services.create_table(request.user, campaign_id, body)
+    query_keys(request)
+    return {"items": services.list_tables(request.user, campaign_id)}
+
+
+@endpoint(["PATCH", "DELETE"])
+def table(request, body, campaign_id, table_id):
+    if request.method == "DELETE":
+        keys(body, [])
+        services.remove_table(request.user, campaign_id, table_id)
+        return {}
+    return services.rename_table(request.user, campaign_id, table_id, body)
+
+
+@endpoint(["GET", "POST"])
 def skill_catalogue(request, body, campaign_id):
     if request.method == "POST":
         return services.save_catalogue(request.user, campaign_id, body)

@@ -8,7 +8,7 @@
 // signed in so leaving a sheet never drops unsent changes. The layout,
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { ApiSheetProjection, ApiUser, EntityKind } from "./contracts/api-v1";
+import type { ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
 import { CAMPAIGN_SKILLS_TEXT, Language, TRANSLATIONS } from "./localization";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
@@ -16,7 +16,7 @@ import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/cli
 import { SheetStore } from "./store/sheetStore";
 import { CampaignChooser, SignIn } from "./account/SignIn";
 import { SaveStatus } from "./account/SaveStatus";
-import { CharacterList } from "./components/CharacterList";
+import { CharacterList, DEFAULT_LIST_FILTER } from "./components/CharacterList";
 import { CharacterDetail } from "./components/CharacterDetail";
 import { CharacterForm } from "./components/CharacterForm";
 import { CharacterTypeSelect } from "./components/CharacterTypeSelect";
@@ -26,6 +26,8 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { CampaignSkills } from "./account/CampaignSkills";
 import { AdminScreen } from "./account/AdminScreen";
 import { remoteAdmin } from "./account/admin";
+import { CampaignPartidas } from "./account/CampaignPartidas";
+import { remotePartidas } from "./account/partidas";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
@@ -42,7 +44,7 @@ const LIST_PAGE = 100; // the server's maximum page size (backend/domain/views.p
 /** Whether viewers may switch the interface language (false: Spanish only for the first version). */
 const LANGUAGE_CHOICE = false;
 
-type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES" | "ADMIN";
+type Screen = "LIST" | "DETAIL" | "FAMILIAR_DETAIL" | "TYPE_SELECT" | "FORM" | "FAMILIAR_EDITOR" | "SETTINGS" | "CAMPAIGN_SKILLS" | "NOTES" | "ADMIN" | "PARTIDAS";
 /** A campaign the viewer belongs to, with their own role there (null: an administrator who is not a member). */
 type Campaign = { id: string; name: string; role?: "gm" | "player" | null };
 
@@ -241,6 +243,22 @@ export default function App() {
 
   // The campaign's skill list (C2): the GM saves it whole; a stale revision reloads it.
   const isCampaignGM = campaigns.find(c => c.id === campaignId)?.role === "gm";
+
+  // The campaign's partidas (R4 b): loaded for the Máster only; players never see them.
+  const [partidas, setPartidas] = useState<ApiTable[]>();
+  const [listFilter, setListFilter] = useState(DEFAULT_LIST_FILTER);
+  const partidasApi = useMemo(() => (campaignId ? remotePartidas(client, campaignId) : undefined), [client, campaignId]);
+  const loadPartidas = useCallback(async () => {
+    if (!partidasApi || !isCampaignGM) { setPartidas(undefined); return; }
+    try { setPartidas(await partidasApi.list()); } catch { showToast("error", t.storageLoadError); }
+  }, [partidasApi, isCampaignGM]);
+  useEffect(() => { setListFilter(DEFAULT_LIST_FILTER); void loadPartidas(); }, [loadPartidas]);
+  const setPartida = async (store: SheetStore, tableId: string | null) => {
+    try {
+      await mutate(store, "manage", { tableId });
+      void loadLists();
+    } catch { showToast("error", t.storageLoadError); }
+  };
   const saveCatalogue = async (next: SkillCatalogue): Promise<boolean> => {
     const text = CAMPAIGN_SKILLS_TEXT[lang];
     const path = `campaigns/${campaignId}/skill-catalogue`;
@@ -382,6 +400,10 @@ export default function App() {
               onOpenSettings={() => setScreen("SETTINGS")}
               onOpenNotes={() => setScreen("NOTES")}
               onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
+              onOpenPartidas={isCampaignGM ? () => setScreen("PARTIDAS") : undefined}
+              partidas={isCampaignGM ? partidas : undefined}
+              filter={listFilter}
+              onFilterChange={setListFilter}
               onShowToast={showToast}
             />
           )}
@@ -415,6 +437,8 @@ export default function App() {
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
+              partidas={isGM(characterStore) ? partidas : undefined}
+              onSetPartida={isGM(characterStore) ? tableId => setPartida(characterStore, tableId) : undefined}
             />
           )}
 
@@ -496,6 +520,19 @@ export default function App() {
                 onChangeCampaign: id => { for (const store of stores.current.values()) store.dispose(); stores.current.clear(); setCampaignId(id); setScreen("LIST"); },
                 onLogout: () => void logout(),
               }}
+            />
+          )}
+
+          {screen === "PARTIDAS" && isCampaignGM && partidasApi && (
+            <CampaignPartidas
+              lang={lang}
+              partidas={partidas ?? []}
+              counts={characters.reduce<Record<string, number>>((n, c) => (c.tableId ? { ...n, [c.tableId]: (n[c.tableId] ?? 0) + 1 } : n), {})}
+              onCreate={async name => { await partidasApi.create(name); await loadPartidas(); }}
+              onRename={async (id, name) => { await partidasApi.rename(id, name); await loadPartidas(); }}
+              onRemove={async id => { await partidasApi.remove(id); await loadPartidas(); await loadLists(); }}
+              onShowToast={showToast}
+              onBack={() => setScreen("LIST")}
             />
           )}
 

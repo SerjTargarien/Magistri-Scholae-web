@@ -144,6 +144,15 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 |---|---|---|
 | `galleryImages` | Compressed to 1,600 px, JPEG 0.75; removed by position. | Uploaded images only; **list ≤ 50 (owner decision)** |
 
+## Partidas (the Máster's «Partidas de la campaña»; R4 b)
+
+Campaign records, not sheet fields; only the campaign's Máster sees and changes them (owner, 14 November 2026: players never see which partida a sheet belongs to).
+
+| Field | Today | Rule |
+|---|---|---|
+| Partida name | Added, renamed and removed on «Partidas de la campaña». | **Required, text 60**, unique in the campaign ignoring case; **at most 12** per campaign |
+| A character's partida | Set by the Máster on the sheet's top bar in edit mode (tag menu). Removing a partida leaves its characters without one. | One of the campaign's partidas, or none; **characters only** (a familiar follows the character it is bonded to) |
+
 ## Familiar sheet and editor
 
 | Field | Today | Rule |

@@ -4,7 +4,7 @@ from django.db import transaction
 from .errors import APIError, keys, require, text
 from .catalogue import link_own_skills, own_skills, validate_catalogue
 from .fields import REGISTRY, descriptor, leaf_paths, obj, replace_path, validate_sheet
-from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, User
+from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, Table, User
 from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, is_gm,
                           member, projection, revision_for, sheet_for)
 from .accounts import administrator
@@ -120,7 +120,7 @@ def patch_sheet(actor, sheet_id, kind, body):
 
 @transaction.atomic
 def manage_sheet(actor, sheet_id, kind, body):
-    keys(body, ["expectedRevision", "assignedPlayerId", "archived"], ["expectedRevision"])
+    keys(body, ["expectedRevision", "assignedPlayerId", "archived", "tableId"], ["expectedRevision"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)
     member(actor, sheet.campaign, gm=True)
     check_revision(actor, sheet, body["expectedRevision"])
@@ -129,8 +129,68 @@ def manage_sheet(actor, sheet_id, kind, body):
     if "archived" in body:
         require(type(body["archived"]) is bool)
         sheet.archived = body["archived"]
+    if "tableId" in body:
+        # A character's partida, or none; familiars follow their bond (R4 b).
+        require(kind == "character", "invalid_table")
+        table = body["tableId"]
+        require(table is None or (isinstance(table, str) and Table.objects.filter(pk=table, campaign=sheet.campaign).exists()), "invalid_table")
+        sheet.table_id = table
     touch(sheet, f"{kind}.managed", actor)
     return projection(actor, sheet)
+
+
+MAX_TABLES = 12  # field-rules.md, Partidas
+
+
+def table_view(table):
+    return {"id": str(table.pk), "name": table.name}
+
+
+def table_name(campaign, value, exclude=None):
+    """A partida's name: required, 60 characters, unique in the campaign ignoring case."""
+    name = text(value, 60).strip()
+    require(name, "field_required")
+    clash = Table.objects.filter(campaign=campaign, name__iexact=name)
+    require(not (clash.exclude(pk=exclude.pk) if exclude else clash).exists(), "duplicate_table")
+    return name
+
+
+def list_tables(actor, campaign_id):
+    campaign = campaign_for(actor, campaign_id, gm=True)
+    return [table_view(t) for t in campaign.tables.order_by("created_at", "id")]
+
+
+@transaction.atomic
+def create_table(actor, campaign_id, body):
+    keys(body, ["name"], ["name"])
+    campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
+    require(campaign.tables.count() < MAX_TABLES, "too_many_items")
+    table = Table.objects.create(campaign=campaign, name=table_name(campaign, body["name"]))
+    AuditEvent.objects.create(actor=actor, action="table.created", target_id=str(table.pk))
+    return table_view(table)
+
+
+@transaction.atomic
+def rename_table(actor, campaign_id, table_id, body):
+    keys(body, ["name"], ["name"])
+    campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
+    table = Table.objects.get(pk=table_id, campaign=campaign)
+    table.name = table_name(campaign, body["name"], exclude=table)
+    table.save(update_fields=["name"])
+    AuditEvent.objects.create(actor=actor, action="table.renamed", target_id=str(table.pk))
+    return table_view(table)
+
+
+@transaction.atomic
+def remove_table(actor, campaign_id, table_id):
+    """Its characters stay, «sin partida»; their revision moves on, as the GM's copy changed."""
+    campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
+    table = Table.objects.get(pk=table_id, campaign=campaign)
+    for sheet in Sheet.objects.select_for_update().filter(table=table):
+        sheet.table = None
+        touch(sheet, f"{sheet.kind}.managed", actor)
+    AuditEvent.objects.create(actor=actor, action="table.removed", target_id=str(table.pk))
+    table.delete()
 
 
 @transaction.atomic

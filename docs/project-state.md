@@ -859,6 +859,15 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Checks:** type check; 42 unit tests; 60 demo browser tests (a new one runs the whole screen); the backend suite (158 tests, 5 of them new); the 4 real-backend browser tests locally (a new one: the administrator invites a player, who registers from the link in another browser and appears in «Usuarios»); both builds; screenshots on desktop and phone.
 - **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `67e03f6` (no migrations), staging frontend released. Production waits for milestone 2.
 
+## R4 (b): partidas and the filter bar — 14 November 2026
+
+- **Owner's decisions:** only the Máster sets and sees a character's partida (players never see its name anywhere); familiars follow the character they are bonded to; «Partidas» opens from the main list; and, after a segmented row was tried, the owner asked for the filter bar agreed in the controls study (control 11, approved in the controls demo on 9 November): «the filters need to be reworked with the format discussed». Rule 6 of «Which one to use» (narrowing a list → filter bar) applied all along; the first attempt missed it.
+- **Server:** migration `0009_partidas` (a `Table` per campaign, `Sheet.table`, unique names ignoring case; nothing converted: every character starts without a partida); `campaigns/{id}/tables` and `/tables/{tableId}` (GM only, audited, at most 12); `manage` takes `tableId` (characters only); only the GM's projection carries `tableId`. 7 new backend tests (165 in all).
+- **App:** «Partidas de la campaña» (`src/account/CampaignPartidas.tsx`, adapter `src/account/partidas.ts`); the sheet's top bar has the Máster's «Partida» tag menu; cards show the partida to the Máster. The shared `src/components/FilterBar.tsx` replaces the house chips: where to search, «Filtros» with the sort order and the sections «Partida» (Máster), «Casa», «Tipo», removable chips, a results line; the back button closes its sheet. The list is now sorted by name by default (was newest first). Four texts nothing showed were removed.
+- **Demo:** two partidas («Mesa del jueves», «Mesa del sábado») with the GM's characters placed in them.
+- **Checks:** type check; 42 unit tests; 62 demo browser tests (two new: the Máster's partidas end to end, and the filter bar); 4 real-backend browser tests; backend suite 165; both builds; screenshots on desktop and phone.
+- Not released: the migration reaches staging only when the owner asks (after a backup), production at milestone 2.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

@@ -23,9 +23,13 @@ export interface DemoSheet {
   restricted: string[];
   /** Users who may read this sheet without editing it. */
   sharedWith: string[];
+  /** A character's partida (R4 b), which only the GM sees. */
+  tableId?: string;
 }
 
 export const CAMPAIGN = { id: "demo-campaign", name: "Universo de demostración", policyRevision: 1 };
+/** The demo campaign's two partidas (R4 b; decision 9: one universe, two tables). */
+export const PARTIDAS = [{ id: "demo-partida-jueves", name: "Mesa del jueves" }, { id: "demo-partida-sabado", name: "Mesa del sábado" }];
 
 export const USERS: Record<DemoRole, DemoUser> = {
   gm: { id: "demo-gm", username: "demo_gm", displayName: "Directora (demo)", role: "gm" },
@@ -111,11 +115,11 @@ export function demoSheets(): DemoSheet[] {
   return [
     // Luna: the GM keeps the family's money secret even from her player; her
     // player hides her lineage and journal from shared readers.
-    sheet("demo-luna", "character", luna, { bondId: "demo-amber", gmOnly: ["economia"], restricted: ["linaje", "notasList"],
+    sheet("demo-luna", "character", luna, { tableId: PARTIDAS[0].id, bondId: "demo-amber", gmOnly: ["economia"], restricted: ["linaje", "notasList"],
       sharedWith: [USERS.reader.id] }),
-    sheet("demo-diego", "character", diego),
+    sheet("demo-diego", "character", diego, { tableId: PARTIDAS[1].id }),
     // A GM character: players cannot see it at all.
-    sheet("demo-professor", "character", professor, { assignedPlayerId: USERS.gm.id, gmOnly: ["adultWizardProfile/reputation"] }),
+    sheet("demo-professor", "character", professor, { tableId: PARTIDAS[0].id, assignedPlayerId: USERS.gm.id, gmOnly: ["adultWizardProfile/reputation"] }),
     sheet("demo-amber", "familiar", amber, { bondId: "demo-luna" }),
     sheet("demo-spark", "familiar", spark),
   ];

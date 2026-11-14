@@ -385,7 +385,11 @@ test("adult wizard: profile fields and archetype tabs persist", async ({ page })
   });
   for (const tab of ["perfil", "sesion", "habilidades", "hechizos", "notas", "galeria"]) await expect(page.locator(`#tab-button-${tab}`)).toBeVisible();
   await reloadApp(page);
-  await page.locator("#filter-badge-adult-wizard").click();
+  // The filter bar (Controls, control 11): «Filtros» → Tipo: Mago adulto.
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-tipo-adult").click();
+  await page.locator("#list-filter-sheet-apply").click();
+  await expect(page.locator("#list-filter-chips")).toContainText("Mago adulto");
   await expect(characterCard(page, "Smoke Professor")).toBeVisible();
   await expect(characterCard(page, "Luna de Bruma")).toHaveCount(0);
   await openCharacter(page, "Smoke Professor");

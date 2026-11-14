@@ -13,7 +13,7 @@ import { checkSheet, type Rule } from "../model/rules";
 import { setApiTransport } from "../remote/client";
 import { setAssetResolver } from "../remote/assets";
 import { setPath, pathValue } from "../store/paths";
-import { CAMPAIGN, demoAssets, demoSheets, USERS, type DemoRole, type DemoSheet, type DemoUser } from "./fixtures";
+import { CAMPAIGN, demoAssets, demoSheets, PARTIDAS, USERS, type DemoRole, type DemoSheet, type DemoUser } from "./fixtures";
 
 const STORAGE_KEY = "magistri_demo_server_v1";
 const CODES: Record<string, string> = {
@@ -37,6 +37,8 @@ interface State {
   /** The campaign's skill list, which the demo GM can change (C2). */
   catalogue: SkillCatalogue; catalogueRevision: number;
   directory: Directory;
+  /** The demo campaign's partidas (R4 b), the GM's only. */
+  partidas: { id: string; name: string }[];
 }
 const DAY = 24 * 60 * 60 * 1000;
 function freshDirectory(): Directory {
@@ -74,13 +76,13 @@ export class MockServer {
   }
 
   private fresh(): State {
-    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory() };
+    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: structuredClone(PARTIDAS) };
   }
   private load(): State | undefined {
     try {
       const state = JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null");
       // Demo data saved before the GM could change the list has none.
-      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), ...state } : undefined;
+      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: [], ...state } : undefined;
     } catch { return undefined; }
   }
   private save() { try { this.storage?.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch { /* storage full: keep in memory */ } }
@@ -165,6 +167,8 @@ export class MockServer {
       capabilities: { readablePaths, writablePaths: writable, collectionPaths, removablePaths: removable, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),
       ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId, archived: sheet.archived } : {}),
+      // The partida: the GM's only, characters only (R4 b).
+      ...(access === "gm" && sheet.kind === "character" ? { tableId: sheet.tableId ?? null } : {}),
     };
   }
 
@@ -215,6 +219,7 @@ export class MockServer {
     if (path === `campaigns/${CAMPAIGN.id}/skill-catalogue`) return method === "POST" ? this.saveCatalogue(body, user)
       : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
+    if (path.startsWith(`campaigns/${CAMPAIGN.id}/tables`)) return this.partidas(method, path, body, user);
 
     const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage))?$/);
     if (!match) return fail(501, "not_in_demo");
@@ -479,9 +484,49 @@ export class MockServer {
 
   private manage(sheet: DemoSheet, body: any, user: DemoUser): Reply {
     if (user.role !== "gm") return fail(403, "forbidden");
+    if ("tableId" in body) {
+      // Like services.manage_sheet: characters only, one of this campaign's partidas or none.
+      if (sheet.kind !== "character" || (body.tableId !== null && !this.state.partidas.some(p => p.id === body.tableId))) return fail(400, "invalid_table");
+      if (body.tableId === null) delete sheet.tableId; else sheet.tableId = body.tableId;
+    }
     if (typeof body.archived === "boolean") sheet.archived = body.archived;
     sheet.revision++;
     return new Reply(200, this.projection(sheet, user));
+  }
+
+  /** The campaign's partidas (R4 b), like services.create_table and friends: the GM's only. */
+  private partidas(method: string, path: string, body: any, user: DemoUser): Reply {
+    if (user.role !== "gm") return fail(403, "forbidden");
+    const list = this.state.partidas;
+    const id = path.split("/")[3];
+    const named = (exclude?: string): string | Reply => {
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      if (!name) return fail(400, "field_required");
+      if (name.length > 60) return fail(400, "field_too_long");
+      if (list.some(p => p.id !== exclude && p.name.toLowerCase() === name.toLowerCase())) return fail(400, "duplicate_table");
+      return name;
+    };
+    if (!id) {
+      if (method === "GET") return new Reply(200, { items: list });
+      if (list.length >= 12) return fail(400, "too_many_items");
+      const name = named();
+      if (name instanceof Reply) return name;
+      const table = { id: `demo-partida-${crypto.randomUUID()}`, name };
+      list.push(table); this.save();
+      return new Reply(200, table);
+    }
+    const table = list.find(p => p.id === id);
+    if (!table) return fail(404, "not_found");
+    if (method === "DELETE") {
+      this.state.partidas = list.filter(p => p !== table);
+      for (const sheet of this.state.sheets) if (sheet.tableId === table.id) { delete sheet.tableId; sheet.revision++; }
+      this.save();
+      return new Reply(200, {});
+    }
+    const name = named(table.id);
+    if (name instanceof Reply) return name;
+    table.name = name; this.save();
+    return new Reply(200, table);
   }
 
   private personalNotes(method: string, path: string, query: URLSearchParams, body: any, user: DemoUser): Reply {

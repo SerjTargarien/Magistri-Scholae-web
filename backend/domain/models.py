@@ -44,6 +44,18 @@ class Campaign(models.Model):
     catalogue_revision = models.PositiveIntegerField(default=1)
 
 
+class Table(models.Model):
+    """A partida: one table of the campaign (decision 9). Only the campaign's GM sees, names
+    and assigns them; players never see which partida a sheet belongs to (owner, R4 b)."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="tables")
+    name = models.CharField(max_length=60)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(Lower("name"), "campaign", name="unique_table_name")]
+
+
 class Membership(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -89,6 +101,8 @@ class Sheet(models.Model):
     gm_overrides = models.JSONField(default=dict)
     player_restrictions = models.JSONField(default=dict)
     archived = models.BooleanField(default=False)
+    # The character's partida (R4 b); familiars follow the character they are bonded to.
+    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="sheets")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

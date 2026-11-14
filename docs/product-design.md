@@ -142,8 +142,9 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 | Where | Today | Control | When |
 |---|---|---|---|
-| Main list: houses, adults, familiars | Chip strip | Filter bar (11) | Owner's decision (below) |
-| Main list: search | Text box | Stays, inside the filter bar | — |
+| Main list: houses, adults, familiars, partidas | Chip strip | Filter bar (11) | Done (R4 b, 14 November 2026) |
+| Main list: search | Text box | Inside the filter bar, with where to search | Done (R4 b) |
+| A character's partida (Máster) | — | Tag menu (7) on the sheet's top bar | Done (R4 b) |
 | New sheet type | Option cards | Stays (8) | — |
 | House, creation form | Option cards | Stays (8) | — |
 | House, sheet edit mode | Native selector | Tag menu with crests (7) | Done (9 November 2026) |
@@ -177,7 +178,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 
 - **D1. Adopted** (9 November 2026) with the owner's four changes; recorded in AGENTS.md.
 - **D4. Done:** the interactive demo above.
-- **D2 (open).** The main list's filter bar: in the polish pass, or with R5 when institutions arrive. The chip strip works for today's five houses.
+- **D2. Done** (14 November 2026): the main list's filter bar came with R4 (b), when the partidas needed a filter (owner: «the filters need to be reworked with the format discussed»).
 - **D3. Done:** the tag menu was built first, in PR #41, for severity and knowledge level, so no new native selector goes live; the rest in the polish pass, one component at a time.
 
 ## Text that does not fit
@@ -299,12 +300,12 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 
 ### 3. Character list (the grimorio)
 
-- Header: crest, «Magistri Scholae», «Ajustes», «Nuevo Personaje».
-- **Search** «Buscar por nombre, jugador o concepto...»; **filters** «Todas las Casas», the five houses, «Magos Adultos», «Familiares».
-- **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador». **Familiar card:** picture, name, description, «Especie», «Vínculo».
-- Newest first; characters, then familiars. Archived sheets never appear.
+- Header: crest, «Magistri Scholae», «Mis notas», for the Máster «Habilidades de la campaña» and «Partidas», «Ajustes», «Nuevo Personaje».
+- **The filter bar** (Controls, control 11; built with R4 b, 14 November 2026, as approved in the controls demo): the magnifier chooses where to search («Todo»: name, player, concept, house, year and type; or one of them); «Filtros» with the number of filters on opens the sheet: «Ordenar por» (one field from a searchable list: name, experience, year, house, destiny points, player, type, age; with a direction; numbers start from the highest) and the sections «Partida» (Máster only), «Casa» (the five houses with their medallions) and «Tipo» (Alumno, Mago adulto, Familiar), each a list with checks; «Quitar filtros», «Ver N resultados». Active filters show as removable chips under the search, and a line says how many sheets show and how they are sorted. Options in one section add up; sections narrow each other. A familiar follows the character it is bonded to (house and partida); an adult wizard's house is the one their «Antigua casa» names. The choice stays while moving between screens and resets when the campaign changes. It replaces the house chips.
+- **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador»; for the Máster, the partida as a small tag. **Familiar card:** picture, name, description, «Especie», «Vínculo»; for the Máster, its character's partida.
+- By name unless another order is chosen (was: newest first); characters, then familiars. Archived sheets never appear.
 
-**Target:** inactive sheets leave this list (R4); filters follow the new sheet types and the campaign's institutions (R4.5, R5). The GM's complete view with filters and sorting by any value lives in the Biblioteca (R5).
+**Target:** inactive sheets leave this list, and «Estado» joins the filters (R4); the filters follow the new sheet types and the campaign's institutions (R4.5, R5). The GM's complete view with filters and sorting by any value lives in the Biblioteca (R5), with the same filter bar.
 
 ### 4. New sheet type («Elegir Sendero Mágico»)
 
@@ -422,6 +423,16 @@ Opened from a card in «Ajustes» and from the campaign chooser, so it works for
   - **«Enlace de recuperación»:** the recovery link (`/#recuperacion=CÓDIGO`) and its code, shown once with «Copiar enlace»; it lasts 24 hours (owner, 14 November 2026), works once and cancels the previous one.
   - **«Cuenta activa»:** a switch; turning it off asks first (sessions end; sheets and notes are kept). Never on one's own account.
 - The app's own lists and chooser show only campaigns the viewer belongs to; the others are reached here.
+
+### 10b. Partidas de la campaña (Máster only; R4 b, 14 November 2026)
+
+The campaign's tables (decision 9; the word is **partida**). Only the Máster sees them: players never learn which partida a sheet belongs to (owner).
+
+- Opened from «Partidas» on the main list (until the Biblioteca, R5).
+- Each partida: its name in a box (saved when leaving the box or pressing Enter) and how many characters it holds; «×» removes it after asking (its characters stay, without a partida).
+- «Nueva partida» and «Añadir»; names are unique in the campaign ignoring case, at most 12 partidas.
+- A character's partida is chosen on its sheet: in edit mode the top bar shows «Partida» as a tag menu (the partidas and «Sin partida»); when reading, the Máster sees it as a tag under the concept. A familiar follows the character it is bonded to.
+- The main list shows each sheet's partida as a small tag on its card, and filters by partida in the filter bar.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

@@ -12,7 +12,7 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 |---|---|---|
 | `characterType` | Replaced by an age group («Menor» / «Adulto») and two switches, «Mago» and «Alumno de Escuela de Magia»; `student` → Menor, Mago, Alumno; `adult_wizard` → Adulto, Mago. | R4.5 |
 | `edad` | Whole number 0–1,000,000, or «desconocida». | R4.5 |
-| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | Whole number 1–5 (today 1–10; no stored value is above 5), following «Físico», «Voluntad» and «Empatía» (formula: product-design.md Q9). | R4.5 |
+| `estresFisicoMax`, `estresMentalMax`, `estresSocialMax` | Whole number 1–5 (today 1–10; no stored value is above 5). Calculated (owner, 14 November 2026): physical from «Físico», mental from «Empatía», social from «Voluntad»; skill 0 → 2, 1–2 → 3, 3–4 → 4, 5 or more → 5; no skill → 2. Changing the skill recalculates; a value set by hand on the sheet stays until then. No longer typed in the creation form. | R4.5 |
 | `consecuencias*/gravedad` | Already stored (leve, moderada, grave); the game's levels minor, major and severe with their durations (product-design.md, Stress and consequences). | R3.4 / R4.5 |
 | «Criatura mágica» | A character type with everything an adult wizard has, plus «Especie», a general «Descripción» and «Pactos» (a list like the journal, each entry linked to another character). | R4.5 |
 | Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |

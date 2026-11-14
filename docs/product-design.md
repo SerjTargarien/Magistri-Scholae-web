@@ -41,7 +41,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The sheet tab with the Bitácora and private notes | **Bitácora** | «Inventario y Notas», «Equipo y Bitácora» |
 | The sheet tab with spells, potions and equipment | **Magia y equipo** | «Conjuros y Pociones» |
 | The sheet tab with the school and the house | **Institución**: the cards **Escuela** (its list is **Clubes**) and **Casa y Heráldica** (an adult's **Antigua casa**) | «Clubes Escolares» |
-| The form tab with aspects and equipment | **Aspectos y equipo** | «Aspectos y posesiones» |
+| The creation form's tabs | today «Identificación», **Aspectos y equipo**, «Casa», «Habilidades», «Estrés»; from R4.5 the sheet's names: **Perfil**, **Institución**, **Habilidades**, **Magia y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
 | Adding an item to a list on a sheet | **Añadir** X | «Registrar» X |
@@ -339,11 +339,16 @@ Today, side tabs with «Cancelar» and «Guardar» at the top and bottom; nothin
 
 **Target:**
 
-- **Identificación** carefully redesigned for minors, adults and magical creatures, with fitting values for each, without losing current data (R4.5). «Edad»: up to 1,000,000, or «desconocida» (R4.5).
-- **Concepto** moves to «Aspectos y Posesiones» (R4.5).
-- **Casa y Lema** and a new **Institución y Rol** tab (adults) take their content from the campaign's institutions, or free text (R5).
-- **Estrés:** maxima 1–5 (R4.5); the maxima follow «Físico», «Voluntad» and «Empatía» (see [Stress and consequences](#stress-and-consequences-owner-9-november-2026)).
-- **Familiar:** only for magical human characters; the dialog has no save button: it keeps the values, and the familiar is created and linked only when the character is saved (R3.4 polish pass).
+- **The tabs follow the sheet** (owner, 14 November 2026; R4.5 step 2): each form tab takes the sheet tab's name and its cards in the same order, with only the values that make sense at creation; Bitácora and Galería stay out of the form.
+  1. **Perfil:** «Retrato y nombre» (portrait with crop, fit and «Quitar retrato»; «Nombre del Personaje»; «Concepto», which **stays next to the name**, as in the sheet's top bar); «Datos Personales» (Jugador, Edad, Linaje, Economía, Varita; adults: Reputación); «Aspectos Personales» and «Complicaciones» in one card; «Campos personalizados». On wide screens in the sheet's two columns.
+  2. **Institución** (everyone; replaces «Casa»): «Escuela» (students: Curso académico, Puesto en la clase; adults: Institución, Rol / Título, «Profesor de la escuela», Asignaturas; everyone: **Clubes**, new in the form) and «Casa y Heráldica» (students: the house picker with its lore) or «Antigua casa» (adults: the text box). The «Perfil de Mago Adulto» block disappears: its values go to Institución, and Reputación to Datos Personales.
+  3. **Habilidades:** as today.
+  4. **Magia y equipo:** «Equipo» (moved from «Aspectos y equipo»); whether «Conjuros» and «Pociones» are chosen at creation is decided in the design step.
+  5. **No «Estrés» tab:** the maxima are calculated from the skills ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)).
+- **Identificación** carefully redesigned for minors, adults and magical creatures, with fitting values for each, without losing current data (R4.5): it becomes the «¿Quién es?» step (section 4) and the tabs above. «Edad»: up to 1,000,000, or «desconocida» (R4.5).
+- **Concepto stays next to the name** (owner, 14 November 2026; replaces the earlier plan to move it to «Aspectos y Posesiones»).
+- **Institución** takes its content from the campaign's institutions, or free text (R5).
+- **Familiar:** for every magical human character, **adults included** (owner, 14 November 2026; today students only); the dialog has no save button: it keeps the values, and the familiar is created and linked only when the character is saved (R3.4 polish pass).
 - **«Cancelar»** asks before discarding any change (polish pass).
 - Portrait fit buttons in Spanish everywhere (polish pass).
 
@@ -448,6 +453,25 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
   - 7 damage: 6 absorbed, a **moderada** consequence (major; it goes away after the session, roughly a month of story), 1 pip marked;
   - 10 damage: 9 absorbed, a **grave** consequence (severe; it never goes away unless measures are taken), 1 pip marked. With a grave consequence, 2 more damage (filling the pips) and the character is lost: dies, becomes an NPC… the GM decides from the story. To be avoided at all costs.
 - The levels match the severities the server already stores: leve, moderada, grave.
+- **The maximum is calculated** (owner, 14 November 2026; answers Q9), for every character, from one skill per track:
+
+  | Track | Skill |
+  |---|---|
+  | Estrés físico | «Físico» |
+  | Estrés mental | «Empatía» |
+  | Estrés social | «Voluntad» |
+
+  | Skill value | Maximum |
+  |---|---|
+  | 0 | 2 |
+  | 1–2 | 3 |
+  | 3–4 | 4 |
+  | 5 or more | 5 |
+
+  - A character without the skill has maximum 2.
+  - Changing the skill moves the maximum up or down at once.
+  - For edge cases, the maximum can then be set by hand on the sheet in edit mode (1–5); that value stays until the skill changes again, which recalculates it.
+  - The creation form has no «Estrés» tab any more: the maxima follow the skills chosen in «Habilidades».
 - **Design intent:** the stress tracks and consequences show this clearly without overcomplicating (R3.4 session tab for severity; the tracks in R4.5). Details still open are in [Open questions](#open-questions).
 
 ### Non-magical characters (owner, 8–9 November 2026; R4.5)
@@ -480,10 +504,9 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
 
 ## Open questions
 
-Q1–Q8 and Q12–Q14 were answered on 9 November 2026 and folded in above (drafts, deletion of archived sheets only, administrator access, «Criatura mágica», stress maxima, «Casas» / «Secciones», R6 after R5, the multiverse collection in the far backlog). Still open, **waiting for the GM's full explanation of the stress rules** (owner, 9 November 2026):
+Q1–Q8 and Q12–Q14 were answered on 9 November 2026 and folded in above (drafts, deletion of archived sheets only, administrator access, «Criatura mágica», stress maxima, «Casas» / «Secciones», R6 after R5, the multiverse collection in the far backlog). Still open, **waiting for the GM's full explanation of the stress rules** (owner, 9 November 2026): Q10 and Q11.
 
-- **Q9 — Stress maximum from skills.** How a skill value (0–5) gives the track's maximum (1–5): for example, the maximum equals the skill with a minimum of 1, or 2 plus half the skill, or a table.
 - **Q10 — Repeated damage.** What happens when pips would overflow without reaching a new step, or when the character already has a consequence of the level a new hit gives (does it move up to the next free level?), and how many consequences of each level a track holds.
 - **Q11 — The app's role in damage.** Should the sheet only record stress and consequences (the GM applies the rules), or offer a «Recibir daño» box that applies them?
 
-Answered later the same day: **Q12** the GM chooses when confirming whether a draft becomes the player's character or his NPC; **Q13** a player can own a «Criatura mágica» from creation, the GM can change a sheet's type later, and temporary versions and sheets based on another were added (Sheet versions); **Q14** personal notes stay excluded from administrator access. Whether a «Criatura mágica» can have a familiar is decided in R4.5's design step.
+**Q9** was answered on 14 November 2026 (the table in [Stress and consequences](#stress-and-consequences-owner-9-november-2026)). Answered later on 9 November: **Q12** the GM chooses when confirming whether a draft becomes the player's character or his NPC; **Q13** a player can own a «Criatura mágica» from creation, the GM can change a sheet's type later, and temporary versions and sheets based on another were added (Sheet versions); **Q14** personal notes stay excluded from administrator access. Whether a «Criatura mágica» can have a familiar is decided in R4.5's design step.

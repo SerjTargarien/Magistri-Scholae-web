@@ -866,7 +866,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **App:** «Partidas de la campaña» (`src/account/CampaignPartidas.tsx`, adapter `src/account/partidas.ts`); the sheet's top bar has the Máster's «Partida» tag menu; cards show the partida to the Máster. The shared `src/components/FilterBar.tsx` replaces the house chips: where to search, «Filtros» with the sort order and the sections «Partida» (Máster), «Casa», «Tipo», removable chips, a results line; the back button closes its sheet. The list is now sorted by name by default (was newest first). Four texts nothing showed were removed.
 - **Demo:** two partidas («Mesa del jueves», «Mesa del sábado») with the GM's characters placed in them.
 - **Checks:** type check; 42 unit tests; 62 demo browser tests (two new: the Máster's partidas end to end, and the filter bar); 4 real-backend browser tests; backend suite 165; both builds; screenshots on desktop and phone.
-- Not released: the migration reaches staging only when the owner asks (after a backup), production at milestone 2.
+- **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `2b1b0d3` with migration `0009_partidas` applied, staging frontend released. Production waits for milestone 2.
 
 ## Updating this handoff
 

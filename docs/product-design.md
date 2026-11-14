@@ -458,8 +458,8 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
   | Track | Skill |
   |---|---|
   | Estrés físico | «Físico» |
-  | Estrés mental | «Empatía» |
-  | Estrés social | «Voluntad» |
+  | Estrés mental | «Voluntad» |
+  | Estrés social | «Empatía» |
 
   | Skill value | Maximum |
   |---|---|

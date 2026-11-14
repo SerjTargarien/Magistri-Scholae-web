@@ -847,7 +847,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 ## Creation form order and the stress maxima decided — 14 November 2026
 
 - The owner reviewed a draft comparing the creation form with the sheet. Decided, for **R4.5 step 2**: the form's tabs follow the sheet (Perfil, Institución, Habilidades, Magia y equipo); «Concepto» stays next to the name; adults get the familiar button; school details, the adult's institution, role and teaching, and «Antigua casa» move to Institución; clubs join the form; equipment moves to «Magia y equipo».
-- **Q9 answered:** the stress maxima are calculated for every character (physical from «Físico», mental from «Empatía», social from «Voluntad»; 0 → 2, 1–2 → 3, 3–4 → 4, 5+ → 5; no skill → 2), with a per-sheet value by hand kept until the skill changes again. The form loses its «Estrés» tab. Q10 and Q11 stay open.
+- **Q9 answered:** the stress maxima are calculated for every character (physical from «Físico», mental from «Voluntad», social from «Empatía»; corrected by the owner the same morning; 0 → 2, 1–2 → 3, 3–4 → 4, 5+ → 5; no skill → 2), with a per-sheet value by hand kept until the skill changes again. The form loses its «Estrés» tab. Q10 and Q11 stay open.
 - Recorded in product-design.md (sections 5 and Stress and consequences), implementation-plan.md (R4.5) and field-rules.md. Documentation only.
 
 ## Updating this handoff

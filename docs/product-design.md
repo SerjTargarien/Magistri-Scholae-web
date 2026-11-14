@@ -48,6 +48,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The creation form's tabs | today «Identificación», **Aspectos y equipo**, «Casa», «Habilidades», «Estrés»; from R4.5 the sheet's names: **Perfil**, **Institución**, **Habilidades**, **Magia y equipo** | «Aspectos y posesiones» |
 | A player's unconfirmed sheet (R4) | **borrador**; once proposed, a **propuesta** («Proponer al Máster», «Retirar propuesta»; the Máster's «Confirmar» or «Devolver») | «borrador» for unsaved changes |
 | What a confirmed proposal becomes | **Personaje del jugador (PJ)** or **Personaje no jugador (PNJ)** | |
+| The administrator's way in, granted by the Máster | **Acceso de administración** («Dar acceso a la administración», «Retirar acceso», «Marcar como resuelto») | «soporte» |
 | Who a sheet belongs to | **Jugador asignado**: a player, **Yo (PNJ)** for the Máster, or **Sin asignar** | «dueño» |
 | Bringing an archived sheet back; removing it for good | **Restaurar**; **Eliminar definitivamente** | «borrar» |
 | A sheet in play or set aside | **activa** / **inactiva** («Ficha activa»), by the Máster | «archivada» for this |
@@ -84,7 +85,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
   - chooses which fields a shared reader sees (the visibility editor, R7.3).
 - **Player:** sees and edits the sheets they created or that the GM assigned to them, and their own drafts.
 - **Shared reader:** sees the fields the GM chose for that sheet.
-- **Administrator:** as today, and can see and change **the whole campaign's data** only while the GM allows it: the GM grants access for an issue, and it ends after **24 hours**, when the GM withdraws it, or when the administrator marks the issue as solved, whichever comes first. Personal notes stay excluded. Admin screens in R4.
+- **Administrator:** as today, and can see and change **the whole campaign's data** only while the GM allows it: the GM grants access for an issue, and it ends after **24 hours**, when the GM withdraws it, or when the administrator marks the issue as solved, whichever comes first. Personal notes stay excluded. Admin screens in R4. **Built in R4 (e), 14 November 2026:** in «Ajustes» → «Campaña», «Acceso de administración»: the Máster describes the problem and taps «Dar acceso a la administración»; while it lasts he sees the issue, the end time and «Retirar acceso» (asks first), and afterwards how it ended; below, a log of what the administration opened or changed («Luna de Bruma · abierta 2 veces», «cambiada 1 vez, la última el…»). In «Administración» the campaign shows the access with «Abrir campaña» and «Marcar como resuelto». Inside, a banner on every screen says until when, with «Marcar como resuelto» and «Salir» (both send pending changes first). The administrator sees and changes what the Máster does, **players' drafts included** (owner), but takes none of his decisions and has none of his tools. The draft panel tells players that only the administration could see a draft, during an access the Máster grants.
 
 ## Controls
 

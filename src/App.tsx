@@ -8,8 +8,8 @@
 // signed in so leaving a sheet never drops unsent changes. The layout,
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { ApiMember, ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
-import { ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
+import type { ApiAdminAccess, ApiMember, ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
+import { ACCESS_TEXT, ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
 import type { SheetStatusProps, StatusAction } from "./components/SheetStatusBar";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
@@ -31,6 +31,8 @@ import { CampaignPartidas } from "./account/CampaignPartidas";
 import { remotePartidas } from "./account/partidas";
 import { CampaignPlayers } from "./account/CampaignPlayers";
 import { remotePlayers } from "./account/players";
+import { remoteAccess } from "./account/access";
+import { AdminAccessCard } from "./account/AdminAccessCard";
 import { AcademyBackground } from "./components/AcademyOrnaments";
 import { Loader, CheckCircle } from "lucide-react";
 import { LimitHint } from "./components/LimitHint";
@@ -131,6 +133,13 @@ export default function App() {
     }).catch(() => showToast("error", t.storageLoadError));
   }, [user, client, campaignsLoaded]);
   const adminApi = useMemo(() => remoteAdmin(client), [client]);
+  // R4 (e): the accesses Máster granted to the administrator; one may be open in the app.
+  const [accesses, setAccesses] = useState<ApiAdminAccess[]>([]);
+  const loadAccesses = useCallback(async () => {
+    if (!user?.isAdministrator) { setAccesses([]); return; }
+    try { setAccesses(await adminApi.accesses()); } catch { setAccesses([]); }
+  }, [user, adminApi]);
+  useEffect(() => { void loadAccesses(); }, [loadAccesses, campaignsLoaded]);
 
   const loadLists = useCallback(async () => {
     if (!campaignId) return;
@@ -247,6 +256,13 @@ export default function App() {
 
   // The campaign's skill list (C2): the GM saves it whole; a stale revision reloads it.
   const isCampaignGM = campaigns.find(c => c.id === campaignId)?.role === "gm";
+  // The administrator working in a campaign through an access: the Máster's view of sheets, none of his decisions or tools.
+  const openAccess = !isCampaignGM && user?.isAdministrator ? accesses.find(a => a.campaignId === campaignId) : undefined;
+  const leaveCampaign = (next: Screen) => {
+    for (const store of stores.current.values()) store.dispose();
+    stores.current.clear();
+    setSelectedCharId(null); setSelectedFamiliarId(null); setCampaignId(""); setScreen(next);
+  };
 
   // The campaign's partidas (R4 b): loaded for the Máster only; players never see them.
   const [partidas, setPartidas] = useState<ApiTable[]>();
@@ -441,6 +457,30 @@ export default function App() {
         </div>
       )}
       {panel}
+      {openAccess && !gate && (
+        <div id="admin-access-banner" role="status" className="relative z-40 bg-amber-950/95 text-amber-100 border-b border-amber-500/50 px-4 py-2.5 text-sm">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center gap-2">
+            <p className="flex-1 min-w-0 break-words">
+              {ACCESS_TEXT[lang].banner.replace("{campaign}", openAccess.campaignName)
+                .replace("{date}", new Intl.DateTimeFormat(lang === "es" ? "es-ES" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(openAccess.expiresAt)))}
+            </p>
+            <div className="flex gap-2 shrink-0">
+              <button type="button" id="btn-access-solved" className="px-3 py-1.5 rounded-lg border border-amber-400/60 bg-amber-900/60 text-amber-100 text-xs font-bold cursor-pointer"
+                onClick={async () => {
+                  // Changes still on their way are sent first: the access ends with the issue.
+                  await Promise.all([...stores.current.values()].map(store => settle(store).catch(() => undefined)));
+                  try { await adminApi.solved(openAccess.id); } catch { showToast("error", ACCESS_TEXT[lang].failed); return; }
+                  await loadAccesses(); leaveCampaign("ADMIN");
+                }}>{ACCESS_TEXT[lang].markSolved}</button>
+              <button type="button" id="btn-access-leave" className="px-3 py-1.5 rounded-lg border border-neutral-600 bg-neutral-900/70 text-neutral-200 text-xs font-semibold cursor-pointer"
+                onClick={async () => {
+                  await Promise.all([...stores.current.values()].map(store => settle(store).catch(() => undefined)));
+                  leaveCampaign("ADMIN");
+                }}>{ACCESS_TEXT[lang].leave}</button>
+            </div>
+          </div>
+        </div>
+      )}
       <AcademyBackground />
 
       {gate ?? (screen === "ADMIN" && user ? (
@@ -452,6 +492,12 @@ export default function App() {
             onBack={() => { setScreen("LIST"); setCampaignsLoaded(n => n + 1); }}
             onShowToast={showToast}
             onChanged={() => setCampaignsLoaded(n => n + 1)}
+            onOpenCampaign={access => {
+              for (const store of stores.current.values()) store.dispose();
+              stores.current.clear();
+              setAccesses(list => (list.some(a => a.id === access.id) ? list : [...list, access]));
+              setCampaignId(access.campaignId); setScreen("LIST");
+            }}
           />
         </main>
       ) : boot || loading ? (
@@ -470,7 +516,7 @@ export default function App() {
               familiars={familiars}
               onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
               onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
-              onAddCharacter={() => setScreen("TYPE_SELECT")}
+              onAddCharacter={openAccess ? undefined : () => setScreen("TYPE_SELECT")}
               onOpenSettings={() => setScreen("SETTINGS")}
               onOpenNotes={() => setScreen("NOTES")}
               onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
@@ -505,16 +551,16 @@ export default function App() {
               catalogue={catalogue}
               familiars={familiars}
               onBack={() => { setSelectedCharId(null); setScreen("LIST"); void loadLists(); }}
-              onArchive={isGM(characterStore) && confirmed(characterStore) ? () => void archive(characterStore) : undefined}
+              onArchive={isGM(characterStore) && confirmed(characterStore) && !openAccess ? () => void archive(characterStore) : undefined}
               onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
               onBondFamiliar={familiarId => bond(characterStore, familiarId)}
               onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
-              partidas={isGM(characterStore) && confirmed(characterStore) ? partidas : undefined}
-              onSetPartida={isGM(characterStore) && confirmed(characterStore) ? tableId => setPartida(characterStore, tableId) : undefined}
-              status={statusFor(characterStore)}
+              partidas={isGM(characterStore) && confirmed(characterStore) && !openAccess ? partidas : undefined}
+              onSetPartida={isGM(characterStore) && confirmed(characterStore) && !openAccess ? tableId => setPartida(characterStore, tableId) : undefined}
+              status={openAccess ? undefined : statusFor(characterStore)}
             />
           )}
 
@@ -525,13 +571,13 @@ export default function App() {
               store={familiarStore}
               characters={characters}
               onBack={() => { setSelectedFamiliarId(null); setScreen("LIST"); void loadLists(); }}
-              onArchive={isGM(familiarStore) && confirmed(familiarStore) ? () => void archive(familiarStore) : undefined}
+              onArchive={isGM(familiarStore) && confirmed(familiarStore) && !openAccess ? () => void archive(familiarStore) : undefined}
               onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
               onBondMaster={characterId => bond(familiarStore, characterId)}
               onUploadImage={uploadImage(familiarStore)}
               onShowToast={showToast}
               notes={notesApi}
-              status={statusFor(familiarStore)}
+              status={openAccess ? undefined : statusFor(familiarStore)}
             />
           )}
 
@@ -600,6 +646,7 @@ export default function App() {
                   try { await client.request("campaigns", "POST", { name }); showToast("success", CAMPAIGN_GM_TEXT[lang].created); setCampaignsLoaded(n => n + 1); }
                   catch { showToast("error", STATUS_TEXT[lang].failed); }
                 },
+                accessCard: <AdminAccessCard lang={lang} api={remoteAccess(client, campaignId)} onShowToast={showToast} />,
               } : undefined}
               account={{
                 displayName: user.displayName || user.username,

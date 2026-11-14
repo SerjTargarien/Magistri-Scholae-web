@@ -29,6 +29,9 @@ An actor-scoped operation ID binds to the method, route and exact body, includin
 | `admin/invitations/{invitationId}` | DELETE `{}` → `{}`: cancels an unused invitation (its link stops working; audited as `invitation.revoked`). Site administrator only; a used or unknown invitation is `not_found`. |
 | `campaigns` | GET → `{items: [{id, name, policyRevision, role}]}`; current memberships, or operational summaries for site administrator. `role` is the viewer's own role in that campaign (`"gm"`, `"player"`, or `null` for an administrator who is not a member). POST `{name}` → `{id, name, policyRevision, role}` creates a campaign: the site administrator (who does not join it: issue a GM invitation or add an existing account) or any GM (R4 d), who becomes its GM. |
 | `campaigns/{id}` | PATCH `{name}` → `{id, name, policyRevision, role}` renames it (required, at most 120 characters). The campaign's GM or the site administrator (R4 d). |
+| `campaigns/{id}/admin-access` | R4 (e), the campaign's GM only. GET → `{access}`: the current or last access `{id, campaignId, campaignName, reason, grantedBy, grantedAt, expiresAt, endedAt, endReason, active, events}`, where `events` lists `{sheetId, kind, name, action: "read" or "write", count, firstAt, lastAt}`. POST `{reason}` (required, at most 300 characters) grants a 24-hour access, ending any live one. DELETE `{}` withdraws it. Audited. |
+| `admin/accesses` | GET → `{items: [...]}`: the live accesses (site administrator). |
+| `admin/accesses/{accessId}/solved` | POST `{}` → `{access}` ends it as solved (site administrator). |
 | `campaigns/{id}/invitations` | GET → `{items: [{id, campaignId, campaignName, role, issuer, expiresAt}]}`: the campaign's unused invitations, for its GM or the site administrator (R4 d). |
 | `campaigns/{id}/invitations/{invitationId}` | DELETE `{}` → `{}` cancels an unused invitation: the GM his campaign's player invitations, the administrator any. Audited `invitation.revoked`. |
 | `campaigns/{id}/tables` | GET → `{items: [{id, name}]}`, the campaign's partidas in creation order. POST `{name}` → `{id, name}`. GM only (R4 b); players never see partidas. A name is required, at most 60 characters and unique in the campaign ignoring case (`duplicate_table`); at most 12 per campaign (`too_many_items`). |
@@ -57,6 +60,8 @@ The following route families exist independently under **`characters`** and **`f
 | `/{id}/assets` | POST `{operationId, expectedRevision, path, imageBase64}` atomically attaches a decoded image to a media path and returns the updated projection. |
 
 **Drafts (R4 c).** Every projection carries `status` (`draft`, `proposed`, `confirmed`) and `active`. The GM's campaign-wide access covers every sheet except a player's drafts: those are absent from his lists and `not_found` to every route. A proposal is read-only for everyone (no writable paths, no bond). GM-only actions (manage, sharing, the GM's visibility policy) need a confirmed sheet.
+
+**During an access (R4 e).** While a GM-granted access lasts, the site administrator lists and reads the campaign's sheets as its GM, drafts included, changes their content (patch, images, bonds) and reads the skill list; manage, sharing, visibility, status decisions, deletion and the GM's campaign tools stay forbidden. Each sheet read (`GET /{id}`) or changed through the access is logged for the GM.
 
 Example projected entity:
 

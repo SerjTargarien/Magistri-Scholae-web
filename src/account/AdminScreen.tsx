@@ -11,8 +11,8 @@
 // the one confirmation dialog before removing, cancelling or disabling.
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, KeyRound, Link as LinkIcon, Plus, ShieldCheck, UserPlus, X } from "lucide-react";
-import type { ApiAdminUser, ApiCampaign, ApiInvitation, ApiMember, ApiRole, ApiUser } from "../contracts/api-v1";
-import { ADMIN_TEXT, TRANSLATIONS, type Language } from "../localization";
+import type { ApiAdminAccess, ApiAdminUser, ApiCampaign, ApiInvitation, ApiMember, ApiRole, ApiUser } from "../contracts/api-v1";
+import { ACCESS_TEXT, ADMIN_TEXT, TRANSLATIONS, type Language } from "../localization";
 import { ApiFailure } from "../remote/client";
 import type { AdminApi, IssuedLink } from "./admin";
 import { IssuedLinkPanel } from "./IssuedLinkPanel";
@@ -31,6 +31,8 @@ export interface AdminScreenProps {
   onShowToast: (type: "success" | "error", text: string) => void;
   /** Campaigns or memberships changed: the app reloads the viewer's campaigns. */
   onChanged: () => void;
+  /** Opens a campaign during an access its Máster granted (R4 e). */
+  onOpenCampaign: (access: ApiAdminAccess) => void;
 }
 
 type Shown = IssuedLink & { key: string; title: string; note: string };
@@ -46,13 +48,15 @@ const STRONG = `${buttonClass} border-violet-500/35 bg-violet-900 text-violet-10
 
 const fill = (text: string, values: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
 
-export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged }: AdminScreenProps) {
+export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged, onOpenCampaign }: AdminScreenProps) {
   const t = TRANSLATIONS[lang];
   const a = ADMIN_TEXT[lang];
   const [users, setUsers] = useState<ApiAdminUser[]>();
   const [campaigns, setCampaigns] = useState<ApiCampaign[]>([]);
   const [members, setMembers] = useState<Record<string, ApiMember[]>>({});
   const [invitations, setInvitations] = useState<ApiInvitation[]>([]);
+  const [accesses, setAccesses] = useState<ApiAdminAccess[]>([]);
+  const x = ACCESS_TEXT[lang];
   const [failed, setFailed] = useState(false);
   const [shown, setShown] = useState<Shown | null>(null);
   const [adding, setAdding] = useState<ApiCampaign | null>(null);
@@ -66,7 +70,8 @@ export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged }: A
 
   const load = useCallback(async () => {
     try {
-      const [userList, campaignList, pending] = await Promise.all([api.users(), api.campaigns(), api.invitations()]);
+      const [userList, campaignList, pending, live] = await Promise.all([api.users(), api.campaigns(), api.invitations(), api.accesses()]);
+      setAccesses(live);
       const memberLists = await Promise.all(campaignList.map(c => api.members(c.id)));
       setUsers(userList);
       setCampaigns(campaignList);
@@ -135,6 +140,15 @@ export function AdminScreen({ lang, api, me, onBack, onShowToast, onChanged }: A
                   <FiligreeCorner position="tr" className="w-6 h-6" />
                   <h3 className="font-magic text-sm text-neutral-100 uppercase tracking-widest break-words">{campaign.name}</h3>
                   <CompassStarDivider className="my-3" />
+                  {accesses.filter(acc => acc.campaignId === campaign.id).map(acc => (
+                    <div key={acc.id} id={`admin-access-${campaign.id}`} className="mb-4 p-3 rounded-lg border border-amber-500/40 bg-amber-950/20 space-y-2">
+                      <p className="text-xs text-amber-200 break-words">{fill(x.adminPanel, { gm: acc.grantedBy, date: when(acc.expiresAt), reason: acc.reason })}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" id={`btn-open-access-${campaign.id}`} onClick={() => onOpenCampaign(acc)} className={STRONG}>{x.open}</button>
+                        <button type="button" id={`btn-solved-access-${campaign.id}`} disabled={busy} onClick={() => void act(() => api.solved(acc.id))} className={QUIET}>{x.markSolved}</button>
+                      </div>
+                    </div>
+                  ))}
 
                   <h4 className="text-[9px] text-neutral-500 uppercase tracking-wider font-mono mb-2">{a.members}</h4>
                   {list.length ? (

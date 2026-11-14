@@ -189,6 +189,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <p className="text-[11px] text-neutral-500">{g.newCampaignHint}</p>
               </form>
             </div>
+            {campaignSettings.accessCard}
           </div>
         )}
 

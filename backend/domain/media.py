@@ -84,6 +84,8 @@ def upload(actor, sheet_id, kind, body):
         asset.save()
         sheet.data = replace_path(sheet.data, kind, path, str(asset.pk))
         touch(sheet, "media.attached", actor)
+        from .admin_access import record
+        record(actor, sheet, "write")
         return projection(actor, sheet)
     except Exception:
         storage.delete(name)

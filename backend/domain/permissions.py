@@ -21,15 +21,25 @@ def is_gm(actor, campaign):
     return actor.is_authenticated and actor.is_active and Membership.objects.filter(campaign=campaign, user=actor, role="gm").exists()
 
 
-def gm_of(actor, sheet):
+def real_gm(actor, sheet):
     """The GM's campaign-wide powers cover every sheet except a player's drafts (R4 c):
     a private vault the GM does not see at all."""
     return sheet.status != "draft" and is_gm(actor, sheet.campaign)
 
 
+def gm_of(actor, sheet):
+    """Who reads and changes a sheet as its GM: the GM (not drafts), or the site administrator
+    during an access the GM granted (R4 e), drafts included (owner, 14 November 2026)."""
+    from .admin_access import active_access
+    return real_gm(actor, sheet) or active_access(actor, sheet.campaign) is not None
+
+
 def accessible(actor, sheet):
     if not actor.is_authenticated or not actor.is_active:
         return False
+    from .admin_access import active_access
+    if active_access(actor, sheet.campaign):
+        return True
     if not Membership.objects.filter(user=actor, campaign=sheet.campaign).exists():
         return False
     return gm_of(actor, sheet) or (not sheet.archived and (
@@ -51,8 +61,12 @@ def sheet_for(actor, sheet_id, kind, lock=False):
 
 
 def list_sheets(actor, campaign, kind):
-    membership = member(actor, campaign)
+    from .admin_access import active_access
     query = Sheet.objects.select_related("campaign").filter(campaign=campaign, kind=kind)
+    if active_access(actor, campaign):
+        # The administrator during an access: every sheet, drafts included (R4 e).
+        return query.order_by("-created_at", "id")
+    membership = member(actor, campaign)
     if membership.role != "gm":
         query = query.filter(archived=False).filter(Q(assigned_player=actor) | Q(shares__recipient=actor)).distinct()
     else:

@@ -247,6 +247,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             <span className="hidden md:inline">{t.settings}</span>
           </button>
 
+          {onAddCharacter && (
           <button
             id="btn-add-character-header"
             onClick={onAddCharacter}
@@ -255,6 +256,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             <Plus className="w-4 h-4 text-amber-400" />
             <span>{t.addCharacter}</span>
           </button>
+          )}
         </div>
       </div>
 

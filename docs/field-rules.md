@@ -152,6 +152,12 @@ Not sheet fields: the server keeps them beside the sheet and shows them in every
 | Status | A player's new sheet is a **borrador** only they see (the Máster does not see it at all); «Proponer al Máster» makes it a **propuesta**, read-only for everyone; the player can withdraw it; the Máster confirms it as the player's character (PJ) or as his own NPC (PNJ; the author loses it) or returns it to the drafts. The Máster's own sheets are confirmed at once; existing sheets are confirmed. A bonded counterpart in the same state moves with it. | **draft → proposed → confirmed** (or back to draft); a draft bonds only with another draft |
 | Active | The Máster's «Ficha activa» switch on a confirmed sheet, in edit mode. An inactive sheet leaves the main list unless «Estado» shows it; its player still edits it. | **Yes / no**; default yes |
 
+## Administrator access (R4 e)
+
+| Field | Today | Rule |
+|---|---|---|
+| The issue | Written by the Máster when he gives the administration access («Describe el problema»). | **Required, text 300**; the access lasts **24 hours** |
+
 ## Campaign (R4 d)
 
 | Field | Today | Rule |

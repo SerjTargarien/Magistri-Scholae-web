@@ -37,10 +37,16 @@ interface State {
   /** The campaign's skill list, which the demo GM can change (C2). */
   catalogue: SkillCatalogue; catalogueRevision: number;
   directory: Directory;
+  /** Administrator accesses the GM granted (R4 e), newest last, with the log of sheets opened or changed. */
+  accesses: Access[];
   /** The demo campaign's partidas (R4 b), the GM's only. */
   partidas: { id: string; name: string }[];
 }
 const DAY = 24 * 60 * 60 * 1000;
+interface Access {
+  id: string; grantedBy: string; reason: string; grantedAt: number; expiresAt: number; endedAt: number | null; endReason: "withdrawn" | "solved" | null;
+  events: { sheetId: string; action: "read" | "write"; count: number; firstAt: number; lastAt: number }[];
+}
 function freshDirectory(): Directory {
   return {
     accounts: Object.values(USERS).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, admin: u.role === "admin", active: true })),
@@ -76,13 +82,13 @@ export class MockServer {
   }
 
   private fresh(): State {
-    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: structuredClone(PARTIDAS) };
+    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: structuredClone(PARTIDAS), accesses: [] };
   }
   private load(): State | undefined {
     try {
       const state = JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null");
       // Demo data saved before the GM could change the list has none.
-      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: [], ...state } : undefined;
+      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: [], accesses: [], ...state } : undefined;
     } catch { return undefined; }
   }
   private save() { try { this.storage?.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch { /* storage full: keep in memory */ } }
@@ -105,7 +111,61 @@ export class MockServer {
 
   // ---- projections ---------------------------------------------------------
 
+  /** The administrator's live access to the demo campaign (R4 e). */
+  private liveAccess(user: DemoUser) {
+    return user.role === "admin" ? this.state.accesses.find(a => a.endedAt === null && a.expiresAt > Date.now()) : undefined;
+  }
+  /** Like admin_access.record: what the administrator opens or changes only through an access is logged. */
+  private recordAccess(sheet: DemoSheet, user: DemoUser, action: "read" | "write") {
+    const access = this.liveAccess(user);
+    if (!access || sheet.assignedPlayerId === user.id) return;
+    const event = access.events.find(e => e.sheetId === sheet.id && e.action === action);
+    if (event) { event.count++; event.lastAt = Date.now(); } else access.events.push({ sheetId: sheet.id, action, count: 1, firstAt: Date.now(), lastAt: Date.now() });
+    this.save();
+  }
+  private accessView(a: Access, withEvents: boolean) {
+    const iso = (t: number | null) => (t === null ? null : new Date(t).toISOString());
+    return { id: a.id, campaignId: CAMPAIGN.id, campaignName: this.directory.campaigns.find(c => c.id === CAMPAIGN.id)?.name ?? CAMPAIGN.name,
+      reason: a.reason, grantedBy: a.grantedBy, grantedAt: iso(a.grantedAt), expiresAt: iso(a.expiresAt), endedAt: iso(a.endedAt), endReason: a.endReason,
+      active: a.endedAt === null && a.expiresAt > Date.now(),
+      ...(withEvents ? { events: a.events.map(e => {
+        const sheet = this.state.sheets.find(s => s.id === e.sheetId);
+        return { sheetId: sheet ? sheet.id : null, kind: sheet?.kind ?? null, name: sheet ? String((sheet.fields as any).nombre ?? "") : "", action: e.action,
+          count: e.count, firstAt: iso(e.firstAt), lastAt: iso(e.lastAt) };
+      }) } : {}) };
+  }
+  /** Like admin_access.py: the GM grants and withdraws; the administrator lists his accesses and marks them solved. */
+  private accessRoute(method: string, path: string, body: any, user: DemoUser): Reply {
+    const list = this.state.accesses;
+    const live = list.find(a => a.endedAt === null && a.expiresAt > Date.now());
+    if (path === `campaigns/${CAMPAIGN.id}/admin-access`) {
+      if (user.role !== "gm") return fail(403, "forbidden");
+      if (method === "GET") return new Reply(200, { access: list.length ? this.accessView(list[list.length - 1], true) : null });
+      if (method === "DELETE") {
+        if (!live) return fail(404, "not_found");
+        live.endedAt = Date.now(); live.endReason = "withdrawn"; this.save();
+        return new Reply(200, { access: this.accessView(live, true) });
+      }
+      const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+      if (!reason || reason.length > 300) return fail(400, "field_required");
+      if (live) { live.endedAt = Date.now(); live.endReason = "withdrawn"; }
+      const access: Access = { id: crypto.randomUUID(), grantedBy: user.username, reason, grantedAt: Date.now(), expiresAt: Date.now() + DAY,
+        endedAt: null, endReason: null, events: [] };
+      list.push(access); this.save();
+      return new Reply(200, { access: this.accessView(access, true) });
+    }
+    if (user.role !== "admin") return fail(403, "forbidden");
+    if (path === "admin/accesses" && method === "GET") return new Reply(200, { items: live ? [this.accessView(live, false)] : [] });
+    const solved = path.match(/^admin\/accesses\/([^/]+)\/solved$/);
+    const target = solved && list.find(a => a.id === solved[1] && a.endedAt === null);
+    if (!target || method !== "POST") return fail(404, "not_found");
+    target.endedAt = Date.now(); target.endReason = "solved"; this.save();
+    return new Reply(200, { access: this.accessView(target, false) });
+  }
+
   private access(sheet: DemoSheet, user: DemoUser): "gm" | "assigned" | "shared" | undefined {
+    // R4 (e): during an access the administrator works as the GM, drafts included (owner, 14 November 2026).
+    if (this.liveAccess(user)) return "gm";
     // Like permissions.gm_of: the GM's powers cover every sheet except a player's drafts (R4 c).
     if (user.role === "gm" && sheet.status !== "draft") return "gm";
     if (sheet.archived) return undefined;
@@ -223,6 +283,7 @@ export class MockServer {
       : new Reply(200, { catalogue: this.state.catalogue, revision: this.state.catalogueRevision });
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
     if (path.startsWith(`campaigns/${CAMPAIGN.id}/tables`)) return this.partidas(method, path, body, user);
+    if (path === `campaigns/${CAMPAIGN.id}/admin-access` || path.startsWith("admin/accesses")) return this.accessRoute(method, path, body, user);
 
     const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|status))?$/);
     if (!match) return fail(501, "not_in_demo");
@@ -239,7 +300,8 @@ export class MockServer {
     }
     const sheet = this.state.sheets.find(s => s.id === id && s.kind === kind);
     if (!sheet || !this.access(sheet, user)) return fail(404, "not_found");
-    if (!action && method === "GET") { this.lastOpened = sheet.id; return new Reply(200, this.projection(sheet, user)); }
+    if (!action && method === "GET") { this.lastOpened = sheet.id; this.recordAccess(sheet, user, "read"); return new Reply(200, this.projection(sheet, user)); }
+    if (["PATCH", "POST"].includes(method) && (!action || action === "assets" || action === "bond")) this.recordAccess(sheet, user, "write");
     return this.receipt(body, () => {
       if (body.expectedRevision !== this.projection(sheet, user).revision) return fail(409, "revision_conflict");
       if (!action && method === "PATCH") return this.patch(sheet, body, user);
@@ -531,7 +593,8 @@ export class MockServer {
     const owner = sheet.assignedPlayerId === user.id;
     const steps: Record<string, [string, "draft" | "proposed" | "confirmed", boolean]> = {
       propose: ["draft", "proposed", owner], withdraw: ["proposed", "draft", owner],
-      return: ["proposed", "draft", access === "gm"], confirm: ["proposed", "confirmed", access === "gm"],
+      // Proposals are the GM's decision, never the administrator's during an access (R4 e).
+      return: ["proposed", "draft", access === "gm" && user.role === "gm"], confirm: ["proposed", "confirmed", access === "gm" && user.role === "gm"],
     };
     const step = steps[body.action];
     if (!step) return fail(400, "invalid_status_action");

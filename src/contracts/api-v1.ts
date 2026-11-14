@@ -47,6 +47,12 @@ export type ApiRole = "gm" | "player";
 export interface ApiCampaign { id: string; name: string; policyRevision: number; role: ApiRole | null }
 /** GET campaigns/<id>/members (the campaign's GM, or the site administrator). */
 export interface ApiMember { userId: string; username: string; displayName: string; role: ApiRole }
+/** Administrator access with the GM's permission (R4 e): the GM's view carries `events`, the log of sheets opened or changed. */
+export interface ApiAdminAccess {
+  id: string; campaignId: string; campaignName: string; reason: string; grantedBy: string; grantedAt: string; expiresAt: string;
+  endedAt: string | null; endReason: "withdrawn" | "solved" | null; active: boolean;
+  events?: { sheetId: string | null; kind: "character" | "familiar" | null; name: string; action: "read" | "write"; count: number; firstAt: string; lastAt: string }[];
+}
 /** A partida, one table of the campaign (R4 b): GET campaigns/<id>/tables, GM only. */
 export interface ApiTable { id: string; name: string }
 /** GET admin/users (site administrator): accounts with their campaigns and roles, no sheet content. */

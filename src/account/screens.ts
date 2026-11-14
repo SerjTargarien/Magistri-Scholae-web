@@ -2,6 +2,7 @@
 // Screens read the server's model (src/model/sheet.ts) through a SheetStore
 // and change it only through store.edit(path, value) and the callbacks below.
 // They never build whole records for existing sheets.
+import type React from "react";
 import type { ApiSheetProjection, ApiTable } from "../contracts/api-v1";
 import type { FilterState } from "../components/FilterBar";
 import type { SheetStatusProps } from "../components/SheetStatusBar";
@@ -113,7 +114,8 @@ export interface CharacterListProps {
   familiars: ApiSheetProjection[];
   onSelectCharacter: (id: string) => void;
   onSelectFamiliar: (id: string) => void;
-  onAddCharacter: () => void;
+  /** Absent while the administrator works in a campaign through an access (R4 e). */
+  onAddCharacter?: () => void;
   onOpenSettings: () => void;
   /** «Mis notas»: all of the viewer's private notes. */
   onOpenNotes?: () => void;
@@ -149,5 +151,7 @@ export interface SettingsScreenProps {
   /** The site administrator only: opens «Administración» (R4 a). */
   onOpenAdmin?: () => void;
   /** The campaign's Máster only (R4 d): rename it, or create a new campaign of which he will be the Máster. */
-  campaignSettings?: { name: string; onRename: (name: string) => Promise<void>; onCreate: (name: string) => Promise<void> };
+  campaignSettings?: { name: string; onRename: (name: string) => Promise<void>; onCreate: (name: string) => Promise<void>;
+    /** «Acceso de administración» (R4 e), drawn by the app. */
+    accessCard?: React.ReactNode };
 }

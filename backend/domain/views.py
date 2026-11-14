@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, RequestDataTooBig, Valida
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse, HttpResponseBase
 from django.middleware.csrf import get_token
-from . import accounts, notes, services, operations, media
+from . import accounts, admin_access, notes, services, operations, media
 from .errors import APIError, keys, require, text
 from .fields import REGISTRY
 from .contracts import schema_contract
@@ -192,6 +192,31 @@ def campaign(request, body, campaign_id):
     return accounts.rename_campaign(request.user, campaign_id, body["name"])
 
 
+@endpoint(["GET", "POST", "DELETE"])
+def campaign_admin_access(request, body, campaign_id):
+    """The GM's grant (R4 e): GET the current or last access with its log; POST {reason} grants;
+    DELETE withdraws."""
+    if request.method == "POST":
+        return admin_access.grant(request.user, campaign_id, body)
+    if request.method == "DELETE":
+        keys(body, [])
+        return admin_access.withdraw(request.user, campaign_id)
+    query_keys(request)
+    return admin_access.latest(request.user, campaign_id)
+
+
+@endpoint(["GET"])
+def admin_accesses(request, body):
+    query_keys(request)
+    return {"items": admin_access.administrator_accesses(request.user)}
+
+
+@endpoint(["POST"])
+def admin_access_solved(request, body, access_id):
+    keys(body, [])
+    return admin_access.solved(request.user, access_id)
+
+
 @endpoint(["GET"])
 def campaign_invitations(request, body, campaign_id):
     query_keys(request, ["limit", "offset"])
@@ -279,7 +304,9 @@ def sheet_detail(request, body, sheet_id, kind):
     if request.method == "DELETE":
         return services.delete_sheet(request.user, sheet_id, kind, body)
     query_keys(request)
-    return projection(request.user, sheet_for(request.user, sheet_id, kind))
+    sheet = sheet_for(request.user, sheet_id, kind)
+    admin_access.record(request.user, sheet, "read")
+    return projection(request.user, sheet)
 
 
 @endpoint(["POST"], outcome="sheet")

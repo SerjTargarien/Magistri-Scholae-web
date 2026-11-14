@@ -6,7 +6,7 @@ from .errors import APIError, keys, require, text
 from .catalogue import link_own_skills, own_skills, validate_catalogue
 from .fields import REGISTRY, descriptor, leaf_paths, obj, replace_path, validate_sheet
 from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, Table, User
-from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, gm_of, is_gm,
+from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, gm_of, is_gm, real_gm,
                           member, projection, revision_for, sheet_for)
 from .accounts import administrator
 
@@ -19,10 +19,15 @@ def touch(sheet, action, actor):
     AuditEvent.objects.create(actor=actor, action=action, target_id=str(sheet.pk))
 
 
-def campaign_for(actor, campaign_id, gm=False, lock=False):
+def campaign_for(actor, campaign_id, gm=False, lock=False, members_only=False):
     query = Campaign.objects.select_for_update() if lock else Campaign.objects
     campaign = query.filter(pk=campaign_id).first()
     require(campaign is not None, "not_found", 404)
+    if not gm and not members_only:
+        # The administrator during an access reads the campaign's sheets and skill list (R4 e).
+        from .admin_access import active_access
+        if active_access(actor, campaign):
+            return campaign
     member(actor, campaign, gm)
     return campaign
 
@@ -38,7 +43,7 @@ def assigned_member(campaign, user_id):
 @transaction.atomic
 def create_sheet(actor, kind, body):
     keys(body, ["campaignId", "fields", "assignedPlayerId"], ["campaignId", "fields"])
-    campaign = campaign_for(actor, body["campaignId"], lock=True)
+    campaign = campaign_for(actor, body["campaignId"], lock=True, members_only=True)
     gm = is_gm(actor, campaign)
     require(gm or "assignedPlayerId" not in body, "forbidden", 403)
     owner = assigned_member(campaign, body.get("assignedPlayerId")) if gm else actor
@@ -118,6 +123,8 @@ def patch_sheet(actor, sheet_id, kind, body):
     from .media import validate_references
     validate_references(sheet, sheet.data, kind)
     touch(sheet, f"{kind}.patched", actor)
+    from .admin_access import record
+    record(actor, sheet, "write")
     return projection(actor, sheet)
 
 
@@ -219,7 +226,7 @@ def change_status(actor, sheet_id, kind, body):
     check_revision(actor, sheet, body["expectedRevision"])
     action = body["action"]
     owner = actor.pk == sheet.assigned_player_id
-    gm = gm_of(actor, sheet)
+    gm = real_gm(actor, sheet)  # proposals are the GM's decision, never the administrator's
     steps = {"propose": ("draft", "proposed", owner), "withdraw": ("proposed", "draft", owner),
              "return": ("proposed", "draft", gm), "confirm": ("proposed", "confirmed", gm)}
     require(action in steps, "invalid_status_action")
@@ -283,6 +290,8 @@ def share_sheet(actor, sheet_id, kind, body):
 
 def policy_patch(sheet, actor, body):
     gm = gm_of(actor, sheet)
+    # Visibility is the GM's decision, never the administrator's during an access (R4 e).
+    require(not gm or real_gm(actor, sheet), "forbidden", 403)
     if gm:
         require(sheet.status == "confirmed", "not_confirmed", 409)
         keys(body, ["expectedRevision", "defaultAudience", "overrides"], ["expectedRevision"])
@@ -397,6 +406,8 @@ def set_bond(actor, sheet_id, kind, body):
         Bond.objects.create(character=character, familiar=familiar)
     for entity in affected.values():
         touch(entity, "bond.changed", actor)
+    from .admin_access import record
+    record(actor, sheet, "write")
     return projection(actor, sheet)
 
 

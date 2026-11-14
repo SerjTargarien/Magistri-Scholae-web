@@ -398,3 +398,46 @@ test("Máster: invites a player, assigns sheets, restores and deletes an archive
   await expect(page.locator("#campaign-picker")).toContainText("Segunda crónica");
   await expect(page.locator("#campaign-picker")).toContainText("Universo renombrado");
 });
+
+// Administrator access with the Máster's permission (R4 e).
+test("administrator access: the Máster grants it, the administrator works as Máster with drafts, the Máster sees the log", async ({ page }) => {
+  await openApp(page);
+  // A player's draft, which the Máster never sees.
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#input-nombre").fill("Borrador secreto");
+  await page.locator("#btn-form-save").click();
+  await expect(page.locator("#sheet-status")).toContainText("solo la administración podría verlo");
+
+  await viewAs(page, "gm");
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#admin-access-card")).toContainText("también los borradores");
+  await page.locator("#input-admin-access-reason").fill("La ficha de Luna no guarda");
+  await page.locator("#btn-grant-admin-access").click();
+  await expect(page.locator("#admin-access-active")).toContainText("La ficha de Luna no guarda");
+
+  await viewAs(page, "admin");
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-settings-admin").click();
+  await expect(page.locator("#admin-access-demo-campaign")).toContainText("La ficha de Luna no guarda");
+  await page.locator("#btn-open-access-demo-campaign").click();
+  await expect(page.locator("#admin-access-banner")).toBeVisible();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador secreto" })).toHaveCount(1); // drafts included
+  await expect(page.locator("#btn-add-character-header")).toHaveCount(0);
+  await openCharacter(page, "Luna de Bruma");
+  await expect(page.locator("#detail-tab-perfil")).toContainText("Modesta"); // economía: a field only the Máster sees
+  await expect(page.locator("#btn-detail-delete")).toHaveCount(0); // none of the Máster's decisions
+  await setEditMode(page, true);
+  await page.locator("#input-sheet-concepto").fill("Arreglado por la administración");
+  await setEditMode(page, false);
+  await page.locator("#btn-access-solved").click();
+  await expect(page.locator("#admin-screen")).toBeVisible();
+  await expect(page.locator("#admin-access-demo-campaign")).toHaveCount(0);
+
+  await viewAs(page, "gm");
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#admin-access-card")).toContainText("resuelto");
+  await expect(page.locator("#admin-access-log")).toContainText("Luna de Bruma");
+  await expect(page.locator("#admin-access-log")).toContainText("abierta");
+  await expect(page.locator("#admin-access-log")).toContainText("cambiada");
+});

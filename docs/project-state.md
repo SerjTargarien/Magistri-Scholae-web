@@ -886,6 +886,14 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Checks:** type check; 42 unit tests; 65 demo browser tests (one new, the whole set of Máster tools); 4 real-backend browser tests; backend suite 179; both builds; screenshots.
 - Not released: it changes the server (no migration), so it reaches staging when the owner asks, production at milestone 2.
 
+## R4 (e): administrator access with the GM's permission — 14 November 2026; R4 complete
+
+- **Owner's decisions:** the Máster grants the access from «Ajustes», describing the issue; he sees a log of the sheets opened or changed; **players' drafts are included** (a change to the drafts rule, recorded in AGENTS.md and design.md); the administrator works inside the campaign as its Máster would, with a banner on every screen.
+- **Server:** migration `0011_admin_access` (`AdminAccess`: reason, 24-hour expiry, end and why; `AdminAccessEvent`: one row per sheet and read/write, with counts). `domain/admin_access.py`; `permissions.gm_of` now also covers the administrator during an access (drafts included), while `real_gm` keeps proposals and visibility the GM's; manage, sharing, deletion and the GM's tools stay member-GM only. Routes `campaigns/{id}/admin-access`, `admin/accesses`, `admin/accesses/{id}/solved`. 7 new backend tests (186 in all), including private notes staying out.
+- **App:** `AdminAccessCard` on the Máster's «Campaña» card in «Ajustes» (grant, withdraw after asking, the log); «Administración» shows a live access with «Abrir campaña» and «Marcar como resuelto»; inside, the banner (`#admin-access-banner`), no «Nuevo personaje» and none of the Máster's controls; leaving or marking solved sends pending changes first (a test caught a change lost otherwise). The draft panel's text now says the administration could see a draft during an access.
+- **Demo:** the mock server follows the same rules. **Checks:** type check; 42 unit tests; 66 demo browser tests (one new); 5 real-backend browser tests (one new: granted by preview_gm, opened by preview_admin, marked solved, logged); backend suite 186; both builds.
+- **R4 is complete.** Next: the owner tests everything on staging; then milestone 2 (production backend with migrations 0009–0011, after a backup).
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

@@ -148,6 +148,34 @@ class PersonalNote(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class AdminAccess(models.Model):
+    """R4 (e): the GM lets the site administrator into his campaign for an issue: every sheet,
+    players' drafts included (owner, 14 November 2026), read and change, until 24 hours pass,
+    the GM withdraws it, or the administrator marks it solved. Private notes stay excluded."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="admin_accesses")
+    granted_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="admin_accesses_granted")
+    reason = models.CharField(max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    ended_at = models.DateTimeField(null=True, blank=True)
+    end_reason = models.CharField(max_length=9, blank=True, choices=[("withdrawn", "Withdrawn"), ("solved", "Solved")])
+
+
+class AdminAccessEvent(models.Model):
+    """What the administrator opened or changed during an access, for the GM's log (one row per
+    sheet and kind of action, with how many times and when)."""
+    access = models.ForeignKey(AdminAccess, on_delete=models.CASCADE, related_name="events")
+    sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=5, choices=[("read", "Read"), ("write", "Write")])
+    count = models.PositiveIntegerField(default=1)
+    first_at = models.DateTimeField(auto_now_add=True)
+    last_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["access", "sheet", "action"], name="unique_admin_access_event")]
+
+
 class RateBucket(models.Model):
     key = models.CharField(max_length=64, primary_key=True)
     started_at = models.DateTimeField()

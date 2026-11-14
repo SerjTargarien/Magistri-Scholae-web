@@ -118,3 +118,35 @@ test("administrator: invites a player who registers from the link; members and a
   await page.locator(`#btn-recovery-${name}`).click();
   await expect(page.locator("#admin-issued-link")).toContainText("/#recuperacion=");
 });
+
+test("administrator access: granted by the GM, the administrator opens the campaign as GM, then marks it solved", async ({ page, browser }) => {
+  // The fictional GM grants it from Ajustes.
+  await signIn(page, "preview_gm");
+  await page.locator("#btn-settings").click();
+  await page.locator("#input-admin-access-reason").fill(`Remote issue ${RUN}`);
+  await page.locator("#btn-grant-admin-access").click();
+  await expect(page.locator("#admin-access-active")).toContainText(`Remote issue ${RUN}`);
+
+  // The fictional administrator, in no campaign, opens it from Administración.
+  const admin = await (await browser.newContext()).newPage();
+  const sheets: string[] = [];
+  admin.on("response", async (response) => {
+    if (/\/api\/v1\/characters/.test(response.url()) && response.ok()) sheets.push(await response.text().catch(() => ""));
+  });
+  await admin.goto("/");
+  await admin.locator("#input-sign-in-username").fill("preview_admin");
+  await admin.locator("#input-sign-in-password").fill(PASSWORD);
+  await admin.locator("#btn-sign-in-submit").click();
+  await admin.locator("#btn-chooser-admin").click();
+  await admin.locator('[id^="btn-open-access-"]').click();
+  await expect(admin.locator("#admin-access-banner")).toBeVisible();
+  await expect(characterCard(admin, "Fictional Luna")).toBeVisible();
+  await openCharacter(admin, "Fictional Luna");
+  expect(sheets.some(body => body.includes(GM_ONLY_CLUE))).toBe(true); // the GM's view
+  await admin.locator("#btn-access-solved").click();
+  await expect(admin.locator("#admin-screen")).toBeVisible();
+
+  await page.reload();
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#admin-access-log")).toContainText("Fictional Luna");
+});

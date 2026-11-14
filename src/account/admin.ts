@@ -9,7 +9,7 @@
 // the demo's mock server through the same client. Invitation and recovery codes
 // come back once and are turned into links the sign-in screen understands
 // (`#invitacion=` and `#recuperacion=`, product-design.md section 2).
-import type { ApiAdminUser, ApiCampaign, ApiInvitation, ApiMember, ApiRole } from "../contracts/api-v1";
+import type { ApiAdminAccess, ApiAdminUser, ApiCampaign, ApiInvitation, ApiMember, ApiRole } from "../contracts/api-v1";
 import type { RemoteClient } from "../remote/client";
 
 const PAGE = 100; // the server's maximum page size
@@ -30,6 +30,10 @@ export interface AdminApi {
   /** A new recovery link; it cancels the account's previous one. */
   recoveryLink(userId: string): Promise<IssuedLink>;
   setActive(userId: string, active: boolean): Promise<void>;
+  /** Live accesses a Máster granted (R4 e). */
+  accesses(): Promise<ApiAdminAccess[]>;
+  /** Ends an access: the issue is solved. */
+  solved(accessId: string): Promise<void>;
 }
 
 /** The address the links open: this site's own (production or staging). */
@@ -61,5 +65,7 @@ export function remoteAdmin(client: RemoteClient): AdminApi {
       return { link: linkFor("recuperacion", code), expiresAt };
     },
     setActive: async (userId, active) => { await client.request(`admin/users/${userId}/state`, "POST", { active }); },
+    accesses: async () => (await client.request<{ items: ApiAdminAccess[] }>("admin/accesses")).items,
+    solved: async id => { await client.request(`admin/accesses/${id}/solved`, "POST", {}); },
   };
 }

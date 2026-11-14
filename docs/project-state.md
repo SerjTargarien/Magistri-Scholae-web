@@ -875,7 +875,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **App:** `src/components/SheetStatusBar.tsx` under the top bar of both sheets (draft, proposal, the Máster's review with option cards, inactive, and the «Ficha activa» switch); the main list's cards carry status tags, and the filter bar has «Estado», whose default leaves inactive sheets out (`FilterBar` sections may now have a default). A sheet the Máster returns leaves his view at once.
 - **Demo:** the mock server follows the same rules; new demo sheets made by the player are drafts.
 - **Tests:** three feature tests now propose and confirm before the Máster opens a player's new sheet (`proposeAndConfirm` in `e2e/helpers.ts`); two new demo tests run the whole flow (PJ, return, inactive and still editable; PNJ). Type check; 42 unit tests; 64 demo browser tests; 4 real-backend browser tests; both builds; screenshots on desktop and phone.
-- Not released: the migration reaches staging only when the owner asks (after a backup), production at milestone 2.
+- **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `d5c546f` with migration `0010_drafts_and_active` applied (6 sheets, all confirmed and active), staging frontend released. Production waits for milestone 2.
 
 ## Updating this handoff
 

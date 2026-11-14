@@ -837,6 +837,12 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - Checks: type check; 42 unit tests; 59 browser tests (the house, the clubs and an adult's role and institution are now checked on «Institución»); screenshots of a student and an adult on a desktop, a tablet and a phone, in view and edit mode.
 - Decided the same day: players and the GM get their own named cards of custom fields, as a step right after R4 ([implementation-plan.md](implementation-plan.md#custom-cards-sm-added-13-november-2026-after-r4)). Not built yet.
 
+## The familiar's Perfil y Vínculo in two cards — 14 November 2026
+
+- Owner's request: the tab had a card with only the portrait and the species, beside «Datos y retrato». Now there are two cards: **«Datos y retrato»** (name and species, the portrait, the description; in edit mode the portrait's fit and «Quitar retrato» stay under it) and **«Vínculo Mágico»**, which gets the wider column on wide screens so its button fits on one line. The species no longer repeats under the portrait or in the empty portrait. No stored field changed.
+- Code: `src/components/familiar/FamiliarProfileTab.tsx`.
+- Checks: type check; 42 unit tests; 59 browser tests; screenshots of a familiar with and without a portrait, desktop and phone, in view and edit mode.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

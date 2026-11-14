@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// The familiar sheet's "perfil" tab (R3.4).
+// The familiar sheet's "perfil" tab (R3.4): «Datos y retrato» (name, species, portrait, description)
+// and «Vínculo Mágico» (owner, 14 November 2026).
 import React from "react";
-import { FiligreeCorner, CompassStarDivider } from "../AcademyOrnaments";
+import { CompassStarDivider } from "../AcademyOrnaments";
 import { HouseCrest } from "../HouseCrest";
 import { imageSrc } from "../../remote/assets";
 import { PawPrint, Image as ImageIcon, Link as LinkIcon, Unlink, ExternalLink } from "lucide-react";
@@ -24,94 +25,46 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
   // As on the character sheet: tap the portrait in edit mode to change it (no hover, so phones can too).
   const editImage = isQuickEditing && canEditImage;
   const editBond = isQuickEditing && canBond;
+  // The portrait, between the species and the description (owner, 14 November 2026), in both modes.
+  const portrait = (
+    <div
+      id="familiar-portrait"
+      // Edit mode: a tap changes the portrait. Reading mode: it opens the viewer.
+      onClick={editImage ? () => avatarInputRef.current?.click() : familiar.imagen ? openPortrait : undefined}
+      className={`relative aspect-[3/4] w-full max-w-xs mx-auto bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center ${
+        editImage ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : familiar.imagen ? "cursor-zoom-in select-none" : ""
+      }`}
+    >
+      {familiar.imagen ? (
+        <img
+          src={imageSrc(familiar.imagen)}
+          alt={familiar.nombre}
+          className={`w-full h-full ${
+            familiar.imageFit === "contain" ? "object-contain bg-[#0e0917]" : "object-cover"
+          }`}
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center p-6 text-center text-neutral-400">
+          <PawPrint className="w-16 h-16 text-emerald-400/60" />
+        </div>
+      )}
+
+      {/* Editing overlay, always visible in edit mode (as on the character sheet) */}
+      {editImage && (
+        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-2 text-xs font-mono text-amber-300">
+          <ImageIcon className="w-7 h-7 mb-1.5 text-amber-400" />
+          <span>{t.btnChangePhoto}</span>
+        </div>
+      )}
+    </div>
+  );
   return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
-          {/* Left Column: Portrait Card (4 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <div
-              className={`glass-panel p-4 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
-            >
-              <>
-                <FiligreeCorner position="tl" className="w-6 h-6 text-amber-500/30" />
-                <FiligreeCorner position="tr" className="w-6 h-6 text-amber-500/30" />
-                <FiligreeCorner position="bl" className="w-6 h-6 text-amber-500/30" />
-                <FiligreeCorner position="br" className="w-6 h-6 text-amber-500/30" />
-              </>
-              
-
-              {/* Portrait container */}
-              <div
-                id="familiar-portrait"
-                // Edit mode: a tap changes the portrait. Reading mode: it opens the viewer.
-                onClick={editImage ? () => avatarInputRef.current?.click() : familiar.imagen ? openPortrait : undefined}
-                className={`relative aspect-[3/4] w-full bg-neutral-950 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner flex items-center justify-center ${
-                  editImage ? "cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all select-none" : familiar.imagen ? "cursor-zoom-in select-none" : ""
-                }`}
-              >
-                {familiar.imagen ? (
-                  <img
-                    src={imageSrc(familiar.imagen)}
-                    alt={familiar.nombre}
-                    className={`w-full h-full ${
-                      familiar.imageFit === "contain" ? "object-contain bg-[#0e0917]" : "object-cover"
-                    }`}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-6 text-center text-neutral-400">
-                    <PawPrint className="w-16 h-16 text-emerald-400/60 mb-3" />
-                    <span className="text-xs font-mono uppercase tracking-wider text-emerald-300">
-                      {familiar.especie || t.familiarSpeciesShort}
-                    </span>
-                  </div>
-                )}
-
-                {/* Editing overlay, always visible in edit mode (as on the character sheet) */}
-                {editImage && (
-                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-2 text-xs font-mono text-amber-300">
-                    <ImageIcon className="w-7 h-7 mb-1.5 text-amber-400" />
-                    <span>{t.btnChangePhoto}</span>
-                  </div>
-                )}
-              </div>
-              <input id="input-familiar-portrait" type="file" accept="image/*" className="hidden" ref={avatarInputRef} onChange={handleAvatarChange} />
-
-              {/* Fit and removal, below the portrait, applied at once (as on the character sheet) */}
-              {isQuickEditing && familiar.imagen && (canEditImageFit || canEditImage) && (
-                <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                  {canEditImageFit && (
-                  <div className="flex-1"><Segmented label={t.lblAvatarFit} full value={familiar.imageFit ?? "cover"} onChange={setImageFit}
-                    options={[{ value: "cover" as const, label: t.optAvatarCover, id: "btn-familiar-fit-cover" }, { value: "contain" as const, label: t.optAvatarContain, id: "btn-familiar-fit-contain" }]} /></div>
-                  )}
-                  {canEditImage && (
-                  <button
-                    type="button"
-                    id="btn-familiar-remove-portrait"
-                    onClick={removeImage}
-                    className="py-1.5 px-3 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded-lg text-[10px] font-mono transition-colors cursor-pointer"
-                  >
-                    {t.removeAvatar}
-                  </button>
-                  )}
-                </div>
-              )}
-
-              {/* Portrait footer details */}
-              <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs font-mono text-neutral-400">
-                <span className="text-emerald-400 uppercase font-bold tracking-wider">
-                  {familiar.especie || "—"}
-                </span>
-                {/* The creation date is not part of the server's model: the element stays, empty. */}
-                <span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Identity & Magical Bond (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
+        // Two cards (owner, 14 November 2026): «Datos y retrato» and «Vínculo Mágico», side by side on wide screens.
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in">
             {/* Identity Card */}
             <div
-              className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
+              className={`lg:col-span-5 glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
             >
               <h2 className="font-magic text-sm uppercase tracking-widest text-emerald-400 mb-2 flex items-center gap-2">
                 <PawPrint className="w-4 h-4" />
@@ -151,6 +104,31 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     />
                   </div>
 
+                  <div>{/* the portrait; in edit mode tap it to change it, fit and removal below */}
+                    {portrait}
+                    <input id="input-familiar-portrait" type="file" accept="image/*" className="hidden" ref={avatarInputRef} onChange={handleAvatarChange} />
+
+                    {/* Fit and removal, below the portrait, applied at once (as on the character sheet) */}
+                    {isQuickEditing && familiar.imagen && (canEditImageFit || canEditImage) && (
+                      <div className="mt-3 max-w-xs mx-auto flex flex-col sm:flex-row gap-2">
+                        {canEditImageFit && (
+                        <div className="flex-1"><Segmented label={t.lblAvatarFit} full value={familiar.imageFit ?? "cover"} onChange={setImageFit}
+                          options={[{ value: "cover" as const, label: t.optAvatarCover, id: "btn-familiar-fit-cover" }, { value: "contain" as const, label: t.optAvatarContain, id: "btn-familiar-fit-contain" }]} /></div>
+                        )}
+                        {canEditImage && (
+                        <button
+                          type="button"
+                          id="btn-familiar-remove-portrait"
+                          onClick={removeImage}
+                          className="py-1.5 px-3 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/20 text-rose-300 rounded-lg text-[10px] font-mono transition-colors cursor-pointer"
+                        >
+                          {t.removeAvatar}
+                        </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <label className="text-amber-400 uppercase font-bold tracking-wider block mb-1">
                       {t.familiarDescription}
@@ -179,6 +157,8 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                     </div>
                   </div>
 
+                  {portrait}
+
                   <div className="bg-neutral-950/60 p-4 rounded-xl border border-neutral-800/80">
                     <div className="text-[10px] text-neutral-500 uppercase tracking-wider font-mono mb-2">
                       {t.familiarDescription}
@@ -199,7 +179,7 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
 
             {/* Interactive Master / Wizard Bond Section (Mini-card) */}
             <div
-              className={`glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
+              className={`lg:col-span-7 glass-panel p-5 sm:p-6 rounded-2xl border border-amber-500/25 relative overflow-hidden shadow-xl`}
               id="familiar-bond-card"
             >
               <div className="flex items-center justify-between mb-2">
@@ -301,7 +281,6 @@ export function FamiliarProfileTab({ ctx }: { ctx: FamiliarContext }) {
                 </div>
               )}
             </div>
-          </div>
         </div>
   );
 }

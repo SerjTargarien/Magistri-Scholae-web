@@ -10,6 +10,7 @@ import { imageSrc } from "../remote/assets";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ImageViewer } from "./ImageViewer";
+import { SheetStatusBar } from "./SheetStatusBar";
 import { PrivateNotes } from "./notes/PrivateNotes";
 import {
   ArrowLeft,
@@ -113,6 +114,9 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
           )}
         </div>
       </div>
+
+      {/* Draft, proposal or inactive sheet; the Máster's active switch in edit mode (R4 c) */}
+      <SheetStatusBar lang={screenProps.lang} store={screenProps.store} editing={isQuickEditing} status={screenProps.status} />
 
       {/* Navigation Tabs (Modular tabs inherited from archetype registry) */}
       <div className="flex items-center gap-2 border-b border-neutral-800/80 mb-6 overflow-x-auto pb-1">

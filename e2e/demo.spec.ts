@@ -231,3 +231,90 @@ test("filter bar: where to search, sort order and the filters sheet", async ({ p
   await expect(page.locator("#list-filter-chips")).toHaveCount(0);
   await expect(page.locator("#list-filter-summary")).toContainText("por nombre, ascendente");
 });
+
+// Drafts, proposals and active sheets (R4 c).
+test("drafts: the Máster never sees them; a proposal is read-only; confirmed as PJ, then inactive", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#input-nombre").fill("Borrador de prueba");
+  await page.locator("#btn-form-save").click();
+  await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "draft");
+  await page.locator("#btn-detail-back").click();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" }).locator("[data-status]")).toHaveText("Borrador");
+
+  await viewAs(page, "gm");
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" })).toHaveCount(0); // invisible to the Máster
+
+  await viewAs(page, "player");
+  await openCharacter(page, "Borrador de prueba");
+  await page.locator("#btn-status-propose").click();
+  await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "proposed");
+  await expect(page.locator("#btn-detail-edit")).toHaveCount(0); // read-only while the Máster reviews it
+  await page.locator("#btn-detail-back").click();
+
+  await viewAs(page, "gm");
+  await openCharacter(page, "Borrador de prueba");
+  await expect(page.locator("#btn-detail-edit")).toHaveCount(0);
+  await expect(page.locator("#btn-detail-delete")).toHaveCount(0);
+  await page.locator("#btn-status-giveback").click();
+  await page.locator("#btn-status-giveback-confirm").click();
+  await expect(page.locator("#character-list-container")).toBeVisible();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" })).toHaveCount(0); // back in the player's drafts
+
+  await viewAs(page, "player");
+  await openCharacter(page, "Borrador de prueba");
+  await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "draft");
+  await page.locator("#btn-status-propose").click();
+  await page.locator("#btn-detail-back").click();
+  await viewAs(page, "gm");
+  await openCharacter(page, "Borrador de prueba");
+  await page.locator("#btn-status-confirm").click();
+  await expect(page.locator("#status-confirm-player")).toHaveAttribute("aria-checked", "true");
+  await page.locator("#btn-status-confirm-ok").click();
+  await expect(page.locator("#sheet-status")).toHaveCount(0);
+
+  // The Máster marks it inactive: it leaves the list unless «Estado» shows it; its player still edits it.
+  await setEditMode(page, true);
+  await page.locator("#switch-sheet-active").click();
+  await expect(page.locator("#switch-sheet-active")).toHaveAttribute("aria-checked", "false");
+  await setEditMode(page, false);
+  await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "confirmed");
+  await page.locator("#btn-detail-back").click();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" })).toHaveCount(0);
+  await expect(page.locator("#list-filter-summary")).toContainText("sin las inactivas (por defecto)");
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-estado-inactive").click();
+  await page.locator("#list-filter-sheet-apply").click();
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" }).locator("[data-status]")).toHaveText("Inactiva");
+
+  await viewAs(page, "player");
+  await page.locator("#list-filter-open").click();
+  await page.locator("#list-filter-sheet-estado-inactive").click();
+  await page.locator("#list-filter-sheet-apply").click();
+  await openCharacter(page, "Borrador de prueba");
+  await setEditMode(page, true);
+  await page.locator("#input-sheet-concepto").fill("De viaje");
+  await setEditMode(page, false);
+  await reloadApp(page);
+  expect((await storedSheet(page, "Borrador de prueba"))!.concepto).toBe("De viaje");
+});
+
+test("drafts: a proposal confirmed as the Máster's NPC leaves its author", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#btn-add-character-header").click();
+  await page.locator("#type-select-student").click();
+  await page.locator("#input-nombre").fill("Futuro PNJ");
+  await page.locator("#btn-form-save").click();
+  await page.locator("#btn-status-propose").click();
+  await page.locator("#btn-detail-back").click();
+  await viewAs(page, "gm");
+  await openCharacter(page, "Futuro PNJ");
+  await page.locator("#btn-status-confirm").click();
+  await page.locator("#status-confirm-npc").click();
+  await page.locator("#btn-status-confirm-ok").click();
+  await expect(page.locator("#sheet-status")).toHaveCount(0);
+  await expect(page.locator("#btn-detail-edit")).toBeVisible(); // now the Máster's own sheet
+  await viewAs(page, "player");
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Futuro PNJ" })).toHaveCount(0);
+});

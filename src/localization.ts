@@ -1398,6 +1398,62 @@ export const SETTINGS_TEXT: Record<Language, {
   },
 };
 
+/** Drafts, proposals and active sheets (R4 c; product-design.md, Roles). */
+export const STATUS_TEXT = {
+  es: {
+    draft: "Borrador", proposed: "Propuesta", active: "Activa", inactive: "Inactiva", state: "Estado",
+    draftTitle: "Borrador",
+    draftText: "Solo tú lo ves; el Máster no sabe que existe. Cuando esté listo, propónselo.",
+    propose: "Proponer al Máster",
+    proposedTitle: "Propuesta enviada",
+    proposedText: "El Máster la está revisando; no se puede editar hasta que responda.",
+    withdraw: "Retirar propuesta",
+    reviewTitle: "Propuesta de un jugador",
+    reviewText: "Revísala y decide si es su personaje (PJ) o tuyo (PNJ). Si la devuelves, vuelve a sus borradores y dejas de verla.",
+    confirm: "Confirmar",
+    giveBack: "Devolver",
+    giveBackText: "¿Devolver esta propuesta? Vuelve a los borradores del jugador y dejarás de verla.",
+    confirmTitle: "Confirmar la propuesta",
+    asPlayer: "Personaje del jugador (PJ)",
+    asPlayerText: "Sigue siendo de quien la propuso, que podrá editarla.",
+    asNpc: "Personaje no jugador (PNJ)",
+    asNpcText: "Pasa a ser tuya; el jugador que la escribió deja de verla.",
+    cancel: "Cancelar",
+    activeSwitch: "Ficha activa",
+    activeHint: "Una ficha inactiva (muerte, viaje…) sale de la lista principal; su jugador puede seguir editándola.",
+    inactiveTitle: "Ficha inactiva",
+    inactiveText: "No aparece en la lista principal salvo con el filtro «Estado».",
+    hiddenNote: "sin las inactivas (por defecto)",
+    failed: "No se pudo completar. Inténtalo de nuevo.",
+  },
+  en: {
+    draft: "Draft", proposed: "Proposed", active: "Active", inactive: "Inactive", state: "Status",
+    draftTitle: "Draft",
+    draftText: "Only you see it; the GM does not know it exists. When it is ready, propose it.",
+    propose: "Propose to the GM",
+    proposedTitle: "Proposal sent",
+    proposedText: "The GM is reviewing it; it cannot be edited until they answer.",
+    withdraw: "Withdraw proposal",
+    reviewTitle: "A player's proposal",
+    reviewText: "Review it and decide whether it is their character (PC) or yours (NPC). If you return it, it goes back to their drafts and you stop seeing it.",
+    confirm: "Confirm",
+    giveBack: "Return",
+    giveBackText: "Return this proposal? It goes back to the player's drafts and you will stop seeing it.",
+    confirmTitle: "Confirm the proposal",
+    asPlayer: "The player's character (PC)",
+    asPlayerText: "It stays with whoever proposed it, who can edit it.",
+    asNpc: "Non-player character (NPC)",
+    asNpcText: "It becomes yours; the player who wrote it stops seeing it.",
+    cancel: "Cancel",
+    activeSwitch: "Active sheet",
+    activeHint: "An inactive sheet (death, travel…) leaves the main list; its player can still edit it.",
+    inactiveTitle: "Inactive sheet",
+    inactiveText: "It does not appear on the main list unless the «Status» filter shows it.",
+    hiddenNote: "without inactive sheets (default)",
+    failed: "That did not work. Try again.",
+  },
+};
+
 /** The filter bar (Controls, control 11), as approved in the controls demo; the main list's fields and sections. */
 export const FILTER_TEXT = {
   es: {

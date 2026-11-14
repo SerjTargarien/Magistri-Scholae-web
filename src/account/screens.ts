@@ -4,6 +4,7 @@
 // They never build whole records for existing sheets.
 import type { ApiSheetProjection, ApiTable } from "../contracts/api-v1";
 import type { FilterState } from "../components/FilterBar";
+import type { SheetStatusProps } from "../components/SheetStatusBar";
 import type { Language } from "../localization";
 import type { SkillCatalogue } from "../model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "../model/sheet";
@@ -43,6 +44,8 @@ export interface CharacterDetailProps {
   /** The Máster only: the campaign's partidas, and placing this character in one (or none) (R4 b). */
   partidas?: ApiTable[];
   onSetPartida?: (tableId: string | null) => Promise<void>;
+  /** Drafts, proposals and the active switch (R4 c). */
+  status?: SheetStatusProps;
 }
 
 export interface CharacterFormProps {
@@ -79,6 +82,8 @@ export interface FamiliarDetailProps {
   onShowToast: Toast;
   /** The viewer's private notes about this familiar («Notas privadas», below its notes). */
   notes?: NotesApi;
+  /** Drafts, proposals and the active switch (R4 c). */
+  status?: SheetStatusProps;
 }
 
 /** A familiar confirmed in the creation form's dialog, created only when the character is saved. */

@@ -127,3 +127,23 @@ export async function storedSheet(page: Page, name: string): Promise<Record<stri
     return mock.mockServer().state.sheets.find((s: { fields: { nombre?: string } }) => s.fields.nombre === name)?.fields;
   }, name);
 }
+
+/**
+ * R4 (c): a player's new sheet is a draft the GM cannot see. The player (the current
+ * viewer) proposes it and the GM confirms it as the player's character; the player is
+ * the viewer again afterwards.
+ */
+export async function proposeAndConfirm(page: Page, name: string, kind: "character" | "familiar" = "character") {
+  const open = kind === "character" ? openCharacter : openFamiliar;
+  const back = kind === "character" ? "#btn-detail-back" : "#btn-familiar-back";
+  await open(page, name);
+  await page.locator("#btn-status-propose").click();
+  await expect(page.locator("#sheet-status")).toHaveAttribute("data-status", "proposed");
+  await page.locator(back).click();
+  await viewAs(page, "gm");
+  await open(page, name);
+  await page.locator("#btn-status-confirm").click();
+  await page.locator("#btn-status-confirm-ok").click(); // «Personaje del jugador (PJ)» is chosen first
+  await expect(page.locator("#sheet-status")).toHaveCount(0);
+  await viewAs(page, "player");
+}

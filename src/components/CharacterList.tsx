@@ -10,8 +10,8 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, TRANSLATIONS } from "../localization";
-import { FilterBar, type FilterSection, type FilterState, type SortField } from "./FilterBar";
+import { CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, STATUS_TEXT, TRANSLATIONS } from "../localization";
+import { FilterBar, selectionOf, type FilterSection, type FilterState, type SortField } from "./FilterBar";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
 import type { Language } from "../model/catalogue";
@@ -69,13 +69,25 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   const ft = FILTER_TEXT[lang];
   const partidaOf = (item: ApiSheetProjection) => ownerOf(item)?.tableId || "NONE";
   const partidaName = (item: ApiSheetProjection) => partidas?.find((p) => p.id === partidaOf(item))?.name;
+  // R4 (c): a draft, a proposal or an inactive sheet says so on its card.
+  const st = STATUS_TEXT[lang];
+  const statusOf = (item: ApiSheetProjection) =>
+    item.status === "draft" || item.status === "proposed" ? item.status : item.active === false ? "inactive" : "active";
+  const STATUS_TONE: Record<string, string> = {
+    draft: "text-sky-200 border-sky-400/60", proposed: "text-amber-200 border-amber-400/70", inactive: "text-neutral-300 border-neutral-500/70",
+  };
+  /** The card's corner tags: the Máster's partida, and the sheet's status when it is not simply active. */
   const partidaTag = (item: ApiSheetProjection) => {
     const name = partidaName(item);
-    return name ? (
-      <div data-partida className="absolute top-2.5 left-2.5 max-w-[60%] px-2 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 text-violet-200 border border-violet-400/60 rounded-md break-words shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
-        {name}
+    const state = statusOf(item);
+    if (!name && state === "active") return null;
+    const tag = "max-w-full px-2 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 border rounded-md break-words shadow-[0_2px_8px_rgba(0,0,0,0.75)]";
+    return (
+      <div className="absolute top-2.5 left-2.5 max-w-[60%] flex flex-col items-start gap-1">
+        {name && <div data-partida className={`${tag} text-violet-200 border-violet-400/60`}>{name}</div>}
+        {state !== "active" && <div data-status={state} className={`${tag} ${STATUS_TONE[state]}`}>{st[state]}</div>}
       </div>
-    ) : null;
+    );
   };
 
   // The filter bar (Controls, control 11): where to search, the sections and the sort order.
@@ -107,6 +119,10 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     ...(partidas?.length ? [{ id: "partida", title: pt.filter, options: [...partidas.map((p) => ({ value: p.id, label: p.name })), { value: "NONE", label: pt.none }] }] : []),
     { id: "casa", title: ft.house, options: Object.keys(HOUSES).map((k) => ({ value: k, label: HOUSES[k].nombre, icon: <HouseCrest house={k} variant="medallion" className="w-6 h-6 shrink-0" /> })) },
     { id: "tipo", title: ft.type, options: [{ value: "student", label: ft.student }, { value: "adult", label: ft.adult }, { value: "familiar", label: ft.familiar }] },
+    // Inactive sheets leave the list unless chosen here (R4 c); drafts and proposals show for whoever sees them.
+    { id: "estado", title: st.state, defaultSelected: ["active", "draft", "proposed"], defaultNote: st.hiddenNote,
+      options: [{ value: "active", label: st.active }, { value: "inactive", label: st.inactive },
+        ...(["draft", "proposed"] as const).filter((v) => [...characters, ...familiars].some((i) => statusOf(i) === v)).map((v) => ({ value: v, label: st[v] }))] },
   ];
   const sortFields: SortField[] = [
     { value: "nombre", label: ft.name }, { value: "xp", label: ft.xp, descFirst: true }, { value: "curso", label: ft.course },
@@ -126,8 +142,12 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   const matches = (state: FilterState, item: ApiSheetProjection) => {
     const q = fold(state.query.trim());
     if (q && !(state.field === "all" ? SEARCH : [state.field]).some((f) => fold(textOf(item, f)).includes(q))) return false;
-    const has = (section: string, value: string) => !(state.selected[section]?.length) || state.selected[section].includes(value);
-    return has("partida", partidaOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item));
+    const has = (id: string, value: string) => {
+      const section = sections.find((s) => s.id === id);
+      const chosen = section ? selectionOf(state, section) : [];
+      return !chosen.length || chosen.includes(value);
+    };
+    return has("partida", partidaOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item)) && has("estado", statusOf(item));
   };
   const ordered = (list: ApiSheetProjection[]) => [...list].sort((a, b) => {
     const ka = sortKey(a, filter.sort), kb = sortKey(b, filter.sort);

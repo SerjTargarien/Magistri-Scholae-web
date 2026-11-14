@@ -46,7 +46,9 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 | The sheet tab with spells, potions and equipment | **Magia y equipo** | «Conjuros y Pociones» |
 | The sheet tab with the school and the house | **Institución**: the cards **Escuela** (its list is **Clubes**) and **Casa y Heráldica** (an adult's **Antigua casa**) | «Clubes Escolares» |
 | The creation form's tabs | today «Identificación», **Aspectos y equipo**, «Casa», «Habilidades», «Estrés»; from R4.5 the sheet's names: **Perfil**, **Institución**, **Habilidades**, **Magia y equipo** | «Aspectos y posesiones» |
-| A player's unconfirmed sheet (R4) | **borrador** | «borrador» for unsaved changes |
+| A player's unconfirmed sheet (R4) | **borrador**; once proposed, a **propuesta** («Proponer al Máster», «Retirar propuesta»; the Máster's «Confirmar» or «Devolver») | «borrador» for unsaved changes |
+| What a confirmed proposal becomes | **Personaje del jugador (PJ)** or **Personaje no jugador (PNJ)** | |
+| A sheet in play or set aside | **activa** / **inactiva** («Ficha activa»), by the Máster | «archivada» for this |
 | Leaving the new-sheet form without saving | **Descartar cambios** | «Descartar Borrador» |
 | Adding an item to a list on a sheet | **Añadir** X | «Registrar» X |
 | Creating a sheet or a note, and the title of a form that adds an item | **Nuevo** X / **Nueva** X | |
@@ -63,7 +65,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 **Today:**
 
 - **GM:** sees and edits every character and familiar in the campaign, whoever created them and whenever they registered. Owns the campaign's skill list («Habilidades de la campaña»). Archives sheets (no one deletes).
-- **Player:** sees and edits only the sheets they created (assigned to them). Picks skills from the campaign's list.
+- **Player:** sees and edits only the sheets they created (assigned to them). Picks skills from the campaign's list. **Since R4 (c), 14 November 2026:** a new sheet is a borrador only they see, until they propose it and the Máster confirms it (details in the target below, now built).
 - **Shared reader:** read-only access to a sheet shared with them; there is no screen to share yet.
 - **Administrator** (the owner's separate account): «Administración» (R4 a, 14 November 2026): campaigns, their members and roles, invitations, recovery links and accounts. It shows usernames and roles only, never sheet content.
 
@@ -163,8 +165,8 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Knowledge level, sheet and form | Native selector | Tag menu (7) | Done (PR #41) |
 | Skill from the campaign's list | Inline list of chips | Picker with search (9) | Done (9 November 2026) |
 | Bonded familiar | Dialog with a list | Picker (9), the same component | Done (9 November 2026) |
-| Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | R4 |
-| Active / inactive | — | Switch (3), GM only | R4 |
+| Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | Done (R4 c) |
+| Active / inactive | — | Switch (3), GM only | Done (R4 c) |
 | Assigned player | — | Picker (9) | R4 |
 | A skill's category | — | Tag menu (7) | R4 |
 | Age group; Mago, Alumno | — | Segmented (5); switches (3) | R4.5 |
@@ -304,6 +306,7 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 - **The filter bar** (Controls, control 11; built with R4 b, 14 November 2026, as approved in the controls demo): the magnifier chooses where to search («Todo»: name, player, concept, house, year and type; or one of them); «Filtros» with the number of filters on opens the sheet: «Ordenar por» (one field from a searchable list: name, experience, year, house, destiny points, player, type, age; with a direction; numbers start from the highest) and the sections «Partida» (Máster only), «Casa» (the five houses with their medallions) and «Tipo» (Alumno, Mago adulto, Familiar), each a list with checks; «Quitar filtros», «Ver N resultados». Active filters show as removable chips under the search, and a line says how many sheets show and how they are sorted. Options in one section add up; sections narrow each other. A familiar follows the character it is bonded to (house and partida); an adult wizard's house is the one their «Antigua casa» names. The choice stays while moving between screens and resets when the campaign changes. It replaces the house chips.
 - **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador»; for the Máster, the partida as a small tag. **Familiar card:** picture, name, description, «Especie», «Vínculo»; for the Máster, its character's partida.
 - By name unless another order is chosen (was: newest first); characters, then familiars. Archived sheets never appear.
+- **Estado** (R4 c) in the filter bar: «Activa», «Inactiva», and «Borrador» / «Propuesta» when the viewer has any; inactive sheets are left out by default (the results line says so) and show again when chosen. Cards say «Borrador», «Propuesta» or «Inactiva» as a corner tag.
 
 **Target:** inactive sheets leave this list, and «Estado» joins the filters (R4); the filters follow the new sheet types and the campaign's institutions (R4.5, R5). The GM's complete view with filters and sorting by any value lives in the Biblioteca (R5), with the same filter bar.
 
@@ -382,7 +385,7 @@ Tabs:
 - **Custom cards** (owner, 13 November 2026; after R4): players and the GM add their own named cards of text-only fields on Perfil («+ Nueva tarjeta»), after «Campos personalizados»; a whole card can be hidden; no moving of fields between cards; campaign-wide cards wait for the Biblioteca (R5).
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
 - Removing anything asks first (polish pass); generated journal titles are shown, not stored (**done**).
-- Drafts, proposal and confirmation, and active/inactive status (R4).
+- Drafts, proposal and confirmation, and active/inactive status (**done**, R4 c): under the top bar a panel says where the sheet stands: «Borrador» (only you see it; «Proponer al Máster»), «Propuesta enviada» (read-only; «Retirar propuesta»), for the Máster «Propuesta de un jugador» («Devolver», after asking, or «Confirmar», which opens two option cards: «Personaje del jugador (PJ)» / «Personaje no jugador (PNJ)»), and «Ficha inactiva»; in edit mode the Máster has the «Ficha activa» switch. The same panel on familiar sheets.
 
 ### 7. Familiar sheet
 

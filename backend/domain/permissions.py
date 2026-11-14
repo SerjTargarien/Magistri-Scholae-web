@@ -21,12 +21,18 @@ def is_gm(actor, campaign):
     return actor.is_authenticated and actor.is_active and Membership.objects.filter(campaign=campaign, user=actor, role="gm").exists()
 
 
+def gm_of(actor, sheet):
+    """The GM's campaign-wide powers cover every sheet except a player's drafts (R4 c):
+    a private vault the GM does not see at all."""
+    return sheet.status != "draft" and is_gm(actor, sheet.campaign)
+
+
 def accessible(actor, sheet):
     if not actor.is_authenticated or not actor.is_active:
         return False
     if not Membership.objects.filter(user=actor, campaign=sheet.campaign).exists():
         return False
-    return is_gm(actor, sheet.campaign) or (not sheet.archived and (
+    return gm_of(actor, sheet) or (not sheet.archived and (
         sheet.assigned_player_id == actor.pk or Share.objects.filter(sheet=sheet, recipient=actor).exists()))
 
 
@@ -49,6 +55,9 @@ def list_sheets(actor, campaign, kind):
     query = Sheet.objects.select_related("campaign").filter(campaign=campaign, kind=kind)
     if membership.role != "gm":
         query = query.filter(archived=False).filter(Q(assigned_player=actor) | Q(shares__recipient=actor)).distinct()
+    else:
+        # The GM's own sheets are never drafts; other players' drafts stay out of his lists.
+        query = query.exclude(status="draft")
     # Newest first, as the app has always listed sheets.
     return query.order_by("-created_at", "id")
 
@@ -74,7 +83,7 @@ def audience_tier(sheet, path):
 
 def can_read(actor, sheet, path, *, gm=None):
     if gm is None:
-        gm = is_gm(actor, sheet.campaign)
+        gm = gm_of(actor, sheet)
     if gm:
         return True
     try:
@@ -87,10 +96,11 @@ def can_read(actor, sheet, path, *, gm=None):
 
 
 def can_write(actor, sheet, path, *, gm=None):
-    if sheet.archived:
+    # A proposal is read-only for everyone while the GM reviews it (R4 c).
+    if sheet.archived or sheet.status == "proposed":
         return False
     if gm is None:
-        gm = is_gm(actor, sheet.campaign)
+        gm = gm_of(actor, sheet)
     return (gm or actor.pk == sheet.assigned_player_id) and can_read(actor, sheet, path, gm=gm)
 
 
@@ -133,7 +143,7 @@ def project_value(actor, sheet, value, spec, prefix):
 
 def projection(actor, sheet, include_bond=True):
     require(accessible(actor, sheet), "not_found", 404)
-    gm = is_gm(actor, sheet.campaign)
+    gm = gm_of(actor, sheet)
     fields = deepcopy(sheet.data) if gm else project_value(actor, sheet, sheet.data, obj(REGISTRY[sheet.kind]), "")
     if fields is _MISSING:
         fields = {}
@@ -171,6 +181,8 @@ def projection(actor, sheet, include_bond=True):
         "capabilities": {"readablePaths": readable, "writablePaths": writable,
                          "collectionPaths": collections, "removablePaths": removable,
                          "bondWritable": can_write(actor, sheet, "bond", gm=gm), "isGM": gm},
+        # Everyone who can open the sheet sees where it stands (R4 c).
+        "status": sheet.status, "active": sheet.active,
     }
     if gm:
         result["assignedPlayerId"] = str(sheet.assigned_player_id) if sheet.assigned_player_id else None

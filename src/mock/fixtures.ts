@@ -25,6 +25,9 @@ export interface DemoSheet {
   sharedWith: string[];
   /** A character's partida (R4 b), which only the GM sees. */
   tableId?: string;
+  /** R4 (c): absent means confirmed and active (the demo's sheets are campaign sheets). */
+  status?: "draft" | "proposed" | "confirmed";
+  active?: boolean;
 }
 
 export const CAMPAIGN = { id: "demo-campaign", name: "Universo de demostración", policyRevision: 1 };

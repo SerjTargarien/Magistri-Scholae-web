@@ -4,7 +4,7 @@
 // switch viewer. Results are read back from the mock server's stored copy.
 import {
   characterCard, createCharacter, createFamiliar, expect, familiarCard, flushWrites, isMobile, openApp, openCharacter,
-  openFamiliar, openTab, pngFile, reloadApp, setEditMode, storedSheet, test, viewAs, visibleOf,
+  openFamiliar, openTab, pngFile, proposeAndConfirm, reloadApp, setEditMode, storedSheet, test, viewAs, visibleOf,
 } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
@@ -242,6 +242,8 @@ test("skills, spells, potions, clubs, equipment and journal entries persist", as
 
 test("a skill the GM types joins the campaign's list; players then pick it", async ({ page }) => {
   await createCharacter(page, "Skilled Student");
+  await page.locator("#btn-detail-back").click();
+  await proposeAndConfirm(page, "Skilled Student"); // the GM sees it once confirmed (R4 c)
   await viewAs(page, "gm");
   await openCharacter(page, "Skilled Student");
   await setEditMode(page, true);
@@ -467,6 +469,7 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
   const asset = /^[0-9a-f-]{36}$/;
   expect(await storedSheet(page, "Smoke Toad")).toMatchObject({ especie: "Giant toad", imageFit: "contain", imagen: expect.stringMatching(asset),
     galleryImages: [{ id: expect.any(String), value: expect.stringMatching(asset) }] });
+  await proposeAndConfirm(page, "Smoke Toad", "familiar"); // the GM sees it once confirmed (R4 c)
   await viewAs(page, "gm");
   await openFamiliar(page, "Smoke Toad");
   await page.locator("#btn-familiar-delete").click();
@@ -483,6 +486,10 @@ test("familiar sheet: one edit mode like a character's (fields, portrait by tapp
 
 test("bonds: link from the character, navigate both ways; archiving the character takes it off the list", async ({ page }) => {
   await createCharacter(page, "Bonded Student");
+  await page.locator("#btn-detail-back").click();
+  // A draft bonds only with another draft (R4 c); Chispa is a campaign sheet, so confirm first.
+  await proposeAndConfirm(page, "Bonded Student");
+  await openCharacter(page, "Bonded Student");
   await setEditMode(page, true);
   await visibleOf(page, "header-familiar-bond-btn", "header-familiar-bond-btn-mobile").click();
   await page.getByRole("button", { name: /Chispa/ }).last().click();

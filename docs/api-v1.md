@@ -43,14 +43,17 @@ The following route families exist independently under **`characters`** and **`f
 
 | Suffix | Methods / body |
 |---|---|
-| collection | GET `?campaignId={id}&limit=50&offset=0`; POST `{campaignId, fields, assignedPlayerId?}`. Player creation assigns self and rejects forged assignment; GM may assign an active campaign member or leave unassigned. |
+| collection | GET `?campaignId={id}&limit=50&offset=0`; POST `{campaignId, fields, assignedPlayerId?}`. Player creation assigns self and rejects forged assignment; GM may assign an active campaign member or leave unassigned. A player's new sheet is a **draft** (R4 c); the GM's are confirmed. The GM's list leaves out other players' drafts. |
 | `/{id}` | GET a projected view; PATCH `{expectedRevision, changes: [{path, value}]}`. 1–100 non-overlapping changed paths. |
-| `/{id}/manage` | POST `{expectedRevision, assignedPlayerId?, archived?, tableId?}`. GM only. Archived entities disappear for players; GM can restore them. `tableId` (characters only; a partida of the same campaign, or `null`) places the character in a partida (R4 b); a familiar follows the character it is bonded to (`invalid_table`). The GM's projection of a character carries `tableId`; players never receive it. |
+| `/{id}/status` | POST `{expectedRevision, action, as?}` (R4 c). `propose` (draft → proposed) and `withdraw` (proposed → draft): the sheet's player. `return` (proposed → draft) and `confirm` with `as: "player" or "npc"` (proposed → confirmed): the GM. As an NPC the sheet is assigned to the GM and its shares are removed: its author no longer has it. A bonded counterpart in the same state moves with it. Returns the projection, or `{status}` when the actor can no longer see the sheet (the GM after `return`). Wrong state: `invalid_status` (409). No operation ID. |
+| `/{id}/manage` | POST `{expectedRevision, assignedPlayerId?, archived?, tableId?, active?}`. GM only, confirmed sheets only (`not_confirmed`, 409). Archived entities disappear for players; GM can restore them. `active` (R4 c): an inactive sheet stays readable and editable by its player; the app leaves it off the main list by default. `tableId` (characters only; a partida of the same campaign, or `null`) places the character in a partida (R4 b); a familiar follows the character it is bonded to (`invalid_table`). The GM's projection of a character carries `tableId`; players never receive it. |
 | `/{id}/sharing` | GET recipient IDs/access; POST `{expectedRevision, recipientId, grant: boolean}`. GM only, same-campaign active recipient. Shares are always read-only. |
 | `/{id}/visibility` | GET current policy (GM) or own restrictions (assigned player); POST `{expectedRevision, previewToken}` applies a preview. |
 | `/{id}/visibility/preview` | GM POST `{expectedRevision, defaultAudience?, overrides?}`; assigned player POST `{expectedRevision, restrictions}`. Returns proposed policy, changed path audiences and a signed preview token. |
-| `/{id}/bond` | POST `{expectedRevision, targetId: UUID or null, targetRevision?}`. Target revision required when linking. Player must edit both sides and any displaced partners; GM may manage all within the campaign. |
+| `/{id}/bond` | POST `{expectedRevision, targetId: UUID or null, targetRevision?}`. Target revision required when linking. Player must edit both sides and any displaced partners; GM may manage all within the campaign. A draft bonds only with another draft (`invalid_bond`), so the GM never changes a draft he cannot see. |
 | `/{id}/assets` | POST `{operationId, expectedRevision, path, imageBase64}` atomically attaches a decoded image to a media path and returns the updated projection. |
+
+**Drafts (R4 c).** Every projection carries `status` (`draft`, `proposed`, `confirmed`) and `active`. The GM's campaign-wide access covers every sheet except a player's drafts: those are absent from his lists and `not_found` to every route. A proposal is read-only for everyone (no writable paths, no bond). GM-only actions (manage, sharing, the GM's visibility policy) need a confirmed sheet.
 
 Example projected entity:
 

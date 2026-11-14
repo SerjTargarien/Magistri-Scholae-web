@@ -45,6 +45,7 @@ import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Segmented } from "./Segmented";
 import { Picker, pickerTexts } from "./Picker";
 import { TagMenu } from "./TagMenu";
+import { SheetStatusBar } from "./SheetStatusBar";
 import { PARTIDAS_TEXT } from "../localization";
 
 /** The picker's «no familiar» row. */
@@ -149,6 +150,9 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           )}
         </div>
       </div>
+
+      {/* Draft, proposal or inactive sheet; the Máster's active switch in edit mode (R4 c) */}
+      <SheetStatusBar lang={sheetProps.lang} store={sheetProps.store} editing={isQuickEditing} status={sheetProps.status} />
 
       {/* Dynamic Profile Cover Banner */}
       <div

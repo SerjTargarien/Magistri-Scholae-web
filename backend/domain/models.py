@@ -101,13 +101,22 @@ class Sheet(models.Model):
     gm_overrides = models.JSONField(default=dict)
     player_restrictions = models.JSONField(default=dict)
     archived = models.BooleanField(default=False)
+    # R4 (c): a sheet a player creates starts as a draft in their private vault, which the GM
+    # does not see at all; the player proposes it, and the GM confirms it as the player's
+    # character or as his own NPC (or returns it). Existing sheets are confirmed.
+    status = models.CharField(max_length=9, default="confirmed",
+                              choices=[("draft", "Draft"), ("proposed", "Proposed"), ("confirmed", "Confirmed")])
+    # Inactive (dead, travelling…): set by the GM on confirmed sheets; it leaves the main list
+    # by default without being archived, and its player can still edit it.
+    active = models.BooleanField(default=True)
     # The character's partida (R4 b); familiars follow the character they are bonded to.
     table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="sheets")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [models.CheckConstraint(condition=models.Q(kind__in=["character", "familiar"]), name="valid_sheet_kind")]
+        constraints = [models.CheckConstraint(condition=models.Q(kind__in=["character", "familiar"]), name="valid_sheet_kind"),
+                       models.CheckConstraint(condition=models.Q(status__in=["draft", "proposed", "confirmed"]), name="valid_sheet_status")]
 
 
 class Share(models.Model):

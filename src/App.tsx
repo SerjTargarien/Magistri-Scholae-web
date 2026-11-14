@@ -9,7 +9,8 @@
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
-import { CAMPAIGN_SKILLS_TEXT, Language, TRANSLATIONS } from "./localization";
+import { CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
+import type { SheetStatusProps, StatusAction } from "./components/SheetStatusBar";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
 import { ApiFailure, RemoteClient, apiTransport, entityPath } from "./remote/client";
@@ -253,6 +254,40 @@ export default function App() {
     try { setPartidas(await partidasApi.list()); } catch { showToast("error", t.storageLoadError); }
   }, [partidasApi, isCampaignGM]);
   useEffect(() => { setListFilter(DEFAULT_LIST_FILTER); void loadPartidas(); }, [loadPartidas]);
+  // Drafts and proposals (R4 c). A sheet the GM returns leaves his view: its store goes.
+  const changeStatus = async (store: SheetStore, action: StatusAction, as?: "player" | "npc") => {
+    await settle(store);
+    const send = () => client.request<ApiSheetProjection | { status: string }>(`${entityPath(store.sheet)}/status`, "POST",
+      { expectedRevision: store.sheet.revision, action, ...(as ? { as } : {}) });
+    let result: ApiSheetProjection | { status: string };
+    try {
+      try { result = await send(); }
+      catch (e) {
+        if (!(e instanceof ApiFailure && e.code === "revision_conflict")) throw e;
+        await store.refresh();
+        result = await send();
+      }
+    } catch { showToast("error", STATUS_TEXT[lang].failed); return; }
+    // A bonded counterpart in the same state moved with it.
+    const bonded = store.sheet.bondId ? stores.current.get(store.sheet.bondId) : undefined;
+    if ("id" in result) store.accept(result);
+    else {
+      store.dispose(); stores.current.delete(store.sheet.id);
+      setSelectedCharId(null); setSelectedFamiliarId(null); setScreen("LIST");
+    }
+    if (bonded) void bonded.refresh().catch(() => undefined);
+    void loadLists();
+  };
+  const setActive = async (store: SheetStore, active: boolean) => {
+    try { await mutate(store, "manage", { active }); void loadLists(); }
+    catch { showToast("error", STATUS_TEXT[lang].failed); }
+  };
+  const statusFor = (store: SheetStore): SheetStatusProps => ({
+    onAction: (action, as) => changeStatus(store, action, as),
+    onSetActive: isGM(store) && store.sheet.status !== "proposed" ? active => setActive(store, active) : undefined,
+  });
+  const confirmed = (store: SheetStore) => (store.sheet.status ?? "confirmed") === "confirmed";
+
   const setPartida = async (store: SheetStore, tableId: string | null) => {
     try {
       await mutate(store, "manage", { tableId });
@@ -430,15 +465,16 @@ export default function App() {
               catalogue={catalogue}
               familiars={familiars}
               onBack={() => { setSelectedCharId(null); setScreen("LIST"); void loadLists(); }}
-              onArchive={isGM(characterStore) ? () => void archive(characterStore) : undefined}
+              onArchive={isGM(characterStore) && confirmed(characterStore) ? () => void archive(characterStore) : undefined}
               onSelectFamiliar={id => { setSelectedFamiliarId(id); setScreen("FAMILIAR_DETAIL"); }}
               onBondFamiliar={familiarId => bond(characterStore, familiarId)}
               onAddCatalogueSkill={isCampaignGM ? addCatalogueSkill : undefined}
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
-              partidas={isGM(characterStore) ? partidas : undefined}
-              onSetPartida={isGM(characterStore) ? tableId => setPartida(characterStore, tableId) : undefined}
+              partidas={isGM(characterStore) && confirmed(characterStore) ? partidas : undefined}
+              onSetPartida={isGM(characterStore) && confirmed(characterStore) ? tableId => setPartida(characterStore, tableId) : undefined}
+              status={statusFor(characterStore)}
             />
           )}
 
@@ -449,12 +485,13 @@ export default function App() {
               store={familiarStore}
               characters={characters}
               onBack={() => { setSelectedFamiliarId(null); setScreen("LIST"); void loadLists(); }}
-              onArchive={isGM(familiarStore) ? () => void archive(familiarStore) : undefined}
+              onArchive={isGM(familiarStore) && confirmed(familiarStore) ? () => void archive(familiarStore) : undefined}
               onSelectCharacter={id => { setSelectedCharId(id); setScreen("DETAIL"); }}
               onBondMaster={characterId => bond(familiarStore, characterId)}
               onUploadImage={uploadImage(familiarStore)}
               onShowToast={showToast}
               notes={notesApi}
+              status={statusFor(familiarStore)}
             />
           )}
 

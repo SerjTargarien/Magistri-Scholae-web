@@ -11,7 +11,7 @@ from .errors import APIError, keys, require, text
 from .fields import REGISTRY
 from .contracts import schema_contract
 from .models import Campaign, Membership, PersonalNote, Share
-from .permissions import can_read, is_gm, list_sheets, member, projection, sheet_for
+from .permissions import can_read, gm_of, is_gm, list_sheets, member, projection, sheet_for
 
 
 def endpoint(methods, public=False, outcome=None):
@@ -267,6 +267,11 @@ def sheet_manage(request, body, sheet_id, kind):
     return services.manage_sheet(request.user, sheet_id, kind, body)
 
 
+@endpoint(["POST"])
+def sheet_status(request, body, sheet_id, kind):
+    return services.change_status(request.user, sheet_id, kind, body)
+
+
 @endpoint(["GET", "POST"], outcome="sheet")
 def sharing(request, body, sheet_id, kind):
     if request.method == "POST":
@@ -289,7 +294,7 @@ def visibility(request, body, sheet_id, kind):
     if request.method == "POST":
         return services.apply_policy(request.user, sheet_id, kind, body)
     sheet = sheet_for(request.user, sheet_id, kind)
-    if is_gm(request.user, sheet.campaign):
+    if gm_of(request.user, sheet):
         return {"defaultAudience": sheet.gm_default, "overrides": sheet.gm_overrides, "restrictions": sheet.player_restrictions}
     require(request.user.pk == sheet.assigned_player_id, "forbidden", 403)
     return {"restrictions": {p: v for p, v in sheet.player_restrictions.items() if can_read(request.user, sheet, p, gm=False)}}

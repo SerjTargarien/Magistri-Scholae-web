@@ -17,7 +17,6 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 | «Criatura mágica» | A character type with everything an adult wizard has, plus «Especie», a general «Descripción» and «Pactos» (a list like the journal, each entry linked to another character). | R4.5 |
 | Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |
 | `casa`, `adultWizardProfile/institution`, `curso`, `adultWizardProfile/teachingSubjects`, `clubesList` | Links to the campaign's institutions, branches and school records, with free text kept as a fallback. | R5 |
-| Sheet status | Draft (private to the player, invisible to the GM) → proposed → confirmed as the player's character or a GM NPC; and, for campaign sheets, active / inactive set by the GM. Existing sheets count as confirmed and active. | R4 |
 | `tarjetasPersonalizadas` (new) | Named cards of custom fields on Perfil: each card a title and its fields, a name and a text value (proposed: up to 20 cards, title required, text 60; up to 50 fields per card, name required, text 60, value text 500). `camposPersonalizados` stays as the first card. | Custom cards (after R4) |
 | Sheet type changes | The GM changes a sheet's type later (Menor → Adulto, any → «Criatura mágica»); values the new type does not show are kept. | R4.5 |
 
@@ -143,6 +142,15 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | Field | Today | Rule |
 |---|---|---|
 | `galleryImages` | Compressed to 1,600 px, JPEG 0.75; removed by position. | Uploaded images only; **list ≤ 50 (owner decision)** |
+
+## Sheet status (R4 c)
+
+Not sheet fields: the server keeps them beside the sheet and shows them in every projection.
+
+| Field | Today | Rule |
+|---|---|---|
+| Status | A player's new sheet is a **borrador** only they see (the Máster does not see it at all); «Proponer al Máster» makes it a **propuesta**, read-only for everyone; the player can withdraw it; the Máster confirms it as the player's character (PJ) or as his own NPC (PNJ; the author loses it) or returns it to the drafts. The Máster's own sheets are confirmed at once; existing sheets are confirmed. A bonded counterpart in the same state moves with it. | **draft → proposed → confirmed** (or back to draft); a draft bonds only with another draft |
+| Active | The Máster's «Ficha activa» switch on a confirmed sheet, in edit mode. An inactive sheet leaves the main list unless «Estado» shows it; its player still edits it. | **Yes / no**; default yes |
 
 ## Partidas (the Máster's «Partidas de la campaña»; R4 b)
 

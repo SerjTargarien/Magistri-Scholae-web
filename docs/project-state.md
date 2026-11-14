@@ -868,6 +868,15 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Checks:** type check; 42 unit tests; 62 demo browser tests (two new: the Máster's partidas end to end, and the filter bar); 4 real-backend browser tests; backend suite 165; both builds; screenshots on desktop and phone.
 - **On staging the same day** (owner's request): backup first, `api-staging` rebuilt at `2b1b0d3` with migration `0009_partidas` applied, staging frontend released. Production waits for milestone 2.
 
+## R4 (c): drafts, proposals and active sheets — 14 November 2026
+
+- **Owner's decisions:** the Máster reads a proposal whole (read-only) before confirming it as PJ or PNJ, or returning it; as a PNJ, its author loses it; every sheet a player creates starts as a draft (a familiar made with a draft character too); an inactive sheet is hidden from the main list by default and its player still edits it.
+- **Server:** migration `0010_drafts_and_active` (`Sheet.status` draft / proposed / confirmed and `Sheet.active`; existing sheets confirmed and active). `permissions.gm_of`: the GM's campaign-wide powers cover every sheet except drafts, which are absent from his lists and `not_found` to every route. A proposal is read-only for everyone. `/{id}/status` (propose, withdraw, return, confirm as player or npc; a bonded counterpart moves with it). `manage` takes `active`; GM-only actions need a confirmed sheet; a draft bonds only with another draft. 9 new backend tests (174 in all).
+- **App:** `src/components/SheetStatusBar.tsx` under the top bar of both sheets (draft, proposal, the Máster's review with option cards, inactive, and the «Ficha activa» switch); the main list's cards carry status tags, and the filter bar has «Estado», whose default leaves inactive sheets out (`FilterBar` sections may now have a default). A sheet the Máster returns leaves his view at once.
+- **Demo:** the mock server follows the same rules; new demo sheets made by the player are drafts.
+- **Tests:** three feature tests now propose and confirm before the Máster opens a player's new sheet (`proposeAndConfirm` in `e2e/helpers.ts`); two new demo tests run the whole flow (PJ, return, inactive and still editable; PNJ). Type check; 42 unit tests; 64 demo browser tests; 4 real-backend browser tests; both builds; screenshots on desktop and phone.
+- Not released: the migration reaches staging only when the owner asks (after a backup), production at milestone 2.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

@@ -27,6 +27,10 @@ export interface ApiSheetProjection<K extends EntityKind = EntityKind> {
   bondId?: string;
   assignedPlayerId?: string | null;
   archived?: boolean;
+  /** R4 (c): a player's new sheet is a «borrador» only they see; «propuesta» while the GM reviews it (read-only). */
+  status?: "draft" | "proposed" | "confirmed";
+  /** R4 (c): an inactive sheet (dead, travelling) leaves the main list by default; its player still edits it. */
+  active?: boolean;
   /** GM only, characters only: the character's partida (R4 b); familiars follow their bond. */
   tableId?: string | null;
 }

@@ -106,7 +106,8 @@ export class MockServer {
   // ---- projections ---------------------------------------------------------
 
   private access(sheet: DemoSheet, user: DemoUser): "gm" | "assigned" | "shared" | undefined {
-    if (user.role === "gm") return "gm";
+    // Like permissions.gm_of: the GM's powers cover every sheet except a player's drafts (R4 c).
+    if (user.role === "gm" && sheet.status !== "draft") return "gm";
     if (sheet.archived) return undefined;
     if (sheet.assignedPlayerId === user.id) return "assigned";
     if (sheet.sharedWith.includes(user.id)) return "shared";
@@ -134,7 +135,8 @@ export class MockServer {
     const access = this.access(sheet, user)!;
     const list = this.hiddenFor(sheet, access);
     const fields = this.strip(sheet.fields, list);
-    const writer = (access === "gm" || access === "assigned") && !sheet.archived;
+    // A proposal is read-only for everyone while the GM reviews it (R4 c).
+    const writer = (access === "gm" || access === "assigned") && !sheet.archived && sheet.status !== "proposed";
     const readablePaths: string[] = [], writablePaths: string[] = [], collectionPaths: string[] = [], removablePaths: string[] = [];
     const leaves = (value: any, path: string) => {
       if (Array.isArray(value)) value.forEach(item => Object.entries(item).forEach(([k, v]) => k !== "id" && leaves(v, `${path}/${item.id}/${k}`)));
@@ -164,6 +166,7 @@ export class MockServer {
     return {
       kind: "viewer-projection", id: sheet.id, entityType: sheet.kind, campaignId: CAMPAIGN.id, schemaVersion: 4,
       revision: `r${sheet.revision}-${user.role}`, fields: fields as any,
+      status: sheet.status ?? "confirmed", active: sheet.active !== false,
       capabilities: { readablePaths, writablePaths: writable, collectionPaths, removablePaths: removable, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),
       ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId, archived: sheet.archived } : {}),
@@ -221,7 +224,7 @@ export class MockServer {
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
     if (path.startsWith(`campaigns/${CAMPAIGN.id}/tables`)) return this.partidas(method, path, body, user);
 
-    const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage))?$/);
+    const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|status))?$/);
     if (!match) return fail(501, "not_in_demo");
     const kind: EntityKind = match[1] === "characters" ? "character" : "familiar";
     const [, , id, action] = match;
@@ -243,6 +246,7 @@ export class MockServer {
       if (action === "assets" && method === "POST") return this.upload(sheet, body, user);
       if (action === "bond" && method === "POST") return this.bond(sheet, body, user);
       if (action === "manage" && method === "POST") return this.manage(sheet, body, user);
+      if (action === "status" && method === "POST") return this.changeStatus(sheet, body, user);
       return fail(405, "method_not_allowed");
     });
   }
@@ -426,7 +430,9 @@ export class MockServer {
     if (refused) return refused;
     if (user.role !== "gm" && ownSkillsKey((body.fields as any).habilidades) !== "[]") return fail(403, "gm_only_skill");
     const sheet: DemoSheet = { id: `demo-${crypto.randomUUID()}`, kind, fields: structuredClone(body.fields), assignedPlayerId: user.id,
-      archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [] };
+      archived: false, revision: 1, gmOnly: [], restricted: [], sharedWith: [],
+      // Like services.create_sheet: a player's new sheet is a draft only they see (R4 c).
+      status: user.role === "gm" ? "confirmed" : "draft" };
     this.state.sheets.push(sheet);
     return new Reply(200, this.projection(sheet, user));
   }
@@ -474,6 +480,7 @@ export class MockServer {
   private bond(sheet: DemoSheet, body: any, user: DemoUser): Reply {
     const target = body.targetId === null ? undefined : this.state.sheets.find(s => s.id === body.targetId && s.kind !== sheet.kind);
     if (body.targetId !== null && (!target || !this.access(target, user))) return fail(400, "invalid_bond");
+    if (target && (sheet.status === "draft") !== (target.status === "draft")) return fail(400, "invalid_bond");
     if (!this.projection(sheet, user).capabilities.bondWritable || (target && !this.projection(target, user).capabilities.bondWritable)) return fail(403, "forbidden");
     for (const s of this.state.sheets) if (s.bondId === sheet.id || (target && s.bondId === target.id)) { delete s.bondId; s.revision++; }
     delete sheet.bondId;
@@ -482,8 +489,34 @@ export class MockServer {
     return new Reply(200, this.projection(sheet, user));
   }
 
+  /** Like services.change_status (R4 c): propose, withdraw, return, confirm as PJ or PNJ; a bonded counterpart moves with it. */
+  private changeStatus(sheet: DemoSheet, body: any, user: DemoUser): Reply {
+    const access = this.access(sheet, user);
+    const owner = sheet.assignedPlayerId === user.id;
+    const steps: Record<string, [string, "draft" | "proposed" | "confirmed", boolean]> = {
+      propose: ["draft", "proposed", owner], withdraw: ["proposed", "draft", owner],
+      return: ["proposed", "draft", access === "gm"], confirm: ["proposed", "confirmed", access === "gm"],
+    };
+    const step = steps[body.action];
+    if (!step) return fail(400, "invalid_status_action");
+    const [before, after, allowed] = step;
+    if (!allowed) return fail(403, "forbidden");
+    if ((sheet.status ?? "confirmed") !== before) return fail(409, "invalid_status");
+    if (body.action === "confirm" && !["player", "npc"].includes(body.as)) return fail(400, "invalid_status_action");
+    const bonded = this.state.sheets.find(s => s.bondId === sheet.id && (s.status ?? "confirmed") === before);
+    for (const target of [sheet, bonded]) {
+      if (!target) continue;
+      target.status = after;
+      if (body.as === "npc") { target.assignedPlayerId = user.id; target.sharedWith = []; }
+      target.revision++;
+    }
+    return this.access(sheet, user) ? new Reply(200, this.projection(sheet, user)) : new Reply(200, { status: sheet.status });
+  }
+
   private manage(sheet: DemoSheet, body: any, user: DemoUser): Reply {
     if (user.role !== "gm") return fail(403, "forbidden");
+    if ((sheet.status ?? "confirmed") !== "confirmed") return fail(409, "not_confirmed");
+    if (typeof body.active === "boolean") sheet.active = body.active;
     if ("tableId" in body) {
       // Like services.manage_sheet: characters only, one of this campaign's partidas or none.
       if (sheet.kind !== "character" || (body.tableId !== null && !this.state.partidas.some(p => p.id === body.tableId))) return fail(400, "invalid_table");

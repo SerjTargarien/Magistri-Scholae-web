@@ -36,6 +36,7 @@ for plural, kind in [("characters", "character"), ("familiars", "familiar")]:
         path(base, views.sheets, arguments),
         path(base + "/<uuid:sheet_id>", views.sheet_detail, arguments),
         path(base + "/<uuid:sheet_id>/manage", views.sheet_manage, arguments),
+        path(base + "/<uuid:sheet_id>/status", views.sheet_status, arguments),
         path(base + "/<uuid:sheet_id>/sharing", views.sharing, arguments),
         path(base + "/<uuid:sheet_id>/visibility/preview", views.visibility_preview, arguments),
         path(base + "/<uuid:sheet_id>/visibility", views.visibility, arguments),

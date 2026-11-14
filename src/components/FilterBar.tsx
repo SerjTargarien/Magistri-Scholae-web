@@ -28,7 +28,26 @@ export interface FilterState {
   dir: SortDirection;
 }
 export interface FilterOption { value: string; label: string; icon?: React.ReactNode }
-export interface FilterSection { id: string; title: string; options: FilterOption[] }
+export interface FilterSection {
+  id: string; title: string; options: FilterOption[];
+  /** What the section selects when untouched (the main list hides inactive sheets); it neither counts nor shows a chip. */
+  defaultSelected?: string[];
+  /** Said in the results line while the section is at its default. */
+  defaultNote?: string;
+}
+/** A section's selection: its own, or its default. Empty means it filters nothing. */
+export const selectionOf = (state: FilterState, section: FilterSection) => state.selected[section.id] ?? section.defaultSelected ?? [];
+/** Back to the default when a defaulted section is emptied or set to its default. */
+function normalized(state: FilterState, sections: FilterSection[]): FilterState {
+  const selected = { ...state.selected };
+  for (const section of sections) {
+    const list = selected[section.id];
+    if (!list || !section.defaultSelected) continue;
+    const same = list.length === section.defaultSelected.length && list.every((v) => section.defaultSelected!.includes(v));
+    if (!list.length || same) delete selected[section.id];
+  }
+  return { ...state, selected };
+}
 export interface SortField { value: string; label: string; /** Numbers and dates start from the highest. */ descFirst?: boolean }
 export interface FilterTexts {
   search: string; searchIn: string; everything: string; everythingHint: string; filters: string; activeFilters: string;
@@ -70,7 +89,8 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
     section: section.id, value, label: section.options.find((o) => o.value === value)?.label ?? value,
   })));
   const unset = (section: string, value: string) =>
-    onChange({ ...state, selected: { ...state.selected, [section]: (state.selected[section] ?? []).filter((v) => v !== value) } });
+    onChange(normalized({ ...state, selected: { ...state.selected, [section]: (state.selected[section] ?? []).filter((v) => v !== value) } }, sections));
+  const notes = sections.filter((s) => s.defaultNote && state.selected[s.id] === undefined).map((s) => ` · ${s.defaultNote}`).join("");
 
   return (
     <div className="space-y-2" id={id}>
@@ -126,13 +146,13 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
         </div>
       )}
       <p className="text-[11px] text-neutral-500 font-mono" aria-live="polite" id={`${id}-summary`}>
-        {fill(texts.results, { n: shown, total, field: sortLabel.toLowerCase(), dir: state.dir === "asc" ? texts.asc.toLowerCase() : texts.desc.toLowerCase() })}
+        {fill(texts.results, { n: shown, total, field: sortLabel.toLowerCase(), dir: state.dir === "asc" ? texts.asc.toLowerCase() : texts.desc.toLowerCase() })}{notes}
       </p>
 
       {open && (
         <FilterSheet id={`${id}-sheet`} state={state} sections={sections} sortFields={sortFields} defaultSort={defaultSort}
           countFor={countFor} texts={texts} onClose={() => setOpen(false)}
-          onApply={(next) => { setOpen(false); onChange(next); }} />
+          onApply={(next) => { setOpen(false); onChange(normalized(next, sections)); }} />
       )}
     </div>
   );
@@ -182,9 +202,9 @@ function FilterSheet({ id, state, sections, sortFields, defaultSort, countFor, t
     return () => window.removeEventListener("resize", away);
   }, []);
 
-  const toggle = (section: string, value: string) => setDraft((d) => {
-    const list = d.selected[section] ?? [];
-    return { ...d, selected: { ...d.selected, [section]: list.includes(value) ? list.filter((v) => v !== value) : [...list, value] } };
+  const toggle = (section: FilterSection, value: string) => setDraft((d) => {
+    const list = selectionOf(d, section);
+    return { ...d, selected: { ...d.selected, [section.id]: list.includes(value) ? list.filter((v) => v !== value) : [...list, value] } };
   });
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") { e.preventDefault(); if (page === "sort") setPage("main"); else leave(); return; }
@@ -195,7 +215,7 @@ function FilterSheet({ id, state, sections, sortFields, defaultSort, countFor, t
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
     }
   };
-  const results = countFor(draft);
+  const results = countFor(normalized(draft, sections));
   const row = "flex items-center gap-3 w-full min-h-11 px-2.5 py-1.5 rounded-[10px] border border-transparent text-left text-neutral-100 hover:bg-white/5 hover:border-amber-600/30 focus:outline-none focus-visible:bg-white/5 focus-visible:border-amber-600/40 cursor-pointer";
   const groupTitle = "font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400 px-2.5 pt-3 pb-1";
   const fields = sortFields.filter((f) => fold(f.label).includes(fold(query)));
@@ -265,10 +285,10 @@ function FilterSheet({ id, state, sections, sortFields, defaultSort, countFor, t
                 <div key={section.id} className="pb-2 border-b border-violet-500/10 last:border-b-0" role="group" aria-labelledby={`${id}-section-${section.id}`}>
                   <div className={groupTitle} id={`${id}-section-${section.id}`}>{section.title}</div>
                   {section.options.map((option) => {
-                    const on = (draft.selected[section.id] ?? []).includes(option.value);
+                    const on = selectionOf(draft, section).includes(option.value);
                     return (
                       <button key={option.value} type="button" role="checkbox" aria-checked={on} id={`${id}-${section.id}-${option.value}`}
-                        onClick={() => toggle(section.id, option.value)} className={row}>
+                        onClick={() => toggle(section, option.value)} className={row}>
                         <span aria-hidden="true" className={`w-5 h-5 shrink-0 rounded-[5px] border-[1.5px] grid place-items-center ${on
                           ? "bg-[rgba(42,29,16,0.9)] border-[#e5a93c] text-[#f5b841]" : "bg-neutral-950/60 border-amber-600/50 text-transparent"}`}>
                           <Check className="w-3.5 h-3.5" strokeWidth={3} />

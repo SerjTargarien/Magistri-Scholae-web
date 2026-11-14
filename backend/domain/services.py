@@ -1,11 +1,12 @@
 from copy import copy, deepcopy
 from django.core import signing
 from django.db import transaction
+from django.db.models import Q
 from .errors import APIError, keys, require, text
 from .catalogue import link_own_skills, own_skills, validate_catalogue
 from .fields import REGISTRY, descriptor, leaf_paths, obj, replace_path, validate_sheet
 from .models import AuditEvent, Bond, Campaign, Membership, Share, Sheet, Table, User
-from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, is_gm,
+from .permissions import (accessible, audience_tier, can_read, can_write, check_revision, gm_of, is_gm,
                           member, projection, revision_for, sheet_for)
 from .accounts import administrator
 
@@ -45,7 +46,9 @@ def create_sheet(actor, kind, body):
     require(gm or not own_skills(body["fields"]), "gm_only_skill", 403)
     from .media import validate_references
     validate_references(None, body["fields"], kind)
-    sheet = Sheet(campaign=campaign, creator=actor, assigned_player=owner, kind=kind, data=deepcopy(body["fields"]))
+    # A player's new sheet is a draft in their private vault; the GM's are campaign sheets (R4 c).
+    sheet = Sheet(campaign=campaign, creator=actor, assigned_player=owner, kind=kind, data=deepcopy(body["fields"]),
+                  status="confirmed" if gm else "draft")
     if not gm:
         require(all(can_write(actor, sheet, p) for p in leaf_paths(sheet.data, obj(REGISTRY[kind]))), "field_forbidden", 403)
     sheet.save()
@@ -86,7 +89,7 @@ def patch_sheet(actor, sheet_id, kind, body):
     check_revision(actor, sheet, body["expectedRevision"])
     changes = body["changes"]
     require(isinstance(changes, list) and 1 <= len(changes) <= 100)
-    gm = is_gm(actor, sheet.campaign)
+    gm = gm_of(actor, sheet)
     if not gm:
         # Unknown future fields fail closed. No details: the stored sheet may
         # contain paths this player cannot see.
@@ -120,10 +123,14 @@ def patch_sheet(actor, sheet_id, kind, body):
 
 @transaction.atomic
 def manage_sheet(actor, sheet_id, kind, body):
-    keys(body, ["expectedRevision", "assignedPlayerId", "archived", "tableId"], ["expectedRevision"])
+    keys(body, ["expectedRevision", "assignedPlayerId", "archived", "tableId", "active"], ["expectedRevision"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)
     member(actor, sheet.campaign, gm=True)
+    require(sheet.status == "confirmed", "not_confirmed", 409)
     check_revision(actor, sheet, body["expectedRevision"])
+    if "active" in body:
+        require(type(body["active"]) is bool)
+        sheet.active = body["active"]
     if "assignedPlayerId" in body:
         sheet.assigned_player = assigned_member(sheet.campaign, body["assignedPlayerId"])
     if "archived" in body:
@@ -193,11 +200,56 @@ def remove_table(actor, campaign_id, table_id):
     table.delete()
 
 
+def bonded_with(sheet, statuses):
+    """The sheet's bonded counterpart when it is in one of `statuses` (it moves with the sheet)."""
+    bond = Bond.objects.filter(Q(character=sheet) | Q(familiar=sheet)).first()
+    if not bond:
+        return None
+    other = Sheet.objects.select_for_update().get(pk=bond.familiar_id if sheet.kind == "character" else bond.character_id)
+    return other if other.status in statuses else None
+
+
+@transaction.atomic
+def change_status(actor, sheet_id, kind, body):
+    """Drafts and proposals (R4 c). The player proposes a draft or withdraws a proposal; the GM
+    confirms a proposal as the player's character or as his own NPC, or returns it to the
+    player's drafts. A bonded counterpart in the same state moves with it."""
+    keys(body, ["expectedRevision", "action", "as"], ["expectedRevision", "action"])
+    sheet = sheet_for(actor, sheet_id, kind, lock=True)
+    check_revision(actor, sheet, body["expectedRevision"])
+    action = body["action"]
+    owner = actor.pk == sheet.assigned_player_id
+    gm = gm_of(actor, sheet)
+    steps = {"propose": ("draft", "proposed", owner), "withdraw": ("proposed", "draft", owner),
+             "return": ("proposed", "draft", gm), "confirm": ("proposed", "confirmed", gm)}
+    require(action in steps, "invalid_status_action")
+    before, after, allowed = steps[action]
+    require(allowed, "forbidden", 403)
+    require(sheet.status == before, "invalid_status", 409)
+    npc = False
+    if action == "confirm":
+        require(body.get("as") in ("player", "npc"), "invalid_status_action")
+        npc = body["as"] == "npc"
+    else:
+        require("as" not in body, "invalid_status_action")
+    for target in [sheet, bonded_with(sheet, {before})]:
+        if target is None:
+            continue
+        target.status = after
+        if npc:
+            # The GM's own NPC: the player who wrote it no longer has it (owner, 14 November 2026).
+            target.assigned_player = actor
+            Share.objects.filter(sheet=target).delete()
+        touch(target, f"{target.kind}.{action}" + ("_npc" if npc else ""), actor)
+    return projection(actor, sheet) if accessible(actor, sheet) else {"status": sheet.status}
+
+
 @transaction.atomic
 def share_sheet(actor, sheet_id, kind, body):
     keys(body, ["expectedRevision", "recipientId", "grant"], ["expectedRevision", "recipientId", "grant"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)
     member(actor, sheet.campaign, gm=True)
+    require(sheet.status == "confirmed", "not_confirmed", 409)
     check_revision(actor, sheet, body["expectedRevision"])
     recipient = assigned_member(sheet.campaign, body["recipientId"])
     require(recipient is not None and type(body["grant"]) is bool)
@@ -210,8 +262,9 @@ def share_sheet(actor, sheet_id, kind, body):
 
 
 def policy_patch(sheet, actor, body):
-    gm = is_gm(actor, sheet.campaign)
+    gm = gm_of(actor, sheet)
     if gm:
+        require(sheet.status == "confirmed", "not_confirmed", 409)
         keys(body, ["expectedRevision", "defaultAudience", "overrides"], ["expectedRevision"])
         default = body.get("defaultAudience", sheet.gm_default)
         require(default in AUDIENCES | {"inherit"}, "invalid_audience")
@@ -249,7 +302,7 @@ def preview_policy(actor, sheet_id, kind, body):
     settings = policy_patch(sheet, actor, body)
     # The token contains policy only, no sheet or note content. It is bound to
     # actor, role, entity revision and campaign policy revision, and expires.
-    gm = is_gm(actor, sheet.campaign)
+    gm = gm_of(actor, sheet)
     # Signed tokens are readable, not encrypted. A player token contains only
     # their authorized patch, never retained restrictions on now-hidden paths.
     token_settings = settings if gm else {"restriction_patch": body["restrictions"]}
@@ -281,8 +334,8 @@ def apply_policy(actor, sheet_id, kind, body):
     except signing.BadSignature:
         raise APIError("invalid_preview", 409) from None
     require(payload["actor"] == str(actor.pk) and payload["sheet"] == str(sheet.pk) and
-            payload["revision"] == revision_for(actor, sheet) and payload["gm"] == is_gm(actor, sheet.campaign), "invalid_preview", 409)
-    require(is_gm(actor, sheet.campaign) or actor.pk == sheet.assigned_player_id, "forbidden", 403)
+            payload["revision"] == revision_for(actor, sheet) and payload["gm"] == gm_of(actor, sheet), "invalid_preview", 409)
+    require(gm_of(actor, sheet) or actor.pk == sheet.assigned_player_id, "forbidden", 403)
     settings = payload["settings"] if payload["gm"] else policy_patch(sheet, actor, {
         "expectedRevision": body["expectedRevision"], "restrictions": payload["settings"]["restriction_patch"]})
     for field, value in settings.items():
@@ -302,6 +355,8 @@ def set_bond(actor, sheet_id, kind, body):
         target_kind = "familiar" if kind == "character" else "character"
         target = sheet_for(actor, body["targetId"], target_kind)
         require(target.campaign_id == sheet.campaign_id, "invalid_bond")
+        # A draft bonds only with another draft, so the GM never changes one he cannot see (R4 c).
+        require((sheet.status == "draft") == (target.status == "draft"), "invalid_bond")
         require(can_write(actor, target, "bond"), "forbidden", 403)
         check_revision(actor, target, body.get("targetRevision"))
     existing = list(Bond.objects.filter(character_id__in=[s.pk for s in (sheet, target) if s is not None]) |

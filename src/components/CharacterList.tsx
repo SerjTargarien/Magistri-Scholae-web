@@ -192,7 +192,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       <div
         className={`flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-2`}
       >
-        <div className="flex items-center gap-3.5 text-center md:text-left">
+        {/* The title gives way before the buttons (owner, 15 November 2026): on wide screens (xl) they keep one row, the title wrapping
+            instead; the Máster's six buttons always fit there. Narrower, they wrap as before. */}
+        <div className="flex items-center gap-3.5 text-center md:text-left xl:shrink-[999]">
           {/* School Crest */}
           <img
             src="/icon.svg"
@@ -211,7 +213,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         </div>
 
         {/* Header Right menu with configuration */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
+        <div className="flex flex-wrap xl:flex-nowrap xl:[&>*]:shrink-0 items-center justify-center gap-2.5">
           {onOpenNotes && (
             <button
               id="btn-my-notes"

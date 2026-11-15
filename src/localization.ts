@@ -1587,7 +1587,10 @@ export const PARTIDAS_TEXT = {
   es: {
     title: "Partidas de la campaña",
     button: "Partidas",
-    intro: "Las mesas de la campaña. Solo tú las ves: los jugadores no saben en qué partida está cada ficha. La partida de cada personaje se elige en su ficha, en modo edición; su familiar la sigue.",
+    intro: "Las mesas de la campaña. Solo tú las ves: los jugadores no saben en qué partida está cada ficha. Elige los personajes de cada partida aquí, o la partida de un personaje en su ficha, en modo edición; su familiar la sigue.",
+    choose: "Elegir personajes",
+    chooseIntro: "Marca los personajes de esta partida. Uno que esté en otra partida se cambia a esta; uno que desmarques queda sin partida. Busca por el nombre del jugador para ver los suyos.",
+    atOther: "{player} · ahora en {partida}",
     empty: "Aún no hay partidas.",
     name: "Nombre de la partida",
     newPartida: "Nueva partida",
@@ -1611,7 +1614,10 @@ export const PARTIDAS_TEXT = {
   en: {
     title: "Campaign tables",
     button: "Tables",
-    intro: "The campaign's tables. Only you see them: players never learn which table a sheet belongs to. Choose each character's table on its sheet, in edit mode; its familiar follows it.",
+    intro: "The campaign's tables. Only you see them: players never learn which table a sheet belongs to. Choose each table's characters here, or one character's table on its sheet, in edit mode; its familiar follows it.",
+    choose: "Choose characters",
+    chooseIntro: "Tick this table's characters. One at another table moves to this one; one you untick is left without a table. Search by the player's name to see theirs.",
+    atOther: "{player} · now at {partida}",
     empty: "No tables yet.",
     name: "Table name",
     newPartida: "New table",

@@ -77,6 +77,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
       title={pt.label}
       value={sheetProps.store.sheet.tableId ?? ""}
       emptyLabel={pt.none}
+      showEmpty
       editable={editable}
       onChange={(value) => void onSetPartida?.(value || null)}
       options={[...partidas.map((p) => ({ value: p.id, label: p.name, tone: PARTIDA_TONE })), { value: "", label: pt.none }]}
@@ -401,7 +402,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
               </p>
               )}
-              {sheetProps.store.sheet.tableId && <div className="mt-2 flex justify-center md:justify-start" id="sheet-partida">{partidaTag(false)}</div>}
+              {partidas && <div className="mt-2 flex justify-center md:justify-start" id="sheet-partida">{partidaTag(false)}</div>}
             </>
           )}
         </div>

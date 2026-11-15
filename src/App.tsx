@@ -348,6 +348,25 @@ export default function App() {
       void loadLists();
     } catch { showToast("error", t.storageLoadError); }
   };
+  // «Elegir personajes» in «Partidas» (owner, 15 November 2026): the Máster's confirmed,
+  // unarchived characters, each with who plays it; a partida then holds exactly the chosen ones.
+  const partidaCharacters = useMemo(() => {
+    const st = STATUS_TEXT[lang];
+    const player = (id?: string | null) => (!id ? st.nobody : id === user?.id ? st.me
+      : members.find(m => m.userId === id)?.displayName || members.find(m => m.userId === id)?.username || st.nobody);
+    return characters
+      .filter(c => !c.archived && (c.status ?? "confirmed") === "confirmed" && c.capabilities.isGM)
+      .map(c => ({ id: c.id, name: (c.fields as { nombre?: string }).nombre || t.noName, player: player(c.assignedPlayerId), tableId: c.tableId ?? null }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  }, [characters, members, user?.id, lang, t.noName]);
+  const setPartidaCharacters = async (tableId: string, ids: string[]) => {
+    const chosen = new Set(ids);
+    const changed = characters.filter(c => partidaCharacters.some(p => p.id === c.id)
+      && (chosen.has(c.id) ? c.tableId !== tableId : c.tableId === tableId));
+    try {
+      for (const c of changed) await mutate(storeFor(c), "manage", { tableId: chosen.has(c.id) ? tableId : null });
+    } finally { await loadLists(); }
+  };
   const saveCatalogue = async (next: SkillCatalogue): Promise<boolean> => {
     const text = CAMPAIGN_SKILLS_TEXT[lang];
     const path = `campaigns/${campaignId}/skill-catalogue`;
@@ -679,6 +698,8 @@ export default function App() {
               onCreate={async name => { await partidasApi.create(name); await loadPartidas(); }}
               onRename={async (id, name) => { await partidasApi.rename(id, name); await loadPartidas(); }}
               onRemove={async id => { await partidasApi.remove(id); await loadPartidas(); await loadLists(); }}
+              characters={partidaCharacters}
+              onSetCharacters={setPartidaCharacters}
               onShowToast={showToast}
               onBack={() => setScreen("LIST")}
             />

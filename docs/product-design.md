@@ -445,8 +445,9 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 
 - Opened from «Partidas» on the main list (until the Biblioteca, R5).
 - Each partida: its name in a box (saved when leaving the box or pressing Enter) and how many characters it holds; «×» removes it after asking (its characters stay, without a partida).
+- **«Elegir personajes»** under each partida (owner, 15 November 2026, after testing on staging): a picker with checks (Controls 9) listing the Máster's confirmed, unarchived characters, each with who plays it and, when at another table, «ahora en …»; the partida's own are ticked. «Hecho» moves the ticked ones in and leaves the unticked ones without a partida. Searching by a player's name finds their characters, so a player's whole set is placed in a few taps.
 - «Nueva partida» and «Añadir»; names are unique in the campaign ignoring case, at most 12 partidas.
-- A character's partida is chosen on its sheet: in edit mode the top bar shows «Partida» as a tag menu (the partidas and «Sin partida»); when reading, the Máster sees it as a tag under the concept. A familiar follows the character it is bonded to.
+- A character's partida is chosen on its sheet: in edit mode the top bar shows «Partida» as a tag menu (the partidas and «Sin partida»); when reading, the Máster sees it as a tag under the concept, «Sin partida» included (15 November 2026), so he can see at a glance which characters still need one. A familiar follows the character it is bonded to.
 - The main list shows each sheet's partida as a small tag on its card, and filters by partida in the filter bar.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)

@@ -4,16 +4,18 @@
  */
 
 // «Partidas de la campaña» (R4 b; product-design.md section 10b): the Máster names the
-// campaign's tables, renames them and removes them. Only the Máster sees partidas; each
-// character's partida is chosen on its sheet. Opened from the main list until the
-// Biblioteca (R5). Each change is saved at once; removing asks first.
+// campaign's tables, renames them and removes them. Only the Máster sees partidas. He
+// chooses each partida's characters here, several at once («Elegir personajes», owner,
+// 15 November 2026), or one character's partida on its sheet. Opened from the main list
+// until the Biblioteca (R5). Each change is saved at once; removing asks first.
 import { useState } from "react";
-import { ArrowLeft, Dices, Plus, X } from "lucide-react";
+import { ArrowLeft, Dices, Plus, Users, X } from "lucide-react";
 import type { ApiTable } from "../contracts/api-v1";
 import { PARTIDAS_TEXT, TRANSLATIONS, type Language } from "../localization";
 import { ApiFailure } from "../remote/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { HIT } from "../components/TagMenu";
+import { Picker, pickerTexts } from "../components/Picker";
 
 export interface CampaignPartidasProps {
   lang: Language;
@@ -23,18 +25,28 @@ export interface CampaignPartidasProps {
   onCreate: (name: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  /** The characters a partida can hold (confirmed, not archived), with who plays each. */
+  characters: { id: string; name: string; player: string; tableId: string | null }[];
+  /** The partida holds exactly these characters: chosen ones move in, unticked ones are left «sin partida». */
+  onSetCharacters: (tableId: string, characterIds: string[]) => Promise<void>;
   onShowToast: (type: "success" | "error", text: string) => void;
   onBack: () => void;
 }
 
 const inputClass = "w-full text-xs bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-amber-500 focus:outline-none";
 
-export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, onRemove, onShowToast, onBack }: CampaignPartidasProps) {
+export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, onRemove, characters, onSetCharacters, onShowToast, onBack }: CampaignPartidasProps) {
   const t = TRANSLATIONS[lang];
   const p = PARTIDAS_TEXT[lang];
   const [names, setNames] = useState<Record<string, string>>({});
   const [newName, setNewName] = useState("");
   const [removing, setRemoving] = useState<ApiTable | null>(null);
+  const [choosing, setChoosing] = useState<ApiTable | null>(null);
+  /** Each character with who plays it and, when it is at another table, which. */
+  const detailOf = (c: CampaignPartidasProps["characters"][number], table: ApiTable) => {
+    const other = c.tableId && c.tableId !== table.id ? partidas.find(x => x.id === c.tableId)?.name : undefined;
+    return other ? p.atOther.replace("{player}", c.player).replace("{partida}", other) : c.player;
+  };
   const [busy, setBusy] = useState(false);
 
   const countText = (n: number) => (n === 0 ? p.noCharacters : n === 1 ? p.oneCharacter : p.characters.replace("{n}", String(n)));
@@ -92,7 +104,13 @@ export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, o
                     onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                     className={inputClass}
                   />
-                  <div className="text-[10px] font-mono text-neutral-500 mt-1">{countText(counts[table.id] ?? 0)}</div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    <span className="text-[10px] font-mono text-neutral-500">{countText(counts[table.id] ?? 0)}</span>
+                    <button type="button" id={`btn-partida-characters-${table.id}`} disabled={busy} aria-haspopup="dialog" onClick={() => setChoosing(table)}
+                      className="inline-flex items-center gap-1.5 min-h-8 px-2.5 rounded-lg border border-amber-600/50 bg-gradient-to-b from-[#231c35] to-[#130f1e] text-amber-300 text-[11px] font-semibold cursor-pointer hover:border-[#f3d88c] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-50">
+                      <Users className="w-3.5 h-3.5 shrink-0" />{p.choose}
+                    </button>
+                  </div>
                 </div>
                 <button type="button" id={`btn-remove-partida-${table.id}`} disabled={busy} title={p.remove} aria-label={`${p.remove}: ${table.name}`}
                   onClick={() => setRemoving(table)}
@@ -113,6 +131,20 @@ export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, o
           </button>
         </form>
       </div>
+
+      {choosing && (
+        <Picker
+          id="partida-characters"
+          title={choosing.name}
+          intro={<p className="text-xs text-neutral-400 leading-relaxed">{p.chooseIntro}</p>}
+          multiple
+          items={characters.map(c => ({ id: c.id, label: c.name, detail: detailOf(c, choosing) }))}
+          selected={characters.filter(c => c.tableId === choosing.id).map(c => c.id)}
+          onDone={ids => { const table = choosing; setChoosing(null); void run(() => onSetCharacters(table.id, ids)); }}
+          onClose={() => setChoosing(null)}
+          texts={pickerTexts(t)}
+        />
+      )}
 
       {removing && (
         <ConfirmDialog

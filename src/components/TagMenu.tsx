@@ -32,7 +32,7 @@ const PLAIN = "border-neutral-700 bg-neutral-900/60 text-neutral-300";
 export const HIT = "relative after:absolute after:content-[''] after:left-1/2 after:top-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-[max(100%,40px)] after:h-[max(100%,40px)]";
 const PHONE = 640;
 
-export function TagMenu<T extends string>({ id, title, value, options, emptyLabel, editable, onChange, tagClass }: {
+export function TagMenu<T extends string>({ id, title, value, options, emptyLabel, editable, onChange, tagClass, showEmpty }: {
   /** The tag's id; menu items are `${id}-option-${value || "none"}`. */
   id: string;
   /** The menu's heading and the tag's accessible name. */
@@ -41,6 +41,8 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
   options: TagOption<T>[];
   /** Shown when there is no value yet. */
   emptyLabel: string;
+  /** Read-only, an empty value still shows `emptyLabel` (the Máster's «Sin partida»); otherwise it shows nothing. */
+  showEmpty?: boolean;
   editable: boolean;
   onChange: (value: T) => void;
   /** Replaces the tag's shape and colours (the house tag); the value's tone then does not apply. */
@@ -53,7 +55,7 @@ export function TagMenu<T extends string>({ id, title, value, options, emptyLabe
   const text = current?.label ?? emptyLabel;
 
   if (!editable) {
-    if (!current) return null;
+    if (!current) return showEmpty ? <span id={id} title={title} className={tagClass ?? `${TAG} ${PLAIN}`}>{emptyLabel}</span> : null;
     return (
       <span id={id} title={title} className={tagClass ?? `${TAG} ${current.tone ?? PLAIN}`}>
         {current.icon}

@@ -903,6 +903,13 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Testing note:** private windows of one browser share their cookies, so signing in one replaces the sign-in in the others; test each account in its own browser or profile.
 - **Checks:** type check; 42 unit tests; 66 demo browser tests (updated for each fix); CI on each PR. **On staging** the same day (frontend only, `cc6f44a`); production waits for milestone 2.
 
+## Several partidas per character — 15 November 2026
+
+- **Owner's decisions:** a character can be in several partidas (a teacher who goes to both sessions); one in no partida is common to all, and the filter calls them «Comunes»; the filter keeps its behaviour (a partida shows its own, «Comunes» only the common ones, both at once); partidas are chosen only in «Partidas» → «Elegir personajes», by the Máster; the sheet shows no partida (PR #109's «Sin partida» tag undone, the edit-mode tag menu removed) and the cards show none; the list order is unchanged.
+- **Server:** migration `0012_several_partidas` (`Sheet.tables`, many to many; each sheet's single partida becomes the first of its list; reversible, checked both ways on the local preview database). New `POST campaigns/{id}/tables/{tableId}/characters {characterIds}` sets a partida's characters among the confirmed, unarchived ones, leaving their other partidas; `manage` no longer takes `tableId`; the GM's projection carries `tableIds`. Backend suite 188 (partida tests rewritten: several partidas, archived ones kept, only this campaign's characters).
+- **App:** «Elegir personajes» adds and removes only this partida («también en …»); the filter's «Comunes»; no partida tags on cards or sheets. **Demo:** the teacher is at both demo tables; the mock server follows the same rules (old saved demo data with one partida still reads).
+- **Checks:** type check; unit tests; demo browser tests; backend suite; CI. Not on staging yet: it needs the staging backend rebuilt with the migration (backup first), when the owner asks.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

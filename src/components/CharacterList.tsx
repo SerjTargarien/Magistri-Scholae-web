@@ -53,6 +53,9 @@ const ESTADO_DEFAULT: Record<"master" | "player" | "support", SheetState[]> = {
   support: ["active", "draft", "proposed"],
 };
 
+/** The «Partida» filter's option for characters in no partida, common to all (owner, 15 November 2026). */
+const COMMON = "COMMON";
+
 export const DEFAULT_LIST_FILTER: FilterState = { query: "", field: "all", selected: {}, sort: "nombre", dir: "asc" };
 const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarSheet;
 
@@ -84,8 +87,11 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   // Partidas (R4 b), the Máster's only.
   const pt = PARTIDAS_TEXT[lang];
   const ft = FILTER_TEXT[lang];
-  const partidaOf = (item: ApiSheetProjection) => ownerOf(item)?.tableId || "NONE";
-  const partidaName = (item: ApiSheetProjection) => partidas?.find((p) => p.id === partidaOf(item))?.name;
+  /** A sheet's partidas (a familiar's are its character's); none means common to all. */
+  const partidasOf = (item: ApiSheetProjection) => {
+    const ids = ownerOf(item)?.tableIds ?? [];
+    return ids.length ? ids : [COMMON];
+  };
   // R4 (c): a draft, a proposal or an inactive sheet says so on its card.
   const st = STATUS_TEXT[lang];
   const statusOf = (item: ApiSheetProjection) =>
@@ -94,16 +100,15 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     draft: "text-sky-200 border-sky-400/60", proposed: "text-amber-200 border-amber-400/70", inactive: "text-neutral-300 border-neutral-500/70",
     archived: "text-rose-200 border-rose-400/60",
   };
-  /** The card's corner tags: the Máster's partida, and the sheet's status when it is not simply active. */
-  const partidaTag = (item: ApiSheetProjection) => {
-    const name = partidaName(item);
+  /** The card's corner tag: the sheet's status when it is not simply active. Partidas show no
+   * tag; the filter separates them (owner, 15 November 2026). */
+  const statusTag = (item: ApiSheetProjection) => {
     const state = statusOf(item);
-    if (!name && state === "active") return null;
+    if (state === "active") return null;
     const tag = "max-w-full px-2 py-0.5 text-[10px] font-mono font-bold bg-[#140e08]/95 border rounded-md break-words shadow-[0_2px_8px_rgba(0,0,0,0.75)]";
     return (
       <div className="absolute top-2.5 left-2.5 max-w-[60%] flex flex-col items-start gap-1">
-        {name && <div data-partida className={`${tag} text-violet-200 border-violet-400/60`}>{name}</div>}
-        {state !== "active" && <div data-status={state} className={`${tag} ${STATUS_TONE[state]}`}>{st[state]}</div>}
+        <div data-status={state} className={`${tag} ${STATUS_TONE[state]}`}>{st[state]}</div>
       </div>
     );
   };
@@ -134,7 +139,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   };
   const SEARCH = ["nombre", "jugador", "concepto", "casa", "curso", "tipo"];
   const sections: FilterSection[] = [
-    ...(partidas?.length ? [{ id: "partida", title: pt.filter, options: [...partidas.map((p) => ({ value: p.id, label: p.name })), { value: "NONE", label: pt.none }] }] : []),
+    ...(partidas?.length ? [{ id: "partida", title: pt.filter, options: [...partidas.map((p) => ({ value: p.id, label: p.name })), { value: COMMON, label: pt.common }] }] : []),
     { id: "casa", title: ft.house, options: Object.keys(HOUSES).map((k) => ({ value: k, label: HOUSES[k].nombre, icon: <HouseCrest house={k} variant="medallion" className="w-6 h-6 shrink-0" /> })) },
     { id: "tipo", title: ft.type, options: [{ value: "student", label: ft.student }, { value: "adult", label: ft.adult }, { value: "familiar", label: ft.familiar }] },
     // Inactive and archived sheets leave the list unless chosen here (R4 c). The options are
@@ -161,14 +166,14 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   const matches = (state: FilterState, item: ApiSheetProjection) => {
     const q = fold(state.query.trim());
     if (q && !(state.field === "all" ? SEARCH : [state.field]).some((f) => fold(textOf(item, f)).includes(q))) return false;
-    const has = (id: string, value: string) => {
+    const has = (id: string, value: string | string[]) => {
       const section = sections.find((s) => s.id === id);
       const chosen = section ? selectionOf(state, section) : [];
-      return !chosen.length || chosen.includes(value);
+      return !chosen.length || (Array.isArray(value) ? value : [value]).some((v) => chosen.includes(v));
     };
     // A player's draft never shows to the Máster, whatever the filters (the server never sends one; this keeps it so).
     if (listRole === "master" && statusOf(item) === "draft") return false;
-    return has("partida", partidaOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item)) && has("estado", statusOf(item));
+    return has("partida", partidasOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item)) && has("estado", statusOf(item));
   };
   const ordered = (list: ApiSheetProjection[]) => [...list].sort((a, b) => {
     const ka = sortKey(a, filter.sort), kb = sortKey(b, filter.sort);
@@ -354,7 +359,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </div>
                     )}
 
-                    {partidaTag(item)}
+                    {statusTag(item)}
 
                     {/* Subtle bottom vignette inside portrait so overlapping shield pops */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />
@@ -466,7 +471,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                       </div>
                     )}
 
-                    {partidaTag(item)}
+                    {statusTag(item)}
 
                     {/* Subtle bottom vignette inside portrait so overlapping medallion pops */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/65 to-transparent" />

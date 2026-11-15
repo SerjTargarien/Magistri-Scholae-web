@@ -31,8 +31,9 @@ export interface ApiSheetProjection<K extends EntityKind = EntityKind> {
   status?: "draft" | "proposed" | "confirmed";
   /** R4 (c): an inactive sheet (dead, travelling) leaves the main list by default; its player still edits it. */
   active?: boolean;
-  /** GM only, characters only: the character's partida (R4 b); familiars follow their bond. */
-  tableId?: string | null;
+  /** GM only, characters only: the character's partidas, oldest first; empty is common to all
+   * (R4 b; several since 15 November 2026). Familiars follow their bond. */
+  tableIds?: string[];
 }
 
 export interface ApiPatch {

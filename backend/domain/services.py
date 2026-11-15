@@ -130,7 +130,7 @@ def patch_sheet(actor, sheet_id, kind, body):
 
 @transaction.atomic
 def manage_sheet(actor, sheet_id, kind, body):
-    keys(body, ["expectedRevision", "assignedPlayerId", "archived", "tableId", "active"], ["expectedRevision"])
+    keys(body, ["expectedRevision", "assignedPlayerId", "archived", "active"], ["expectedRevision"])
     sheet = sheet_for(actor, sheet_id, kind, lock=True)
     member(actor, sheet.campaign, gm=True)
     require(sheet.status == "confirmed", "not_confirmed", 409)
@@ -143,12 +143,6 @@ def manage_sheet(actor, sheet_id, kind, body):
     if "archived" in body:
         require(type(body["archived"]) is bool)
         sheet.archived = body["archived"]
-    if "tableId" in body:
-        # A character's partida, or none; familiars follow their bond (R4 b).
-        require(kind == "character", "invalid_table")
-        table = body["tableId"]
-        require(table is None or (isinstance(table, str) and Table.objects.filter(pk=table, campaign=sheet.campaign).exists()), "invalid_table")
-        sheet.table_id = table
     touch(sheet, f"{kind}.managed", actor)
     return projection(actor, sheet)
 
@@ -197,14 +191,46 @@ def rename_table(actor, campaign_id, table_id, body):
 
 @transaction.atomic
 def remove_table(actor, campaign_id, table_id):
-    """Its characters stay, «sin partida»; their revision moves on, as the GM's copy changed."""
+    """Its characters stay, in their other partidas or common to all; their revision moves on,
+    as the GM's copy changed."""
     campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
     table = Table.objects.get(pk=table_id, campaign=campaign)
-    for sheet in Sheet.objects.select_for_update().filter(table=table):
-        sheet.table = None
+    for sheet in Sheet.objects.select_for_update().filter(tables=table):
+        sheet.tables.remove(table)
         touch(sheet, f"{sheet.kind}.managed", actor)
     AuditEvent.objects.create(actor=actor, action="table.removed", target_id=str(table.pk))
     table.delete()
+
+
+MAX_CHOSEN = 1000  # «Elegir personajes»: at most this many ids in one request
+
+
+@transaction.atomic
+def set_table_characters(actor, campaign_id, table_id, body):
+    """«Elegir personajes» (owner, 15 November 2026): the partida holds exactly the chosen
+    characters among the GM's confirmed, unarchived ones. Choosing one adds this partida to
+    its others; leaving one out removes only this one. Archived sheets, drafts and proposals
+    keep their partidas. Each changed sheet's revision moves on."""
+    keys(body, ["characterIds"], ["characterIds"])
+    campaign = campaign_for(actor, campaign_id, gm=True, lock=True)
+    table = Table.objects.filter(pk=table_id, campaign=campaign).first()
+    require(table is not None, "not_found", 404)
+    chosen = body["characterIds"]
+    require(isinstance(chosen, list) and len(chosen) <= MAX_CHOSEN and all(isinstance(i, str) for i in chosen))
+    eligible = {str(s.pk): s for s in Sheet.objects.select_for_update().filter(
+        campaign=campaign, kind="character", status="confirmed", archived=False).prefetch_related("tables")}
+    require(set(chosen) <= eligible.keys(), "invalid_table")
+    for sheet_id, sheet in eligible.items():
+        inside = any(t.pk == table.pk for t in sheet.tables.all())
+        if (sheet_id in chosen) == inside:
+            continue
+        if inside:
+            sheet.tables.remove(table)
+        else:
+            sheet.tables.add(table)
+        touch(sheet, "character.managed", actor)
+    AuditEvent.objects.create(actor=actor, action="table.characters", target_id=str(table.pk))
+    return {"characterIds": sorted(str(s.pk) for s in table.sheets.filter(kind="character"))}
 
 
 def bonded_with(sheet, statuses):

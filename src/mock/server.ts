@@ -230,8 +230,8 @@ export class MockServer {
       capabilities: { readablePaths, writablePaths: writable, collectionPaths, removablePaths: removable, bondWritable: writer, isGM: access === "gm" },
       ...(sheet.bondId ? { bondId: sheet.bondId } : {}),
       ...(access === "gm" ? { assignedPlayerId: sheet.assignedPlayerId || null, archived: sheet.archived } : {}),
-      // The partida: the GM's only, characters only (R4 b).
-      ...(access === "gm" && sheet.kind === "character" ? { tableId: sheet.tableId ?? null } : {}),
+      // The partidas: the GM's only, characters only (R4 b), in the partidas' order.
+      ...(access === "gm" && sheet.kind === "character" ? { tableIds: this.state.partidas.filter(p => this.partidasOf(sheet).includes(p.id)).map(p => p.id) } : {}),
     };
   }
 
@@ -616,11 +616,6 @@ export class MockServer {
     if (user.role !== "gm") return fail(403, "forbidden");
     if ((sheet.status ?? "confirmed") !== "confirmed") return fail(409, "not_confirmed");
     if (typeof body.active === "boolean") sheet.active = body.active;
-    if ("tableId" in body) {
-      // Like services.manage_sheet: characters only, one of this campaign's partidas or none.
-      if (sheet.kind !== "character" || (body.tableId !== null && !this.state.partidas.some(p => p.id === body.tableId))) return fail(400, "invalid_table");
-      if (body.tableId === null) delete sheet.tableId; else sheet.tableId = body.tableId;
-    }
     if (typeof body.archived === "boolean") sheet.archived = body.archived;
     if ("assignedPlayerId" in body) {
       // Like services.assigned_member: an active member of the campaign, or nobody.
@@ -643,11 +638,36 @@ export class MockServer {
     return new Reply(200, {});
   }
 
+  /** A character's partidas; demo data saved before several were allowed kept one. */
+  private partidasOf(sheet: DemoSheet): string[] {
+    const old = (sheet as DemoSheet & { tableId?: string }).tableId;
+    return sheet.tableIds ?? (old ? [old] : []);
+  }
+
   /** The campaign's partidas (R4 b), like services.create_table and friends: the GM's only. */
   private partidas(method: string, path: string, body: any, user: DemoUser): Reply {
     if (user.role !== "gm") return fail(403, "forbidden");
     const list = this.state.partidas;
     const id = path.split("/")[3];
+    if (id && path.split("/")[4] === "characters") {
+      // Like services.set_table_characters: exactly the chosen ones among the confirmed, unarchived characters.
+      const table = list.find(p => p.id === id);
+      if (!table) return fail(404, "not_found");
+      const chosen: unknown = body.characterIds;
+      if (!Array.isArray(chosen) || chosen.some(i => typeof i !== "string")) return fail(400, "invalid_request");
+      const eligible = this.state.sheets.filter(s => s.kind === "character" && (s.status ?? "confirmed") === "confirmed" && !s.archived);
+      if (chosen.some(i => !eligible.some(s => s.id === i))) return fail(400, "invalid_table");
+      for (const sheet of eligible) {
+        const now = this.partidasOf(sheet);
+        const want = chosen.includes(sheet.id);
+        if (want === now.includes(table.id)) continue;
+        sheet.tableIds = want ? [...now, table.id] : now.filter(t => t !== table.id);
+        delete (sheet as DemoSheet & { tableId?: string }).tableId;
+        sheet.revision++;
+      }
+      this.save();
+      return new Reply(200, { characterIds: this.state.sheets.filter(s => this.partidasOf(s).includes(table.id)).map(s => s.id) });
+    }
     const named = (exclude?: string): string | Reply => {
       const name = typeof body.name === "string" ? body.name.trim() : "";
       if (!name) return fail(400, "field_required");
@@ -668,7 +688,12 @@ export class MockServer {
     if (!table) return fail(404, "not_found");
     if (method === "DELETE") {
       this.state.partidas = list.filter(p => p !== table);
-      for (const sheet of this.state.sheets) if (sheet.tableId === table.id) { delete sheet.tableId; sheet.revision++; }
+      for (const sheet of this.state.sheets) {
+        if (!this.partidasOf(sheet).includes(table.id)) continue;
+        sheet.tableIds = this.partidasOf(sheet).filter(t => t !== table.id);
+        delete (sheet as DemoSheet & { tableId?: string }).tableId;
+        sheet.revision++;
+      }
       this.save();
       return new Reply(200, {});
     }

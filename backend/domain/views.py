@@ -266,6 +266,11 @@ def table(request, body, campaign_id, table_id):
     return services.rename_table(request.user, campaign_id, table_id, body)
 
 
+@endpoint(["POST"])
+def table_characters(request, body, campaign_id, table_id):
+    return services.set_table_characters(request.user, campaign_id, table_id, body)
+
+
 @endpoint(["GET", "POST"])
 def skill_catalogue(request, body, campaign_id):
     if request.method == "POST":

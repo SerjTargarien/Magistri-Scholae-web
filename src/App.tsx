@@ -342,30 +342,24 @@ export default function App() {
     void loadLists();
   };
 
-  const setPartida = async (store: SheetStore, tableId: string | null) => {
-    try {
-      await mutate(store, "manage", { tableId });
-      void loadLists();
-    } catch { showToast("error", t.storageLoadError); }
-  };
   // «Elegir personajes» in «Partidas» (owner, 15 November 2026): the Máster's confirmed,
-  // unarchived characters, each with who plays it; a partida then holds exactly the chosen ones.
+  // unarchived characters, each with who plays it; a partida then holds exactly the chosen ones,
+  // without taking them from their other partidas.
   const partidaCharacters = useMemo(() => {
     const st = STATUS_TEXT[lang];
     const player = (id?: string | null) => (!id ? st.nobody : id === user?.id ? st.me
       : members.find(m => m.userId === id)?.displayName || members.find(m => m.userId === id)?.username || st.nobody);
     return characters
       .filter(c => !c.archived && (c.status ?? "confirmed") === "confirmed" && c.capabilities.isGM)
-      .map(c => ({ id: c.id, name: (c.fields as { nombre?: string }).nombre || t.noName, player: player(c.assignedPlayerId), tableId: c.tableId ?? null }))
+      .map(c => ({ id: c.id, name: (c.fields as { nombre?: string }).nombre || t.noName, player: player(c.assignedPlayerId), tableIds: c.tableIds ?? [] }))
       .sort((a, b) => a.name.localeCompare(b.name, "es"));
   }, [characters, members, user?.id, lang, t.noName]);
   const setPartidaCharacters = async (tableId: string, ids: string[]) => {
-    const chosen = new Set(ids);
-    const changed = characters.filter(c => partidaCharacters.some(p => p.id === c.id)
-      && (chosen.has(c.id) ? c.tableId !== tableId : c.tableId === tableId));
-    try {
-      for (const c of changed) await mutate(storeFor(c), "manage", { tableId: chosen.has(c.id) ? tableId : null });
-    } finally { await loadLists(); }
+    if (!partidasApi) return;
+    // Unsent edits to these sheets go first: the server moves their revision on.
+    await Promise.all([...stores.current.values()].map(store => settle(store)));
+    try { await partidasApi.setCharacters(tableId, ids); }
+    finally { await loadLists(); }
   };
   const saveCatalogue = async (next: SkillCatalogue): Promise<boolean> => {
     const text = CAMPAIGN_SKILLS_TEXT[lang];
@@ -578,8 +572,6 @@ export default function App() {
               onOpenCreateFamiliar={() => { setSelectedFamiliarId(null); setFamiliarEditorOrigin("DETAIL"); setScreen("FAMILIAR_EDITOR"); }}
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
-              partidas={isGM(characterStore) && confirmed(characterStore) && !openAccess ? partidas : undefined}
-              onSetPartida={isGM(characterStore) && confirmed(characterStore) && !openAccess ? tableId => setPartida(characterStore, tableId) : undefined}
               status={openAccess ? undefined : statusFor(characterStore)}
             />
           )}
@@ -694,7 +686,7 @@ export default function App() {
             <CampaignPartidas
               lang={lang}
               partidas={partidas ?? []}
-              counts={characters.reduce<Record<string, number>>((n, c) => (c.tableId ? { ...n, [c.tableId]: (n[c.tableId] ?? 0) + 1 } : n), {})}
+              counts={characters.reduce<Record<string, number>>((n, c) => { for (const id of c.tableIds ?? []) n[id] = (n[id] ?? 0) + 1; return n; }, {})}
               onCreate={async name => { await partidasApi.create(name); await loadPartidas(); }}
               onRename={async (id, name) => { await partidasApi.rename(id, name); await loadPartidas(); }}
               onRemove={async id => { await partidasApi.remove(id); await loadPartidas(); await loadLists(); }}

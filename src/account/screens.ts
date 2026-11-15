@@ -42,9 +42,6 @@ export interface CharacterDetailProps {
   onUploadImage: UploadImage;
   /** The viewer's private notes about this sheet («Notas privadas», below the Bitácora). */
   notes?: NotesApi;
-  /** The Máster only: the campaign's partidas, and placing this character in one (or none) (R4 b). */
-  partidas?: ApiTable[];
-  onSetPartida?: (tableId: string | null) => Promise<void>;
   /** Drafts, proposals and the active switch (R4 c). */
   status?: SheetStatusProps;
 }

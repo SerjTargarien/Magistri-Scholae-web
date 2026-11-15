@@ -149,7 +149,7 @@ Each one is a single shared component, drawn with the design system's tokens in 
 |---|---|---|---|
 | Main list: houses, adults, familiars, partidas | Chip strip | Filter bar (11) | Done (R4 b, 14 November 2026) |
 | Main list: search | Text box | Inside the filter bar, with where to search | Done (R4 b) |
-| A character's partida (Máster) | — | Tag menu (7) on the sheet's top bar | Done (R4 b) |
+| A character's partidas (Máster) | — | Picker with checks (9) in «Partidas» → «Elegir personajes» (15 November 2026; the sheet's tag menu removed) | Done (R4 b) |
 | New sheet type | Option cards | Stays (8) | — |
 | House, creation form | Option cards | Stays (8) | — |
 | House, sheet edit mode | Native selector | Tag menu with crests (7) | Done (9 November 2026) |
@@ -307,7 +307,7 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 
 - Header: crest, «Magistri Scholae», «Mis notas», for the Máster «Habilidades de la campaña» and «Partidas», «Ajustes», «Nuevo Personaje».
 - **The filter bar** (Controls, control 11; built with R4 b, 14 November 2026, as approved in the controls demo): the magnifier chooses where to search («Todo»: name, player, concept, house, year and type; or one of them); «Filtros» with the number of filters on opens the sheet: «Ordenar por» (one field from a searchable list: name, experience, year, house, destiny points, player, type, age; with a direction; numbers start from the highest) and the sections «Partida» (Máster only), «Casa» (the five houses with their medallions) and «Tipo» (Alumno, Mago adulto, Familiar), each a list with checks; «Quitar filtros», «Ver N resultados». Active filters show as removable chips under the search, and a line says how many sheets show and how they are sorted. Options in one section add up; sections narrow each other. A familiar follows the character it is bonded to (house and partida); an adult wizard's house is the one their «Antigua casa» names. The choice stays while moving between screens and resets when the campaign changes. It replaces the house chips.
-- **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador»; for the Máster, the partida as a small tag. **Familiar card:** picture, name, description, «Especie», «Vínculo»; for the Máster, its character's partida.
+- **Character card:** portrait or house crest, year or «Adulto», name, concept, «Destino», «Exp», «Jugador»; no partida tag: the filter separates them (owner, 15 November 2026). **Familiar card:** picture, name, description, «Especie», «Vínculo».
 - By name unless another order is chosen (was: newest first); characters, then familiars. Archived sheets never appear.
 - **Estado** (R4 c) in the filter bar, with the same options whatever the list holds (owner, 15 November 2026): the Máster has «Activa», «Propuesta», «Inactiva» and «Archivada», and never «Borrador», since a player's draft never reaches his list whatever the filters; a player has «Activa», «Borrador», «Propuesta» and «Inactiva»; the administrator during an access has all five. Untouched, it shows active sheets, drafts and proposals; inactive and archived sheets are left out (the results line says so) and show again when chosen; unticking «Propuesta» hides proposals. Cards say «Borrador», «Propuesta» or «Inactiva» as a corner tag.
 
@@ -444,11 +444,12 @@ Opened from a card in «Ajustes» and from the campaign chooser, so it works for
 The campaign's tables (decision 9; the word is **partida**). Only the Máster sees them: players never learn which partida a sheet belongs to (owner).
 
 - Opened from «Partidas» on the main list (until the Biblioteca, R5).
-- Each partida: its name in a box (saved when leaving the box or pressing Enter) and how many characters it holds; «×» removes it after asking (its characters stay, without a partida).
-- **«Elegir personajes»** under each partida (owner, 15 November 2026, after testing on staging): a picker with checks (Controls 9) listing the Máster's confirmed, unarchived characters, each with who plays it and, when at another table, «ahora en …»; the partida's own are ticked. «Hecho» moves the ticked ones in and leaves the unticked ones without a partida. Searching by a player's name finds their characters, so a player's whole set is placed in a few taps.
+- **A character can be in several partidas** (owner, 15 November 2026: a teacher who goes to both sessions), or in none: **a character in no partida is common to all** («Comunes»).
+- Each partida: its name in a box (saved when leaving the box or pressing Enter) and how many characters it holds (its own, not the common ones); «×» removes it after asking (its characters stay in their other partidas, or become common).
+- **«Elegir personajes»** under each partida (owner, 15 November 2026, after testing on staging) is **the only place partidas are chosen, by the Máster only**: a picker with checks (Controls 9) listing the Máster's confirmed, unarchived characters, each with who plays it and «también en …» for its other partidas; the partida's own are ticked. «Hecho» adds the ticked ones to this partida and removes the unticked ones from it, leaving their other partidas alone. Searching by a player's name finds their characters, so a player's whole set is placed in a few taps.
 - «Nueva partida» and «Añadir»; names are unique in the campaign ignoring case, at most 12 partidas.
-- A character's partida is chosen on its sheet: in edit mode the top bar shows «Partida» as a tag menu (the partidas and «Sin partida»); when reading, the Máster sees it as a tag under the concept, «Sin partida» included (15 November 2026), so he can see at a glance which characters still need one. A familiar follows the character it is bonded to.
-- The main list shows each sheet's partida as a small tag on its card, and filters by partida in the filter bar.
+- **The sheet shows no partida**, reading or editing (owner, 15 November 2026: the information is not needed once the sheet is open). A familiar follows the character it is bonded to.
+- **The main list** shows no partida on the cards; the filter bar's «Partida» separates them, with each partida's name and «Comunes». Choosing a partida shows its characters only; «Comunes» shows only those in no partida; both can be chosen at once. A character in several partidas shows under each. The order is unchanged.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

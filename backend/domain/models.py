@@ -109,8 +109,10 @@ class Sheet(models.Model):
     # Inactive (dead, travelling…): set by the GM on confirmed sheets; it leaves the main list
     # by default without being archived, and its player can still edit it.
     active = models.BooleanField(default=True)
-    # The character's partida (R4 b); familiars follow the character they are bonded to.
-    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="sheets")
+    # The character's partidas (R4 b; several since 15 November 2026, owner: a teacher who
+    # goes to both sessions). None means common to every partida. Familiars follow the
+    # character they are bonded to.
+    tables = models.ManyToManyField(Table, blank=True, related_name="sheets")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

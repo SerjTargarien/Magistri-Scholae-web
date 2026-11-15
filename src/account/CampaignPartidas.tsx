@@ -4,10 +4,10 @@
  */
 
 // «Partidas de la campaña» (R4 b; product-design.md section 10b): the Máster names the
-// campaign's tables, renames them and removes them. Only the Máster sees partidas. He
-// chooses each partida's characters here, several at once («Elegir personajes», owner,
-// 15 November 2026), or one character's partida on its sheet. Opened from the main list
-// until the Biblioteca (R5). Each change is saved at once; removing asks first.
+// campaign's tables, renames them and removes them. Only the Máster sees partidas, and he
+// chooses each partida's characters only here («Elegir personajes», owner, 15 November
+// 2026). A character may be in several partidas; one in none is common to all. Opened from
+// the main list until the Biblioteca (R5). Each change is saved at once; removing asks first.
 import { useState } from "react";
 import { ArrowLeft, Dices, Plus, Users, X } from "lucide-react";
 import type { ApiTable } from "../contracts/api-v1";
@@ -26,8 +26,8 @@ export interface CampaignPartidasProps {
   onRename: (id: string, name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   /** The characters a partida can hold (confirmed, not archived), with who plays each. */
-  characters: { id: string; name: string; player: string; tableId: string | null }[];
-  /** The partida holds exactly these characters: chosen ones move in, unticked ones are left «sin partida». */
+  characters: { id: string; name: string; player: string; tableIds: string[] }[];
+  /** The partida holds exactly these characters; their other partidas stay. */
   onSetCharacters: (tableId: string, characterIds: string[]) => Promise<void>;
   onShowToast: (type: "success" | "error", text: string) => void;
   onBack: () => void;
@@ -42,10 +42,10 @@ export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, o
   const [newName, setNewName] = useState("");
   const [removing, setRemoving] = useState<ApiTable | null>(null);
   const [choosing, setChoosing] = useState<ApiTable | null>(null);
-  /** Each character with who plays it and, when it is at another table, which. */
+  /** Each character with who plays it and the other partidas it is in. */
   const detailOf = (c: CampaignPartidasProps["characters"][number], table: ApiTable) => {
-    const other = c.tableId && c.tableId !== table.id ? partidas.find(x => x.id === c.tableId)?.name : undefined;
-    return other ? p.atOther.replace("{player}", c.player).replace("{partida}", other) : c.player;
+    const others = partidas.filter(x => x.id !== table.id && c.tableIds.includes(x.id)).map(x => x.name);
+    return others.length ? p.alsoIn.replace("{player}", c.player).replace("{partidas}", others.join(", ")) : c.player;
   };
   const [busy, setBusy] = useState(false);
 
@@ -139,7 +139,7 @@ export function CampaignPartidas({ lang, partidas, counts, onCreate, onRename, o
           intro={<p className="text-xs text-neutral-400 leading-relaxed">{p.chooseIntro}</p>}
           multiple
           items={characters.map(c => ({ id: c.id, label: c.name, detail: detailOf(c, choosing) }))}
-          selected={characters.filter(c => c.tableId === choosing.id).map(c => c.id)}
+          selected={characters.filter(c => c.tableIds.includes(choosing.id)).map(c => c.id)}
           onDone={ids => { const table = choosing; setChoosing(null); void run(() => onSetCharacters(table.id, ids)); }}
           onClose={() => setChoosing(null)}
           texts={pickerTexts(t)}

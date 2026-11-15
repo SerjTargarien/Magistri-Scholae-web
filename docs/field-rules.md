@@ -171,7 +171,7 @@ Campaign records, not sheet fields; only the campaign's Máster sees and changes
 | Field | Today | Rule |
 |---|---|---|
 | Partida name | Added, renamed and removed on «Partidas de la campaña». | **Required, text 60**, unique in the campaign ignoring case; **at most 12** per campaign |
-| A character's partida | Set by the Máster on the sheet's top bar in edit mode (tag menu). Removing a partida leaves its characters without one. | One of the campaign's partidas, or none; **characters only** (a familiar follows the character it is bonded to) |
+| A character's partidas | Chosen by the Máster in «Partidas» → «Elegir personajes» (15 November 2026). Removing a partida leaves its characters in their others, or common to all. | **Any of the campaign's partidas, or none** (none: common to all); **characters only** (a familiar follows the character it is bonded to) |
 
 ## Familiar sheet and editor
 

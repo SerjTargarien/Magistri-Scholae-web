@@ -149,7 +149,7 @@ test("administrator: campaigns, members, invitations, recovery links and account
 });
 
 // Partidas (R4 b): the Máster's own table management; players never see them.
-test("Máster: names partidas, places a character in one, filters the list; players see none of it", async ({ page }) => {
+test("Máster: names partidas, places characters in several, filters by partida and «Comunes»; players see none of it", async ({ page }) => {
   await openApp(page);
   await expect(page.locator("#btn-campaign-partidas")).toHaveCount(0);
   await expect(page.locator("[data-partida]")).toHaveCount(0);
@@ -170,60 +170,64 @@ test("Máster: names partidas, places a character in one, filters the list; play
   await expect(page.locator("#app-global-toast")).toContainText("Ya hay una partida con ese nombre.");
   await page.locator("#btn-campaign-partidas-back").click();
 
-  // Diego moves from Saturday's table to Sunday's; the filter follows.
+  // «Elegir personajes» (owner, 15 November 2026): Diego joins Sunday's table and stays at Saturday's.
+  await page.locator("#btn-campaign-partidas").click();
+  const domingoId = (await page.locator('[id^="input-partida-name-"]').last().getAttribute("id"))!.replace("input-partida-name-", "");
+  await page.locator(`#btn-partida-characters-${domingoId}`).click();
+  await expect(page.locator("#partida-characters-item-demo-diego")).toContainText("también en Mesa del sábado");
+  await page.locator("#partida-characters-item-demo-diego").click();
+  await page.locator("#partida-characters-done").click();
+  await expect(page.locator(`#partida-${domingoId}`)).toContainText("1 personaje");
+  await page.locator("#btn-campaign-partidas-back").click();
+
+  // No partida shows on the cards or on an open sheet; the filter separates them.
+  await expect(page.locator("[data-partida]")).toHaveCount(0);
   await openCharacter(page, "Diego Marés");
+  await expect(page.locator("#tag-partida")).toHaveCount(0);
   await setEditMode(page, true);
-  await expect(page.locator("#tag-partida")).toContainText("Mesa del sábado");
-  await page.locator("#tag-partida").click();
-  await page.getByRole("menuitemradio", { name: /Los domingos/ }).click();
-  await expect(page.locator("#tag-partida")).toContainText("Los domingos");
+  await expect(page.locator("#tag-partida")).toHaveCount(0); // chosen only in «Partidas»
   await setEditMode(page, false);
   await page.locator("#btn-detail-back").click();
+
   const filterBy = async (option: RegExp | string) => {
     await page.locator("#list-filter-open").click();
     await page.locator('[id^="list-filter-sheet-partida-"]', { hasText: option }).click();
     await page.locator("#list-filter-sheet-apply").click();
   };
+  const clearPartidas = async () => {
+    while (await page.locator('[id^="list-filter-unset-partida-"]').count()) await page.locator('[id^="list-filter-unset-partida-"]').first().click();
+  };
   await filterBy("Los domingos");
   await expect(page.locator('[id^="character-card-"]')).toHaveCount(1);
   await expect(page.locator('[id^="character-card-"]')).toContainText("Diego Marés");
-  await page.locator('[id^="list-filter-unset-partida-"]').click(); // the chip's «×»
-  await expect(page.locator('[id^="character-card-"]')).toHaveCount(3);
+  await clearPartidas();
+  await filterBy("Mesa del sábado"); // Diego, and the teacher who goes to both
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(2);
+  await expect(page.locator('[id^="character-card-"]', { hasText: "Silvio Niebla" })).toHaveCount(1);
+  await clearPartidas();
 
   // A familiar follows its character: Ámbar is at Luna's table.
   await filterBy("Mesa del jueves");
   await expect(page.locator('[id^="familiar-card-"]')).toContainText("Ámbar");
   await expect(page.locator("#list-filter-summary")).toContainText("3 de 5");
-  await page.locator('[id^="list-filter-unset-partida-"]').click();
+  await clearPartidas();
 
-  // Removing a partida keeps its character, «sin partida».
+  // Luna leaves Thursday's table: in no partida, she is common to all.
   await page.locator("#btn-campaign-partidas").click();
-  await page.locator('[id^="btn-remove-partida-"]').last().click();
+  await page.locator("#btn-partida-characters-demo-partida-jueves").click();
+  await page.locator("#partida-characters-item-demo-luna").click();
+  await page.locator("#partida-characters-done").click();
+  // Removing a partida keeps its characters at their other partidas.
+  await page.locator(`#btn-remove-partida-${domingoId}`).click();
   await expect(page.locator("#modal-remove-partida")).toContainText("Sus personajes (1 personaje)");
   await page.locator("#btn-remove-partida-confirm").click();
   await expect(page.locator('[id^="input-partida-name-"]')).toHaveCount(2);
   await page.locator("#btn-campaign-partidas-back").click();
-  await filterBy("Sin partida");
-  await expect(page.locator('[id^="character-card-"]')).toContainText("Diego Marés");
-  await page.locator('[id^="list-filter-unset-partida-"]').click();
-
-  // The Máster sees «Sin partida» on the sheet without edit mode.
-  await openCharacter(page, "Diego Marés");
-  await expect(page.locator("#tag-partida")).toContainText("Sin partida");
-  await page.locator("#btn-detail-back").click();
-
-  // «Elegir personajes» (owner, 15 November 2026): several characters at once.
-  await page.locator("#btn-campaign-partidas").click();
-  await page.locator("#btn-partida-characters-demo-partida-jueves").click();
-  await expect(page.locator("#partida-characters-item-demo-luna")).toHaveAttribute("aria-checked", "true");
-  await page.locator("#partida-characters-item-demo-diego").click();
-  await page.locator("#partida-characters-item-demo-professor").click(); // left without a partida
-  await page.locator("#partida-characters-done").click();
-  await expect(page.locator("#partida-demo-partida-jueves")).toContainText("2 personajes");
-  await page.locator("#btn-campaign-partidas-back").click();
-  await filterBy("Mesa del jueves");
-  await expect(page.locator('[id^="character-card-"]')).toHaveCount(2);
-  await expect(page.locator('[id^="character-card-"]', { hasText: "Diego Marés" })).toHaveCount(1);
+  await filterBy("Comunes");
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(1);
+  await expect(page.locator('[id^="character-card-"]')).toContainText("Luna de Bruma");
+  await filterBy("Mesa del sábado"); // both at once
+  await expect(page.locator('[id^="character-card-"]')).toHaveCount(3);
 });
 
 test("filter bar: where to search, sort order and the filters sheet", async ({ page }) => {

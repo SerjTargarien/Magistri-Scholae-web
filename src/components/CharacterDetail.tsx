@@ -44,14 +44,10 @@ import { RequiredTextInput } from "./RequiredTextInput";
 import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Segmented } from "./Segmented";
 import { Picker, pickerTexts } from "./Picker";
-import { TagMenu } from "./TagMenu";
 import { RestoreButton, SheetStatusBar } from "./SheetStatusBar";
-import { PARTIDAS_TEXT } from "../localization";
 
 /** The picker's «no familiar» row. */
 const NO_FAMILIAR = "__none";
-/** A partida's tag (R4 b), in the list cards' violet. */
-const PARTIDA_TONE = "border-violet-400/60 bg-violet-950/60 text-violet-200";
 
 export type { CharacterDetailProps } from "../account/screens";
 
@@ -68,21 +64,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
     handleDeleteCharacterClick, confirmDeleteCharacter,
   } = ctx;
   const casa = character.casa ?? "";
-  // The partida (R4 b): the Máster's only; players never receive it.
-  const { partidas, onSetPartida } = sheetProps;
-  const pt = PARTIDAS_TEXT[sheetProps.lang];
-  const partidaTag = (editable: boolean) => partidas && (
-    <TagMenu<string>
-      id="tag-partida"
-      title={pt.label}
-      value={sheetProps.store.sheet.tableId ?? ""}
-      emptyLabel={pt.none}
-      showEmpty
-      editable={editable}
-      onChange={(value) => void onSetPartida?.(value || null)}
-      options={[...partidas.map((p) => ({ value: p.id, label: p.name, tone: PARTIDA_TONE })), { value: "", label: pt.none }]}
-    />
-  );
   // Edit mode shows only the controls this viewer may use.
   const editAvatar = isQuickEditing && writable("avatarImage");
   const editBond = isQuickEditing && canBond;
@@ -377,13 +358,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
               </div>
               )}
 
-              {/* Partida: the Máster places the character in one of the campaign's tables */}
-              {partidas && onSetPartida && (
-                <div className="flex items-center gap-2 justify-center md:justify-start" id="sheet-partida">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold">{pt.label}</span>
-                  {partidaTag(true)}
-                </div>
-              )}
             </div>
           ) : (
             <>
@@ -402,7 +376,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
                 {character.concepto ? `“${character.concepto}”` : `— ${t.noConceptDefined} —`}
               </p>
               )}
-              {partidas && <div className="mt-2 flex justify-center md:justify-start" id="sheet-partida">{partidaTag(false)}</div>}
             </>
           )}
         </div>

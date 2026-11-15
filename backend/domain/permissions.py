@@ -62,7 +62,7 @@ def sheet_for(actor, sheet_id, kind, lock=False):
 
 def list_sheets(actor, campaign, kind):
     from .admin_access import active_access
-    query = Sheet.objects.select_related("campaign").filter(campaign=campaign, kind=kind)
+    query = Sheet.objects.select_related("campaign").prefetch_related("tables").filter(campaign=campaign, kind=kind)
     if active_access(actor, campaign):
         # The administrator during an access: every sheet, drafts included (R4 e).
         return query.order_by("-created_at", "id")
@@ -202,8 +202,9 @@ def projection(actor, sheet, include_bond=True):
         result["assignedPlayerId"] = str(sheet.assigned_player_id) if sheet.assigned_player_id else None
         result["archived"] = sheet.archived
         if sheet.kind == "character":
-            # The partida is the GM's own table management; players never receive it (R4 b).
-            result["tableId"] = str(sheet.table_id) if sheet.table_id else None
+            # The partidas are the GM's own table management; players never receive them (R4 b).
+            # Several, oldest partida first; an empty list is common to all (15 November 2026).
+            result["tableIds"] = [str(t.pk) for t in sorted(sheet.tables.all(), key=lambda t: (t.created_at, str(t.pk)))]
     if include_bond and can_read(actor, sheet, "bond", gm=gm):
         bond = Bond.objects.filter(Q(character=sheet) | Q(familiar=sheet)).select_related("character__campaign", "familiar__campaign").first()
         if bond:

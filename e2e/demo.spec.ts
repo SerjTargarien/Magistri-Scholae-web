@@ -284,8 +284,13 @@ test("drafts: the Máster never sees them; a proposal is read-only; confirmed as
   await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" })).toHaveCount(0);
   await expect(page.locator("#list-filter-summary")).toContainText("sin las inactivas ni las archivadas (por defecto)");
   await page.locator("#list-filter-open").click();
+  // The Máster's «Estado»: «Propuesta» always, never «Borrador» (owner, 15 November 2026).
+  await expect(page.locator("#list-filter-sheet-estado-proposed")).toBeVisible();
+  await expect(page.locator("#list-filter-sheet-estado-draft")).toHaveCount(0);
   await page.locator("#list-filter-sheet-estado-inactive").click();
   await page.locator("#list-filter-sheet-apply").click();
+  await expect(page.locator("#list-filter-chips")).toContainText("Propuesta");
+  await expect(page.locator("#list-filter-chips")).not.toContainText("proposed");
   await expect(page.locator('[id^="character-card-"]', { hasText: "Borrador de prueba" }).locator("[data-status]")).toHaveText("Inactiva");
 
   await viewAs(page, "player");

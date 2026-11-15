@@ -85,8 +85,8 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
   const n = activeCount(state);
   const fieldLabel = state.field === "all" ? texts.everything : searchFields.find((f) => f.value === state.field)?.label ?? texts.everything;
   const sortLabel = sortFields.find((f) => f.value === state.sort)?.label ?? "";
-  const chips = sections.flatMap((section) => (state.selected[section.id] ?? []).map((value) => ({
-    section: section.id, value, label: section.options.find((o) => o.value === value)?.label ?? value,
+  const chips = sections.flatMap((section) => (state.selected[section.id] ?? []).filter((value) => section.options.some((o) => o.value === value)).map((value) => ({
+    section: section.id, value, label: section.options.find((o) => o.value === value)!.label,
   })));
   const unset = (section: string, value: string) =>
     onChange(normalized({ ...state, selected: { ...state.selected, [section]: (state.selected[section] ?? []).filter((v) => v !== value) } }, sections));

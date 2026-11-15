@@ -39,6 +39,20 @@ const cardCount = (value: number | undefined, lang: Language) =>
 const characterFields = (item: ApiSheetProjection) => item.fields as CharacterSheet;
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 /** The main list's filter bar at rest: everything shown, by name. */
+type SheetState = "active" | "inactive" | "draft" | "proposed" | "archived";
+/** «Estado»'s options for each viewer (owner, 15 November 2026). */
+const ESTADO_OPTIONS: Record<"master" | "player" | "support", SheetState[]> = {
+  master: ["active", "proposed", "inactive", "archived"],
+  player: ["active", "draft", "proposed", "inactive"],
+  support: ["active", "draft", "proposed", "inactive", "archived"],
+};
+/** Untouched, «Estado» shows active sheets, drafts and proposals. */
+const ESTADO_DEFAULT: Record<"master" | "player" | "support", SheetState[]> = {
+  master: ["active", "proposed"],
+  player: ["active", "draft", "proposed"],
+  support: ["active", "draft", "proposed"],
+};
+
 export const DEFAULT_LIST_FILTER: FilterState = { query: "", field: "all", selected: {}, sort: "nombre", dir: "asc" };
 const familiarFields = (item: ApiSheetProjection) => item.fields as FamiliarSheet;
 
@@ -55,6 +69,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onOpenPartidas,
   onOpenPlayers,
   partidas,
+  listRole = "player",
   filter,
   onFilterChange,
 }) => {
@@ -122,10 +137,11 @@ export const CharacterList: React.FC<CharacterListProps> = ({
     ...(partidas?.length ? [{ id: "partida", title: pt.filter, options: [...partidas.map((p) => ({ value: p.id, label: p.name })), { value: "NONE", label: pt.none }] }] : []),
     { id: "casa", title: ft.house, options: Object.keys(HOUSES).map((k) => ({ value: k, label: HOUSES[k].nombre, icon: <HouseCrest house={k} variant="medallion" className="w-6 h-6 shrink-0" /> })) },
     { id: "tipo", title: ft.type, options: [{ value: "student", label: ft.student }, { value: "adult", label: ft.adult }, { value: "familiar", label: ft.familiar }] },
-    // Inactive sheets leave the list unless chosen here (R4 c); drafts and proposals show for whoever sees them.
-    { id: "estado", title: st.state, defaultSelected: ["active", "draft", "proposed"], defaultNote: st.hiddenNote,
-      options: [{ value: "active", label: st.active }, { value: "inactive", label: st.inactive },
-        ...(["draft", "proposed", "archived"] as const).filter((v) => [...characters, ...familiars].some((i) => statusOf(i) === v)).map((v) => ({ value: v, label: st[v] }))] },
+    // Inactive and archived sheets leave the list unless chosen here (R4 c). The options are
+    // the same whatever the list holds (owner, 15 November 2026): «Propuesta» always, to show
+    // or hide proposals; «Borrador» never for the Máster, whose list holds no player's draft.
+    { id: "estado", title: st.state, defaultSelected: ESTADO_DEFAULT[listRole], defaultNote: st.hiddenNote,
+      options: ESTADO_OPTIONS[listRole].map((v) => ({ value: v, label: st[v] })) },
   ];
   const sortFields: SortField[] = [
     { value: "nombre", label: ft.name }, { value: "xp", label: ft.xp, descFirst: true }, { value: "curso", label: ft.course },
@@ -150,6 +166,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       const chosen = section ? selectionOf(state, section) : [];
       return !chosen.length || chosen.includes(value);
     };
+    // A player's draft never shows to the Máster, whatever the filters (the server never sends one; this keeps it so).
+    if (listRole === "master" && statusOf(item) === "draft") return false;
     return has("partida", partidaOf(item)) && has("casa", houseOf(item)) && has("tipo", typeOf(item)) && has("estado", statusOf(item));
   };
   const ordered = (list: ApiSheetProjection[]) => [...list].sort((a, b) => {

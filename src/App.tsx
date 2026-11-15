@@ -523,6 +523,7 @@ export default function App() {
               onOpenPartidas={isCampaignGM ? () => setScreen("PARTIDAS") : undefined}
               onOpenPlayers={isCampaignGM ? () => setScreen("PLAYERS") : undefined}
               partidas={isCampaignGM ? partidas : undefined}
+              listRole={openAccess ? "support" : isCampaignGM ? "master" : "player"}
               filter={listFilter}
               onFilterChange={setListFilter}
               onShowToast={showToast}

@@ -127,6 +127,12 @@ export interface CharacterListProps {
   onOpenPlayers?: () => void;
   /** The Máster only: the campaign's partidas, for each card's tag and the filter. Players never get them. */
   partidas?: ApiTable[];
+  /**
+   * Who is looking, for the «Estado» filter (owner, 15 November 2026): the Máster never has
+   * «Borrador» (players' drafts are never his); a player has no «Archivada»; the administrator
+   * during an access has every state.
+   */
+  listRole?: "master" | "player" | "support";
   /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */
   filter: FilterState;
   onFilterChange: (next: FilterState) => void;

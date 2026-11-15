@@ -40,6 +40,23 @@ const BUTTON = "inline-flex items-center justify-center gap-1.5 min-h-10 px-3.5 
 const PRIMARY = `${BUTTON} border-[#9b7424] bg-gradient-to-b from-[#f3d88c] via-[#d4af37] to-[#9b7424] text-[#1a1105]`;
 const QUIET = `${BUTTON} border-amber-600/50 bg-gradient-to-b from-[#231c35] to-[#130f1e] text-neutral-200 hover:border-[#f3d88c]`;
 
+/**
+ * «Restaurar» on an archived sheet's top bar, where «Archivar» stands on the others (owner,
+ * 15 November 2026): the same place and size, in the quiet style, since it removes nothing.
+ */
+export function RestoreButton({ lang, id, onRestore }: { lang: Language; id: string; onRestore: () => Promise<void> }) {
+  const s = STATUS_TEXT[lang];
+  const [busy, setBusy] = useState(false);
+  return (
+    <button type="button" id={id} disabled={busy} title={s.restore} aria-label={s.restore}
+      onClick={() => { setBusy(true); void onRestore().finally(() => setBusy(false)); }}
+      className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-neutral-100 bg-gradient-to-b from-[#231c35] to-[#130f1e] border border-amber-600/50 hover:border-[#f3d88c] rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 min-h-[40px] transition-all cursor-pointer select-none shadow-sm disabled:opacity-50">
+      <RotateCcw className="w-4 h-4 shrink-0 text-amber-400" />
+      <span className="hidden sm:inline">{s.restore}</span>
+    </button>
+  );
+}
+
 export function SheetStatusBar({ lang, store, editing, status }: { lang: Language; store: SheetStore; editing: boolean; status?: SheetStatusProps }) {
   const s = STATUS_TEXT[lang];
   const [busy, setBusy] = useState(false);
@@ -128,13 +145,8 @@ export function SheetStatusBar({ lang, store, editing, status }: { lang: Languag
         </div>
       )}
 
-      {state === "confirmed" && gm && sheet.archived && panel(Archive, s.archivedTitle, s.archivedText, (status?.onRestore || status?.onDelete) && (
+      {state === "confirmed" && gm && sheet.archived && panel(Archive, s.archivedTitle, s.archivedText, status?.onDelete && (
         <>
-          {status?.onRestore && (
-            <button type="button" id="btn-status-restore" disabled={busy} onClick={() => void busyWhile(status.onRestore!)} className={QUIET}>
-              <RotateCcw className="w-4 h-4" />{s.restore}
-            </button>
-          )}
           {status?.onDelete && (
             <button type="button" id="btn-status-delete" disabled={busy} onClick={() => { setTicked(false); setTyped(""); setRemoving(true); }}
               className={`${BUTTON} border-rose-500/50 bg-[#4c1420] text-rose-100 hover:border-rose-300`}>

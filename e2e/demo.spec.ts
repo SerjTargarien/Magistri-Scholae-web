@@ -370,8 +370,10 @@ test("Máster: invites a player, assigns sheets, restores and deletes an archive
   await page.locator("#list-filter-sheet-estado-archived").click();
   await page.locator("#list-filter-sheet-apply").click();
   await openCharacter(page, "Regalo del Máster");
-  await page.locator("#btn-status-restore").click();
-  await expect(page.locator("#btn-status-restore")).toHaveCount(0);
+  await expect(page.locator("#btn-detail-delete")).toHaveCount(0); // «Restaurar» takes «Archivar»'s place
+  await expect(page.locator("#btn-status-restore")).toHaveCount(0); // not in the panel any more
+  await page.locator("#btn-detail-restore").click();
+  await expect(page.locator("#btn-detail-restore")).toHaveCount(0);
   await page.locator("#btn-detail-delete").click();
   await page.locator("#check-archive").click();
   await page.locator("#btn-archive-confirm").click();

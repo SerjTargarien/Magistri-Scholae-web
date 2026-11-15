@@ -10,7 +10,7 @@ import { imageSrc } from "../remote/assets";
 import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ImageViewer } from "./ImageViewer";
-import { SheetStatusBar } from "./SheetStatusBar";
+import { RestoreButton, SheetStatusBar } from "./SheetStatusBar";
 import { PrivateNotes } from "./notes/PrivateNotes";
 import {
   ArrowLeft,
@@ -99,8 +99,13 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
           </button>
           )}
 
+          {/* An archived sheet: «Restaurar» in the place of «Archivar» (the Máster only) */}
+          {screenProps.store.sheet.archived && screenProps.status?.onRestore && (
+            <RestoreButton lang={screenProps.lang} id="btn-familiar-restore" onRestore={screenProps.status.onRestore} />
+          )}
+
           {/* Archive Button (GM only; no one deletes) */}
-          {onArchive && (
+          {onArchive && !screenProps.store.sheet.archived && (
           <button
             type="button"
             id="btn-familiar-delete"

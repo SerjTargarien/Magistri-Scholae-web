@@ -45,7 +45,7 @@ import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Segmented } from "./Segmented";
 import { Picker, pickerTexts } from "./Picker";
 import { TagMenu } from "./TagMenu";
-import { SheetStatusBar } from "./SheetStatusBar";
+import { RestoreButton, SheetStatusBar } from "./SheetStatusBar";
 import { PARTIDAS_TEXT } from "../localization";
 
 /** The picker's «no familiar» row. */
@@ -137,8 +137,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
           </button>
           )}
 
+          {/* An archived sheet: «Restaurar» in the place of «Archivar» (the Máster only) */}
+          {sheetProps.store.sheet.archived && sheetProps.status?.onRestore && (
+            <RestoreButton lang={sheetProps.lang} id="btn-detail-restore" onRestore={sheetProps.status.onRestore} />
+          )}
+
           {/* Archive Button (GM only) */}
-          {onArchive && (
+          {onArchive && !sheetProps.store.sheet.archived && (
           <button
             id="btn-detail-delete"
             onClick={handleDeleteCharacterClick}

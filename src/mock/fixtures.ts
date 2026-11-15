@@ -38,7 +38,7 @@ export const USERS: Record<DemoRole, DemoUser> = {
   gm: { id: "demo-gm", username: "demo_gm", displayName: "Directora (demo)", role: "gm" },
   player: { id: "demo-player", username: "demo_player", displayName: "Jugadora (demo)", role: "player" },
   reader: { id: "demo-reader", username: "demo_reader", displayName: "Lector (demo)", role: "reader" },
-  admin: { id: "demo-admin", username: "demo_admin", displayName: "Administración (demo)", role: "admin" },
+  admin: { id: "demo-admin", username: "demo_admin", displayName: "Administrador (demo)", role: "admin" },
 };
 
 const CREATED = Date.UTC(2026, 8, 14, 9, 30);

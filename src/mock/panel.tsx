@@ -8,7 +8,7 @@ import type { DemoRole } from "./fixtures";
 
 const TEXT = {
   es: {
-    title: "Panel de pruebas (demo)", viewAs: "Ver como", gm: "Directora (GM)", player: "Jugadora asignada", reader: "Lector compartido", admin: "Administración",
+    title: "Panel de pruebas (demo)", viewAs: "Ver como", gm: "Directora (GM)", player: "Jugadora asignada", reader: "Lector compartido", admin: "Administrador",
     connection: "Conexión", offline: "Sin conexión", online: "Con conexión", slow: "Respuestas lentas",
     nextSave: "Próximo guardado", failNetwork: "Se corta antes de llegar", failServer: "Error del servidor", loseReply: "Se pierde la respuesta",
     other: "Otra persona cambia", concepto: "el concepto", nombre: "el nombre", reset: "Restablecer datos de demostración", noSheet: "Abre una ficha primero",

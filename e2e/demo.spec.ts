@@ -437,7 +437,7 @@ test("administrator access: the Máster grants it, the administrator works as M�
   await page.locator("#type-select-student").click();
   await page.locator("#input-nombre").fill("Borrador secreto");
   await page.locator("#btn-form-save").click();
-  await expect(page.locator("#sheet-status")).toContainText("solo la administración podría verlo");
+  await expect(page.locator("#sheet-status")).toContainText("solo el administrador podría verlo");
 
   await viewAs(page, "gm");
   await page.locator("#btn-settings").click();
@@ -458,7 +458,7 @@ test("administrator access: the Máster grants it, the administrator works as M�
   await expect(page.locator("#detail-tab-perfil")).toContainText("Modesta"); // economía: a field only the Máster sees
   await expect(page.locator("#btn-detail-delete")).toHaveCount(0); // none of the Máster's decisions
   await setEditMode(page, true);
-  await page.locator("#input-sheet-concepto").fill("Arreglado por la administración");
+  await page.locator("#input-sheet-concepto").fill("Arreglado por el administrador");
   await setEditMode(page, false);
   await page.locator("#btn-access-solved").click();
   await expect(page.locator("#admin-screen")).toBeVisible();

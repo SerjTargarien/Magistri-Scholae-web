@@ -924,6 +924,12 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **For the testers:** a player's new sheet now starts as a draft the Máster does not see until it is proposed and confirmed; the Máster has «Partidas», «Jugadores», the «Estado» filter, «Ficha activa», assignment, restore and delete for archived sheets, and the administrator's access.
 - **Next:** step 7b, custom cards; then R4.5 (milestone 3).
 
+## After milestone 2 — 15 November 2026
+
+- **Main list header** (PR #118): on screens 1280 px and wider the Máster's six buttons keep one row and the title wraps first; narrower, nothing changed.
+- **Filter bar** (PR #119): the line under the search bar is replaced by the sort order alone, inside the bar at its end, not shown when it does not fit beside «Buscar» (phones); the bar is as far from the cards as from the frame's top; screen readers still hear the full line.
+- **Checks:** type check; demo browser tests (66); measured and screenshotted at 1283, 768, 430 and 375 px; CI. **Released to both sites** the same day at the owner's request (frontend only, `f18f11f`).
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

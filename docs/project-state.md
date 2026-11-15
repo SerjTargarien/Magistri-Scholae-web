@@ -916,6 +916,14 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Search:** every component, hook and data file outside the demo panel, for text between tags, labels, placeholders, titles, toasts and composed strings. Two cases found and fixed: the creation form showed raw error codes or English technical messages when saving failed (it now uses the sheets' plain save messages), and the familiar journal's dates followed the browser's language instead of the app's. Not changed: the houses' names, colours and mottos (game data in `src/data/gameData.ts`), the language names in the hidden language card, and the static page description in `index.html` and `manifest.json`, which cannot read the localization file.
 - **Checks:** type check; 42 unit tests; 66 demo browser tests; CI. **On staging** the same day (frontend only, `2612908`); production waits for milestone 2.
 
+## Milestone 2 published — 15 November 2026
+
+- **The owner tested all of R4 on staging** (administration, partidas and filters, drafts and proposals, the Máster's tools, the administrator's access) and approved milestone 2, going straight to production without a fresh rehearsal (the migrations had been rehearsed on staging's development copy).
+- **Production:** backup first (checked against the live data), the previous server image kept for rollback, `api-production` rebuilt at `314ce7c` with migrations `0009_partidas`, `0010_drafts_and_active`, `0011_admin_access` and `0012_several_partidas` (10 s without the API); every count unchanged; the testers' 6 sheets are confirmed and active, common to all partidas.
+- **Public site:** `b061909` (PR #116 also changed the page description, which still said «offline»). Tag `r4-20261115`.
+- **For the testers:** a player's new sheet now starts as a draft the Máster does not see until it is proposed and confirmed; the Máster has «Partidas», «Jugadores», the «Estado» filter, «Ficha activa», assignment, restore and delete for archived sheets, and the administrator's access.
+- **Next:** step 7b, custom cards; then R4.5 (milestone 3).
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

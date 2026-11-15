@@ -895,6 +895,14 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **On staging the same day** (owner's request), together with R4 (d): backup first, `api-staging` rebuilt at `90bdcf1` with migration `0011_admin_access` applied (6 sheets, no accesses), staging frontend released. Production waits for milestone 2.
 - **R4 is complete.** Next: the owner tests everything on staging; then milestone 2 (production backend with migrations 0009–0011, after a backup).
 
+## Fixes from the owner's staging test of R4 — 15 November 2026
+
+- **Archived sheets** (PR #107): «Restaurar» stands in the top bar where «Archivar» stands on other sheets; the «Ficha archivada» panel keeps only «Eliminar definitivamente».
+- **«Estado» filter** (PR #108): fixed options for each viewer, all in Spanish (it showed raw «draft» / «proposed» chips when the list held no such sheet): the Máster has Activa, Propuesta, Inactiva and Archivada, never Borrador (a player's draft never shows to him whatever the filters); a player has Activa, Borrador, Propuesta and Inactiva; the administrator during an access has all five. The filter bar shows no chip for a value no option offers.
+- **Partidas** (PR #109): «Elegir personajes» under each partida (a picker with checks of the Máster's confirmed, unarchived characters, with who plays each); the sheet shows the Máster «Sin partida» when reading.
+- **Testing note:** private windows of one browser share their cookies, so signing in one replaces the sign-in in the others; test each account in its own browser or profile.
+- **Checks:** type check; 42 unit tests; 66 demo browser tests (updated for each fix); CI on each PR. **On staging** the same day (frontend only, `cc6f44a`); production waits for milestone 2.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

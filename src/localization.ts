@@ -1325,7 +1325,7 @@ export const SIGN_IN_ERRORS: Record<Language, Record<string, string>> = {
     invalid_reset_code: "The reset code is not valid, was already used or has expired.",
     username_unavailable: "That username is taken. Choose another.",
     invalid_password: "The password is too weak or too close to your username. Use at least 12 varied characters.",
-    invalid_account_state: "This account is disabled. Contact the administrator.",
+    invalid_account_state: "This account is disabled. Contact the administration.",
     network_error: "The server cannot be reached. Check your connection and try again.",
     password_mismatch: "The two passwords do not match. Type them again.",
   },
@@ -1348,7 +1348,7 @@ export const remoteText = {
     failed: "Request failed",
     registered: "Account created. Sign in to continue.",
     resetDone: "Password updated. Sign in again.",
-    noCampaign: "No campaign memberships yet. Ask the administrator for an invitation.",
+    noCampaign: "No campaign memberships yet. Ask the administration for an invitation.",
   },
   es: {
     login: "Iniciar sesión",
@@ -1365,7 +1365,7 @@ export const remoteText = {
     failed: "La solicitud ha fallado",
     registered: "Cuenta creada. Inicia sesión para continuar.",
     resetDone: "Contraseña actualizada. Vuelve a iniciar sesión.",
-    noCampaign: "Aún no perteneces a ninguna campaña. Pide una invitación al administrador.",
+    noCampaign: "Aún no perteneces a ninguna campaña. Pide una invitación a la administración.",
   },
 };
 
@@ -1575,7 +1575,7 @@ export const CAMPAIGN_GM_TEXT = {
   },
   en: {
     players: "Players", playersTitle: "Campaign players",
-    playersIntro: "Who plays in this campaign. Invite a player with a link, shown only once; GM invitations are made by the administrator.",
+    playersIntro: "Who plays in this campaign. Invite a player with a link, shown only once; GM invitations are made by the administration.",
     campaign: "Campaign", campaignName: "Campaign name", rename: "Save name", renamed: "Name saved.",
     newCampaign: "New campaign", create: "Create", created: "Campaign created; choose it under «Campaign» to open it.",
     newCampaignHint: "You will be its GM; invite its players from «Players».",

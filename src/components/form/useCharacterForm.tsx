@@ -17,19 +17,16 @@ import { newItemId, type FamiliarSheet } from "../../model/sheet";
 import { newCharacterSheet } from "../../model/defaults";
 import type { SkillCategory } from "../../model/catalogue";
 import { ApiFailure } from "../../remote/client";
+import { errorText } from "../../account/saveMessages";
 
 type TextListKey = "aspectosPersonales" | "complicaciones" | "aspectoTemporal";
 
 
 /** A short readable message for a refused or failed save. */
+/** In the same plain words as the sheets' save panel, never an error code or a technical message. */
 function describeSaveFailure(err: unknown, lang: "es" | "en"): string {
-  if (err instanceof ApiFailure) {
-    const { path, rule, limit } = err.details ?? {};
-    const limitText = limit === undefined || limit === null ? undefined : typeof limit === "object" ? JSON.stringify(limit) : String(limit);
-    const parts = [err.code, path, rule, limitText].filter(p => p !== undefined && p !== "");
-    return `${SAVE_FAILED_TEXT[lang]} (${parts.join(" · ")})`;
-  }
-  return err instanceof Error && err.message ? `${SAVE_FAILED_TEXT[lang]} (${err.message})` : SAVE_FAILED_TEXT[lang];
+  const failure = err instanceof ApiFailure ? { code: err.code, ...err.details } : { code: "network_error" };
+  return `${SAVE_FAILED_TEXT[lang]}. ${errorText(failure, "character", lang)}`;
 }
 
 const EMPTY_PROFILE: AdultWizardProfile = {

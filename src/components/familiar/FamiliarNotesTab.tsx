@@ -118,7 +118,7 @@ export function FamiliarNotesTab({ ctx }: { ctx: FamiliarContext }) {
                         </h3>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono text-neutral-500">
-                            {note.fecha !== undefined ? new Date(note.fecha).toLocaleDateString() : ""}
+                            {note.fecha !== undefined ? new Date(note.fecha).toLocaleDateString(lang === "es" ? "es-ES" : "en-US") : ""}
                           </span>
                           {canEditNote(note.id) && (
                           <button

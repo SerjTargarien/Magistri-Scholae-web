@@ -246,13 +246,13 @@ test("filter bar: where to search, sort order and the filters sheet", async ({ p
   await page.locator("#list-filter-sheet-casa-IRATI").click();
   await expect(page.locator("#list-filter-sheet-apply")).toHaveText("Ver 2 resultados"); // Luna, and Ámbar following her
   await page.locator("#list-filter-sheet-apply").click();
-  await expect(page.locator("#list-filter-summary")).toContainText("por experiencia, descendente");
+  await expect(page.locator("#list-filter-sort")).toHaveText("por experiencia, descendente");
   await expect(page.locator("#list-filter-open")).toContainText("1");
   await page.locator("#list-filter-open").click();
   await page.locator("#list-filter-sheet-clear").click();
   await page.locator("#list-filter-sheet-apply").click();
   await expect(page.locator("#list-filter-chips")).toHaveCount(0);
-  await expect(page.locator("#list-filter-summary")).toContainText("por nombre, ascendente");
+  await expect(page.locator("#list-filter-sort")).toHaveText("por nombre, ascendente");
 });
 
 // Drafts, proposals and active sheets (R4 c).

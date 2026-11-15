@@ -52,7 +52,7 @@ export interface SortField { value: string; label: string; /** Numbers and dates
 export interface FilterTexts {
   search: string; searchIn: string; everything: string; everythingHint: string; filters: string; activeFilters: string;
   sortBy: string; fieldCount: string; direction: string; asc: string; desc: string; searchField: string; noField: string;
-  back: string; clear: string; show: string; showOne: string; results: string; removeFilter: string; close: string;
+  back: string; clear: string; show: string; showOne: string; results: string; sorted: string; removeFilter: string; close: string;
 }
 
 const PHONE = 640;
@@ -91,11 +91,12 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
   const unset = (section: string, value: string) =>
     onChange(normalized({ ...state, selected: { ...state.selected, [section]: (state.selected[section] ?? []).filter((v) => v !== value) } }, sections));
   const notes = sections.filter((s) => s.defaultNote && state.selected[s.id] === undefined).map((s) => ` · ${s.defaultNote}`).join("");
+  const sortText = fill(texts.sorted, { field: sortLabel.toLowerCase(), dir: state.dir === "asc" ? texts.asc.toLowerCase() : texts.desc.toLowerCase() });
 
   return (
     <div className="space-y-2" id={id}>
       <div className="flex gap-2">
-        <div className="flex-1 min-w-0 flex items-center gap-1 pl-1 pr-3 min-h-11 rounded-xl border border-amber-600/50 bg-neutral-950/40 focus-within:border-amber-500 focus-within:shadow-[0_0_0_2px_rgba(245,158,11,0.2)]">
+        <div className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-center gap-x-1 pl-1 pr-3 min-h-11 rounded-xl border border-amber-600/50 bg-neutral-950/40 focus-within:border-amber-500 focus-within:shadow-[0_0_0_2px_rgba(245,158,11,0.2)]">
           <TagMenu<string>
             id={`${id}-field`}
             title={texts.searchIn}
@@ -117,6 +118,10 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
             autoComplete="off"
             className="flex-1 min-w-0 bg-transparent border-0 py-2 pl-1 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-0"
           />
+          {/* The sort order, inside the bar (owner, 15 November 2026): at the end of the line, or on a phone under the search. */}
+          <span id={`${id}-sort`} className="w-full sm:w-auto sm:shrink-0 -mt-1.5 pb-1.5 sm:m-0 sm:p-0 text-right text-[11px] leading-tight text-neutral-500 font-mono">
+            {sortText}
+          </span>
         </div>
         <button
           id={`${id}-open`}
@@ -145,7 +150,8 @@ export function FilterBar({ id, state, onChange, searchFields, sections, sortFie
           ))}
         </div>
       )}
-      <p className="text-[11px] text-neutral-500 font-mono" aria-live="polite" id={`${id}-summary`}>
+      {/* Results, order and default filters, said to screen readers as they change; on screen only the order shows, in the bar. */}
+      <p className="sr-only" aria-live="polite" id={`${id}-summary`}>
         {fill(texts.results, { n: shown, total, field: sortLabel.toLowerCase(), dir: state.dir === "asc" ? texts.asc.toLowerCase() : texts.desc.toLowerCase() })}{notes}
       </p>
 

@@ -295,8 +295,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         </>
         
 
-        {/* The filter bar (Controls, control 11): search, filters and sort order */}
-        <div className="mb-6">
+        {/* The filter bar (Controls, control 11): search, filters and sort order. As far from the cards as from the frame's top. */}
+        <div className="mb-4 sm:mb-6">
           <FilterBar
             id="list-filter"
             state={filter}

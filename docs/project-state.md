@@ -914,7 +914,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 
 - **Owner's request:** every text users see comes from `src/localization.ts`, and the app speaks of **«el administrador»**, never «la administración» (the owner's account is the only administrator for a long time; PR #113 had it backwards and PR #114 corrected it): «Acceso del administrador», «Dar acceso al administrador», «Lo que ha hecho el administrador», «Habla con el administrador», «Pide una invitación al administrador», the draft panel and the role label «Administrador»; the English texts follow. The screen keeps its name, «Administración».
 - **Search:** every component, hook and data file outside the demo panel, for text between tags, labels, placeholders, titles, toasts and composed strings. Two cases found and fixed: the creation form showed raw error codes or English technical messages when saving failed (it now uses the sheets' plain save messages), and the familiar journal's dates followed the browser's language instead of the app's. Not changed: the houses' names, colours and mottos (game data in `src/data/gameData.ts`), the language names in the hidden language card, and the static page description in `index.html` and `manifest.json`, which cannot read the localization file.
-- **Checks:** type check; 42 unit tests; 66 demo browser tests; CI.
+- **Checks:** type check; 42 unit tests; 66 demo browser tests; CI. **On staging** the same day (frontend only, `2612908`); production waits for milestone 2.
 
 ## Updating this handoff
 

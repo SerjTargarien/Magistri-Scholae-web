@@ -944,7 +944,15 @@ Owner decisions the same morning: move before the testers' in-person session (14
 ## Herramientas del Máster — designed 16 November 2026
 
 - Demo https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex; both rounds approved; recorded in product-design.md 10e.
-- **Built (PR #131), option (b):** `src/components/dock/ToolsMenu.tsx` (under the button on wide screens, a sheet on phones), `SkillsPanel.tsx` (the skill list as a side panel, remembered like the view's), the view's link (`VistaLinkCard`, compact) moved from «Ajustes» into the menu, «Partidas» and «Jugadores» as menu rows; the Máster's bar is four buttons (one row from an 860 px box). On phones the panels show only on the list and sheets. Checks: type check; 42 unit tests; 68 demo browser tests (updated: tools reached through the menu; the skills test opens the panel and edits from it); 6 real-backend browser tests; both builds; screenshots at 1920, 1366, 900 and 390 px. Not released.
+- **Built (PR #131), option (b):** `src/components/dock/ToolsMenu.tsx` (under the button on wide screens, a sheet on phones), `SkillsPanel.tsx` (the skill list as a side panel, remembered like the view's), the view's link (`VistaLinkCard`, compact) moved from «Ajustes» into the menu, «Partidas» and «Jugadores» as menu rows; the Máster's bar is four buttons (one row from an 860 px box). On phones the panels show only on the list and sheets. Checks: type check; 42 unit tests; 68 demo browser tests (updated: tools reached through the menu; the skills test opens the panel and edits from it); 6 real-backend browser tests; both builds; screenshots at 1920, 1366, 900 and 390 px. **On staging** the same day (frontend only, `1b5f597`).
+
+## Vista de jugadores and Herramientas published — 16 November 2026
+
+- **The owner asked to publish** step 7a and «Herramientas» to both sites without a milestone, since the change adds tables and alters no existing data, so testers can report problems early.
+- **Production:** backup first (checked against the live data), the previous server image kept for rollback, `api-production` rebuilt at `1b5f597` with migration `0013_player_view` (the API was stopped during the migration); every count unchanged; no players' view yet.
+- **Public site:** `1b5f597`; `/vista` answers, a malformed view link is refused. Tag `7a-20261116`.
+- **For the testers:** the Máster's «Herramientas» menu (the «Vista de jugadores» and «Habilidades» panels, «Partidas», «Jugadores», the view's link with its QR code); the `/vista` page for the table's screen; players can follow the view in the app when the Máster allows it.
+- **Next:** step 7b, custom cards; then R4.5 (milestone 3).
 
 ## Updating this handoff
 

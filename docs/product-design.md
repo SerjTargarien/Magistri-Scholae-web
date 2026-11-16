@@ -25,7 +25,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 |---|---|---|
 | The GM's universe | **campaña** | «universo» |
 | Each table within it (decision 9; labels on sheets from R4) | **partida** | «mesa» |
-| What the Máster shows the table on another screen (16 November 2026; proposed words, to confirm in the demo) | **Pantalla de jugadores**; the action **Mostrar a los jugadores**, and **Ocultar** | «proyector», «TV» |
+| What the Máster shows the table on another screen (16 November 2026; the owner's verdict in the demo) | **Vista de jugadores**; the action **Mostrar** (tooltip «Mostrar a los jugadores»), and **Ocultar** | «Pantalla de jugadores», «proyector», «TV» |
 | The person who runs the campaign | **Máster** (as in «Biblioteca del Máster») | «GM» |
 | The setting's school and what belongs to it | **escuela** («Escudo de la escuela», «Profesor de la escuela») | «academia» (the GM's preferred word) |
 | Any character, whatever its type | **personaje** | «Mago» or «alumno» for characters in general |
@@ -452,7 +452,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **The sheet shows no partida**, reading or editing (owner, 15 November 2026: the information is not needed once the sheet is open). A familiar follows the character it is bonded to.
 - **The main list** shows no partida on the cards; the filter bar's «Partida» separates them, with each partida's name and «Comunes». Choosing a partida shows its characters only; «Comunes» shows only those in no partida; both can be chosen at once. A character in several partidas shows under each. The order is unchanged.
 
-### 10d. Pantalla de jugadores (Máster; new, 16 November 2026; before the custom cards)
+### 10d. Vista de jugadores (Máster; new, 16 November 2026; before the custom cards; first called «Pantalla de jugadores»)
 
 **Why:** the Máster's main wish after his first look at the site (reported by the owner, 16 November 2026). He reads a character's sheet on his laptop, away from the players, and wants a second computer's screen to show the players that character's photo.
 
@@ -470,6 +470,16 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 **Image quality:** portraits are stored up to 900 × 1200 pixels (the height of a 1080p screen); gallery images up to 1600.
 
 **Demo for the owner's verdicts:** https://claude.ai/artifact/RWWM1iV2qDUHSh6Mcc4KLP (16 November 2026; the verdicts are saved in its `verdicts` collection). **In it:** the button and panel on the sheet, the defaults, the field search and free text, the screen on a TV and on a phone, the players' view in the app; open points: several characters at once, familiars, gallery images, how a player's partida is decided (players never see partidas), and how long a screen link lasts.
+
+**Owner's verdicts and answers on the first demo (16 November 2026):**
+
+- Approved: the panel's fields and free text, the big screen, the phone, the link in «Ajustes», the in-app banner for players, and the suggested answers to the open questions (one character at a time for now; familiars yes; gallery images yes, perhaps later; links last 90 days).
+- **The name fits one line** on the big screen, shrinking to a limit before it wraps.
+- **The word is «Vista de jugadores»**, not «Pantalla de jugadores».
+- **What is showing and what comes next, both at hand:** when the open sheet is not the one on screen, the panel shows two blocks, stacked: **«Ahora»** (what the players see, still editable, with «Ocultar») and **«Preparado»** (this sheet: photo and name to start with, plus whatever he adds), and «Mostrar» sends the prepared block at once. **Each sheet keeps what was prepared for it on the server** until it is shown or cleared, so he can prepare several before the session, on any device. While something is showing, the panel **opens by itself** on every sheet; he can close it.
+- **Side panels for the Máster** (a new layout, not only for this step): with no panel open the page stays as it is today, centred. With panels open, the content (the main list or a sheet) takes the left and the panels the right, together using the whole width of a wide screen; on a laptop the content narrows to make room (nothing is covered); on a phone a panel is a bottom sheet. Several panels **stack in one column**, each collapsible. Panels stay open while he moves between the list and sheets. First panels: the Vista de jugadores (step 7a), then «Habilidades de la campaña» (right after, small step); later lists such as spells, or an institution's, club's or class's members (R5).
+- **Not now:** a «Mostrar» on the main list's cards.
+- **Second round of the demo** (same link, 16 November 2026): the side panels at full HD, laptop and phone sizes, «Ahora» and «Preparado», the name fitting one line, the new words; verdicts for changed parts are saved under new ids (`screen-tv-2`, `words-2`).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

@@ -7,9 +7,12 @@
 // the page is exactly as before. With panels open, the content (the main list or a sheet) takes
 // the left and the panels a column on the right, together using the whole width; on a narrower
 // screen the content narrows (nothing is covered); below 1024 px the panels are a sheet from the
-// bottom. Panels stack, each can be folded or closed, and stay open across screens. The content
-// is a size container, so its own layout follows its width rather than the window's.
-import React, { useEffect, useState } from "react";
+// bottom. Panels stack, each can be folded or closed, and stay open across screens. The content's
+// own width is measured and given to its layout as two flags (`group/content` with data-wide at
+// 1152 px and data-roomy at 1340 px), so a narrower column beside the panels lays out for its own
+// width. (Not a CSS size container: containment would make every fixed dialog inside it position
+// against the content instead of the screen.)
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 
 const WIDE = "(min-width: 1024px)";
@@ -28,14 +31,25 @@ function useWide() {
 /** The same elements whether or not panels are open, so the content never remounts. */
 export function DockLayout({ panels, children }: { panels: React.ReactNode[]; children: React.ReactNode }) {
   const wide = useWide();
+  const content = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = content.current;
+    if (!el) return;
+    setWidth(el.clientWidth);
+    const observer = new ResizeObserver(() => setWidth(el.clientWidth));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const open = panels.filter(Boolean);
   const docked = open.length > 0;
   return (
     <div id="dock-layout" data-docked={docked ? (wide ? "side" : "bottom") : "none"} className={docked && wide ? "flex items-start gap-5 pr-4" : ""}>
       {/* Beside the panels the screen's own width cap goes, so content and panels use the whole width. */}
-      {/* The container is as wide as the screens' own box (max-w-7xl) when nothing is docked, so rules that follow its width match
-          today's layout; beside the panels it takes the rest of the width. */}
-      <div className={`@container min-w-0 ${docked && wide ? "flex-1 [&>*]:max-w-none" : "w-full max-w-7xl mx-auto"} ${docked && !wide ? "pb-[45vh]" : ""}`}>{children}</div>
+      {/* As wide as the screens' own box (max-w-7xl) when nothing is docked, so the measured width matches today's layout;
+          beside the panels it takes the rest of the width. */}
+      <div ref={content} data-wide={width >= 1152} data-roomy={width >= 1340}
+        className={`group/content min-w-0 ${docked && wide ? "flex-1 [&>*]:max-w-none" : "w-full max-w-7xl mx-auto"} ${docked && !wide ? "pb-[45vh]" : ""}`}>{children}</div>
       {docked && (
         <aside
           id="dock"

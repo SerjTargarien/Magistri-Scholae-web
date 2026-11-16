@@ -512,3 +512,40 @@ test("vista de jugadores: the Máster shows a sheet, prepares another, shows it,
   await expect(page.locator("#panel-vista")).toHaveCount(0);
   await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
 });
+
+test("vista de jugadores: the link in Ajustes, the page the main PC opens, and the players' banner", async ({ page, context }) => {
+  await openApp(page);
+  await viewAs(page, "gm");
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-vista-create").click();
+  const url = (await page.locator("#vista-link-url").textContent())!.trim();
+  await expect(page.locator("#vista-link-qr")).toBeVisible();
+  await page.locator("#switch-vista-in-app").click();
+  await openApp(page);
+  await openCharacter(page, "Luna de Bruma");
+  await page.locator("#btn-detail-show").click();
+  await expect(page.locator("#vista-now")).toContainText("Luna de Bruma");
+
+  // The screen: no account, only what was sent.
+  const screen = await context.newPage();
+  await screen.goto(new URL(url).pathname + new URL(url).hash);
+  await expect(screen.locator("#view-content")).toContainText("Luna de Bruma");
+  await expect(screen.locator("#view-content")).not.toContainText("Rastreadora"); // the concept was not sent
+  await page.locator("#vista-now-add").fill("casa");
+  await page.locator("#vista-now-add").press("Enter");
+  await expect(screen.locator("#view-content")).toContainText("Irati", { timeout: 8000 });
+
+  // A player of the campaign follows it from the main list.
+  await viewAs(page, "player");
+  await expect(page.locator("#vista-follow-banner")).toContainText("Luna de Bruma", { timeout: 8000 });
+  await page.locator("#btn-vista-follow").click();
+  await expect(page.locator("#vista-follow-view #view-content")).toContainText("Irati");
+  await page.locator("#btn-vista-follow-close").click();
+
+  // «Cambiar enlace»: the old link stops at once.
+  await viewAs(page, "gm");
+  await page.locator("#btn-settings").click();
+  await page.locator("#btn-vista-renew").click();
+  await page.getByRole("button", { name: "Cambiar", exact: true }).click();
+  await expect(screen.locator("#view-dead")).toBeVisible({ timeout: 8000 });
+});

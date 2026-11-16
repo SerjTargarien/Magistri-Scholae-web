@@ -150,3 +150,26 @@ test("administrator access: granted by the GM, the administrator opens the campa
   await page.locator("#btn-settings").click();
   await expect(page.locator("#admin-access-log")).toContainText("Fictional Luna");
 });
+
+test("vista de jugadores: the GM shows a sheet; the link shows it to a browser with no account, and only what was sent", async ({ page, browser }) => {
+  await signIn(page, "preview_gm");
+  await page.locator("#btn-settings").click();
+  await expect(page.locator("#vista-link-card")).toBeVisible();
+  if (await page.locator("#btn-vista-create").isVisible()) await page.locator("#btn-vista-create").click();
+  const url = (await page.locator("#vista-link-url").textContent())!.trim();
+  await page.goto("/");
+  await openCharacter(page, "Fictional Luna");
+  await page.locator("#btn-detail-show").click();
+  await expect(page.locator("#vista-now")).toContainText("Fictional Luna");
+
+  // A fresh browser with no session: the screen the table sees.
+  const screen = await (await browser.newContext()).newPage();
+  const bodies: string[] = [];
+  screen.on("response", async (response) => { if (/\/api\/v1\/view\//.test(response.url())) bodies.push(await response.text().catch(() => "")); });
+  await screen.goto(new URL(url).pathname + new URL(url).hash);
+  await expect(screen.locator("#view-content")).toContainText("Fictional Luna");
+  expect(bodies.some(body => body.includes(GM_ONLY_CLUE))).toBe(false); // nothing the GM did not send
+
+  await page.locator("#btn-vista-hide").click();
+  await expect(screen.locator("#view-waiting")).toBeVisible({ timeout: 8000 });
+});

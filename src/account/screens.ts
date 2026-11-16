@@ -135,6 +135,8 @@ export interface CharacterListProps {
    * during an access has every state.
    */
   listRole?: "master" | "player" | "support";
+  /** Players the Máster lets follow the players' view: its banner (7a). */
+  banner?: React.ReactNode;
   /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */
   filter: FilterState;
   onFilterChange: (next: FilterState) => void;
@@ -161,5 +163,7 @@ export interface SettingsScreenProps {
   /** The campaign's Máster only (R4 d): rename it, or create a new campaign of which he will be the Máster. */
   campaignSettings?: { name: string; onRename: (name: string) => Promise<void>; onCreate: (name: string) => Promise<void>;
     /** «Acceso de administración» (R4 e), drawn by the app. */
-    accessCard?: React.ReactNode };
+    accessCard?: React.ReactNode;
+    /** «Vista de jugadores» (7a): the link, drawn by the app. */
+    vistaCard?: React.ReactNode };
 }

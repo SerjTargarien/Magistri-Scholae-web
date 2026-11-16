@@ -42,6 +42,8 @@ import { MyNotes } from "./components/notes/MyNotes";
 import { DEFAULT_SPECS, remoteVista } from "./account/vista";
 import { DockLayout, DockPanel } from "./components/dock/Dock";
 import { VistaPanel } from "./components/vista/VistaPanel";
+import { VistaLinkCard } from "./account/VistaLinkCard";
+import { FollowBanner } from "./vista/FollowBanner";
 import { Monitor } from "lucide-react";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
@@ -620,6 +622,7 @@ export default function App() {
               onOpenPlayers={isCampaignGM ? () => setScreen("PLAYERS") : undefined}
               partidas={isCampaignGM ? partidas : undefined}
               listRole={openAccess ? "support" : isCampaignGM ? "master" : "player"}
+              banner={!isCampaignGM && !openAccess && vistaApi ? <FollowBanner lang={lang} api={vistaApi} campaignId={campaignId} campaignName={campaigns.find(c => c.id === campaignId)?.name ?? ""} /> : undefined}
               filter={listFilter}
               onFilterChange={setListFilter}
               onShowToast={showToast}
@@ -743,6 +746,7 @@ export default function App() {
                   try { await client.request("campaigns", "POST", { name }); showToast("success", CAMPAIGN_GM_TEXT[lang].created); setCampaignsLoaded(n => n + 1); }
                   catch { showToast("error", STATUS_TEXT[lang].failed); }
                 },
+                vistaCard: vistaApi && <VistaLinkCard lang={lang} api={vistaApi} partidas={partidas ?? []} onShowToast={showToast} onChanged={setVista} />,
                 accessCard: <AdminAccessCard lang={lang} api={remoteAccess(client, campaignId)} onShowToast={showToast} />,
               } : undefined}
               account={{

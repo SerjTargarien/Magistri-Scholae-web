@@ -12,7 +12,7 @@ import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
 import { checkSkills, DEFAULT_SKILL_CATALOGUE, linkOwnSkills, nameClash, ownSkillsKey, type SkillCatalogue } from "../model/catalogue";
 import { checkSheet, type Rule } from "../model/rules";
 import { setApiTransport } from "../remote/client";
-import { setAssetResolver } from "../remote/assets";
+import { setAssetResolver, setViewPhotoResolvers } from "../remote/assets";
 import { setPath, pathValue } from "../store/paths";
 import { CAMPAIGN, demoAssets, demoSheets, PARTIDAS, USERS, type DemoRole, type DemoSheet, type DemoUser } from "./fixtures";
 
@@ -368,6 +368,7 @@ export class MockServer {
     const v = this.state.view;
     const done = (reply: Reply) => { this.save(); return reply; };
     if (rest === "/now" && method === "GET") {
+      if (user.role !== "gm") this.syncView();
       // Like player_view._may_follow: the Máster, or a player the Máster lets follow it in the session's partida.
       const follows = user.role === "gm" || (user.role !== "admin" && v.inApp && (v.tableId === null || this.state.sheets.some(s =>
         s.kind === "character" && (s.status ?? "confirmed") === "confirmed" && !s.archived && s.assignedPlayerId === user.id
@@ -424,7 +425,10 @@ export class MockServer {
     this.save();
     return new Reply(200, { items: specs });
   }
+  /** Demo only: the view as another tab last saved it, so a /vista tab follows the Máster's tab. */
+  private syncView() { const saved = this.load(); if (saved) { this.state.view = saved.view; this.state.sheets = saved.sheets; } }
   private publicView(token: string, photo: boolean): Reply {
+    this.syncView();
     const v = this.state.view;
     if (!this.viewLive(v) || token !== this.viewToken(v)) return fail(404, "not_found");
     if (photo) return v.photo ? new Reply(200, { asset: v.photo }) : fail(404, "not_found");
@@ -432,6 +436,7 @@ export class MockServer {
   }
   /** The demo screen draws the captured portrait from its asset id. */
   viewPhoto(token: string) { const v = this.state.view; return this.viewLive(v) && token === this.viewToken(v) && v.photo ? this.asset(v.photo) : undefined; }
+  followPhoto() { const v = this.state.view; return v.photo && v.items.length ? this.asset(v.photo) : undefined; }
 
   private userView(user: DemoUser) { return { id: user.id, username: user.username, displayName: user.displayName, isAdministrator: user.role === "admin" }; }
 
@@ -891,6 +896,7 @@ export function installMockServer(server = new MockServer()): MockServer {
   installed = server;
   setApiTransport((input, init) => server.fetch(input, init));
   setAssetResolver(id => server.asset(id) ?? "");
+  setViewPhotoResolvers(token => server.viewPhoto(token) ?? "", () => server.followPhoto() ?? "");
   const real = Object.getOwnPropertyDescriptor(Navigator.prototype, "onLine");
   Object.defineProperty(navigator, "onLine", { configurable: true, get: () => !server.offline && (real?.get?.call(navigator) ?? true) });
   return server;

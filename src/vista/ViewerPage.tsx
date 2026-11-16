@@ -22,11 +22,19 @@ const WIDE = "(min-width: 700px) and (min-aspect-ratio: 1/1)";
 
 interface Snapshot { campaignName: string; revision: number; now: ApiViewNow | null }
 
+const readToken = () => decodeURIComponent(window.location.hash.slice(1));
+
 export function ViewerPage() {
-  const token = decodeURIComponent(window.location.hash.slice(1));
+  const [token, setToken] = useState(readToken);
   const x = VISTA_TEXT[lang];
   const [view, setView] = useState<Snapshot>();
   const [dead, setDead] = useState(!token);
+  // A new link pasted into the same tab (after «Cambiar enlace») changes only the hash.
+  useEffect(() => {
+    const changed = () => { const next = readToken(); setToken(next); setView(undefined); setDead(!next); };
+    window.addEventListener("hashchange", changed);
+    return () => window.removeEventListener("hashchange", changed);
+  }, []);
   const [wide, setWide] = useState(() => window.matchMedia(WIDE).matches);
   const [pointer, setPointer] = useState(false);
 
@@ -45,7 +53,7 @@ export function ViewerPage() {
       if (document.visibilityState === "visible") {
         try {
           const response = await apiTransport(`/api/v1/view/${encodeURIComponent(token)}`, { cache: "no-store", credentials: "omit" });
-          if (response.status === 404) { setDead(true); setView(undefined); last = ""; }
+          if (response.status >= 400 && response.status < 500) { setDead(true); setView(undefined); last = ""; }
           else if (response.ok) {
             const body = (await response.json()) as Snapshot;
             const key = JSON.stringify(body);

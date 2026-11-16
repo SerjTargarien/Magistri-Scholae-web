@@ -606,7 +606,7 @@ export default function App() {
         </div>
       ) : (
         <main className="relative z-10 w-full">
-          <DockLayout panels={dockPanels}>
+          <DockLayout panels={dockPanels} label={VISTA_TEXT[lang].panels} uncap={screen === "LIST" || screen === "DETAIL" || screen === "FAMILIAR_DETAIL"}>
           {screen === "LIST" && (
             <CharacterList
               lang={lang}

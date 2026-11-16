@@ -140,6 +140,7 @@ class PlayerViewTests(APICase):
         alice = self.client_for(self.alice)
         now = f"campaigns/{self.campaign.pk}/view/now"
         self.assertIsNone(self.read(alice, now)["now"])  # not allowed yet: the same as nothing showing
+        self.read(alice, f"campaigns/{self.campaign.pk}/view/photo", status=404)  # nor its photo
         self.send(self.gm_client, f"campaigns/{self.campaign.pk}/view", {"inApp": True})
         self.assertEqual(self.read(alice, now)["now"]["items"][1]["value"], "Fictional Luna")  # no partida chosen: everyone
         jueves = Table.objects.create(campaign=self.campaign, name="Jueves")

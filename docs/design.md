@@ -202,6 +202,10 @@ Projection also covers indirect disclosures: search/filter/sort cannot use hidde
 
 Frontend forms operate on projected, potentially partial data. Hidden is not the same as an empty value or a missing legacy default. Saving must patch only authorized changed paths. Replacing a complete object assembled by a player would risk deleting or overwriting values the player cannot see.
 
+### 7.4b The players' view: a read without an account (step 7a, 16 November 2026)
+
+The campaign's own Máster can show the table chosen values of a sheet (product-design.md, 10d). The screen that shows them opens a **secret link with no account**: the link is derived from the campaign and a generation with the server's HMAC key (never stored), lasts 90 days, and stops at once when he changes or turns it off. It reads only a **snapshot** the server built when he pressed «Mostrar» (values from an allowlist and the portrait's file, captured then), never the sheet or any projection. The Máster may show any field he can read, **including one a player restricted from other players**: the act of showing is his. Signed-in players may read the same snapshot in the app only when he allows it and they play in the session's partida; others get «nothing showing». The administrator never manages it, even during an access.
+
 ### 7.5 Personal notes hidden from the GM
 
 Store author-only notes separately. Their bodies and titles are absent from GM sheet responses, GM exports, library copies, sync previews, campaign history, and ordinary administrative screens. A GM cannot edit or promote them.

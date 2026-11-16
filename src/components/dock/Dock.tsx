@@ -29,7 +29,14 @@ function useWide() {
 }
 
 /** The same elements whether or not panels are open, so the content never remounts. */
-export function DockLayout({ panels, children }: { panels: React.ReactNode[]; children: React.ReactNode }) {
+export function DockLayout({ panels, children, uncap, label }: {
+  panels: React.ReactNode[];
+  children: React.ReactNode;
+  /** The main list and the sheets drop their width cap beside the panels; other screens keep their own column. */
+  uncap: boolean;
+  /** The panel column's name for screen readers. */
+  label: string;
+}) {
   const wide = useWide();
   const content = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -49,11 +56,11 @@ export function DockLayout({ panels, children }: { panels: React.ReactNode[]; ch
       {/* As wide as the screens' own box (max-w-7xl) when nothing is docked, so the measured width matches today's layout;
           beside the panels it takes the rest of the width. */}
       <div ref={content} data-wide={width >= 1152} data-roomy={width >= 1340}
-        className={`group/content min-w-0 ${docked && wide ? "flex-1 [&>*]:max-w-none" : "w-full max-w-7xl mx-auto"} ${docked && !wide ? "pb-[45vh]" : ""}`}>{children}</div>
+        className={`group/content min-w-0 ${docked && wide ? `flex-1 ${uncap ? "[&>*]:max-w-none" : ""}` : "w-full max-w-7xl mx-auto"} ${docked && !wide ? "pb-[45vh]" : ""}`}>{children}</div>
       {docked && (
         <aside
           id="dock"
-          aria-label="Paneles"
+          aria-label={label}
           className={wide
             ? "w-[340px] xl:w-[380px] 2xl:w-[400px] shrink-0 sticky top-4 mt-6 max-h-[calc(100vh-2rem)] overflow-y-auto grid gap-3.5 content-start pb-4"
             : "fixed inset-x-0 bottom-0 z-40 max-h-[62vh] overflow-y-auto rounded-t-2xl border border-b-0 border-[#c89d3c]/55 bg-[#150f22] shadow-[0_-12px_40px_rgba(0,0,0,0.7)] pb-[calc(10px+env(safe-area-inset-bottom,0px))] divide-y divide-[#c8a248]/35"}

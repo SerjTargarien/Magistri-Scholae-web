@@ -1907,6 +1907,7 @@ export const NOTES_TEXT = {
 export const VISTA_TEXT = {
   es: {
     title: "Vista de jugadores",
+    panels: "Paneles del Máster",
     show: "Mostrar", showTitle: "Mostrar a los jugadores", showing: "En la vista",
     now: "Ahora", visible: "Visible", prepared: "Preparado",
     nothing: "Nada en la vista: la pantalla espera con el escudo de la campaña.",
@@ -1934,6 +1935,7 @@ export const VISTA_TEXT = {
   },
   en: {
     title: "Players' view",
+    panels: "GM panels",
     show: "Show", showTitle: "Show to the players", showing: "On view",
     now: "Now", visible: "Visible", prepared: "Prepared",
     nothing: "Nothing on view: the screen waits with the campaign's crest.",

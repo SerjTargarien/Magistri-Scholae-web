@@ -63,7 +63,8 @@ function Adder({ id, sheet, used, lang, disabled, onAdd }: {
           className="flex-1 min-w-0 bg-transparent border-0 py-2 text-[13px] text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-0 focus:shadow-none" />
       </label>
       {open && (
-        <ul id={listId} role="listbox" className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 p-1.5 rounded-xl border border-[#c89d3c]/55 bg-[#150f22] shadow-[0_16px_40px_rgba(0,0,0,0.8)] grid gap-0.5 max-h-64 overflow-y-auto">
+        // In the panel's flow (the panel scrolls on its own; a floating list would be cut off at its edge).
+        <ul id={listId} role="listbox" className="mt-1 p-1.5 rounded-xl border border-[#c89d3c]/55 bg-[#150f22] shadow-[0_16px_40px_rgba(0,0,0,0.8)] grid gap-0.5 max-h-64 overflow-y-auto">
           {options.map((o, i) => (
             <li key={i} id={`${id}-option-${i}`} role="option" aria-selected={i === sel}
               onMouseDown={e => { e.preventDefault(); pick(i); }}

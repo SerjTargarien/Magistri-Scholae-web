@@ -212,3 +212,32 @@ class MediaAsset(models.Model):
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlayerView(models.Model):
+    """The campaign's Vista de jugadores (7a; product-design.md 10d): a secret link the Máster opens
+    on the screen the table sees, and what it shows now, captured when he pressed «Mostrar». The
+    link is derived from the generation (domain/player_view.py), never stored; «Cambiar enlace»
+    bumps the generation, so the old link stops at once."""
+    campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, primary_key=True, related_name="player_view")
+    generation = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=False)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    # Shown in the app to signed-in players of the session's partida (all, without one).
+    in_app = models.BooleanField(default=False)
+    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    # «Ahora»: the sheet, its captured values and its portrait's file at the moment it was shown.
+    sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    sheet_kind = models.CharField(max_length=9, blank=True)
+    items = models.JSONField(default=list)
+    photo = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    revision = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class PreparedView(models.Model):
+    """«Preparado»: what a sheet will show next (paths and free text, not values), kept on the
+    server until it is shown or reset, so the Máster can prepare several on any device."""
+    sheet = models.OneToOneField(Sheet, on_delete=models.CASCADE, primary_key=True, related_name="prepared_view")
+    items = models.JSONField(default=list)
+    updated_at = models.DateTimeField(auto_now=True)

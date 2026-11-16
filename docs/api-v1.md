@@ -44,6 +44,19 @@ An actor-scoped operation ID binds to the method, route and exact body, includin
 
 List routes accept `limit` (1–100, default 50) and `offset` (0–100000). Entity lists also require `campaignId`. Other query filters, including free-text search or sorting by hidden fields, are rejected. No unbounded full-account export endpoint exists.
 
+## Vista de jugadores (step 7a)
+
+What the Máster shows the table on another screen (product-design.md, 10d). Only the campaign's own Máster manages it; the site administrator never does, even during an access. Items are `{kind: "photo"}`, `{kind: "field", path}` or `{kind: "text", value}` (field-rules.md, Vista de jugadores). **«Ahora» stores values:** each value, and the portrait's file, is captured when the Máster shows it or adds it; later edits to the sheet never reach the screen. «Preparado» stores paths.
+
+| Route | Contract |
+|---|---|
+| `campaigns/{id}/view` | GET → `{view: {active, token, expiresAt, inApp, tableId, sheetId, specs, now, revision}}`; `token` (the secret part of `/vista#token`) only while the link is active. POST `{action?: "create" \| "renew" \| "disable", inApp?, tableId?}`: «Crear enlace» and «Cambiar enlace» start a new 90-day link (the old one stops at once), «Desactivar» stops it; `inApp` lets players follow it in the app, `tableId` (a partida of this campaign or `null`) is the session's partida. Link changes are audited (`player_view.create`, `.renew`, `.disable`). |
+| `campaigns/{id}/view/now` | POST `{sheetId, items?}` puts a confirmed, unarchived sheet of the campaign on screen (default items: photo and name); values already on screen for the same sheet keep their captured value. `{sheetId: null}` empties it («Ocultar»). Showing a sheet clears what was prepared for it. GET → `{revision, now}` for the Máster, and for a player when the Máster allows it and the player has a confirmed character in the session's partida or in none; anyone else gets `now: null`, as when nothing shows. |
+| `campaigns/{id}/view/photo` | GET: the captured portrait, for those who may read `now`; otherwise 404. |
+| `view/{token}` | GET, **no account**: `{campaignName, revision, now}`, where `now` is `null` or `{sheetKind, items, photo}`. A wrong, replaced, disabled or expired link is 404. `Cache-Control: no-store`. The screen asks every 2–3 seconds. |
+| `view/{token}/photo` | GET, no account: the captured portrait only. |
+| `/{id}/prepared-view` | GET → `{items}` (photo and name when nothing was prepared); POST `{items}` keeps «Preparado» for that sheet. The Máster only; confirmed, unarchived sheets. |
+
 ## Separate entity endpoints
 
 The following route families exist independently under **`characters`** and **`familiars`**. They share a discriminated relational `Sheet` model for common policy logic, with separate first-class records and no inherited ownership. A `Bond` has one-to-one constraints on each side; services additionally validate entity kind and campaign.

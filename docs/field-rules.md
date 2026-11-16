@@ -173,6 +173,15 @@ Campaign records, not sheet fields; only the campaign's Máster sees and changes
 | Partida name | Added, renamed and removed on «Partidas de la campaña». | **Required, text 60**, unique in the campaign ignoring case; **at most 12** per campaign |
 | A character's partidas | Chosen by the Máster in «Partidas» → «Elegir personajes» (15 November 2026). Removing a partida leaves its characters in their others, or common to all. | **Any of the campaign's partidas, or none** (none: common to all); **characters only** (a familiar follows the character it is bonded to) |
 
+## Vista de jugadores (step 7a)
+
+| Field | Today | Rule |
+|---|---|---|
+| What shows, or is prepared for a sheet | The Máster's list in the «Vista de jugadores» panel. | **At most 20 items**: the photo (once), sheet values (each once) and lines of free text |
+| A line of free text | Typed by the Máster («Añadir como texto»). | **Text 300** |
+| Which sheet values | Chosen from a search box. | **Allowlist:** a character's name, concept, player, age, year, class post, house, lineage, economy, wand, the adult profile's role, institution, reputation, former house and subjects taught, aspects, complications, temporary aspects, clubs, destiny points, experience, and its custom fields by item; a familiar's name, species and description. Never journals, galleries, skills or other images |
+| The link | «Crear enlace», «Cambiar enlace», «Desactivar». | Lasts **90 days**; derived from the campaign and its generation, never stored |
+
 ## Familiar sheet and editor
 
 | Field | Today | Rule |

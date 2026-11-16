@@ -27,6 +27,11 @@ urlpatterns = [
     path("api/v1/campaigns/<uuid:campaign_id>/tables/<uuid:table_id>", views.table),
     path("api/v1/campaigns/<uuid:campaign_id>/tables/<uuid:table_id>/characters", views.table_characters),
     path("api/v1/campaigns/<uuid:campaign_id>/skill-catalogue", views.skill_catalogue),
+    path("api/v1/campaigns/<uuid:campaign_id>/view", views.campaign_player_view),
+    path("api/v1/campaigns/<uuid:campaign_id>/view/now", views.campaign_player_view_now),
+    path("api/v1/campaigns/<uuid:campaign_id>/view/photo", views.campaign_player_view_photo),
+    path("api/v1/view/<str:token>", views.public_player_view),
+    path("api/v1/view/<str:token>/photo", views.public_player_view_photo),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility/preview", views.campaign_visibility_preview),
     path("api/v1/campaigns/<uuid:campaign_id>/visibility", views.campaign_visibility),
     path("api/v1/personal-notes", views.personal_notes),
@@ -49,6 +54,7 @@ for plural, kind in [("characters", "character"), ("familiars", "familiar")]:
         path(base + "/<uuid:sheet_id>/visibility", views.visibility, arguments),
         path(base + "/<uuid:sheet_id>/bond", views.bond, arguments),
         path(base + "/<uuid:sheet_id>/assets", views.asset_upload, arguments),
+        path(base + "/<uuid:sheet_id>/prepared-view", views.prepared_view, arguments),
     ]
 handler404 = views.not_found
 handler500 = views.server_error

@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, RequestDataTooBig, Valida
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse, HttpResponseBase
 from django.middleware.csrf import get_token
-from . import accounts, admin_access, notes, services, operations, media
+from . import accounts, admin_access, notes, services, operations, media, player_view
 from .errors import APIError, keys, require, text
 from .fields import REGISTRY
 from .contracts import schema_contract
@@ -269,6 +269,55 @@ def table(request, body, campaign_id, table_id):
 @endpoint(["POST"])
 def table_characters(request, body, campaign_id, table_id):
     return services.set_table_characters(request.user, campaign_id, table_id, body)
+
+
+@endpoint(["GET", "POST"])
+def campaign_player_view(request, body, campaign_id):
+    """Vista de jugadores (7a): the link and its settings, for the campaign's Máster."""
+    if request.method == "POST":
+        return player_view.change_settings(request.user, campaign_id, body)
+    query_keys(request)
+    return player_view.read_settings(request.user, campaign_id)
+
+
+@endpoint(["GET", "POST"])
+def campaign_player_view_now(request, body, campaign_id):
+    """POST: the Máster shows a sheet's values, or empties the screen. GET: what shows now, for
+    the Máster and for players the Máster lets follow it in the app."""
+    if request.method == "POST":
+        return player_view.show(request.user, campaign_id, body)
+    query_keys(request)
+    return player_view.member_read(request.user, campaign_id)
+
+
+@endpoint(["GET"])
+def campaign_player_view_photo(request, body, campaign_id):
+    query_keys(request, ["r"])
+    return player_view.member_photo(request.user, campaign_id)
+
+
+@endpoint(["GET"], public=True)
+def public_player_view(request, body, token):
+    """The screen's link: only what the Máster sent; no account."""
+    query_keys(request)
+    response = JsonResponse(player_view.public_read(token), json_dumps_params={"ensure_ascii": False})
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+@endpoint(["GET"], public=True)
+def public_player_view_photo(request, body, token):
+    query_keys(request, ["r"])
+    return player_view.public_photo(token)
+
+
+@endpoint(["GET", "POST"])
+def prepared_view(request, body, sheet_id, kind):
+    """«Preparado» for one sheet (the Máster only)."""
+    if request.method == "POST":
+        return player_view.save_prepared(request.user, sheet_id, kind, body)
+    query_keys(request)
+    return player_view.read_prepared(request.user, sheet_id, kind)
 
 
 @endpoint(["GET", "POST"])

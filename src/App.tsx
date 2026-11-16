@@ -8,8 +8,8 @@
 // signed in so leaving a sheet never drops unsent changes. The layout,
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { ApiAdminAccess, ApiMember, ApiSheetProjection, ApiTable, ApiUser, EntityKind } from "./contracts/api-v1";
-import { ACCESS_TEXT, ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS } from "./localization";
+import type { ApiAdminAccess, ApiMember, ApiPlayerView, ApiSheetProjection, ApiTable, ApiUser, ApiViewSpec, EntityKind } from "./contracts/api-v1";
+import { ACCESS_TEXT, ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS, VISTA_TEXT } from "./localization";
 import type { SheetStatusProps, StatusAction } from "./components/SheetStatusBar";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
@@ -39,6 +39,10 @@ import { LimitHint } from "./components/LimitHint";
 import type { PendingFamiliar } from "./account/screens";
 import { remoteNotes } from "./account/notes";
 import { MyNotes } from "./components/notes/MyNotes";
+import { DEFAULT_SPECS, remoteVista } from "./account/vista";
+import { DockLayout, DockPanel } from "./components/dock/Dock";
+import { VistaPanel } from "./components/vista/VistaPanel";
+import { Monitor } from "lucide-react";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
 // Demo builds only; the condition is replaced at build time.
@@ -273,6 +277,25 @@ export default function App() {
     try { setPartidas(await partidasApi.list()); } catch { showToast("error", t.storageLoadError); }
   }, [partidasApi, isCampaignGM]);
   useEffect(() => { setListFilter(DEFAULT_LIST_FILTER); void loadPartidas(); }, [loadPartidas]);
+
+  // Vista de jugadores (7a): the campaign's own Máster shows the table a sheet's photo and values.
+  const vistaApi = useMemo(() => (campaignId ? remoteVista(client, campaignId) : undefined), [client, campaignId]);
+  const [vista, setVista] = useState<ApiPlayerView>();
+  const [prepared, setPrepared] = useState<Record<string, ApiViewSpec[]>>({});
+  const [vistaOpen, setVistaOpen] = useState(false);
+  const [vistaFolded, setVistaFolded] = useState(false);
+  const [vistaClosedOn, setVistaClosedOn] = useState<string | null>(null);
+  const [vistaBusy, setVistaBusy] = useState(false);
+  const mayShow = isCampaignGM && !openAccess && !!vistaApi;
+  useEffect(() => {
+    setVista(undefined); setPrepared({}); setVistaOpen(false); setVistaClosedOn(null);
+    if (!vistaApi || !isCampaignGM) return;
+    vistaApi.settings().then(setVista).catch(() => undefined);
+  }, [vistaApi, isCampaignGM]);
+  const vistaAct = async (run: () => Promise<ApiPlayerView>) => {
+    setVistaBusy(true);
+    try { setVista(await run()); } catch { showToast("error", VISTA_TEXT[lang].failed); } finally { setVistaBusy(false); }
+  };
   // Drafts and proposals (R4 c). A sheet the GM returns leaves his view: its store goes.
   const changeStatus = async (store: SheetStore, action: StatusAction, as?: "player" | "npc") => {
     await settle(store);
@@ -458,6 +481,65 @@ export default function App() {
 
   const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
 
+  // The Vista panel: open while something shows (he can close it on a screen; it reopens on the next).
+  const pageKey = screen === "DETAIL" ? `c:${selectedCharId}` : screen === "FAMILIAR_DETAIL" ? `f:${selectedFamiliarId}` : screen;
+  const showing = !!vista?.now;
+  const vistaVisible = mayShow && !!vista && (vistaOpen || (showing && vistaClosedOn !== pageKey));
+  const openSheetStore = screen === "DETAIL" ? characterStore : screen === "FAMILIAR_DETAIL" ? familiarStore : undefined;
+  const showable = (store?: SheetStore) => !!store && mayShow && confirmed(store) && !store.sheet.archived;
+  const preparing = showable(openSheetStore) && vista?.sheetId !== openSheetStore!.sheet.id ? openSheetStore : undefined;
+  const nowSheet = vista?.sheetId ? (stores.current.get(vista.sheetId)?.sheet ?? [...characters, ...familiars].find(s => s.id === vista.sheetId)) : undefined;
+  const showToPlayers = (store?: SheetStore) => (!showable(store) ? undefined : {
+    showing: vista?.sheetId === store!.sheet.id && showing,
+    busy: vistaBusy,
+    onShow: () => {
+      if (vista?.sheetId === store!.sheet.id && showing) {
+        setVistaOpen(!vistaVisible); setVistaClosedOn(vistaVisible ? pageKey : null);
+        return;
+      }
+      void vistaAct(async () => {
+        await settle(store!);
+        const items = prepared[store!.sheet.id];
+        const next = await vistaApi!.show(store!.sheet.id, items);
+        setPrepared(p => { const { [store!.sheet.id]: _, ...rest } = p; return rest; });
+        return next;
+      });
+      setVistaOpen(true); setVistaClosedOn(null);
+    },
+  });
+  const savePrepared = (store: SheetStore, items: ApiViewSpec[]) => {
+    setPrepared(p => ({ ...p, [store.sheet.id]: items }));
+    vistaApi!.savePrepared(store.sheet.entityType, store.sheet.id, items).catch(() => showToast("error", VISTA_TEXT[lang].failed));
+  };
+  const preparingId = vistaVisible && preparing ? preparing.sheet.id : undefined;
+  useEffect(() => {
+    if (!preparingId || prepared[preparingId] || !vistaApi || !preparing) return;
+    vistaApi.prepared(preparing.sheet.entityType, preparingId)
+      .then(items => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: items })))
+      .catch(() => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: DEFAULT_SPECS })));
+  }, [preparingId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (vistaClosedOn && vistaClosedOn !== pageKey) setVistaClosedOn(null); }, [pageKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dockPanels = [vistaVisible && vista ? (
+    <DockPanel key="vista" id="panel-vista" icon={<Monitor className="w-4 h-4" />} title={VISTA_TEXT[lang].title} live={showing}
+      folded={vistaFolded} onFold={() => setVistaFolded(f => !f)} onClose={() => { setVistaOpen(false); setVistaClosedOn(pageKey); }}
+      texts={VISTA_TEXT[lang]}>
+      <VistaPanel
+        lang={lang}
+        view={vista}
+        nowSheet={nowSheet}
+        openSheet={preparing?.sheet}
+        prepared={preparing ? prepared[preparing.sheet.id] : undefined}
+        busy={vistaBusy}
+        linkActive={vista.active}
+        onNow={specs => void vistaAct(() => vistaApi!.show(vista.sheetId, specs))}
+        onHide={() => void vistaAct(() => vistaApi!.show(null))}
+        onPrepared={specs => preparing && savePrepared(preparing, specs)}
+        onShowPrepared={() => preparing && showToPlayers(preparing)?.onShow()}
+        onReset={() => preparing && savePrepared(preparing, DEFAULT_SPECS)}
+      />
+    </DockPanel>
+  ) : null];
+
   return (
     <div
       className="min-h-screen bg-[#0a0514] text-neutral-200 font-sans selection:bg-violet-900/50 selection:text-amber-300 pb-12"
@@ -522,6 +604,7 @@ export default function App() {
         </div>
       ) : (
         <main className="relative z-10 w-full">
+          <DockLayout panels={dockPanels}>
           {screen === "LIST" && (
             <CharacterList
               lang={lang}
@@ -573,6 +656,7 @@ export default function App() {
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
               status={openAccess ? undefined : statusFor(characterStore)}
+              showToPlayers={showToPlayers(characterStore)}
             />
           )}
 
@@ -590,6 +674,7 @@ export default function App() {
               onShowToast={showToast}
               notes={notesApi}
               status={openAccess ? undefined : statusFor(familiarStore)}
+              showToPlayers={showToPlayers(familiarStore)}
             />
           )}
 
@@ -709,6 +794,7 @@ export default function App() {
               onBack={() => setScreen("LIST")}
             />
           )}
+          </DockLayout>
         </main>
       ))}
 

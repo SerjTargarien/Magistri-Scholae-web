@@ -930,6 +930,14 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Filter bar** (PR #119): the line under the search bar is replaced by the sort order alone, inside the bar at its end, not shown when it does not fit beside «Buscar» (phones); the bar is as far from the cards as from the frame's top; screen readers still hear the full line.
 - **Checks:** type check; demo browser tests (66); measured and screenshotted at 1283, 768, 430 and 375 px; CI. **Released to both sites** the same day at the owner's request (frontend only, `f18f11f`).
 
+## Vista de jugadores (step 7a) — 16 November 2026, in progress
+
+- **Design:** two rounds of the demo (https://claude.ai/artifact/RWWM1iV2qDUHSh6Mcc4KLP) with the owner's verdicts, all approved; recorded in product-design.md 10d.
+- **Server (PR #124):** migration `0013_player_view` (`PlayerView` per campaign, `PreparedView` per sheet); `domain/player_view.py`; routes `campaigns/{id}/view`, `/view/now`, `/view/photo`, `view/{token}`, `view/{token}/photo`, `/{id}/prepared-view`. «Ahora» captures values and the portrait's file when shown; a server allowlist; the campaign's own Máster only; the link derived from the HMAC key (never stored), 90 days; the same 404 for any dead link. 8 backend tests.
+- **App, part 1 (PR #125):** the side panels, the «Vista de jugadores» panel, «Mostrar» on both sheets, the adapter `src/account/vista.ts` and its demo-server twin; «Mostrar» without a list shows what was prepared. Checks: type check, 42 unit tests, 67 demo browser tests (one new), both builds, backend view tests; measured the list with no panel at 1920, 1283, 1100 and 768 px (unchanged) and screenshotted the panel at 1920, 1366 and 390 px.
+- **Note for the owner:** the Máster can put on screen a value a player restricted from other players (he reads every field of the sheet).
+- **Next:** part 2 (the `/vista` page, the link in «Ajustes» with a QR code, the players' banner), then «Habilidades de la campaña» as a panel. Not released: staging needs the backend rebuilt with migration 0013 when the owner asks.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

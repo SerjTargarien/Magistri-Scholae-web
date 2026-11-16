@@ -216,7 +216,9 @@ def show(actor, campaign_id, body):
         view.sheet, view.items, view.photo, view.sheet_kind = None, [], None, ""
     else:
         sheet = _gm_sheet(actor, text(body["sheetId"], 64), campaign=campaign)
-        specs = _specs(body.get("items", defaults()))
+        # Without a list, «Mostrar» shows what was prepared for the sheet, or the photo and name.
+        prepared = PreparedView.objects.filter(sheet=sheet).first()
+        specs = _specs(body["items"]) if "items" in body else (prepared.items if prepared else defaults())
         same = view.sheet_id == sheet.pk
         old = {_key(i): i for i in view.items if same and _key(i)}
         items, photo = [], view.photo if same else None

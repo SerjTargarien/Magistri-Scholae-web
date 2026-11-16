@@ -192,9 +192,9 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       <div
         className={`flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-2`}
       >
-        {/* The title gives way before the buttons (owner, 15 November 2026): on wide screens (xl) they keep one row, the title wrapping
+        {/* The title gives way before the buttons (owner, 15 November 2026): on wide content (a 1152 px container, @6xl) they keep one row, the title wrapping
             instead; the Máster's six buttons always fit there. Narrower, they wrap as before. */}
-        <div className="flex items-center gap-3.5 text-center md:text-left xl:shrink-[999]">
+        <div className="flex items-center gap-3.5 text-center md:text-left @6xl:shrink-[999]">
           {/* School Crest */}
           <img
             src="/icon.svg"
@@ -213,7 +213,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         </div>
 
         {/* Header Right menu with configuration */}
-        <div className="flex flex-wrap xl:flex-nowrap xl:[&>*]:shrink-0 items-center justify-center gap-2.5">
+        <div className="flex flex-wrap @6xl:flex-nowrap @6xl:[&>*]:shrink-0 items-center justify-center gap-2.5">
           {onOpenNotes && (
             <button
               id="btn-my-notes"
@@ -314,7 +314,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
         {/* Characters & Familiars list grid display */}
         {hasAnyResults ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="characters-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 @min-[1340px]:grid-cols-5 gap-6" id="characters-grid">
             {filteredCharacters.map((item) => {
               const c = characterFields(item);
               const casa = c.casa ?? "";

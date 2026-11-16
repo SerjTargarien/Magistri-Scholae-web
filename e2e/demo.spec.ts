@@ -471,3 +471,44 @@ test("administrator access: the Máster grants it, the administrator works as M�
   await expect(page.locator("#admin-access-log")).toContainText("abierta");
   await expect(page.locator("#admin-access-log")).toContainText("cambiada");
 });
+
+// Vista de jugadores (7a): «Mostrar», the side panel, «Ahora» and «Preparado».
+test("vista de jugadores: the Máster shows a sheet, prepares another, shows it, hides it; players have no button", async ({ page }) => {
+  await openApp(page);
+  await openCharacter(page, "Luna de Bruma");
+  await expect(page.locator("#btn-detail-show")).toHaveCount(0); // a player has no «Mostrar»
+  await page.locator("#btn-detail-back").click();
+
+  await viewAs(page, "gm");
+  await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
+  await openCharacter(page, "Luna de Bruma");
+  await page.locator("#btn-detail-show").click();
+  await expect(page.locator("#panel-vista #vista-now")).toContainText("Luna de Bruma");
+  await expect(page.locator("#btn-detail-show")).toHaveAttribute("aria-label", "En la vista");
+  await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "side");
+
+  // The panel stays while he moves; another sheet gets «Preparado», kept on the server.
+  await page.locator("#btn-detail-back").click();
+  await expect(page.locator("#panel-vista")).toBeVisible();
+  await openCharacter(page, "Silvio Niebla");
+  await expect(page.locator("#vista-prepared")).toContainText("Profesor Silvio Niebla");
+  await page.locator("#vista-prepared-add").fill("asig");
+  await page.locator("#vista-prepared-add").press("Enter");
+  await page.locator("#vista-prepared-add").fill("Cierra el libro de golpe.");
+  await page.locator("#vista-prepared-add").press("Enter");
+  await expect(page.locator("#vista-prepared li")).toHaveCount(4);
+  await page.locator("#btn-detail-back").click();
+  await openCharacter(page, "Silvio Niebla");
+  await expect(page.locator("#vista-prepared li")).toHaveCount(4);
+  await page.locator("#btn-vista-show-prepared").click();
+  await expect(page.locator("#vista-now")).toContainText("Profesor Silvio Niebla");
+  await expect(page.locator("#vista-now")).toContainText("Cierra el libro de golpe.");
+  await expect(page.locator("#vista-prepared")).toHaveCount(0);
+
+  // «Ocultar» empties it; closing the panel gives the page back its width.
+  await page.locator("#btn-vista-hide").click();
+  await expect(page.locator("#vista-now")).toContainText("Nada en la vista");
+  await page.locator("#panel-vista-close").click();
+  await expect(page.locator("#panel-vista")).toHaveCount(0);
+  await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
+});

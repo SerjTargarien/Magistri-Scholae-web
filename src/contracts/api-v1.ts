@@ -54,6 +54,19 @@ export interface ApiAdminAccess {
   endedAt: string | null; endReason: "withdrawn" | "solved" | null; active: boolean;
   events?: { sheetId: string | null; kind: "character" | "familiar" | null; name: string; action: "read" | "write"; count: number; firstAt: string; lastAt: string }[];
 }
+/** Vista de jugadores (7a): one item the Máster chose: the photo, a sheet value by path, or his own line of text. */
+export type ApiViewSpec = { kind: "photo" } | { kind: "field"; path: string } | { kind: "text"; value: string };
+/** What the screen shows now: values captured when they were shown (never re-read from the sheet). */
+export interface ApiViewNow {
+  sheetKind: "character" | "familiar";
+  items: ({ kind: "photo" } | { kind: "field"; path: string; value: unknown } | { kind: "text"; value: string })[];
+  photo: boolean;
+}
+/** GET campaigns/<id>/view, the campaign's Máster only. `token` exists only while the link is active. */
+export interface ApiPlayerView {
+  active: boolean; token: string | null; expiresAt: string | null; inApp: boolean; tableId: string | null;
+  sheetId: string | null; specs: ApiViewSpec[]; now: ApiViewNow | null; revision: number;
+}
 /** A partida, one table of the campaign (R4 b): GET campaigns/<id>/tables, GM only. */
 export interface ApiTable { id: string; name: string }
 /** GET admin/users (site administrator): accounts with their campaigns and roles, no sheet content. */

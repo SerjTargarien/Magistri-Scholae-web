@@ -129,7 +129,9 @@ class PlayerViewTests(APICase):
         self.assertEqual(self.read(self.gm_client, path)["items"], prepared)
         self.send(self.gm_client, path, {"items": [{"kind": "field", "path": "notasList"}]}, status=400)
         self.read(self.client_for(self.alice), path, status=403)
-        self.show(prepared)
+        # «Mostrar» without a list shows what was prepared.
+        shown = self.show()["view"]["now"]["items"]
+        self.assertEqual(shown[-1], {"kind": "text", "value": "Cierra el libro"})
         self.assertFalse(PreparedView.objects.filter(sheet=self.sheet).exists())
 
     def test_players_follow_it_in_the_app_only_when_allowed_and_in_the_sessions_partida(self):

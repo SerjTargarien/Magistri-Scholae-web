@@ -1902,3 +1902,35 @@ export const NOTES_TEXT = {
     nextMonth: "Next month",
   },
 };
+
+/** Vista de jugadores (7a; product-design.md 10d): the Máster's panel, the «Mostrar» button and the screen. */
+export const VISTA_TEXT = {
+  es: {
+    title: "Vista de jugadores",
+    show: "Mostrar", showTitle: "Mostrar a los jugadores", showing: "En la vista",
+    now: "Ahora", visible: "Visible", prepared: "Preparado",
+    nothing: "Nada en la vista: la pantalla espera con el escudo de la campaña.",
+    onlyThis: "Los jugadores ven solo esto.",
+    add: "Añadir un dato o escribir un texto…", addText: "Añadir como texto: «{text}»",
+    hide: "Ocultar", reset: "Restablecer", resetTitle: "Volver a retrato y nombre",
+    portrait: "Retrato", text: "texto", remove: "Quitar {item}",
+    fold: "Plegar", unfold: "Desplegar", close: "Cerrar el panel",
+    noLink: "Aún no hay enlace de la vista: créalo en «Ajustes» → «Campaña» y ábrelo en la pantalla que ven los jugadores.",
+    full: "Caben 20 elementos como máximo.",
+    failed: "No se pudo actualizar la vista. Inténtalo de nuevo.",
+  },
+  en: {
+    title: "Players' view",
+    show: "Show", showTitle: "Show to the players", showing: "On view",
+    now: "Now", visible: "Visible", prepared: "Prepared",
+    nothing: "Nothing on view: the screen waits with the campaign's crest.",
+    onlyThis: "The players see only this.",
+    add: "Add a value or type a text…", addText: "Add as text: «{text}»",
+    hide: "Hide", reset: "Reset", resetTitle: "Back to portrait and name",
+    portrait: "Portrait", text: "text", remove: "Remove {item}",
+    fold: "Fold", unfold: "Unfold", close: "Close the panel",
+    noLink: "There is no view link yet: create it in «Settings» → «Campaign» and open it on the screen the players see.",
+    full: "At most 20 items fit.",
+    failed: "The view could not be updated. Try again.",
+  },
+};

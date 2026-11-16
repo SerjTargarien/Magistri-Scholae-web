@@ -11,6 +11,7 @@ import { CropDialog } from "./CropDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ImageViewer } from "./ImageViewer";
 import { RestoreButton, SheetStatusBar } from "./SheetStatusBar";
+import { ShowButton } from "./vista/ShowButton";
 import { PrivateNotes } from "./notes/PrivateNotes";
 import {
   ArrowLeft,
@@ -73,6 +74,9 @@ export const FamiliarDetail: React.FC<FamiliarDetailProps> = (screenProps) => {
         </button>
 
         <div className="flex gap-2">
+          {/* «Mostrar» on the players' view (the Máster only, 7a) */}
+          {screenProps.showToPlayers && <ShowButton lang={screenProps.lang} id="btn-familiar-show" show={screenProps.showToPlayers} />}
+
           {/* Edit toggle, as on the character sheet: changes save as they are made */}
           {canEditSheet && (
           <button

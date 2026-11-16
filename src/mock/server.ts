@@ -6,7 +6,8 @@
 // invitations and recovery codes (R4 a). A test panel simulates failures, other
 // editors and connection drops. It is a development simulation, never authorization: it exists only
 // in demo builds (VITE_MOCK_SERVER) and always shows the DEMO banner.
-import type { ApiSheetProjection, EntityKind } from "../contracts/api-v1";
+import type { ApiPlayerView, ApiSheetProjection, ApiViewNow, ApiViewSpec, EntityKind } from "../contracts/api-v1";
+import { DEFAULT_SPECS, MAX_VIEW_ITEMS, MAX_VIEW_TEXT, raw as viewRaw, showable } from "../account/vista";
 import { API_SCHEMA } from "../contracts/fieldRegistry.generated";
 import { checkSkills, DEFAULT_SKILL_CATALOGUE, linkOwnSkills, nameClash, ownSkillsKey, type SkillCatalogue } from "../model/catalogue";
 import { checkSheet, type Rule } from "../model/rules";
@@ -41,7 +42,15 @@ interface State {
   accesses: Access[];
   /** The demo campaign's partidas (R4 b), the GM's only. */
   partidas: { id: string; name: string }[];
+  /** Vista de jugadores (7a), like player_view.py: the link, «Ahora» (captured values) and «Preparado» per sheet. */
+  view: DemoView;
+  prepared: Record<string, ApiViewSpec[]>;
 }
+interface DemoView {
+  generation: number; active: boolean; expiresAt: number | null; inApp: boolean; tableId: string | null;
+  sheetId: string | null; sheetKind: "character" | "familiar" | ""; items: ApiViewNow["items"]; photo: string | null; revision: number;
+}
+const freshView = (): DemoView => ({ generation: 0, active: false, expiresAt: null, inApp: false, tableId: null, sheetId: null, sheetKind: "", items: [], photo: null, revision: 0 });
 const DAY = 24 * 60 * 60 * 1000;
 interface Access {
   id: string; grantedBy: string; reason: string; grantedAt: number; expiresAt: number; endedAt: number | null; endReason: "withdrawn" | "solved" | null;
@@ -82,13 +91,13 @@ export class MockServer {
   }
 
   private fresh(): State {
-    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: structuredClone(PARTIDAS), accesses: [] };
+    return { viewer: "player", sheets: demoSheets(), notes: [], uploads: {}, catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: structuredClone(PARTIDAS), accesses: [], view: freshView(), prepared: {} };
   }
   private load(): State | undefined {
     try {
       const state = JSON.parse(this.storage?.getItem(STORAGE_KEY) ?? "null");
       // Demo data saved before the GM could change the list has none.
-      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: [], accesses: [], ...state } : undefined;
+      return state ? { catalogue: structuredClone(DEFAULT_SKILL_CATALOGUE), catalogueRevision: 1, directory: freshDirectory(), partidas: [], accesses: [], view: freshView(), prepared: {}, ...state } : undefined;
     } catch { return undefined; }
   }
   private save() { try { this.storage?.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch { /* storage full: keep in memory */ } }
@@ -268,6 +277,9 @@ export class MockServer {
       this.signInAs(user.role);
       return new Reply(200, { user: this.userView(user), csrfToken: "demo-csrf" });
     }
+    // The players' view link needs no account (player_view.public_read).
+    const viewLink = path.match(/^view\/([^/]+)(\/photo)?$/);
+    if (viewLink && method === "GET") return this.publicView(viewLink[1], !!viewLink[2]);
     // Codes issued in this demo work once, like the server's (an account registered here cannot sign in).
     if (path === "auth/register" && method === "POST") return this.register(body);
     if (path === "auth/password-reset" && method === "POST") return this.passwordReset(body);
@@ -284,6 +296,9 @@ export class MockServer {
     if (path.startsWith("personal-notes")) return this.personalNotes(method, path, query, body, user);
     if (path.startsWith(`campaigns/${CAMPAIGN.id}/tables`)) return this.partidas(method, path, body, user);
     if (path === `campaigns/${CAMPAIGN.id}/admin-access` || path.startsWith("admin/accesses")) return this.accessRoute(method, path, body, user);
+    if (path.startsWith(`campaigns/${CAMPAIGN.id}/view`)) return this.viewRoute(method, path.slice(`campaigns/${CAMPAIGN.id}/view`.length), body, user);
+    const preparedMatch = path.match(/^(characters|familiars)\/([^/]+)\/prepared-view$/);
+    if (preparedMatch) return this.preparedRoute(method, preparedMatch[1] === "characters" ? "character" : "familiar", preparedMatch[2], body, user);
 
     const match = path.match(/^(characters|familiars)(?:\/([^/]+))?(?:\/(assets|bond|manage|status))?$/);
     if (!match) return fail(501, "not_in_demo");
@@ -313,6 +328,110 @@ export class MockServer {
       return fail(405, "method_not_allowed");
     });
   }
+
+  // ---- Vista de jugadores (7a), like player_view.py ------------------------------
+
+  private viewToken(v: DemoView) { return `demo-${v.generation}-vista`; }
+  private viewLive(v: DemoView) { return v.active && v.expiresAt !== null && v.expiresAt > Date.now(); }
+  private viewNow(v: DemoView): ApiViewNow | null {
+    return v.sheetId && v.items.length ? { sheetKind: v.sheetKind as "character" | "familiar", items: v.items, photo: !!v.photo } : null;
+  }
+  private viewSettings(): ApiPlayerView {
+    const v = this.state.view, live = this.viewLive(v);
+    return {
+      active: live, token: live ? this.viewToken(v) : null, expiresAt: live ? new Date(v.expiresAt!).toISOString() : null,
+      inApp: v.inApp, tableId: v.tableId, sheetId: v.sheetId && v.items.length ? v.sheetId : null,
+      specs: v.items.map(i => (i.kind === "photo" ? { kind: "photo" } : i.kind === "field" ? { kind: "field", path: i.path } : { kind: "text", value: i.value })) as ApiViewSpec[],
+      now: this.viewNow(v), revision: v.revision,
+    };
+  }
+  /** The Máster's list, checked like player_view._specs; null when it breaks a rule. */
+  private viewSpecs(raw: unknown, sheet: DemoSheet): ApiViewSpec[] | null {
+    if (!Array.isArray(raw) || raw.length > MAX_VIEW_ITEMS) return null;
+    const seen = new Set<string>();
+    for (const item of raw) {
+      if (!item || typeof item !== "object") return null;
+      const keys = Object.keys(item);
+      if (item.kind === "photo" ? keys.length !== 1 : item.kind === "field" ? keys.length !== 2 || typeof item.path !== "string" || !showable(sheet.kind, sheet.fields, item.path)
+        : item.kind === "text" ? keys.length !== 2 || typeof item.value !== "string" || !item.value.trim() || item.value.length > MAX_VIEW_TEXT : true) return null;
+      const key = item.kind === "photo" ? "photo" : item.kind === "field" ? `field:${item.path}` : "";
+      if (key && seen.has(key)) return null;
+      if (key) seen.add(key);
+    }
+    return raw as ApiViewSpec[];
+  }
+  private viewSheet(id: unknown, kind?: EntityKind) {
+    const sheet = this.state.sheets.find(s => s.id === id && (!kind || s.kind === kind));
+    return sheet && (sheet.status ?? "confirmed") === "confirmed" && !sheet.archived ? sheet : undefined;
+  }
+  private viewRoute(method: string, rest: string, body: any, user: DemoUser): Reply {
+    const v = this.state.view;
+    const done = (reply: Reply) => { this.save(); return reply; };
+    if (rest === "/now" && method === "GET") {
+      // Like player_view._may_follow: the Máster, or a player the Máster lets follow it in the session's partida.
+      const follows = user.role === "gm" || (user.role !== "admin" && v.inApp && (v.tableId === null || this.state.sheets.some(s =>
+        s.kind === "character" && (s.status ?? "confirmed") === "confirmed" && !s.archived && s.assignedPlayerId === user.id
+        && (!(s.tableIds ?? []).length || (s.tableIds ?? []).includes(v.tableId!)))));
+      return new Reply(200, follows ? { revision: v.revision, now: this.viewNow(v) } : { revision: 0, now: null });
+    }
+    if (user.role !== "gm") return fail(user.role === "admin" ? 404 : 403, user.role === "admin" ? "not_found" : "forbidden");
+    if (rest === "" && method === "GET") return new Reply(200, { view: this.viewSettings() });
+    if (rest === "" && method === "POST") {
+      if (body.action !== undefined && !["create", "renew", "disable"].includes(body.action)) return fail(400, "invalid_request");
+      if (body.action === "create" || body.action === "renew") { v.generation++; v.active = true; v.expiresAt = Date.now() + 90 * DAY; }
+      if (body.action === "disable") v.active = false;
+      if ("inApp" in body) { if (typeof body.inApp !== "boolean") return fail(400, "invalid_request"); v.inApp = body.inApp; }
+      if ("tableId" in body) {
+        if (body.tableId !== null && !this.state.partidas.some(p => p.id === body.tableId)) return fail(400, "invalid_table");
+        v.tableId = body.tableId;
+      }
+      return done(new Reply(200, { view: this.viewSettings() }));
+    }
+    if (rest === "/now" && method === "POST") {
+      if (body.sheetId === null) { Object.assign(v, { sheetId: null, sheetKind: "", items: [], photo: null }); v.revision++; return done(new Reply(200, { view: this.viewSettings() })); }
+      const sheet = this.viewSheet(body.sheetId);
+      if (!sheet) return fail(404, "not_found");
+      const specs = this.viewSpecs("items" in body ? body.items : (this.state.prepared[sheet.id] ?? DEFAULT_SPECS), sheet);
+      if (!specs) return fail(400, "invalid_view_item");
+      // Values already on screen for this sheet keep the value they were shown with; new ones are read now.
+      const same = v.sheetId === sheet.id;
+      const old = new Map(same ? v.items.filter(i => i.kind !== "text").map(i => [i.kind === "photo" ? "photo" : `field:${(i as { path: string }).path}`, i] as const) : []);
+      let photo = same ? v.photo : null;
+      const items = specs.map(spec => {
+        const key = spec.kind === "photo" ? "photo" : spec.kind === "field" ? `field:${spec.path}` : "";
+        if (key && old.has(key)) return old.get(key)!;
+        if (spec.kind === "photo") { photo = String(sheet.fields[sheet.kind === "character" ? "avatarImage" : "imagen"] ?? "") || null; return { kind: "photo" as const }; }
+        if (spec.kind === "field") return { kind: "field" as const, path: spec.path, value: viewRaw(sheet.fields, spec.path) ?? "" };
+        return spec;
+      });
+      if (!items.some(i => i.kind === "photo")) photo = null;
+      Object.assign(v, items.length ? { sheetId: sheet.id, sheetKind: sheet.kind, items, photo } : { sheetId: null, sheetKind: "", items: [], photo: null });
+      delete this.state.prepared[sheet.id];
+      v.revision++;
+      return done(new Reply(200, { view: this.viewSettings() }));
+    }
+    return fail(405, "method_not_allowed");
+  }
+  private preparedRoute(method: string, kind: EntityKind, id: string, body: any, user: DemoUser): Reply {
+    if (user.role !== "gm") return fail(user.role === "admin" ? 404 : 403, user.role === "admin" ? "not_found" : "forbidden");
+    const sheet = this.viewSheet(id, kind);
+    if (!sheet) return fail(404, "not_found");
+    if (method === "GET") return new Reply(200, { items: this.state.prepared[id] ?? DEFAULT_SPECS });
+    if (method !== "POST") return fail(405, "method_not_allowed");
+    const specs = this.viewSpecs(body.items, sheet);
+    if (!specs) return fail(400, "invalid_view_item");
+    if (JSON.stringify(specs) === JSON.stringify(DEFAULT_SPECS)) delete this.state.prepared[id]; else this.state.prepared[id] = specs;
+    this.save();
+    return new Reply(200, { items: specs });
+  }
+  private publicView(token: string, photo: boolean): Reply {
+    const v = this.state.view;
+    if (!this.viewLive(v) || token !== this.viewToken(v)) return fail(404, "not_found");
+    if (photo) return v.photo ? new Reply(200, { asset: v.photo }) : fail(404, "not_found");
+    return new Reply(200, { campaignName: CAMPAIGN.name, revision: v.revision, now: this.viewNow(v) });
+  }
+  /** The demo screen draws the captured portrait from its asset id. */
+  viewPhoto(token: string) { const v = this.state.view; return this.viewLive(v) && token === this.viewToken(v) && v.photo ? this.asset(v.photo) : undefined; }
 
   private userView(user: DemoUser) { return { id: user.id, username: user.username, displayName: user.displayName, isAdministrator: user.role === "admin" }; }
 

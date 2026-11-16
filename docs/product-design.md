@@ -485,6 +485,16 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **Second round of the demo** (same link, 16 November 2026): the side panels at full HD, laptop and phone sizes, «Ahora» and «Preparado», the name fitting one line, the new words; verdicts for changed parts are saved under new ids (`screen-tv-2`, `words-2`).
 - **Second-round verdicts (16 November 2026):** approved the side panels, «Ahora» and «Preparado», and the words. The big screen's name was cut off for long names (its column grew with it); fixed so it shrinks to fit, down to 55 % of its size and never below the field values, wrapping only past that and never cut; the fix waits for the owner's verdict (`screen-tv-3`).
 
+### 10e. Herramientas del Máster (designed and approved 16 November 2026; not built yet)
+
+**Why:** the Máster's top bar had seven buttons and wrapped to two rows below about 1250 px, and every new side panel would add another. Demo with the owner's verdicts, all approved: https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex.
+
+- **The bar:** Mis notas · **Herramientas** · Partidas · Jugadores · Ajustes · Nuevo Personaje. «Habilidades de la campaña» and «Vista» move into the menu; six buttons keep one row from about a 1070 px box. Players' bar unchanged; «Herramientas» is the campaign's Máster's only.
+- **The menu:** opens under the button on a wide screen, like the search's «Todo» menu; a sheet from the bottom on a phone; «Esc», a tap outside or «×» closes it. One row per side panel, its own name and a switch (Controls 3) that opens or closes it; the menu stays open while switching. The «Vista de jugadores» row says what is on view («Ahora: …», green dot) or «Nada en la vista». The button shows how many panels are open and a green dot while the view is live.
+- **First rows:** «Vista de jugadores» and «Habilidades de la campaña» (the latter becoming a side panel, as planned after 7a).
+- **Later, approved as the direction:** «Partidas» and «Jugadores» move in as rows that open their screens (a chevron instead of a switch); the view's link moves from «Ajustes» beside the «Vista» switch; «Acceso del administrador» and the campaign's name stay in «Ajustes»; the Biblioteca's lists (R5) become new switches.
+- **Words:** «Herramientas»; each row uses its panel's own name; «Ahora: …» / «Nada en la vista».
+
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 
 - Today: every category with its skills: «Inicial», the name, «hasta N años». Add a skill per category. Draft with «Guardar cambios» / «Descartar»; blank or repeated names cannot be saved; reloads if changed meanwhile.

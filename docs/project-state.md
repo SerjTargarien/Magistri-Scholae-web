@@ -941,6 +941,10 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **After the owner's staging test (PR #128):** the panel no longer reopens by itself (it used to come back on every screen while something was on view, as first designed); it is a toggle, «Vista» in the main list's top menu, remembered on this device; the sheets' «Mostrar» is gone (one way: the panel's «Mostrar» under «Preparado»). Header one-row threshold raised to a 1250 px box for the seventh button. Checks: type check, 42 unit tests, 68 demo browser tests, 6 real-backend browser tests, build. **On staging** the same day (frontend only, `9723aeb`).
 - **Next:** «Habilidades de la campaña» as a panel (its own small step), with the same toggle behaviour.
 
+## Herramientas del Máster — designed 16 November 2026
+
+- Demo https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex; every part approved; recorded in product-design.md 10e. A «Herramientas» menu in the Máster's top bar replaces «Habilidades de la campaña» and «Vista», holding the side panels as switches; later it takes «Partidas», «Jugadores» and the view's link. Not built yet.
+
 ## Updating this handoff
 
 After a milestone, record the commit/working-tree context, changes, exact checks and outcomes, unresolved defects, and next milestone. Replace stale status rather than accumulating contradictory completion claims. Never record secrets or actual player-note content here.

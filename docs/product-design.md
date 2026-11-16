@@ -469,7 +469,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 
 **Image quality:** portraits are stored up to 900 × 1200 pixels (the height of a 1080p screen); gallery images up to 1600.
 
-**Designed next, in an interactive demo with the owner's verdicts:** the button and panel on the sheet, the defaults, the field search and free text, the screen on a TV and on a phone, the players' view in the app; open points: several characters at once, familiars, gallery images, how a player's partida is decided (players never see partidas), and how long a screen link lasts.
+**Demo for the owner's verdicts:** https://claude.ai/artifact/RWWM1iV2qDUHSh6Mcc4KLP (16 November 2026; the verdicts are saved in its `verdicts` collection). **In it:** the button and panel on the sheet, the defaults, the field search and free text, the screen on a TV and on a phone, the players' view in the app; open points: several characters at once, familiars, gallery images, how a player's partida is decided (players never see partidas), and how long a screen link lasts.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

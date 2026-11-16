@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// «Vista de jugadores» in «Ajustes» → «Campaña» (7a; approved demo): the link the Máster opens on
+// The view's link (7a; approved demo; moved from «Ajustes» into «Herramientas», under the «Vista de
+// jugadores» switch, owner, 16 November 2026): the link the Máster opens on
 // the screen the table sees, with «Copiar» and a QR code; «Cambiar enlace» (asks first: the old
 // link stops at once) and «Desactivar»; and the switch that lets signed-in players of the session's
 // partida follow it in the app.
@@ -22,7 +23,7 @@ const QUIET = `${BUTTON} border-amber-600/50 bg-gradient-to-b from-[#231c35] to-
 const NONE = "__all";
 
 /** The link as a QR code, drawn as squares (no image file). */
-function QrCode({ text, label }: { text: string; label: string }) {
+function QrCode({ text, label, small }: { text: string; label: string; small?: boolean }) {
   const cells = useMemo(() => {
     const code = qrcode(0, "M");
     code.addData(text);
@@ -34,14 +35,16 @@ function QrCode({ text, label }: { text: string; label: string }) {
   }, [text]);
   return (
     <svg id="vista-link-qr" role="img" aria-label={label} viewBox={`-2 -2 ${cells.n + 4} ${cells.n + 4}`} shapeRendering="crispEdges"
-      className="w-28 h-28 shrink-0 rounded-lg bg-[#f5f0e6]">
+      className={`${small ? "w-20 h-20" : "w-28 h-28"} shrink-0 rounded-lg bg-[#f5f0e6]`}>
       <path d={cells.d} fill="#1a1105" />
     </svg>
   );
 }
 
-export function VistaLinkCard({ lang, api, partidas, onShowToast, onChanged }: {
+export function VistaLinkCard({ lang, api, partidas, onShowToast, onChanged, compact }: {
   lang: Language; api: VistaApi; partidas: ApiTable[]; onShowToast: (type: "success" | "error", text: string) => void;
+  /** Inside the «Herramientas» menu: no heading, a smaller QR code. */
+  compact?: boolean;
   /** The app's copy of the view follows (the panel says whether a link exists). */
   onChanged?: (view: ApiPlayerView) => void;
 }) {
@@ -62,8 +65,8 @@ export function VistaLinkCard({ lang, api, partidas, onShowToast, onChanged }: {
 
   if (view === undefined) return null;
   return (
-    <div className="mt-5 pt-4 border-t border-violet-500/10 grid gap-3" id="vista-link-card">
-      <h3 className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold flex items-center gap-1.5"><Monitor className="w-3.5 h-3.5" />{x.title}</h3>
+    <div className={compact ? "grid gap-2.5 mx-1 mb-1 p-2.5 rounded-lg border border-violet-500/15 bg-neutral-950/35" : "mt-5 pt-4 border-t border-violet-500/10 grid gap-3"} id="vista-link-card">
+      {!compact && <h3 className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold flex items-center gap-1.5"><Monitor className="w-3.5 h-3.5" />{x.title}</h3>}
       {!view?.active ? (
         <>
           <p className="text-xs text-neutral-400 leading-relaxed">{x.linkNone}</p>
@@ -72,9 +75,9 @@ export function VistaLinkCard({ lang, api, partidas, onShowToast, onChanged }: {
         </>
       ) : (
         <>
-          <p className="text-xs text-neutral-400 leading-relaxed">{x.linkIntro}</p>
+          {!compact && <p className="text-xs text-neutral-400 leading-relaxed">{x.linkIntro}</p>}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex-1 min-w-[220px] grid gap-2">
+            <div className={`flex-1 ${compact ? "min-w-[180px]" : "min-w-[220px]"} grid gap-2`}>
               <div id="vista-link-url" className="font-mono text-xs text-neutral-100 px-2.5 py-2 rounded-lg border border-amber-600/50 bg-neutral-950/40 break-all select-all">{url}</div>
               <div className="flex flex-wrap gap-2">
                 <button type="button" id="btn-vista-copy" className={QUIET} onClick={() => {
@@ -86,7 +89,7 @@ export function VistaLinkCard({ lang, api, partidas, onShowToast, onChanged }: {
               </div>
               {view.expiresAt && <span className="text-[11px] text-neutral-500">{x.expires.replace("{date}", when(view.expiresAt))}</span>}
             </div>
-            <QrCode text={url} label={x.qr} />
+            <QrCode text={url} label={x.qr} small={compact} />
           </div>
         </>
       )}

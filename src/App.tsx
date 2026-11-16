@@ -9,7 +9,7 @@
 // background, loading screen and DEMO banner are the old app's, unchanged.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ApiAdminAccess, ApiMember, ApiPlayerView, ApiSheetProjection, ApiTable, ApiUser, ApiViewSpec, EntityKind } from "./contracts/api-v1";
-import { ACCESS_TEXT, ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, STATUS_TEXT, TRANSLATIONS, VISTA_TEXT } from "./localization";
+import { ACCESS_TEXT, ADMIN_TEXT, CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, Language, PARTIDAS_TEXT, STATUS_TEXT, TOOLS_TEXT, TRANSLATIONS, VISTA_TEXT } from "./localization";
 import type { SheetStatusProps, StatusAction } from "./components/SheetStatusBar";
 import { DEFAULT_SKILL_CATALOGUE, newSkillId, type SkillCatalogue } from "./model/catalogue";
 import type { CharacterSheet, CharacterType, FamiliarSheet } from "./model/sheet";
@@ -44,11 +44,17 @@ import { DockLayout, DockPanel } from "./components/dock/Dock";
 import { VistaPanel } from "./components/vista/VistaPanel";
 import { VistaLinkCard } from "./account/VistaLinkCard";
 import { FollowBanner } from "./vista/FollowBanner";
-import { Monitor } from "lucide-react";
+import { ChevronDown, ChevronUp, Dices, ListChecks, Monitor, Users } from "lucide-react";
+import { ToolsMenu } from "./components/dock/ToolsMenu";
+import { SkillsPanel } from "./components/dock/SkillsPanel";
+import { valueText } from "./account/vista";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
-/** This device remembers whether the Máster left the «Vista de jugadores» panel open (a preference, not a record). */
+/** This device remembers which side panels the Máster left open (a preference, not a record). */
 const VISTA_PANEL_KEY = "magistri_vista_panel";
+const SKILLS_PANEL_KEY = "magistri_skills_panel";
+const remembered = (key: string) => { try { return localStorage.getItem(key) === "open"; } catch { return false; } };
+const remember = (key: string, open: boolean) => { try { localStorage.setItem(key, open ? "open" : "closed"); } catch { /* private window */ } };
 // Demo builds only; the condition is replaced at build time.
 const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
 const CAMPAIGN_KEY = "magistri_campaign";
@@ -287,8 +293,13 @@ export default function App() {
   const [vista, setVista] = useState<ApiPlayerView>();
   const [prepared, setPrepared] = useState<Record<string, ApiViewSpec[]>>({});
   // The panel is a toggle that stays as the Máster leaves it, remembered on this device (owner, 16 November 2026).
-  const [vistaOpen, setVistaOpenState] = useState(() => { try { return localStorage.getItem(VISTA_PANEL_KEY) === "open"; } catch { return false; } });
-  const setVistaOpen = (open: boolean) => { setVistaOpenState(open); try { localStorage.setItem(VISTA_PANEL_KEY, open ? "open" : "closed"); } catch { /* private window */ } };
+  const [vistaOpen, setVistaOpenState] = useState(() => remembered(VISTA_PANEL_KEY));
+  const setVistaOpen = (open: boolean) => { setVistaOpenState(open); remember(VISTA_PANEL_KEY, open); };
+  // «Habilidades de la campaña» as a side panel (product-design.md 10e), remembered the same way.
+  const [skillsOpen, setSkillsOpenState] = useState(() => remembered(SKILLS_PANEL_KEY));
+  const setSkillsOpen = (open: boolean) => { setSkillsOpenState(open); remember(SKILLS_PANEL_KEY, open); };
+  const [skillsFolded, setSkillsFolded] = useState(false);
+  const [linkUnfolded, setLinkUnfolded] = useState(false);
   const [vistaFolded, setVistaFolded] = useState(false);
   const [vistaBusy, setVistaBusy] = useState(false);
   const mayShow = isCampaignGM && !openAccess && !!vistaApi;
@@ -511,6 +522,40 @@ export default function App() {
       .then(items => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: items })))
       .catch(() => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: DEFAULT_SPECS })));
   }, [preparingId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // «Herramientas» (product-design.md 10e): the Máster's panels (switches) and screens (chevrons) behind one button.
+  const tt = TOOLS_TEXT[lang];
+  const counted = (n: number, words: { none: string; one: string; many: string }) => (n === 0 ? words.none : n === 1 ? words.one : words.many.replace("{n}", String(n)));
+  const nowName = vista?.now ? valueText("nombre", (vista.now.items.find(i => i.kind === "field" && i.path === "nombre") as { value?: unknown } | undefined)?.value) : "";
+  const toolsMenu = isCampaignGM && !openAccess ? (
+    <ToolsMenu
+      texts={{ title: tt.title, panels: tt.panels, screens: tt.screens, close: tt.close, liveLabel: tt.live }}
+      live={showing}
+      panels={[
+        ...(vista && vistaApi ? [{
+          id: "vista", icon: <Monitor className="w-4 h-4" />, label: VISTA_TEXT[lang].title, on: vistaOpen, onToggle: setVistaOpen,
+          hint: showing ? <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />{tt.nowOn.replace("{name}", nowName)}</span> : tt.nothing,
+          // The view's link, moved here from «Ajustes» (owner, 16 November 2026): a line that unfolds it.
+          extra: (
+            <div className="grid gap-1">
+              <button type="button" id="tool-vista-link" aria-expanded={linkUnfolded} onClick={() => setLinkUnfolded(o => !o)}
+                className="flex items-center gap-2 w-full pl-[52px] pr-2 py-1 text-left text-[11px] text-neutral-400 hover:text-neutral-200 cursor-pointer rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+                <span className="flex-1 min-w-0 break-words">{vista.active && vista.expiresAt
+                  ? tt.linkOn.replace("{date}", new Intl.DateTimeFormat(lang === "es" ? "es-ES" : "en-GB", { dateStyle: "medium" }).format(new Date(vista.expiresAt)))
+                  : tt.linkOff}</span>
+                {linkUnfolded ? <ChevronUp className="w-3.5 h-3.5 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0" />}
+              </button>
+              {linkUnfolded && <VistaLinkCard compact lang={lang} api={vistaApi} partidas={partidas ?? []} onShowToast={showToast} onChanged={setVista} />}
+            </div>
+          ),
+        }] : []),
+        { id: "skills", icon: <ListChecks className="w-4 h-4" />, label: CAMPAIGN_SKILLS_TEXT[lang].title, hint: tt.skillsHint, on: skillsOpen, onToggle: setSkillsOpen },
+      ]}
+      screens={[
+        { id: "partidas", icon: <Dices className="w-4 h-4" />, label: PARTIDAS_TEXT[lang].button, hint: counted(partidas?.length ?? 0, tt.partidas), onOpen: () => setScreen("PARTIDAS") },
+        { id: "players", icon: <Users className="w-4 h-4" />, label: CAMPAIGN_GM_TEXT[lang].players, hint: counted(members.filter(m => m.role === "player").length, tt.players), onOpen: () => setScreen("PLAYERS") },
+      ]}
+    />
+  ) : undefined;
   const dockPanels = [vistaVisible && vista ? (
     <DockPanel key="vista" id="panel-vista" icon={<Monitor className="w-4 h-4" />} title={VISTA_TEXT[lang].title} live={showing}
       folded={vistaFolded} onFold={() => setVistaFolded(f => !f)} onClose={() => setVistaOpen(false)}
@@ -529,6 +574,11 @@ export default function App() {
         onShowPrepared={() => preparing && showPrepared(preparing)}
         onReset={() => preparing && savePrepared(preparing, DEFAULT_SPECS)}
       />
+    </DockPanel>
+  ) : null, skillsOpen && isCampaignGM && !openAccess ? (
+    <DockPanel key="skills" id="panel-skills" icon={<ListChecks className="w-4 h-4" />} title={CAMPAIGN_SKILLS_TEXT[lang].title}
+      folded={skillsFolded} onFold={() => setSkillsFolded(f => !f)} onClose={() => setSkillsOpen(false)} texts={VISTA_TEXT[lang]}>
+      <SkillsPanel lang={lang} catalogue={catalogue} editLabel={tt.editSkills} onEdit={() => setScreen("CAMPAIGN_SKILLS")} />
     </DockPanel>
   ) : null];
 
@@ -607,10 +657,7 @@ export default function App() {
               onAddCharacter={openAccess ? undefined : () => setScreen("TYPE_SELECT")}
               onOpenSettings={() => setScreen("SETTINGS")}
               onOpenNotes={() => setScreen("NOTES")}
-              onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
-              onOpenPartidas={isCampaignGM ? () => setScreen("PARTIDAS") : undefined}
-              onOpenPlayers={isCampaignGM ? () => setScreen("PLAYERS") : undefined}
-              vistaToggle={mayShow && vista ? { open: vistaOpen, live: showing, onToggle: () => setVistaOpen(!vistaOpen) } : undefined}
+              tools={toolsMenu}
               partidas={isCampaignGM ? partidas : undefined}
               listRole={openAccess ? "support" : isCampaignGM ? "master" : "player"}
               banner={!isCampaignGM && !openAccess && vistaApi ? <FollowBanner lang={lang} api={vistaApi} campaignId={campaignId} campaignName={campaigns.find(c => c.id === campaignId)?.name ?? ""} /> : undefined}
@@ -735,7 +782,6 @@ export default function App() {
                   try { await client.request("campaigns", "POST", { name }); showToast("success", CAMPAIGN_GM_TEXT[lang].created); setCampaignsLoaded(n => n + 1); }
                   catch { showToast("error", STATUS_TEXT[lang].failed); }
                 },
-                vistaCard: vistaApi && <VistaLinkCard lang={lang} api={vistaApi} partidas={partidas ?? []} onShowToast={showToast} onChanged={setVista} />,
                 accessCard: <AdminAccessCard lang={lang} api={remoteAccess(client, campaignId)} onShowToast={showToast} />,
               } : undefined}
               account={{

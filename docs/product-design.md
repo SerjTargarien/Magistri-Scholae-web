@@ -485,7 +485,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **Second round of the demo** (same link, 16 November 2026): the side panels at full HD, laptop and phone sizes, «Ahora» and «Preparado», the name fitting one line, the new words; verdicts for changed parts are saved under new ids (`screen-tv-2`, `words-2`).
 - **Second-round verdicts (16 November 2026):** approved the side panels, «Ahora» and «Preparado», and the words. The big screen's name was cut off for long names (its column grew with it); fixed so it shrinks to fit, down to 55 % of its size and never below the field values, wrapping only past that and never cut; the fix waits for the owner's verdict (`screen-tv-3`).
 
-### 10e. Herramientas del Máster (designed and approved 16 November 2026; not built yet)
+### 10e. Herramientas del Máster (designed and approved 16 November 2026; built the same day, option b)
 
 **Why:** the Máster's top bar had seven buttons and wrapped to two rows below about 1250 px, and every new side panel would add another. Demo with the owner's verdicts, all approved: https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex.
 
@@ -494,6 +494,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **First rows:** «Vista de jugadores» and «Habilidades de la campaña» (the latter becoming a side panel, as planned after 7a).
 - **Later, approved as the direction:** «Partidas» and «Jugadores» move in as rows that open their screens (a chevron instead of a switch); the view's link moves from «Ajustes» beside the «Vista» switch; «Acceso del administrador» and the campaign's name stay in «Ajustes»; the Biblioteca's lists (R5) become new switches.
 - **Words:** «Herramientas»; each row uses its panel's own name; «Ahora: …» / «Nada en la vista».
+- **Draft (b), approved the same day and built (PR #131):** the bar is **Mis notas · Herramientas · Ajustes · Nuevo Personaje**, one row from an 860 px box. The menu has two groups: **«Paneles»** (switches, the menu stays open): «Vista de jugadores», with the **view's link moved here from «Ajustes»** as a line «Enlace: activo · caduca el …» / «Sin enlace: créalo aquí» that unfolds the link, «Copiar», the QR code, «Cambiar enlace», «Desactivar» and «Mostrarlo también en la app»; and «Habilidades de la campaña», a read-only side panel by category with «Inicial» and age limits, whose «Editar la lista» opens the list's own screen. **«Pantallas»** (chevrons, the menu closes): «Partidas» («2 partidas») and «Jugadores» («3 jugadores»). «Ajustes» keeps the campaign's name, «Nueva campaña» and «Acceso del administrador». The owner marked no place for the link; it went in the menu, as first approved («beside the Vista switch»). On a phone the side panels show only on the list and the sheets, where they are used (elsewhere their sheet would cover a screen's own buttons).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

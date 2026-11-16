@@ -116,12 +116,6 @@ export interface CharacterListProps {
   onOpenSettings: () => void;
   /** «Mis notas»: all of the viewer's private notes. */
   onOpenNotes?: () => void;
-  /** The campaign's Máster only: «Habilidades de la campaña» (owner, 13 November 2026; moves to the Biblioteca in R5). */
-  onOpenCampaignSkills?: () => void;
-  /** The campaign's Máster only: «Partidas de la campaña» (R4 b). */
-  onOpenPartidas?: () => void;
-  /** The campaign's Máster only: «Jugadores de la campaña» (R4 d). */
-  onOpenPlayers?: () => void;
   /** The Máster only: the campaign's partidas, for each card's tag and the filter. Players never get them. */
   partidas?: ApiTable[];
   /**
@@ -130,8 +124,8 @@ export interface CharacterListProps {
    * during an access has every state.
    */
   listRole?: "master" | "player" | "support";
-  /** The campaign's Máster only: the «Vista de jugadores» panel's toggle (7a); `live` while something is on view. */
-  vistaToggle?: { open: boolean; live: boolean; onToggle: () => void };
+  /** The campaign's Máster only: «Herramientas», his panels and screens (product-design.md 10e). */
+  tools?: React.ReactNode;
   /** Players the Máster lets follow the players' view: its banner (7a). */
   banner?: React.ReactNode;
   /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */
@@ -160,7 +154,5 @@ export interface SettingsScreenProps {
   /** The campaign's Máster only (R4 d): rename it, or create a new campaign of which he will be the Máster. */
   campaignSettings?: { name: string; onRename: (name: string) => Promise<void>; onCreate: (name: string) => Promise<void>;
     /** «Acceso de administración» (R4 e), drawn by the app. */
-    accessCard?: React.ReactNode;
-    /** «Vista de jugadores» (7a): the link, drawn by the app. */
-    vistaCard?: React.ReactNode };
+    accessCard?: React.ReactNode };
 }

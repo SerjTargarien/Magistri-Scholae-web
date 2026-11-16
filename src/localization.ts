@@ -1903,6 +1903,26 @@ export const NOTES_TEXT = {
   },
 };
 
+/** «Herramientas» (product-design.md 10e): the Máster's tools behind one button in the main list's top bar. */
+export const TOOLS_TEXT = {
+  es: {
+    title: "Herramientas", panels: "Paneles", screens: "Pantallas", close: "Cerrar", live: "La vista muestra algo ahora",
+    skillsHint: "Consultarlas junto a la ficha", editSkills: "Editar la lista",
+    partidas: { none: "Ninguna partida", one: "1 partida", many: "{n} partidas" },
+    players: { none: "Ningún jugador", one: "1 jugador", many: "{n} jugadores" },
+    nowOn: "Ahora: {name}", nothing: "Nada en la vista",
+    linkOn: "Enlace: activo · caduca el {date}", linkOff: "Sin enlace: créalo aquí",
+  },
+  en: {
+    title: "Tools", panels: "Panels", screens: "Screens", close: "Close", live: "The view shows something now",
+    skillsHint: "Look them up beside the sheet", editSkills: "Edit the list",
+    partidas: { none: "No tables", one: "1 table", many: "{n} tables" },
+    players: { none: "No players", one: "1 player", many: "{n} players" },
+    nowOn: "Now: {name}", nothing: "Nothing on view",
+    linkOn: "Link: active · expires on {date}", linkOff: "No link: create it here",
+  },
+};
+
 /** Vista de jugadores (7a; product-design.md 10d): the Máster's panel, the «Mostrar» button and the screen. */
 export const VISTA_TEXT = {
   es: {

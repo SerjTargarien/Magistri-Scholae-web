@@ -9,7 +9,7 @@
 // screen the content narrows (nothing is covered); below 1024 px the panels are a sheet from the
 // bottom. Panels stack, each can be folded or closed, and stay open across screens. The content's
 // own width is measured and given to its layout as two flags (`group/content` with data-wide at
-// 1250 px, where the Máster's seven header buttons fit beside the title, and data-roomy at 1340 px), so a narrower column beside the panels lays out for its own
+// 860 px, where the Máster's four header buttons fit beside the title, and data-roomy at 1340 px), so a narrower column beside the panels lays out for its own
 // width. (Not a CSS size container: containment would make every fixed dialog inside it position
 // against the content instead of the screen.)
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -48,14 +48,16 @@ export function DockLayout({ panels, children, uncap, label }: {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const open = panels.filter(Boolean);
+  // On a phone the panels are a sheet over the content, so they show only on the list and the sheets, where they are
+  // used; elsewhere (Ajustes, the skills editor…) they would cover the screen's own buttons.
+  const open = wide || uncap ? panels.filter(Boolean) : [];
   const docked = open.length > 0;
   return (
     <div id="dock-layout" data-docked={docked ? (wide ? "side" : "bottom") : "none"} className={docked && wide ? "flex items-start gap-5 pr-4" : ""}>
       {/* Beside the panels the screen's own width cap goes, so content and panels use the whole width. */}
       {/* As wide as the screens' own box (max-w-7xl) when nothing is docked, so the measured width matches today's layout;
           beside the panels it takes the rest of the width. */}
-      <div ref={content} data-wide={width >= 1250} data-roomy={width >= 1340}
+      <div ref={content} data-wide={width >= 860} data-roomy={width >= 1340}
         className={`group/content min-w-0 ${docked && wide ? `flex-1 ${uncap ? "[&>*]:max-w-none" : ""}` : "w-full max-w-7xl mx-auto"} ${docked && !wide ? "pb-[45vh]" : ""}`}>{children}</div>
       {docked && (
         <aside

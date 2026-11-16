@@ -3,7 +3,7 @@
 // merging, same-field conflicts, connection drops and exact retries. Uses the
 // demo's test panel. Each test starts with fresh demo data.
 import type { Page } from "@playwright/test";
-import { expect, openApp, openCharacter, openTab, reloadApp, setEditMode, storedSheet, test, viewAs } from "./helpers";
+import { expect, openApp, openCharacter, openTab, openTool, reloadApp, setEditMode, setToolPanel, storedSheet, test, viewAs } from "./helpers";
 
 const status = (page: Page) => page.locator("#save-status");
 const nameInput = (page: Page) => page.getByPlaceholder("Leonora Vance").first();
@@ -151,14 +151,14 @@ test("administrator: campaigns, members, invitations, recovery links and account
 // Partidas (R4 b): the Máster's own table management; players never see them.
 test("Máster: names partidas, places characters in several, filters by partida and «Comunes»; players see none of it", async ({ page }) => {
   await openApp(page);
-  await expect(page.locator("#btn-campaign-partidas")).toHaveCount(0);
+  await expect(page.locator("#btn-tools")).toHaveCount(0);
   await expect(page.locator("[data-partida]")).toHaveCount(0);
   await page.locator("#list-filter-open").click();
   await expect(page.locator('[id^="list-filter-sheet-partida-"]')).toHaveCount(0); // no partida section for players
   await page.locator("#list-filter-sheet-close").click();
 
   await viewAs(page, "gm");
-  await page.locator("#btn-campaign-partidas").click();
+  await openTool(page, "partidas");
   await page.locator("#input-new-partida").fill("Mesa del domingo");
   await page.locator("#btn-add-partida").click();
   const domingo = page.locator('[id^="input-partida-name-"]').last();
@@ -171,7 +171,7 @@ test("Máster: names partidas, places characters in several, filters by partida 
   await page.locator("#btn-campaign-partidas-back").click();
 
   // «Elegir personajes» (owner, 15 November 2026): Diego joins Sunday's table and stays at Saturday's.
-  await page.locator("#btn-campaign-partidas").click();
+  await openTool(page, "partidas");
   const domingoId = (await page.locator('[id^="input-partida-name-"]').last().getAttribute("id"))!.replace("input-partida-name-", "");
   await page.locator(`#btn-partida-characters-${domingoId}`).click();
   await expect(page.locator("#partida-characters-item-demo-diego")).toContainText("también en Mesa del sábado");
@@ -213,7 +213,7 @@ test("Máster: names partidas, places characters in several, filters by partida 
   await clearPartidas();
 
   // Luna leaves Thursday's table: in no partida, she is common to all.
-  await page.locator("#btn-campaign-partidas").click();
+  await openTool(page, "partidas");
   await page.locator("#btn-partida-characters-demo-partida-jueves").click();
   await page.locator("#partida-characters-item-demo-luna").click();
   await page.locator("#partida-characters-done").click();
@@ -350,11 +350,11 @@ test("drafts: a proposal confirmed as the Máster's NPC leaves its author", asyn
 // The Máster's tools (R4 d): players, assignment, archived sheets, the campaign.
 test("Máster: invites a player, assigns sheets, restores and deletes an archived one, renames and creates a campaign", async ({ page }) => {
   await openApp(page);
-  await expect(page.locator("#btn-campaign-players")).toHaveCount(0); // players have no «Jugadores»
+  await expect(page.locator("#btn-tools")).toHaveCount(0); // players have no «Jugadores»
   await viewAs(page, "gm");
 
   // «Jugadores»: an invitation shown once, pending until cancelled.
-  await page.locator("#btn-campaign-players").click();
+  await openTool(page, "players");
   await expect(page.locator("#campaign-players-screen")).toContainText("@demo_player");
   await page.locator("#btn-invite-player").click();
   await expect(page.locator("#players-issued-link")).toContainText("/#invitacion=");
@@ -475,12 +475,12 @@ test("administrator access: the Máster grants it, the administrator works as M�
 // Vista de jugadores (7a): the panel's toggle, «Preparado» and «Mostrar», «Ahora».
 test("vista de jugadores: the Máster opens the panel, shows a sheet, prepares another, hides it; the panel stays as he leaves it", async ({ page }) => {
   await openApp(page);
-  await expect(page.locator("#btn-campaign-vista")).toHaveCount(0); // a player has no panel
+  await expect(page.locator("#btn-tools")).toHaveCount(0); // a player has no tools
 
   await viewAs(page, "gm");
   await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
-  await page.locator("#btn-campaign-vista").click();
-  await expect(page.locator("#btn-campaign-vista")).toHaveAttribute("aria-pressed", "true");
+  await setToolPanel(page, "vista", true);
+  await expect(page.locator("#btn-tools-count")).toHaveText("1");
   await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "side");
   await expect(page.locator("#vista-now")).toContainText("Nada en la vista");
 
@@ -515,10 +515,11 @@ test("vista de jugadores: the Máster opens the panel, shows a sheet, prepares a
   await openCharacter(page, "Luna de Bruma");
   await expect(page.locator("#panel-vista")).toHaveCount(0);
   await page.locator("#btn-detail-back").click();
-  await expect(page.locator("#btn-campaign-vista")).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("#btn-tools-count")).toHaveCount(0);
+  await expect(page.locator("#btn-tools-live")).toBeVisible(); // the view is still live
 
-  // Open again from the toggle; this device remembers it.
-  await page.locator("#btn-campaign-vista").click();
+  // Open again from «Herramientas»; this device remembers it.
+  await setToolPanel(page, "vista", true);
   await reloadApp(page);
   await expect(page.locator("#panel-vista")).toBeVisible();
   await page.locator("#btn-vista-hide").click();
@@ -528,13 +529,15 @@ test("vista de jugadores: the Máster opens the panel, shows a sheet, prepares a
 test("vista de jugadores: the link in Ajustes, the page the main PC opens, and the players' banner", async ({ page, context }) => {
   await openApp(page);
   await viewAs(page, "gm");
-  await page.locator("#btn-settings").click();
+  // The link lives in «Herramientas», under the «Vista de jugadores» switch.
+  await page.locator("#btn-tools").click();
+  await page.locator("#tool-vista-link").click();
   await page.locator("#btn-vista-create").click();
   const url = (await page.locator("#vista-link-url").textContent())!.trim();
   await expect(page.locator("#vista-link-qr")).toBeVisible();
   await page.locator("#switch-vista-in-app").click();
-  await openApp(page);
-  await page.locator("#btn-campaign-vista").click();
+  await page.locator("#tool-vista").click();
+  await page.locator("#tools-menu-close").click();
   await openCharacter(page, "Luna de Bruma");
   await page.locator("#btn-vista-show-prepared").click();
   await expect(page.locator("#vista-now")).toContainText("Luna de Bruma");
@@ -557,7 +560,8 @@ test("vista de jugadores: the link in Ajustes, the page the main PC opens, and t
 
   // «Cambiar enlace»: the old link stops at once.
   await viewAs(page, "gm");
-  await page.locator("#btn-settings").click();
+  await page.locator("#btn-tools").click();
+  await page.locator("#tool-vista-link").click();
   await page.locator("#btn-vista-renew").click();
   await page.getByRole("button", { name: "Cambiar", exact: true }).click();
   await expect(screen.locator("#view-dead")).toBeVisible({ timeout: 8000 });

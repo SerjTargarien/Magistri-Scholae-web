@@ -4,7 +4,7 @@
 // switch viewer. Results are read back from the mock server's stored copy.
 import {
   characterCard, createCharacter, createFamiliar, expect, familiarCard, flushWrites, isMobile, openApp, openCharacter,
-  openFamiliar, openTab, pngFile, proposeAndConfirm, reloadApp, setEditMode, storedSheet, test, viewAs, visibleOf,
+  openFamiliar, openTab, pngFile, proposeAndConfirm, reloadApp, setEditMode, setToolPanel, storedSheet, test, viewAs, visibleOf,
 } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
@@ -275,7 +275,10 @@ test("a skill the GM types joins the campaign's list; players then pick it", asy
 test("the GM's campaign skill list: starting skills, names and new skills", async ({ page }) => {
   await viewAs(page, "gm");
   await expect(page.locator("#btn-settings-campaign-skills")).toHaveCount(0); // no longer in Ajustes
-  await page.locator("#btn-campaign-skills").click(); // the Máster opens it from the main list
+  // The Máster opens it as a side panel from «Herramientas», and edits it from there (product-design.md 10e).
+  await setToolPanel(page, "skills", true);
+  await expect(page.locator("#panel-skills")).toContainText("Atletismo");
+  await page.locator("#btn-skills-panel-edit").click();
   await expect(page.locator("#campaign-skills-screen")).toBeVisible();
   await page.locator("#chk-initial-sigilo").click(); // a switch, drawn by the app
   await expect(page.locator("#chk-initial-sigilo")).toHaveAttribute("aria-checked", "false");

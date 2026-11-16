@@ -153,12 +153,13 @@ test("administrator access: granted by the GM, the administrator opens the campa
 
 test("vista de jugadores: the GM shows a sheet; the link shows it to a browser with no account, and only what was sent", async ({ page, browser }) => {
   await signIn(page, "preview_gm");
-  await page.locator("#btn-settings").click();
+  await page.locator("#btn-tools").click();
+  await page.locator("#tool-vista-link").click();
   await expect(page.locator("#vista-link-card")).toBeVisible();
   if (await page.locator("#btn-vista-create").isVisible()) await page.locator("#btn-vista-create").click();
   const url = (await page.locator("#vista-link-url").textContent())!.trim();
-  await page.goto("/");
-  if ((await page.locator("#btn-campaign-vista").getAttribute("aria-pressed")) !== "true") await page.locator("#btn-campaign-vista").click();
+  if ((await page.locator("#tool-vista").getAttribute("aria-checked")) !== "true") await page.locator("#tool-vista").click();
+  await page.locator("#tools-menu-close").click();
   await openCharacter(page, "Fictional Luna");
   await page.locator("#btn-vista-show-prepared").click();
   await expect(page.locator("#vista-now")).toContainText("Fictional Luna");

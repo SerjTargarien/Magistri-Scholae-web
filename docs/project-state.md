@@ -943,7 +943,8 @@ Owner decisions the same morning: move before the testers' in-person session (14
 
 ## Herramientas del Máster — designed 16 November 2026
 
-- Demo https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex; every part approved; recorded in product-design.md 10e. A «Herramientas» menu in the Máster's top bar replaces «Habilidades de la campaña» and «Vista», holding the side panels as switches; later it takes «Partidas», «Jugadores» and the view's link. Not built yet.
+- Demo https://claude.ai/artifact/M47BSbZN1a4SfnBTA85Gex; both rounds approved; recorded in product-design.md 10e.
+- **Built (PR #131), option (b):** `src/components/dock/ToolsMenu.tsx` (under the button on wide screens, a sheet on phones), `SkillsPanel.tsx` (the skill list as a side panel, remembered like the view's), the view's link (`VistaLinkCard`, compact) moved from «Ajustes» into the menu, «Partidas» and «Jugadores» as menu rows; the Máster's bar is four buttons (one row from an 860 px box). On phones the panels show only on the list and sheets. Checks: type check; 42 unit tests; 68 demo browser tests (updated: tools reached through the menu; the skills test opens the panel and edits from it); 6 real-backend browser tests; both builds; screenshots at 1920, 1366, 900 and 390 px. Not released.
 
 ## Updating this handoff
 

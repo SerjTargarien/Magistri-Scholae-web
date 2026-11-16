@@ -147,3 +147,17 @@ export async function proposeAndConfirm(page: Page, name: string, kind: "charact
   await expect(page.locator("#sheet-status")).toHaveCount(0);
   await viewAs(page, "player");
 }
+
+/** «Herramientas» (product-design.md 10e): opens a screen from the Máster's menu (it closes the menu). */
+export async function openTool(page: Page, id: "partidas" | "players") {
+  await page.locator("#btn-tools").click();
+  await page.locator(`#tool-${id}`).click();
+}
+
+/** «Herramientas»: switches a side panel on or off, then closes the menu. */
+export async function setToolPanel(page: Page, id: "vista" | "skills", on: boolean) {
+  await page.locator("#btn-tools").click();
+  const toggle = page.locator(`#tool-${id}`);
+  if ((await toggle.getAttribute("aria-checked")) !== String(on)) await toggle.click();
+  await page.locator("#tools-menu-close").click();
+}

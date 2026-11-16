@@ -25,6 +25,7 @@ Owner decisions of 13 November 2026. Each thing the interface shows has **one** 
 |---|---|---|
 | The GM's universe | **campaña** | «universo» |
 | Each table within it (decision 9; labels on sheets from R4) | **partida** | «mesa» |
+| What the Máster shows the table on another screen (16 November 2026; proposed words, to confirm in the demo) | **Pantalla de jugadores**; the action **Mostrar a los jugadores**, and **Ocultar** | «proyector», «TV» |
 | The person who runs the campaign | **Máster** (as in «Biblioteca del Máster») | «GM» |
 | The setting's school and what belongs to it | **escuela** («Escudo de la escuela», «Profesor de la escuela») | «academia» (the GM's preferred word) |
 | Any character, whatever its type | **personaje** | «Mago» or «alumno» for characters in general |
@@ -450,6 +451,25 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - «Nueva partida» and «Añadir»; names are unique in the campaign ignoring case, at most 12 partidas.
 - **The sheet shows no partida**, reading or editing (owner, 15 November 2026: the information is not needed once the sheet is open). A familiar follows the character it is bonded to.
 - **The main list** shows no partida on the cards; the filter bar's «Partida» separates them, with each partida's name and «Comunes». Choosing a partida shows its characters only; «Comunes» shows only those in no partida; both can be chosen at once. A character in several partidas shows under each. The order is unchanged.
+
+### 10d. Pantalla de jugadores (Máster; new, 16 November 2026; before the custom cards)
+
+**Why:** the Máster's main wish after his first look at the site (reported by the owner, 16 November 2026). He reads a character's sheet on his laptop, away from the players, and wants a second computer's screen to show the players that character's photo.
+
+**Owner's decisions (16 November 2026):**
+
+- **Two computers:** the Máster's laptop and the main PC that faces the table. What the screen shows goes through the server.
+- **A screen link:** the Máster creates a secret link and opens it once on the main PC. It shows only what he sends. He can cancel or replace it, and it expires after a while. Nobody signs in as the Máster on the main PC.
+- **Only what he sent:** an explicit action, never a mirror of what he is reading (opening a secret PNJ must not show it). The server builds what the screen receives (the photo and the chosen values), never the sheet; the screen cannot learn anything else.
+- **Few clicks:** from a sheet, **at most two clicks** show the photo with the default fields. While the scene goes on, he can add more of the sheet's fields (found with a search box, with sensible defaults) and **free text** of his own, and take any of it away.
+- **Readable from half across the room,** and a proper **phone** layout of the same link, so a player farther away, or at home, can follow it on their own screen.
+- **Optional, for signed-in players:** «Mostrar a los jugadores» can also reach the campaign's signed-in players who play in the same partida as the Máster's session, inside the app.
+
+**How it updates:** the screen asks the server every 2–3 seconds whether anything changed (a tiny request), so a change shows within about 2 seconds. Instant push would need another kind of server process (today two workers answer requests); not worth it for one screen.
+
+**Image quality:** portraits are stored up to 900 × 1200 pixels (the height of a 1080p screen); gallery images up to 1600.
+
+**Designed next, in an interactive demo with the owner's verdicts:** the button and panel on the sheet, the defaults, the field search and free text, the screen on a TV and on a phone, the players' view in the app; open points: several characters at once, familiars, gallery images, how a player's partida is decided (players never see partidas), and how long a screen link lasts.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

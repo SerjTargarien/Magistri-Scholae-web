@@ -480,6 +480,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **Side panels for the Máster** (a new layout, not only for this step): with no panel open the page stays as it is today, centred. With panels open, the content (the main list or a sheet) takes the left and the panels the right, together using the whole width of a wide screen; on a laptop the content narrows to make room (nothing is covered); on a phone a panel is a bottom sheet. Several panels **stack in one column**, each collapsible. Panels stay open while he moves between the list and sheets. First panels: the Vista de jugadores (step 7a), then «Habilidades de la campaña» (right after, small step); later lists such as spells, or an institution's, club's or class's members (R5).
 - **Not now:** a «Mostrar» on the main list's cards.
 - **Second round of the demo** (same link, 16 November 2026): the side panels at full HD, laptop and phone sizes, «Ahora» and «Preparado», the name fitting one line, the new words; verdicts for changed parts are saved under new ids (`screen-tv-2`, `words-2`).
+- **Second-round verdicts (16 November 2026):** approved the side panels, «Ahora» and «Preparado», and the words. The big screen's name was cut off for long names (its column grew with it); fixed so it shrinks to fit, down to 55 % of its size and never below the field values, wrapping only past that and never cut; the fix waits for the owner's verdict (`screen-tv-3`).
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 

@@ -47,6 +47,8 @@ import { FollowBanner } from "./vista/FollowBanner";
 import { Monitor } from "lucide-react";
 
 const DEMO = import.meta.env.VITE_MOCK_SERVER === "true";
+/** This device remembers whether the Máster left the «Vista de jugadores» panel open (a preference, not a record). */
+const VISTA_PANEL_KEY = "magistri_vista_panel";
 // Demo builds only; the condition is replaced at build time.
 const DemoPanel = DEMO ? lazy(() => import("./mock/panel")) : undefined;
 const CAMPAIGN_KEY = "magistri_campaign";
@@ -284,13 +286,14 @@ export default function App() {
   const vistaApi = useMemo(() => (campaignId ? remoteVista(client, campaignId) : undefined), [client, campaignId]);
   const [vista, setVista] = useState<ApiPlayerView>();
   const [prepared, setPrepared] = useState<Record<string, ApiViewSpec[]>>({});
-  const [vistaOpen, setVistaOpen] = useState(false);
+  // The panel is a toggle that stays as the Máster leaves it, remembered on this device (owner, 16 November 2026).
+  const [vistaOpen, setVistaOpenState] = useState(() => { try { return localStorage.getItem(VISTA_PANEL_KEY) === "open"; } catch { return false; } });
+  const setVistaOpen = (open: boolean) => { setVistaOpenState(open); try { localStorage.setItem(VISTA_PANEL_KEY, open ? "open" : "closed"); } catch { /* private window */ } };
   const [vistaFolded, setVistaFolded] = useState(false);
-  const [vistaClosedOn, setVistaClosedOn] = useState<string | null>(null);
   const [vistaBusy, setVistaBusy] = useState(false);
   const mayShow = isCampaignGM && !openAccess && !!vistaApi;
   useEffect(() => {
-    setVista(undefined); setPrepared({}); setVistaOpen(false); setVistaClosedOn(null);
+    setVista(undefined); setPrepared({});
     if (!vistaApi || !isCampaignGM) return;
     vistaApi.settings().then(setVista).catch(() => undefined);
   }, [vistaApi, isCampaignGM]);
@@ -483,31 +486,19 @@ export default function App() {
 
   const isGM = (store?: SheetStore) => !!store?.sheet.capabilities.isGM;
 
-  // The Vista panel: open while something shows (he can close it on a screen; it reopens on the next).
-  const pageKey = screen === "DETAIL" ? `c:${selectedCharId}` : screen === "FAMILIAR_DETAIL" ? `f:${selectedFamiliarId}` : screen;
+  // The Vista panel: open or closed as the Máster left it, from the main list's «Vista» toggle.
   const showing = !!vista?.now;
-  const vistaVisible = mayShow && !!vista && (vistaOpen || (showing && vistaClosedOn !== pageKey));
+  const vistaVisible = mayShow && !!vista && vistaOpen;
   const openSheetStore = screen === "DETAIL" ? characterStore : screen === "FAMILIAR_DETAIL" ? familiarStore : undefined;
   const showable = (store?: SheetStore) => !!store && mayShow && confirmed(store) && !store.sheet.archived;
   const preparing = showable(openSheetStore) && vista?.sheetId !== openSheetStore!.sheet.id ? openSheetStore : undefined;
   const nowSheet = vista?.sheetId ? (stores.current.get(vista.sheetId)?.sheet ?? [...characters, ...familiars].find(s => s.id === vista.sheetId)) : undefined;
-  const showToPlayers = (store?: SheetStore) => (!showable(store) ? undefined : {
-    showing: vista?.sheetId === store!.sheet.id && showing,
-    busy: vistaBusy,
-    onShow: () => {
-      if (vista?.sheetId === store!.sheet.id && showing) {
-        setVistaOpen(!vistaVisible); setVistaClosedOn(vistaVisible ? pageKey : null);
-        return;
-      }
-      void vistaAct(async () => {
-        await settle(store!);
-        const items = prepared[store!.sheet.id];
-        const next = await vistaApi!.show(store!.sheet.id, items);
-        setPrepared(p => { const { [store!.sheet.id]: _, ...rest } = p; return rest; });
-        return next;
-      });
-      setVistaOpen(true); setVistaClosedOn(null);
-    },
+  /** «Mostrar» in the panel's «Preparado»: puts the open sheet on view with what was prepared for it. */
+  const showPrepared = (store: SheetStore) => void vistaAct(async () => {
+    await settle(store);
+    const next = await vistaApi!.show(store.sheet.id, prepared[store.sheet.id]);
+    setPrepared(p => { const { [store.sheet.id]: _, ...rest } = p; return rest; });
+    return next;
   });
   const savePrepared = (store: SheetStore, items: ApiViewSpec[]) => {
     setPrepared(p => ({ ...p, [store.sheet.id]: items }));
@@ -520,10 +511,9 @@ export default function App() {
       .then(items => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: items })))
       .catch(() => setPrepared(p => (p[preparingId] ? p : { ...p, [preparingId]: DEFAULT_SPECS })));
   }, [preparingId]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (vistaClosedOn && vistaClosedOn !== pageKey) setVistaClosedOn(null); }, [pageKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const dockPanels = [vistaVisible && vista ? (
     <DockPanel key="vista" id="panel-vista" icon={<Monitor className="w-4 h-4" />} title={VISTA_TEXT[lang].title} live={showing}
-      folded={vistaFolded} onFold={() => setVistaFolded(f => !f)} onClose={() => { setVistaOpen(false); setVistaClosedOn(pageKey); }}
+      folded={vistaFolded} onFold={() => setVistaFolded(f => !f)} onClose={() => setVistaOpen(false)}
       texts={VISTA_TEXT[lang]}>
       <VistaPanel
         lang={lang}
@@ -536,7 +526,7 @@ export default function App() {
         onNow={specs => void vistaAct(() => vistaApi!.show(vista.sheetId, specs))}
         onHide={() => void vistaAct(() => vistaApi!.show(null))}
         onPrepared={specs => preparing && savePrepared(preparing, specs)}
-        onShowPrepared={() => preparing && showToPlayers(preparing)?.onShow()}
+        onShowPrepared={() => preparing && showPrepared(preparing)}
         onReset={() => preparing && savePrepared(preparing, DEFAULT_SPECS)}
       />
     </DockPanel>
@@ -620,6 +610,7 @@ export default function App() {
               onOpenCampaignSkills={isCampaignGM ? () => setScreen("CAMPAIGN_SKILLS") : undefined}
               onOpenPartidas={isCampaignGM ? () => setScreen("PARTIDAS") : undefined}
               onOpenPlayers={isCampaignGM ? () => setScreen("PLAYERS") : undefined}
+              vistaToggle={mayShow && vista ? { open: vistaOpen, live: showing, onToggle: () => setVistaOpen(!vistaOpen) } : undefined}
               partidas={isCampaignGM ? partidas : undefined}
               listRole={openAccess ? "support" : isCampaignGM ? "master" : "player"}
               banner={!isCampaignGM && !openAccess && vistaApi ? <FollowBanner lang={lang} api={vistaApi} campaignId={campaignId} campaignName={campaigns.find(c => c.id === campaignId)?.name ?? ""} /> : undefined}
@@ -659,7 +650,6 @@ export default function App() {
               onUploadImage={uploadImage(characterStore)}
               notes={notesApi}
               status={openAccess ? undefined : statusFor(characterStore)}
-              showToPlayers={showToPlayers(characterStore)}
             />
           )}
 
@@ -677,7 +667,6 @@ export default function App() {
               onShowToast={showToast}
               notes={notesApi}
               status={openAccess ? undefined : statusFor(familiarStore)}
-              showToPlayers={showToPlayers(familiarStore)}
             />
           )}
 

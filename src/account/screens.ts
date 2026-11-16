@@ -2,7 +2,6 @@
 // Screens read the server's model (src/model/sheet.ts) through a SheetStore
 // and change it only through store.edit(path, value) and the callbacks below.
 // They never build whole records for existing sheets.
-import type { ShowToPlayers } from "../components/vista/ShowButton";
 import type React from "react";
 import type { ApiSheetProjection, ApiTable } from "../contracts/api-v1";
 import type { FilterState } from "../components/FilterBar";
@@ -45,8 +44,6 @@ export interface CharacterDetailProps {
   notes?: NotesApi;
   /** Drafts, proposals and the active switch (R4 c). */
   status?: SheetStatusProps;
-  /** The campaign's Máster only: «Mostrar» on the players' view (7a). */
-  showToPlayers?: ShowToPlayers;
 }
 
 export interface CharacterFormProps {
@@ -88,8 +85,6 @@ export interface FamiliarDetailProps {
   notes?: NotesApi;
   /** Drafts, proposals and the active switch (R4 c). */
   status?: SheetStatusProps;
-  /** The campaign's Máster only: «Mostrar» on the players' view (7a). */
-  showToPlayers?: ShowToPlayers;
 }
 
 /** A familiar confirmed in the creation form's dialog, created only when the character is saved. */
@@ -135,6 +130,8 @@ export interface CharacterListProps {
    * during an access has every state.
    */
   listRole?: "master" | "player" | "support";
+  /** The campaign's Máster only: the «Vista de jugadores» panel's toggle (7a); `live` while something is on view. */
+  vistaToggle?: { open: boolean; live: boolean; onToggle: () => void };
   /** Players the Máster lets follow the players' view: its banner (7a). */
   banner?: React.ReactNode;
   /** The filter bar's search, filters and sort order, kept by the app while moving between screens. */

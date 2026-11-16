@@ -10,7 +10,7 @@ import type { CharacterListProps } from "../account/screens";
 import { HOUSES } from "../data/gameData";
 import { imageSrc } from "../remote/assets";
 import { getCharacterVisualTheme } from "../utils/characterVisualTheme";
-import { CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, STATUS_TEXT, TRANSLATIONS } from "../localization";
+import { CAMPAIGN_GM_TEXT, CAMPAIGN_SKILLS_TEXT, FILTER_TEXT, NOTES_TEXT, PARTIDAS_TEXT, STATUS_TEXT, TRANSLATIONS, VISTA_TEXT } from "../localization";
 import { FilterBar, selectionOf, type FilterSection, type FilterState, type SortField } from "./FilterBar";
 import { FiligreeCorner, CardCornerOrnament } from "./AcademyOrnaments";
 import { HouseCrest } from "./HouseCrest";
@@ -27,7 +27,8 @@ import {
   BadgeHelp,
   Coins,
   Award,
-  PawPrint
+  PawPrint,
+  Monitor,
 } from "lucide-react";
 
 /** Experience on a card: exact up to 99,999, short above («250 mil», «1 M») so it fits a third of the card. */
@@ -74,6 +75,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   partidas,
   listRole = "player",
   banner,
+  vistaToggle,
   filter,
   onFilterChange,
 }) => {
@@ -193,8 +195,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
       <div
         className={`flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-2`}
       >
-        {/* The title gives way before the buttons (owner, 15 November 2026): on wide content (a 1152 px box, the dock layout's data-wide) they keep one row, the title wrapping
-            instead; the Máster's six buttons always fit there. Narrower, they wrap as before. */}
+        {/* The title gives way before the buttons (owner, 15 November 2026): on wide content (a 1250 px box, the dock layout's data-wide) they keep one row, the title wrapping
+            instead; the Máster's seven buttons always fit there. Narrower, they wrap as before. */}
         <div className="flex items-center gap-3.5 text-center md:text-left group-data-[wide=true]/content:shrink-[999]">
           {/* School Crest */}
           <img
@@ -260,6 +262,22 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             >
               <Users className="w-4 h-4 mr-1 md:mr-2 text-amber-400" />
               <span className="hidden md:inline">{CAMPAIGN_GM_TEXT[lang].players}</span>
+            </button>
+          )}
+
+          {/* «Vista»: opens or closes the players' view panel, which stays as it is left (7a). A green dot while something is on view. */}
+          {vistaToggle && (
+            <button
+              id="btn-campaign-vista"
+              type="button"
+              onClick={vistaToggle.onToggle}
+              aria-pressed={vistaToggle.open}
+              className={`academy-header-btn relative flex items-center justify-center px-3.5 py-2 rounded-lg transition-all font-mono text-xs cursor-pointer min-h-[38px] ${vistaToggle.open ? "!border-[#e5a93c] !bg-[rgba(42,29,16,0.9)] text-[#f5b841] shadow-[0_0_12px_rgba(229,169,60,0.3)]" : "text-neutral-200 hover:text-amber-200"}`}
+              title={VISTA_TEXT[lang].title}
+            >
+              <Monitor className={`w-4 h-4 mr-1 md:mr-2 ${vistaToggle.open ? "text-[#f5b841]" : "text-amber-400"}`} />
+              <span className="hidden md:inline">{VISTA_TEXT[lang].toggle}</span>
+              {vistaToggle.live && <span aria-label={VISTA_TEXT[lang].visible} className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />}
             </button>
           )}
 

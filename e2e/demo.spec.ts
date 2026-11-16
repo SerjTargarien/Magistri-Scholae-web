@@ -472,26 +472,29 @@ test("administrator access: the Máster grants it, the administrator works as M�
   await expect(page.locator("#admin-access-log")).toContainText("cambiada");
 });
 
-// Vista de jugadores (7a): «Mostrar», the side panel, «Ahora» and «Preparado».
-test("vista de jugadores: the Máster shows a sheet, prepares another, shows it, hides it; players have no button", async ({ page }) => {
+// Vista de jugadores (7a): the panel's toggle, «Preparado» and «Mostrar», «Ahora».
+test("vista de jugadores: the Máster opens the panel, shows a sheet, prepares another, hides it; the panel stays as he leaves it", async ({ page }) => {
   await openApp(page);
-  await openCharacter(page, "Luna de Bruma");
-  await expect(page.locator("#btn-detail-show")).toHaveCount(0); // a player has no «Mostrar»
-  await page.locator("#btn-detail-back").click();
+  await expect(page.locator("#btn-campaign-vista")).toHaveCount(0); // a player has no panel
 
   await viewAs(page, "gm");
   await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
-  await openCharacter(page, "Luna de Bruma");
-  await page.locator("#btn-detail-show").click();
-  await expect(page.locator("#panel-vista #vista-now")).toContainText("Luna de Bruma");
-  await expect(page.locator("#btn-detail-show")).toHaveAttribute("aria-label", "En la vista");
+  await page.locator("#btn-campaign-vista").click();
+  await expect(page.locator("#btn-campaign-vista")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "side");
+  await expect(page.locator("#vista-now")).toContainText("Nada en la vista");
 
-  // The panel stays while he moves; another sheet gets «Preparado», kept on the server.
+  // One way to show: «Mostrar» under «Preparado», for the open sheet.
+  await openCharacter(page, "Luna de Bruma");
+  await expect(page.locator("#btn-detail-show")).toHaveCount(0);
+  await expect(page.locator("#vista-prepared")).toContainText("Luna de Bruma");
+  await page.locator("#btn-vista-show-prepared").click();
+  await expect(page.locator("#panel-vista #vista-now")).toContainText("Luna de Bruma");
+  await expect(page.locator("#vista-prepared")).toHaveCount(0); // this sheet is on view now
+
+  // Another sheet gets «Preparado», kept on the server.
   await page.locator("#btn-detail-back").click();
-  await expect(page.locator("#panel-vista")).toBeVisible();
   await openCharacter(page, "Silvio Niebla");
-  await expect(page.locator("#vista-prepared")).toContainText("Profesor Silvio Niebla");
   await page.locator("#vista-prepared-add").fill("asig");
   await page.locator("#vista-prepared-add").press("Enter");
   await page.locator("#vista-prepared-add").fill("Cierra el libro de golpe.");
@@ -503,14 +506,23 @@ test("vista de jugadores: the Máster shows a sheet, prepares another, shows it,
   await page.locator("#btn-vista-show-prepared").click();
   await expect(page.locator("#vista-now")).toContainText("Profesor Silvio Niebla");
   await expect(page.locator("#vista-now")).toContainText("Cierra el libro de golpe.");
-  await expect(page.locator("#vista-prepared")).toHaveCount(0);
 
-  // «Ocultar» empties it; closing the panel gives the page back its width.
-  await page.locator("#btn-vista-hide").click();
-  await expect(page.locator("#vista-now")).toContainText("Nada en la vista");
+  // Closed, it stays closed on every screen while something is on view (owner, 16 November 2026).
   await page.locator("#panel-vista-close").click();
   await expect(page.locator("#panel-vista")).toHaveCount(0);
-  await expect(page.locator("#dock-layout")).toHaveAttribute("data-docked", "none");
+  await page.locator("#btn-detail-back").click();
+  await expect(page.locator("#panel-vista")).toHaveCount(0);
+  await openCharacter(page, "Luna de Bruma");
+  await expect(page.locator("#panel-vista")).toHaveCount(0);
+  await page.locator("#btn-detail-back").click();
+  await expect(page.locator("#btn-campaign-vista")).toHaveAttribute("aria-pressed", "false");
+
+  // Open again from the toggle; this device remembers it.
+  await page.locator("#btn-campaign-vista").click();
+  await reloadApp(page);
+  await expect(page.locator("#panel-vista")).toBeVisible();
+  await page.locator("#btn-vista-hide").click();
+  await expect(page.locator("#vista-now")).toContainText("Nada en la vista");
 });
 
 test("vista de jugadores: the link in Ajustes, the page the main PC opens, and the players' banner", async ({ page, context }) => {
@@ -522,8 +534,9 @@ test("vista de jugadores: the link in Ajustes, the page the main PC opens, and t
   await expect(page.locator("#vista-link-qr")).toBeVisible();
   await page.locator("#switch-vista-in-app").click();
   await openApp(page);
+  await page.locator("#btn-campaign-vista").click();
   await openCharacter(page, "Luna de Bruma");
-  await page.locator("#btn-detail-show").click();
+  await page.locator("#btn-vista-show-prepared").click();
   await expect(page.locator("#vista-now")).toContainText("Luna de Bruma");
 
   // The screen: no account, only what was sent.

@@ -158,8 +158,9 @@ test("vista de jugadores: the GM shows a sheet; the link shows it to a browser w
   if (await page.locator("#btn-vista-create").isVisible()) await page.locator("#btn-vista-create").click();
   const url = (await page.locator("#vista-link-url").textContent())!.trim();
   await page.goto("/");
+  if ((await page.locator("#btn-campaign-vista").getAttribute("aria-pressed")) !== "true") await page.locator("#btn-campaign-vista").click();
   await openCharacter(page, "Fictional Luna");
-  await page.locator("#btn-detail-show").click();
+  await page.locator("#btn-vista-show-prepared").click();
   await expect(page.locator("#vista-now")).toContainText("Fictional Luna");
 
   // A fresh browser with no session: the screen the table sees.

@@ -45,7 +45,6 @@ import { limitAttrs, maxLengthOf } from "./LimitHint";
 import { Segmented } from "./Segmented";
 import { Picker, pickerTexts } from "./Picker";
 import { RestoreButton, SheetStatusBar } from "./SheetStatusBar";
-import { ShowButton } from "./vista/ShowButton";
 
 /** The picker's «no familiar» row. */
 const NO_FAMILIAR = "__none";
@@ -95,9 +94,6 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = (sheetProps) => {
         </button>
 
         <div className="flex gap-2">
-          {/* «Mostrar» on the players' view (the Máster only, 7a) */}
-          {sheetProps.showToPlayers && <ShowButton lang={sheetProps.lang} id="btn-detail-show" show={sheetProps.showToPlayers} />}
-
           {/* Edit Button (only for a viewer who can change something) */}
           {canEditSheet && (
           <button

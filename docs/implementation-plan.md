@@ -32,19 +32,46 @@ Since the R3.4 switch (8 November 2026) the public site and staging run the acco
 | R2 Backend on staging (**done 7 Nov 2026**) | Django + PostgreSQL behind HTTPS on staging, backed up to Backblaze B2 and restorable | M | R1 |
 | R3 Real UI on accounts (R3.1–R3.4 **done 12 Nov 2026**) | Existing screens on the server's data model, against staging and a mock server, keeping their look; old local mode retired | L | R0 |
 | R4 Admin essentials and roles | Owner runs the group without API calls or the shell; sheet activation, active/inactive, GM deletion and assignment, GM-created campaigns | M–L | R6 (approved order) |
-| Custom cards (**added 13 Nov 2026**) | Named cards of text-only custom fields on Perfil, made by players and the GM | S–M | R4 |
+| Shared lists (**added 22 Nov 2026**) | Spells, potions and equipment share one list component, without inner scroll, with a compact search | S | — |
+| Campaign lists and proposals (**added 22 Nov 2026**) | The Máster's spell and potion lists; players propose skills, spells and potions; the Máster approves, corrects, maps or rejects | M | Shared lists |
+| Custom cards (**added 13 Nov 2026**) | Named cards of text-only custom fields on Perfil, made by players and the GM | S–M | Proposals (order, 22 Nov 2026) |
+| Galleries (**added 22 Nov 2026**) | Collections on each sheet, the Máster's gallery, copies between them, images in the Vista de jugadores | M | Custom cards (order) |
 | R4.5 Sheet types (**added 9 Nov 2026**) | «Menor» / «Adulto» with «Mago» and «Alumno» switches, «Criatura mágica», non-magical characters, a redesigned «Identificación» | M | R4 |
 | R5 Biblioteca del Máster (**added 9 Nov 2026**; the number of the dropped data carry-over is reused) | The GM's first screen per campaign: characters, institutions (with branches and schools), skills | L, several steps | R4.5 |
 | R6 Own backend for the testers (was «Accounts launch») | The public site's data moves from the staging backend to its own production backend | S–M | R3.6 (approved order: before R4) |
 | R7 After launch | Offline viewing, then offline editing with sync; privacy editor, transfers, GM library, cleanup | M–L | R5 (approved order: offline after the model settles) |
 
-**Critical path** (revised order, approved 9 November 2026; custom cards added 13 November): the rest of R3 → R6 → R4 → custom cards → R4.5 → R5, then offline (R7.1–R7.2) once the data model has settled.
+**Critical path** (revised 22 November 2026): shared lists → campaign lists of spells and potions → proposals → custom cards → galleries → R4.5 → R5, then images from a web address, temporary versions, offline (R7.1–R7.2) once the data model has settled, and printable sheets. See [Order revised by the owner, 22 November 2026](#order-revised-by-the-owner-22-november-2026). *(Before: the rest of R3 → R6 → R4 → custom cards → R4.5 → R5, approved 9 November; custom cards added 13 November.)*
 
 **Working order chosen by the owner (7–8 November 2026):** one release at a time, R3 → R4 → R6 → R7. Each step is explained before it is carried out. R0, R1, S and R2 are done. *(Superseded on 9 November by [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026).)*
 
 **9 November 2026:** the owner's target design ([product-design.md](product-design.md)) adds R4.5 (sheet types) and R5 (Biblioteca del Máster) and extends R4. Order decided by the owner the same morning: the rest of R3 → R4 → R4.5 → R5 → R6 → R7. **Revised the same day** after the owner's new workflow (publish only at milestones): see [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026) below.
 
+## Order revised by the owner, 22 November 2026
+
+**Why:** the testers' first sessions changed priorities. The Máster's campaign lists and the players' proposals now come before the custom cards, because they change how players add spells, potions and skills on tabs used every session; the gallery collections and the Máster's gallery follow. The principles below still hold: offline stays after every step that changes the data model.
+
+| # | Step | Size | Touches | Why here |
+|---|---|---|---|---|
+| — | Steps 1–7a of the order of 9 November: done (table below); the numbers restart here | | | |
+| 1 | **Shared lists** (product-design.md 10f): one component for spells, potions and equipment; no scroll of their own; a compact search; side by side when they fit | S | App | App only and small; step 2 adds «from the list» to this same component, so it is not built twice |
+| 2 | **Campaign lists of spells and potions** (10g): the Máster's lists, entries with difficulty, description and required skills; panels and screens in «Herramientas»; the conversion of what sheets already hold | M | Server and app | A migration with a conversion, rehearsed on staging |
+| 3 | **Proposals** for skills, spells and potions (10g): similar names, «pendiente» on the sheet, the Máster's five actions in «Propuestas» and on the sheet | M | Server and app | One rule for the three lists, built on step 2. **Published together with step 2:** the conversion sends its doubtful cases to «Propuestas» |
+| 4 | **Custom cards** (was 7b) | S–M | Server and app | Unchanged; new, so nothing breaks while it waits |
+| 5 | **Galleries** (10h): collections on each sheet, the Máster's gallery with every sheet's galleries, «Copiar a…», «Mostrar» in the Vista | M | Server and app | Changes who owns an image (a sheet or the Máster's gallery); assigning images to institutions waits for R5 |
+| 6 ◆ | **R4.5 Sheet types.** **Milestone 3** | M | Server and app | Unchanged |
+| 7 ◆ | **R5 Biblioteca del Máster;** it also holds the spell and potion lists and the Máster's gallery, and images can be assigned to institutions | L | Server and app | Unchanged |
+| 8 | **Images from a web address** | S–M | Server | Unchanged |
+| 9 | **Temporary sheet versions** (designed first) | M | Server and app | Unchanged |
+| 10 ◆ | **R7.1–R7.2 Offline viewing, then offline editing** | M–L | App | After every model change (principle 4) |
+| 11 | **Printable sheets** (designed first) | S–M | App | After the sheet's final shape |
+| 12 | **R7.3–R7.6** | M–L | Both | Unchanged |
+
+**How each step is done (owner, 22 November 2026; elsewhere these steps are cited as «22 Nov step N»):** every visible piece gets a demo with the owner's verdicts just before its step (shared lists with the search; campaign lists with proposals; custom cards; galleries), so each takes what the previous one taught. Steps 1, 4 and 5 are published each when the owner approves them on staging; steps 2 and 3 together. Server steps back up first and are rehearsed on staging's development copy.
+
 ## Order and reasons (approved by the owner, 9 November 2026)
+
+*Steps 1–7a below are done. From 7b on, this table is superseded by the [order of 22 November 2026](#order-revised-by-the-owner-22-november-2026); the principles still apply.*
 
 **Why revise:** since 8 November the testers use the public site on the **staging** backend, so the testers' only database is also the development database. Since 9 November nothing is published until a milestone (owner's workflow). R4, R4.5 and R5 all change the database schema; each change would reach the testers' data before their screens are published, and could break the live site between milestones. Some items also had no place in the order (the image viewer), duplicated another release (R3.5's texts and confirmations repeat the polish pass), or depended on a later release (R3.5's «partida» filter needs R4's table labels).
 
@@ -342,7 +369,51 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 **Rollback:** revert.
 
-## Custom cards (S–M; added 13 November 2026, after R4)
+## Shared lists (S; 22 Nov step 1)
+
+**Goal:** «Grimorio de Conjuros», «Catálogo de Pociones» and «Equipo» behave alike (product-design.md 10f).
+
+**Work** (a demo with the owner's verdicts first):
+
+1. One list component for the three: the same row, ordered by name, adding and removing as today; equipment stays free text.
+2. No inner scroll on the sheet or in the creation form's equipment list.
+3. The compact search in the header from 11 entries, also used later by the Máster's campaign lists.
+4. Three columns when they fit, two plus one at middle widths, one column on a phone: measured with screenshots at real widths before the pull request.
+
+**Exit criteria:** the three lists look and behave alike on desktop and phone; no list on a sheet scrolls on its own; nothing stored changes.
+
+**Rollback:** revert (app only).
+
+## Campaign lists of spells and potions (M; 22 Nov step 2)
+
+**Goal:** spells and potions are chosen from the campaign's lists, as skills are (product-design.md 10g).
+
+**Work** (one demo with step 3, verdicts first):
+
+1. **Data:** the campaign keeps a spell list and a potion list beside its skill list (entries with name, difficulty, description, 1–5 required skills, archived instead of removed); a sheet's spell or potion links to an entry and keeps «Especialista»; an own entry keeps its name and difficulty. Rules in field-rules.md and the registry; generated types and the mock server follow.
+2. **Conversion:** a dry run on staging lists every distinct name (ignoring case and accents), the guessed skill (Hermética, Pociones or Transmutación), and the doubtful cases (similar names, different difficulties); clear entries join the lists as approved, doubtful ones become proposals (step 3). Backup first.
+3. **Sheet and form:** «+ Añadir de la lista» (picker with search), the difficulty from the list, the required skills with the character's value («Sin conocimientos de …»).
+4. **Herramientas:** «Grimorio de la campaña» and «Catálogo de pociones de la campaña», panels with their own scroll and full screens to edit, like «Habilidades de la campaña».
+
+**Exit criteria:** on staging's development copy every converted sheet shows the same spells and potions as before, now linked; the Máster edits a list and every sheet follows.
+
+**Rollback:** revert the app freely; reverting the server after conversion means restoring the backup taken before it.
+
+## Proposals (M; 22 Nov step 3; published with 22 Nov step 2)
+
+**Goal:** players propose skills, spells and potions that are not in the lists; the Máster decides (product-design.md 10g).
+
+**Work:**
+
+1. **Server:** an entry added by a player outside the list is stored on the sheet as pending; a campaign query gathers pending entries of sheets the Máster sees (never drafts); the five actions (approve, correct and approve, map to another entry, keep on this sheet only, reject) as one authorized operation each; similar names computed on the server (case and accents ignored, one or two letters of difference). The `gm_only_skill` rule changes accordingly (field-rules.md).
+2. **App:** similar names while typing; «pendiente» on the sheet; the «Propuestas» screen in «Herramientas» with a count; the same actions on the pending entry in the sheet.
+3. The doubtful cases from step 2's conversion arrive here for the Máster.
+
+**Exit criteria:** a player's proposal is used in play, then approved, corrected, mapped, kept or rejected, each reaching the sheet and the list correctly; a proposal inside a draft stays invisible to the Máster until the sheet is proposed.
+
+**Rollback:** as step 2.
+
+## Custom cards (S–M; added 13 November 2026; 22 Nov step 4)
 
 **Goal (owner, 13 November 2026):** players and the GM group text-only information in their own named cards on Perfil («Familia», «Contactos», «Secretos»…), each with its own custom fields, so a new kind of information needs no maintenance update.
 
@@ -359,6 +430,21 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 **Exit criteria:** cards are created, renamed, filled, hidden from another player by the GM, removed and reloaded on desktop and phone; existing sheets show exactly as before.
 
 **Rollback:** revert the app freely. Once cards are stored, an older server registry would refuse those sheets as unknown fields, so reverting the server step means restoring the backup taken before it.
+
+## Galleries (M; 22 Nov step 5)
+
+**Goal:** collections on each sheet's gallery and the Máster's own gallery (product-design.md 10h).
+
+**Work** (a demo with the owner's verdicts first):
+
+1. **Data:** a sheet's collections (name, which images) with their rules in field-rules.md; an image belongs to a sheet or to the campaign's Máster gallery (today every image must belong to a sheet); a copy is a new image record over the same stored file, which is removed only when nothing uses it; backups keep storing each file once. Hiding a collection uses the existing restrictions.
+2. **Sheet:** collections in the gallery tab, moving an image between them, «Copiar a…».
+3. **Herramientas:** «Galería del Máster» with «Mi galería» (up to 1,000 images) and «Fichas» (every sheet he can see, never drafts).
+4. **Vista de jugadores:** «Mostrar» for gallery images.
+
+**Exit criteria:** existing galleries show as before (their images in the general gallery); collections, copies and hiding work on desktop and phone; a copied image survives removing the original.
+
+**Rollback:** revert the app freely; reverting the server after images are copied or moved means restoring the backup taken before it.
 
 ## R4.5 — Sheet types (M; added 9 November 2026)
 
@@ -381,12 +467,12 @@ The visibility editor and read-only sharing wait until R7. That is safe because 
 
 The number of the dropped data carry-over (old R5, not needed: the old-format records were test data only) is reused. Separate character and familiar export/import for accounts remains planned (R7.4).
 
-**Goal:** the GM's first screen after opening a campaign, with three sections: characters, institutions and skills (product-design.md, section 11). The owner flagged it as much more work than a simple step: it adds new kinds of campaign data (institutions, branches, schools and their year groups, subjects, clubs and classes) and turns several free-text sheet fields into links, so it is designed and built in steps.
+**Goal:** the GM's first screen after opening a campaign, with sections for characters, institutions and the campaign's lists (skills; since 22 November 2026 also spells and potions, and the Máster's gallery) (product-design.md, section 11). The owner flagged it as much more work than a simple step: it adds new kinds of campaign data (institutions, branches, schools and their year groups, subjects, clubs and classes) and turns several free-text sheet fields into links, so it is designed and built in steps.
 
 **Steps** (one or more pull requests each; server steps back up the testers' data first):
 
 0. **Design** in product-design.md: every screen of the Biblioteca; the data model of institutions, branches («Casas» in schools, «Secciones» elsewhere, renamable) and schools; how sheets link to them (house, «Curso Académico», «Institución», subjects taught, clubs) with free text kept as a fallback.
-1. **The library shell:** the GM's first screen per campaign, opening the grimorio; the campaign skills move here from «Ajustes».
+1. **The library shell:** the GM's first screen per campaign, opening the main list; the campaign's lists (skills, spells, potions) and the Máster's gallery get their screens here (their side panels stay in «Herramientas»).
 2. **Habilidades:** new categories and renaming, reordering categories and skills, «Sólo magos» per skill (the skill catalogue editor that R4 used to list).
 3. **Personajes:** the GM's view of every character and his own, the assigned player at a glance, filters and sorting by any stored value; «create from this sheet»: a new independent sheet based on an existing one.
 4. **Instituciones and branches:** campaign data with crest, colours, description and members; free characters; today's five houses become «Casas» of Magistri Scholae, keeping their crests and data; the sheet's house becomes a link; branches are «Casas» in schools and «Secciones» in other organizations, and the GM can rename the word; the GM creates any number of branches.
@@ -395,6 +481,8 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 **Risks:** data migrations of live testers' data (backups and restore drills before each); keeping houses' artwork and filters working; permissions for the new data (GM-owned, readable by players where it shows on their sheets).
 
 **Exit criteria (per step):** the step works on staging with the testers' data intact; no sheet loses a value; the GM's existing workflow keeps working.
+
+**Since 22 November 2026:** the Biblioteca also holds the campaign's spell and potion lists (22 Nov step 2) and the Máster's gallery (22 Nov step 5); images can be assigned to institutions once R5's step 4 builds them.
 
 **After R5, designed first: temporary sheet versions** (product-design.md, Sheet versions): a version of a character that temporarily takes the place of a player's character (a parallel universe, an altered self), with the original restored exactly afterwards. Its place in the order is decided when R5 ends.
 
@@ -478,6 +566,7 @@ The number of the dropped data carry-over (old R5, not needed: the old-format re
 | 13 | Field rules and game data? | R3.2 | **Decided 8 November 2026:** the rules in [field-rules.md](field-rules.md). Destiny 0–10 (default 3), XP 0–1,000,000, consequences with a severity, subjects taught as a list, no stored motto (it belongs to the house), age as a number, 50 gallery images per sheet with backups storing images once, generous limits with clear warnings, and new skill categories in a campaign-wide catalogue the GM can edit. |
 | 14 | The owner's target design (9 November 2026) | R3.4–R5 | **Recorded 9 November 2026** in product-design.md: a polish pass ends R3.4; R4 adds private player drafts (invisible to the GM until confirmed), active/inactive sheets, deletion of archived sheets, assignment, GM-created campaigns and time-limited administrator access granted by the GM; R4.5 adds sheet types, «Criatura mágica», non-magical characters and the stress rules; R5 is the Biblioteca del Máster («Casas» / «Secciones»); R6 after R5; the multiverse collection goes to the far backlog. Follow-up answers the same day: the GM chooses NPC or player character when confirming a draft; players can own a «Criatura mágica»; the GM changes sheet types; sheets based on another (R5) and temporary versions (after R5). Q9–Q11 (stress) still open. |
 | 15 | Revised order (9 November 2026) | Now | **Approved 9 November 2026,** with printable sheets added as step 13: see [Order and reasons](#order-and-reasons-approved-by-the-owner-9-november-2026): R6 before R4, offline after R5, images from a web address after R5. |
+| 16 | Campaign lists, proposals, galleries and shared lists (22 November 2026) | Now | **Decided 22 November 2026** after the testers' first sessions: see [Order revised by the owner, 22 November 2026](#order-revised-by-the-owner-22-november-2026) and product-design.md 10f–10h. |
 
 ## Former milestones
 

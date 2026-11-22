@@ -835,7 +835,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - Owner's request, after the half-width «Escuela» card on Perfil: the school and the house get their own tab, **«Institución»**, second after Perfil. «Escuela» is laid out like the house card (the app's crest and the school's name on the left; a student's year and class rank, or an adult's role and teaching, on the right; then subjects and clubs, one row each like the subjects); «Casa y Heráldica» sits beside it, and for adults becomes «Antigua casa», with heraldry when the text names a house. **Perfil** is «Datos Personales» beside one card with «Aspectos Personales» and «Complicaciones», then «Campos Personalizados». An adult's role, institution and former house moved from «Datos Personales» to «Institución». No stored field changed; the former house stays free text.
 - Code: `src/components/sheet/InstitutionTab.tsx`, `HousePanel.tsx` (moved out of `ProfileTab.tsx`), `SchoolPanel.tsx` rewritten; tab id `institucion`; new texts `institucion` and `removeClub`.
 - Checks: type check; 42 unit tests; 59 browser tests (the house, the clubs and an adult's role and institution are now checked on «Institución»); screenshots of a student and an adult on a desktop, a tablet and a phone, in view and edit mode.
-- Decided the same day: players and the GM get their own named cards of custom fields, as a step right after R4 ([implementation-plan.md](implementation-plan.md#custom-cards-sm-added-13-november-2026-after-r4)). Not built yet.
+- Decided the same day: players and the GM get their own named cards of custom fields, as a step right after R4 ([implementation-plan.md](implementation-plan.md#custom-cards-sm-added-13-november-2026-22-nov-step-4)). Not built yet.
 
 ## The familiar's Perfil y Vínculo in two cards — 14 November 2026
 
@@ -922,7 +922,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Production:** backup first (checked against the live data), the previous server image kept for rollback, `api-production` rebuilt at `314ce7c` with migrations `0009_partidas`, `0010_drafts_and_active`, `0011_admin_access` and `0012_several_partidas` (10 s without the API); every count unchanged; the testers' 6 sheets are confirmed and active, common to all partidas.
 - **Public site:** `b061909` (PR #116 also changed the page description, which still said «offline»). Tag `r4-20261115`.
 - **For the testers:** a player's new sheet now starts as a draft the Máster does not see until it is proposed and confirmed; the Máster has «Partidas», «Jugadores», the «Estado» filter, «Ficha activa», assignment, restore and delete for archived sheets, and the administrator's access.
-- **Next:** step 7b, custom cards; then R4.5 (milestone 3).
+- **Next:** superseded by the roadmap of 22 November 2026 (below).
 
 ## After milestone 2 — 15 November 2026
 
@@ -930,7 +930,7 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Filter bar** (PR #119): the line under the search bar is replaced by the sort order alone, inside the bar at its end, not shown when it does not fit beside «Buscar» (phones); the bar is as far from the cards as from the frame's top; screen readers still hear the full line.
 - **Checks:** type check; demo browser tests (66); measured and screenshotted at 1283, 768, 430 and 375 px; CI. **Released to both sites** the same day at the owner's request (frontend only, `f18f11f`).
 
-## Vista de jugadores (step 7a) — 16 November 2026, in progress
+## Vista de jugadores (step 7a) — 16 November 2026 (published the same day)
 
 - **Design:** two rounds of the demo (https://claude.ai/artifact/RWWM1iV2qDUHSh6Mcc4KLP) with the owner's verdicts, all approved; recorded in product-design.md 10d.
 - **Server (PR #124):** migration `0013_player_view` (`PlayerView` per campaign, `PreparedView` per sheet); `domain/player_view.py`; routes `campaigns/{id}/view`, `/view/now`, `/view/photo`, `view/{token}`, `view/{token}/photo`, `/{id}/prepared-view`. «Ahora» captures values and the portrait's file when shown; a server allowlist; the campaign's own Máster only; the link derived from the HMAC key (never stored), 90 days; the same 404 for any dead link. 8 backend tests.
@@ -952,7 +952,15 @@ Owner decisions the same morning: move before the testers' in-person session (14
 - **Production:** backup first (checked against the live data), the previous server image kept for rollback, `api-production` rebuilt at `1b5f597` with migration `0013_player_view` (the API was stopped during the migration); every count unchanged; no players' view yet.
 - **Public site:** `1b5f597`; `/vista` answers, a malformed view link is refused. Tag `7a-20261116`.
 - **For the testers:** the Máster's «Herramientas» menu (the «Vista de jugadores» and «Habilidades» panels, «Partidas», «Jugadores», the view's link with its QR code); the `/vista` page for the table's screen; players can follow the view in the app when the Máster allows it.
-- **Next:** step 7b, custom cards; then R4.5 (milestone 3).
+- **Next:** superseded by the roadmap of 22 November 2026 (below).
+
+## Roadmap revised — 22 November 2026
+
+- **After the testers' first sessions** the owner revised the order (implementation-plan.md, [Order revised by the owner, 22 November 2026](implementation-plan.md#order-revised-by-the-owner-22-november-2026)), deciding each point in a question round recorded in product-design.md 10f–10h, field-rules.md (planned rules) and AGENTS.md (proposals and the Máster's gallery).
+- **New order:** shared lists (app) → campaign lists of spells and potions → proposals for skills, spells and potions (published with the previous step) → custom cards → galleries (collections, the Máster's gallery, copies, images in the Vista) → R4.5 (milestone 3) → R5 → the rest as before.
+- **Corrected on the way:** the only list on a sheet with its own scroll is the equipment list (not the potions); stale «recorded for later» items marked done in product-design.md.
+- Nothing built; documentation only.
+- **Next:** step 1, shared lists: a demo with the owner's verdicts first.
 
 ## Updating this handoff
 

@@ -172,6 +172,10 @@ Each one is a single shared component, drawn with the design system's tokens in 
 | Draft status; «PJ o PNJ» when confirming | — | Actions; option cards (8) | Done (R4 c) |
 | Active / inactive | — | Switch (3), GM only | Done (R4 c) |
 | Assigned player | — | Picker (9) | Done (R4 d) |
+| Spell or potion from the campaign's list | Typed on each sheet | Picker with search (9), similar names first | 22 Nov step 2 |
+| What the Máster does with a proposal | — | Actions; picker with search (9) for «Es otra de la lista» | 22 Nov step 3 |
+| An image's collection | — | Tag menu (7) | 22 Nov step 5 |
+| «Copiar a…» a sheet or the Máster's gallery | — | Picker with search (9) | 22 Nov step 5 |
 | A skill's category | — | Tag menu (7) | R4 |
 | Age group; Mago, Alumno | — | Segmented (5); switches (3) | R4.5 |
 | Type change by the GM | — | Option cards in a dialog (8) | R4.5 |
@@ -304,7 +308,7 @@ Adopted by the owner on 9 November 2026 (known inconsistency 3: «in most cases 
 
 **Target:** the GM also sees the chooser and **creates new campaigns** there; players join new campaigns by invitation (R4).
 
-### 3. Character list (the grimorio)
+### 3. Character list
 
 - Header: crest, «Magistri Scholae», «Mis notas», for the Máster «Habilidades de la campaña» and «Partidas», «Ajustes», «Nuevo Personaje».
 - **The filter bar** (Controls, control 11; built with R4 b, 14 November 2026, as approved in the controls demo): the magnifier chooses where to search («Todo»: name, player, concept, house, year and type; or one of them); «Filtros» with the number of filters on opens the sheet: «Ordenar por» (one field from a searchable list: name, experience, year, house, destiny points, player, type, age; with a direction; numbers start from the highest) and the sections «Partida» (Máster only), «Casa» (the five houses with their medallions) and «Tipo» (Alumno, Mago adulto, Familiar), each a list with checks; «Quitar filtros», «Ver N resultados». Active filters show as removable chips under the search. The sort order shows inside the search bar, at its end («por nombre, ascendente»; when it does not fit beside «Buscar», as on a phone, it is not shown), and the bar is as far from the cards as from the frame's top (owner, 15 November 2026; it replaced a line under the bar that also counted the sheets, which only screen readers still hear). Options in one section add up; sections narrow each other. A familiar follows the character it is bonded to (house and partida); an adult wizard's house is the one their «Antigua casa» names. The choice stays while moving between screens and resets when the campaign changes. It replaces the house chips.
@@ -386,7 +390,10 @@ Tabs:
 **Target:**
 
 - Session tab: destiny gems up to 10, typeable experience, consequence severity (R3.4, **done 9 November 2026**); stress tracks and consequences designed around the game's rules ([Stress and consequences](#stress-and-consequences-owner-9-november-2026)), without overcomplicating them.
-- **Custom cards** (owner, 13 November 2026; after R4): players and the GM add their own named cards of text-only fields on Perfil («+ Nueva tarjeta»), after «Campos personalizados»; a whole card can be hidden; no moving of fields between cards; campaign-wide cards wait for the Biblioteca (R5).
+- **Shared lists** (owner, 22 November 2026; 22 Nov step 1): «Grimorio de Conjuros», «Catálogo de Pociones» and «Equipo» share one component, without a scroll of their own, with a compact search and side by side when they fit (10f).
+- **Campaign lists and proposals** (owner, 22 November 2026; 22 Nov steps 2–3): spells and potions are chosen from the campaign's lists, and players propose what is missing for skills, spells and potions (10g).
+- **Gallery collections** (owner, 22 November 2026; 22 Nov step 5): collections on each sheet, «Copiar a…», and the Máster's own gallery (10h).
+- **Custom cards** (owner, 13 November 2026; 22 Nov step 4): players and the GM add their own named cards of text-only fields on Perfil («+ Nueva tarjeta»), after «Campos personalizados»; a whole card can be hidden; no moving of fields between cards; campaign-wide cards wait for the Biblioteca (R5).
 - Perfil follows the sheet type and switches (R4.5); house and institution come from the campaign's institutions (R5); a non-magical character hides the magic fields (R4.5).
 - Removing anything asks first (polish pass); generated journal titles are shown, not stored (**done**).
 - Drafts, proposal and confirmation, and active/inactive status (**done**, R4 c): under the top bar a panel says where the sheet stands: «Borrador» (only you see it; «Proponer al Máster»), «Propuesta enviada» (read-only; «Retirar propuesta»), for the Máster «Propuesta de un jugador» («Devolver», after asking, or «Confirmar», which opens two option cards: «Personaje del jugador (PJ)» / «Personaje no jugador (PNJ)»), and «Ficha inactiva»; in edit mode the Máster has the «Ficha activa» switch. The same panel on familiar sheets.
@@ -477,12 +484,13 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **The name fits one line** on the big screen, shrinking to a limit before it wraps.
 - **The word is «Vista de jugadores»**, not «Pantalla de jugadores».
 - **What is showing and what comes next, both at hand:** when the open sheet is not the one on screen, the panel shows two blocks, stacked: **«Ahora»** (what the players see, still editable, with «Ocultar») and **«Preparado»** (this sheet: photo and name to start with, plus whatever he adds), and «Mostrar» sends the prepared block at once. **Each sheet keeps what was prepared for it on the server** until it is shown or cleared, so he can prepare several before the session, on any device. While something is showing, the panel **opens by itself** on every sheet; he can close it.
-- **Side panels for the Máster** (a new layout, not only for this step): with no panel open the page stays as it is today, centred. With panels open, the content (the main list or a sheet) takes the left and the panels the right, together using the whole width of a wide screen; on a laptop the content narrows to make room (nothing is covered); on a phone a panel is a bottom sheet. Several panels **stack in one column**, each collapsible. Panels stay open while he moves between the list and sheets. First panels: the Vista de jugadores (step 7a), then «Habilidades de la campaña» (right after, small step); later lists such as spells, or an institution's, club's or class's members (R5).
+- **Side panels for the Máster** (a new layout, not only for this step): with no panel open the page stays as it is today, centred. With panels open, the content (the main list or a sheet) takes the left and the panels the right, together using the whole width of a wide screen; on a laptop the content narrows to make room (nothing is covered); on a phone a panel is a bottom sheet. Several panels **stack in one column**, each collapsible. Panels stay open while he moves between the list and sheets. First panels: the Vista de jugadores (step 7a), then «Habilidades de la campaña» (right after, small step); later the campaign's spell and potion lists (22 Nov step 2) and lists such as an institution's, club's or class's members (R5).
 - **Not now:** a «Mostrar» on the main list's cards.
 - **Changed after the owner's staging test (16 November 2026), replacing the two rules above about «Mostrar» on the top bar and the panel opening by itself:** **one way to do each thing.** The sheets have **no «Mostrar» of their own**: the Máster shows a sheet with «Mostrar» under «Preparado» in the panel. The panel is **a toggle that stays as he leaves it** (remembered on this device): «Vista» in the main list's top menu, pressed while open, with a green dot while something is on view; «×» closes it until he opens it again. Every later side panel works the same way. The Máster's seven header buttons keep one row from a 1250 px box.
 - **Built (16 November 2026; PRs #124 server, #125 app):** «Mostrar» on the top bar of a confirmed character or familiar sheet, for the campaign's Máster only; the side panels (`src/components/dock/Dock.tsx`: a column on the right from 1024 px, 340/380/400 px wide, the content losing its width cap beside it; a sheet from the bottom below that; with nothing open the content is a size container exactly as wide as the screens' own box, so the layout is unchanged); the «Vista de jugadores» panel (`src/components/vista/VistaPanel.tsx`) with «Ahora» and «Preparado». The main list's header and card grid now follow the content's measured width (the dock layout's `data-wide` from a 1152 px box and `data-roomy` from 1340 px; CSS size containers were tried and dropped, because containment made fixed dialogs inside the content position against it instead of the screen): six buttons in one row, a fifth card column beside the panels on a wide screen.
 - **Built, part 2 (PR #126):** the page the main PC opens, `/vista#<link>` (`src/vista/ViewerPage.tsx`: no account and no sign-in, asks every 2.5 s while visible, keeps the screen awake where the browser allows, a full-screen button that shows on mouse movement, «Este enlace ya no funciona…» for a dead link; the wide layout from 700 px in landscape, otherwise the phone's column); the shared drawing `src/vista/ViewContent.tsx` (the name fitting one line down to 55 %); the link in «Ajustes» → «Campaña» (`src/account/VistaLinkCard.tsx`: «Copiar», a QR code drawn with the `qrcode-generator` package, «Cambiar enlace» asking first, «Desactivar», the expiry date, «Mostrarlo también en la app» with «Partida de la sesión»); the players' banner on their main list (`src/vista/FollowBanner.tsx`, asking every 5 s; «Ver» opens the view over everything).
 - **Second round of the demo** (same link, 16 November 2026): the side panels at full HD, laptop and phone sizes, «Ahora» and «Preparado», the name fitting one line, the new words; verdicts for changed parts are saved under new ids (`screen-tv-2`, `words-2`).
+- **Gallery images (owner, 22 November 2026; 22 Nov step 5):** «Mostrar» for images of the Máster's gallery and of any sheet's gallery (10h).
 - **Second-round verdicts (16 November 2026):** approved the side panels, «Ahora» and «Preparado», and the words. The big screen's name was cut off for long names (its column grew with it); fixed so it shrinks to fit, down to 55 % of its size and never below the field values, wrapping only past that and never cut; the fix waits for the owner's verdict (`screen-tv-3`).
 
 ### 10e. Herramientas del Máster (designed and approved 16 November 2026; built the same day, option b)
@@ -495,10 +503,57 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 - **Later, approved as the direction:** «Partidas» and «Jugadores» move in as rows that open their screens (a chevron instead of a switch); the view's link moves from «Ajustes» beside the «Vista» switch; «Acceso del administrador» and the campaign's name stay in «Ajustes»; the Biblioteca's lists (R5) become new switches.
 - **Words:** «Herramientas»; each row uses its panel's own name; «Ahora: …» / «Nada en la vista».
 - **Draft (b), approved the same day and built (PR #131):** the bar is **Mis notas · Herramientas · Ajustes · Nuevo Personaje**, one row from an 860 px box. The menu has two groups: **«Paneles»** (switches, the menu stays open): «Vista de jugadores», with the **view's link moved here from «Ajustes»** as a line «Enlace: activo · caduca el …» / «Sin enlace: créalo aquí» that unfolds the link, «Copiar», the QR code, «Cambiar enlace», «Desactivar» and «Mostrarlo también en la app»; and «Habilidades de la campaña», a read-only side panel by category with «Inicial» and age limits, whose «Editar la lista» opens the list's own screen. **«Pantallas»** (chevrons, the menu closes): «Partidas» («2 partidas») and «Jugadores» («3 jugadores»). «Ajustes» keeps the campaign's name, «Nueva campaña» and «Acceso del administrador». The owner marked no place for the link; it went in the menu, as first approved («beside the Vista switch»). On a phone the side panels show only on the list and the sheets, where they are used (elsewhere their sheet would cover a screen's own buttons).
+- **Every side tool has a full screen too (owner, 22 November 2026):** a tool that lives in the side column also has its own normal, full-screen view (as «Habilidades de la campaña» opens its screen with «Editar la lista»), except a tool that only works beside the content, such as the Vista de jugadores. A side panel that holds a list the Máster consults, like the skill list, keeps its own scroll; lists on sheets and screens do not (10f).
+- **New rows planned (22 November 2026):** «Grimorio de la campaña» and «Catálogo de pociones de la campaña» (panels, 22 Nov step 2), «Propuestas» (a screen with a count, 22 Nov step 3), «Galería del Máster» (a screen, 22 Nov step 5).
+
+### 10f. Shared lists on «Magia y equipo» (owner, 22 November 2026; 22 Nov step 1)
+
+**Why:** the spell list, the potion list and the equipment list behave differently: only the equipment list scrolls inside a 180 px box (on a phone it sits right under the potions, so it looks like theirs), and it is the only list on a sheet with its own scrollbar.
+
+- **One component** for «Grimorio de Conjuros», «Catálogo de Pociones» and «Equipo»: the same row (the name, then the difficulty and «Especialista», or the quantity), ordered by name.
+- **No scroll of its own:** the list makes the page longer. The creation form's equipment list loses its scroll too. Side panels of the Máster that work like the skill list keep theirs (10e).
+- **A compact search:** a magnifier in the list's header, beside its title, shown only when the list has more than 10 entries; pressing it turns the title into a box that filters by name, and «×» closes it. It adds no row. The same search serves the Máster's campaign lists (panel and screen, 10g); pickers keep their own search (Controls 9).
+- **Side by side when they fit:** three columns when the content is wide enough, spells and potions in two columns with the equipment below at middle widths, one above the other on a phone. The widths are measured with screenshots while building it (owner).
+- **Equipment stays free text:** its items are not suggested from any list and may be anything.
+
+### 10g. Campaign lists of spells and potions, and players' proposals (owner, 22 November 2026; 22 Nov steps 2–3)
+
+**Why:** sheets already interact (the Máster assigns sheets, players propose characters, the campaign's skills are what players choose from); the grimorio and the potion catalogue become campaign lists like the skills, and players can suggest what the lists lack.
+
+**Campaign lists (22 Nov step 2):**
+
+- **One list per campaign** for spells and one for potions, made by the Máster, as «Habilidades de la campaña».
+- **Each entry:** a name; its **difficulty** (I–V, kept in the list, the same on every sheet); an optional **description** the players see when choosing; and **at least one required skill**, optionally more, chosen from the campaign's skill list (for example Hermética, Pociones, Transmutación).
+- **On the sheet:** each character keeps its own «Especialista». Next to each spell or potion the sheet shows the required skills with the character's value, «Hermética 3 · Transmutación 1»; a skill the character lacks reads «Sin conocimientos de Hermética».
+- **In «Herramientas»:** «Grimorio de la campaña» and «Catálogo de pociones de la campaña» work like «Habilidades de la campaña»: a side panel to consult, with its own scroll, and a full screen to edit the list.
+- **Removing an entry archives it,** as skills are today: it leaves the list for new choices, and every sheet that has it keeps it as it is. Nothing disappears from a sheet unless someone decides so.
+- **What the Máster types** on a sheet joins the list directly, with no proposal (as his skills do today).
+- **The spells and potions already written** on sheets: each distinct name (ignoring case and accents) joins the list as approved, with a required skill guessed among Hermética, Pociones and Transmutación, and no mark; the owner tells the Máster to review them. The sheets are linked to those entries. Doubtful cases (similar names, the same name with different difficulties) enter as proposals instead (22 Nov step 3). Rehearsed first on staging's development copy.
+
+**Proposals (22 Nov step 3), for skills, spells and potions:**
+
+- **A player adds from the list,** or types something new, choosing at least one required skill (for a skill: its category). While typing, the app offers entries with similar names («¿Te refieres a Multicolorforce?»); the comparison ignores case and accents and allows one or two letters of difference. A name already in the list offers that entry instead of a proposal.
+- **It shows on the player's sheet at once, marked «pendiente»,** and can be used in play, edited or withdrawn while it waits.
+- **In a draft** (which the Máster does not see) the entry stays «pendiente» and reaches the Máster only when the player proposes the sheet and he sees it.
+- **Where the Máster decides: in both places,** a «Propuestas» screen in «Herramientas» with a count, gathering every sheet's proposals, and on the pending entry in the sheet. This is a deliberate exception to «one way to do each thing» (10d), decided by the owner.
+- **The Máster's five actions:** **Aprobar** (it joins the list as it is); **Corregir y aprobar** (name, difficulty, required skills or category first); **«Es otra de la lista»** (he picks the entry the player meant, similar names first; the sheet is linked to it and keeps its «Especialista»); **«Solo en esta ficha»** (it stays on that sheet without joining the list, like the Máster's own skills today); **Rechazar** (it disappears from the sheet). Each proposal shows him the list's similar entries.
+- **The doubtful cases of the conversion** are reviewed by the Máster in «Propuestas» (owner): its first real use.
+
+### 10h. Gallery collections and the Máster's gallery (owner, 22 November 2026; 22 Nov step 5)
+
+- **Collections on each sheet:** the assigned player and the Máster create, name and remove them. An image is in one collection at most, like a folder. A sheet keeps 50 images in all, shared among its collections. A whole collection can be hidden from other players (by the Máster, and by the player), including images added to it later. Removing a collection asks first and says how many images it holds; its images go back to the sheet's general gallery, never deleted.
+- **The Máster's gallery** in «Herramientas», for images that belong to no sheet: his alone; up to 1,000 images, in collections. Two parts: **«Mi galería»** and **«Fichas»**, one section per sheet he can see (characters and familiars, never players' drafts) with its collections, a quick way into every sheet's gallery. From «Fichas» he looks and copies; a sheet's collections are managed on the sheet.
+- **«Copiar a…»:** from his gallery to a sheet, from a sheet to his gallery, and from one sheet to another. A copy keeps the original where it was (owner); the file is stored once. An image copied to a sheet is seen by that sheet's readers.
+- **«Mostrar» in the Vista de jugadores** for any image of his gallery or of a sheet's gallery (a map, an NPC), the «gallery images, perhaps later» of 10d.
+- **Later (R5):** images can be assigned to institutions once the Biblioteca builds them.
 
 ### 10. Campaign skills («Habilidades de la campaña», GM only)
 
 - Today: every category with its skills: «Inicial», the name, «hasta N años». Add a skill per category. Draft with «Guardar cambios» / «Descartar»; blank or repeated names cannot be saved; reloads if changed meanwhile.
+
+**Target:**
+
+- **Players' proposals** (22 Nov step 3, owner, 22 November 2026): a player may propose a skill that is not in the list; it waits on the sheet as «pendiente» until the Máster decides (10g). Until then only the Máster creates skills.
 
 **Target** (R5, inside the Biblioteca):
 
@@ -508,7 +563,7 @@ The campaign's tables (decision 9; the word is **partida**). Only the Máster se
 
 ### 11. Biblioteca del Máster (new, R5)
 
-The GM's first screen after opening a campaign; the grimorio opens from it. Per campaign (universe). Three sections:
+The GM's first screen after opening a campaign; the main list opens from it. Per campaign (universe). Three sections (and, since 22 November 2026, the screens of the campaign's spell and potion lists and of the Máster's gallery, whose side panels stay in «Herramientas»; 10g–10h):
 
 - **Personajes:** every character in the campaign and the GM's own characters; at a glance which player each is assigned to; easy, complete filters and sorting by any stored value (school, house, player, age, magical or not…).
 - **Instituciones:** academies, ministries, guilds… each with a crest, colours, a description and a member list. An institution can have **branches** with their own values: called «**Casas**» in schools and «**Secciones**» in other organizations by default, and the GM can rename the word; today's houses are «Casas» of Magistri Scholae. A character belongs to a branch, to an institution without a branch, or to none (free characters). A character's institution can also be free text instead of one from the list. The GM creates any number of branches.
@@ -587,12 +642,12 @@ A homebrew of the FATE stress rules with wider values. Each track (physical, men
 
 - **Far backlog: a multiverse collection.** A collection of everything created in the magical multiverse, with an archaic Spanish or Latin name, opened from a button near the notes. It copies characters between campaigns, either as an independent copy or as a **linked representation that updates with changes on both sides**. This reverses today's "no automatic two-way sync" rule (design.md section 11) and will need its own design for edits on both sides. It replaces the older private "GM library" idea (R7.5).
 
-- **Full-screen image viewer** for portraits; the galleries already enlarge a picture on tap.
-- **The GM renames the campaign** name he sees (R4).
+- **Full-screen image viewer** for portraits and galleries (**done** 12 November 2026: [Image viewer](#image-viewer)).
+- **The GM renames the campaign** name he sees (**done**, R4 d).
 - **Recovery and invitation links** created from the admin screens (**done**, R4 a: a recovery link lasts 24 hours).
 - **Images from a web address** (downloaded by the server; its own security review).
 - **Testing on a real phone** before each release: a short checklist.
-- **A development copy of the testers' data:** staging now holds their real data, so development needs a separate copy (before or with R6).
+- **A development copy of the testers' data** (**done**, R6: staging holds a development copy).
 
 ## Open questions
 
@@ -600,5 +655,6 @@ Q1–Q8 and Q12–Q14 were answered on 9 November 2026 and folded in above (draf
 
 - **Q10 — Repeated damage.** What happens when pips would overflow without reaching a new step, or when the character already has a consequence of the level a new hit gives (does it move up to the next free level?), and how many consequences of each level a track holds.
 - **Q11 — The app's role in damage.** Should the sheet only record stress and consequences (the GM applies the rules), or offer a «Recibir daño» box that applies them?
+- **Q15 — The administrator's access and the Máster's gallery** (22 Nov step 5; privacy, the owner's to decide). The administrator's access covers the whole campaign, drafts included, except personal notes. Does it include the Máster's own gallery (10h)?
 
 **Q9** was answered on 14 November 2026 (the table in [Stress and consequences](#stress-and-consequences-owner-9-november-2026)). Answered later on 9 November: **Q12** the GM chooses when confirming whether a draft becomes the player's character or his NPC; **Q13** a player can own a «Criatura mágica» from creation, the GM can change a sheet's type later, and temporary versions and sheets based on another were added (Sheet versions); **Q14** personal notes stay excluded from administrator access. Whether a «Criatura mágica» can have a familiar is decided in R4.5's design step.

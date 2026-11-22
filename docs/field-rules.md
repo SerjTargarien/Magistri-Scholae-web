@@ -17,7 +17,7 @@ Not enforced yet; each gets its rule here and in the backend registry when its r
 | «Criatura mágica» | A character type with everything an adult wizard has, plus «Especie», a general «Descripción» and «Pactos» (a list like the journal, each entry linked to another character). | R4.5 |
 | Skills in the catalogue | «Sólo magos» flag; categories added, renamed and reordered by the GM. | R5 |
 | `casa`, `adultWizardProfile/institution`, `curso`, `adultWizardProfile/teachingSubjects`, `clubesList` | Links to the campaign's institutions, branches and school records, with free text kept as a fallback. | R5 |
-| `tarjetasPersonalizadas` (new) | Named cards of custom fields on Perfil: each card a title and its fields, a name and a text value (proposed: up to 20 cards, title required, text 60; up to 50 fields per card, name required, text 60, value text 500). `camposPersonalizados` stays as the first card. | Custom cards (after R4) |
+| `tarjetasPersonalizadas` (new) | Named cards of custom fields on Perfil: each card a title and its fields, a name and a text value (proposed: up to 20 cards, title required, text 60; up to 50 fields per card, name required, text 60, value text 500). `camposPersonalizados` stays as the first card. | Custom cards (22 Nov step 4) |
 | Sheet type changes | The GM changes a sheet's type later (Menor → Adulto, any → «Criatura mágica»); values the new type does not show are kept. | R4.5 |
 
 ## How to read the rules
@@ -105,11 +105,11 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 
 **Esoteric knowledge (owner decision):** each esoteric skill also records its knowledge, independent of its level: basic (alteration), medium (destruction), advanced (creation). **One level per skill (owner decision):** none, basic, medium or advanced; each level includes the ones below it.
 
-**Categories become data (owner decision).** The GM can add categories, move skills between categories and reorder them. So categories stop being fixed text in the code: each campaign has a **skill catalogue** (categories with a name, a position and whether they use esoteric knowledge; default skills with their category and position). The six categories above are the starting catalogue. **A GM change applies to the whole campaign (owner decision):** each character's default skills are linked to the catalogue, so moving or reordering a skill there moves it on every sheet. Skills a player invents stay on that character, filed under a catalogue category and placed after the catalogue's skills in that category. The GM screens to edit the catalogue come with R4; R3.2 builds the data model.
+**Categories become data (owner decision).** The GM can add categories, move skills between categories and reorder them. So categories stop being fixed text in the code: each campaign has a **skill catalogue** (categories with a name, a position and whether they use esoteric knowledge; default skills with their category and position). The six categories above are the starting catalogue. **A GM change applies to the whole campaign (owner decision):** each character's default skills are linked to the catalogue, so moving or reordering a skill there moves it on every sheet. Own skills (since 8 November 2026 only the GM's; from 22 Nov step 3 also a player's proposal kept «solo en esta ficha») stay on that character, filed under a catalogue category and placed after the catalogue's skills in that category. The GM screens to edit the catalogue come with R4; R3.2 builds the data model.
 
 | Field | Today | Rule |
 |---|---|---|
-| `habilidades[].nombre` | **Owner decision, 8 November 2026:** only the GM creates, renames, moves or removes own (non-catalogue) skills; players pick catalogue skills with «+ Añadir de la lista», remove catalogue skills (and pick them again), and change any value. The server refuses anything else with `gm_only_skill` (403), on saves and on creation. Which skills new characters start with is the GM's campaign setting («inicial» in «Habilidades de la campaña»); the per-device preset is gone. A skill the GM types joins the campaign's list. Duplicates rejected. | **Required, text 60**; no duplicate names within a character |
+| `habilidades[].nombre` | **Owner decision, 8 November 2026:** only the GM creates, renames, moves or removes own (non-catalogue) skills; players pick catalogue skills with «+ Añadir de la lista», remove catalogue skills (and pick them again), and change any value. The server refuses anything else with `gm_only_skill` (403), on saves and on creation. Which skills new characters start with is the GM's campaign setting («inicial» in «Habilidades de la campaña»); the per-device preset is gone. A skill the GM types joins the campaign's list. Duplicates rejected. **Planned, 22 Nov step 3 (owner, 22 November 2026):** players may also propose a skill, which waits as «pendiente» until the GM decides (product-design.md 10g); until that step is built, this rule stands. | **Required, text 60**; no duplicate names within a character |
 | `habilidades[].valor` | 0–5. | **Whole number 0–5** |
 | `habilidades[].categoria` | One of five fixed texts; others are invisible. | **A category of the campaign's catalogue** (by ID); default skills also keep a link to their catalogue entry |
 | `habilidades[].conocimiento` | Set in the form and on the sheet (edit mode) for skills in «Magia esotérica», by whoever can edit the sheet; shown as a tag when reading. «Sin conocimiento» removes the field. | **Choice** none / basic / medium / advanced; only for skills in a category marked esoteric |
@@ -124,6 +124,8 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | `.valor` | I–V, stored 1–5. | **Whole number 1–5** |
 | `.specialized` | Checkbox. | Yes/no |
 | lists | | **List ≤ 200** each |
+
+**Planned, 22 Nov steps 2–3 (owner, 22 November 2026; product-design.md 10g).** Proposed limits, confirmed in the step's design and then added to the registry: the campaign's spell list and potion list hold **≤ 500** entries each; an entry has a **required name, text 100**, unique in its list ignoring case and accents, a **difficulty 1–5**, a **description, text 2,000**, and **1–5 required skills** from the campaign's skill list. A sheet's entry links to a list entry and keeps its own «Especialista»; an entry kept «solo en esta ficha» stores its name and difficulty as today. A pending proposal is marked on the sheet's entry. Removing a list entry archives it; sheets keep it.
 
 ## Clubs, equipment and journal (sheet tabs Institución, Magia y equipo and Bitácora)
 
@@ -142,6 +144,8 @@ That makes 48 default skills (Oniromancia appeared twice in the owner's list and
 | Field | Today | Rule |
 |---|---|---|
 | `galleryImages` | Compressed to 1,600 px, JPEG 0.75; removed by position. | Uploaded images only; **list ≤ 50 (owner decision)** |
+
+**Planned, 22 Nov step 5 (owner, 22 November 2026; product-design.md 10h).** Proposed limits, confirmed in the step's design: **≤ 20 collections** per sheet, each with a **required name, text 60**; an image in one collection at most; the sheet's total stays **≤ 50**. The Máster's gallery holds **≤ 1,000 images** (owner) in up to 50 collections. A copy stores the file once.
 
 ## Sheet status (R4 c)
 
